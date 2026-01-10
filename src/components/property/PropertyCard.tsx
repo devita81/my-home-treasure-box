@@ -54,15 +54,6 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
     return address;
   };
 
-  const getFullAddress = () => {
-    let address = property.rua;
-    if (property.numero) address += `, ${property.numero}`;
-    if (property.apartamento) address += ` - Apt ${property.apartamento}`;
-    if (property.complemento) address += ` (${property.complemento})`;
-    address += ` - ${property.bairro}, ${property.cidade} - ${property.estado}`;
-    return address;
-  };
-
   // Check if property has real photos
   const hasRealPhotos = property.photos && property.photos.length > 0 && property.photos[0];
   const photos = hasRealPhotos ? property.photos : [];
@@ -83,16 +74,15 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
 
   const getStatusBadge = () => {
     if (property.vendido) {
-      return <Badge className="bg-destructive text-destructive-foreground">Vendido</Badge>;
+      return <Badge className="bg-destructive text-destructive-foreground text-[10px] px-2 py-0.5">Vendido</Badge>;
     }
     if (property.alugado) {
-      return <Badge className="bg-info text-info-foreground">Alugado</Badge>;
+      return <Badge className="bg-info text-info-foreground text-[10px] px-2 py-0.5">Alugado</Badge>;
     }
-    return <Badge className="bg-success text-success-foreground">Disponível</Badge>;
+    return <Badge className="bg-success text-success-foreground text-[10px] px-2 py-0.5">Disponível</Badge>;
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Don't open modal if clicking on buttons or links
     const target = e.target as HTMLElement;
     if (target.closest('button') || target.closest('a')) {
       return;
@@ -103,122 +93,191 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
   return (
     <>
       <div 
-        className="property-card group cursor-pointer"
+        className="property-card group cursor-pointer overflow-hidden"
         onClick={handleCardClick}
       >
-        <div className={`relative ${hasRealPhotos ? 'aspect-[16/10]' : ''} overflow-hidden`}>
-          {hasRealPhotos ? (
-            <>
-              <img
-                src={property.photos[0]}
-                alt={`${property.rua}, ${property.numero}`}
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-primary hover:bg-card hover:scale-110 transition-all shadow-md"
-                title="Ver no Google Maps"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <MapPin className="h-4 w-4" />
-              </a>
-            </>
-          ) : (
-            <PropertyMapImage
-              rua={property.rua}
-              numero={property.numero}
-              bairro={property.bairro}
-              cidade={property.cidade}
-              estado={property.estado}
-            />
-          )}
-          
-          <div className="absolute top-3 left-3 flex gap-2 z-10">
-            {getStatusBadge()}
-            {property.validado ? (
-              <Badge variant="outline" className="bg-card/80 backdrop-blur-sm border-success text-success">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Validado
-              </Badge>
+        {/* Main horizontal layout */}
+        <div className="flex flex-col sm:flex-row">
+          {/* Image section - left side */}
+          <div className="relative w-full sm:w-1/2 aspect-[4/3] sm:aspect-square overflow-hidden">
+            {hasRealPhotos ? (
+              <>
+                <img
+                  src={property.photos[0]}
+                  alt={`${property.rua}, ${property.numero}`}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-primary hover:bg-card hover:scale-110 transition-all shadow-md z-10"
+                  title="Ver no Google Maps"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <MapPin className="h-3.5 w-3.5" />
+                </a>
+              </>
             ) : (
-              <Badge variant="outline" className="bg-card/80 backdrop-blur-sm border-warning text-warning">
-                <XCircle className="h-3 w-3 mr-1" />
-                Pendente
-              </Badge>
+              <PropertyMapImage
+                rua={property.rua}
+                numero={property.numero}
+                bairro={property.bairro}
+                cidade={property.cidade}
+                estado={property.estado}
+                propertyId={property.id}
+              />
             )}
-          </div>
-
-          <div className="absolute bottom-3 left-3 right-3 z-10">
-            <p className="text-lg font-semibold text-card truncate">
-              {getAddressDisplay()}
-            </p>
-            <div className="flex items-center gap-1 text-card/80 text-sm">
-              <MapPin className="h-3 w-3" />
-              <span>{property.bairro || property.cidade} - {property.estado}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-4 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                <DollarSign className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Valor de Mercado</p>
-                <p className="text-sm font-semibold">{formatCurrency(property.market_value)}</p>
-              </div>
-            </div>
             
-            {property.alugado && property.valor_aluguel && (
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-info/10">
-                  <Key className="h-4 w-4 text-info" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Aluguel</p>
-                  <p className="text-sm font-semibold">{formatCurrency(property.valor_aluguel)}/mês</p>
-                </div>
+            {/* Badges on image */}
+            <div className="absolute top-2 left-2 flex flex-wrap gap-1.5 z-10">
+              {getStatusBadge()}
+              {property.validado ? (
+                <Badge variant="outline" className="bg-card/80 backdrop-blur-sm border-success text-success text-[10px] px-1.5 py-0.5">
+                  <CheckCircle className="h-2.5 w-2.5 mr-0.5" />
+                  OK
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="bg-card/80 backdrop-blur-sm border-warning text-warning text-[10px] px-1.5 py-0.5">
+                  <XCircle className="h-2.5 w-2.5 mr-0.5" />
+                  Pendente
+                </Badge>
+              )}
+            </div>
+
+            {/* Address on image */}
+            <div className="absolute bottom-2 left-2 right-2 z-10">
+              <p className="text-sm font-semibold text-card truncate leading-tight">
+                {getAddressDisplay()}
+              </p>
+              <div className="flex items-center gap-1 text-card/80 text-[11px]">
+                <MapPin className="h-2.5 w-2.5" />
+                <span>{property.bairro || property.cidade} - {property.estado}</span>
               </div>
-            )}
+            </div>
           </div>
 
-          {property.numero_matricula && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Home className="h-3 w-3" />
-              <span>Matrícula: {property.numero_matricula}</span>
-            </div>
-          )}
+          {/* Info section - right side */}
+          <div className="flex-1 p-3 sm:p-4 flex flex-col justify-between bg-card">
+            {/* Values and info */}
+            <div className="space-y-2">
+              {/* Market Value */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <DollarSign className="h-3.5 w-3.5" />
+                  <span className="text-xs">Mercado</span>
+                </div>
+                <span className="text-sm font-semibold">{formatCurrency(property.market_value)}</span>
+              </div>
 
-          <div className="flex gap-2 pt-2 border-t border-border">
-            <Link to={`/property/${property.id}`} className="flex-1" onClick={(e) => e.stopPropagation()}>
-              <Button variant="outline" size="sm" className="w-full">
-                <Eye className="h-4 w-4 mr-1" />
-                Ver
-              </Button>
-            </Link>
-            <Link to={`/edit/${property.id}`} onClick={(e) => e.stopPropagation()}>
-              <Button variant="outline" size="sm">
-                <Edit className="h-4 w-4" />
-              </Button>
-            </Link>
-            {onDelete && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(property.id);
-                }}
-                className="text-destructive hover:text-destructive hover:bg-destructive/10"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
+              {/* Declared Value */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <FileText className="h-3.5 w-3.5" />
+                  <span className="text-xs">Declarado</span>
+                </div>
+                <span className="text-sm font-medium text-muted-foreground">{formatCurrency(property.declared_value)}</span>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-border my-1" />
+
+              {/* Rental info */}
+              {property.alugado && property.valor_aluguel && property.valor_aluguel > 0 ? (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-info">
+                    <Key className="h-3.5 w-3.5" />
+                    <span className="text-xs">Aluguel</span>
+                  </div>
+                  <span className="text-sm font-semibold text-info">{formatCurrency(property.valor_aluguel)}/mês</span>
+                </div>
+              ) : !property.vendido ? (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <Key className="h-3.5 w-3.5" />
+                    <span className="text-xs">Aluguel</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">-</span>
+                </div>
+              ) : null}
+
+              {/* Condominium */}
+              {property.valor_condominio && property.valor_condominio > 0 ? (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <Building className="h-3.5 w-3.5" />
+                    <span className="text-xs">Condomínio</span>
+                  </div>
+                  <span className="text-xs font-medium">{formatCurrency(property.valor_condominio)}/mês</span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <Building className="h-3.5 w-3.5" />
+                    <span className="text-xs">Condomínio</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">-</span>
+                </div>
+              )}
+
+              {/* IPTU */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Calendar className="h-3.5 w-3.5" />
+                  <span className="text-xs">IPTU</span>
+                </div>
+                {property.iptu_value && property.iptu_value > 0 ? (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-medium">{formatCurrency(property.iptu_value)}/ano</span>
+                    {property.iptu_pago && (
+                      <Badge className="bg-success/10 text-success border-0 text-[9px] px-1 py-0">Pago</Badge>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-xs text-muted-foreground">-</span>
+                )}
+              </div>
+
+              {/* Tenant info if rented */}
+              {property.alugado && property.inquilino && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <User className="h-3.5 w-3.5" />
+                    <span className="text-xs">Inquilino</span>
+                  </div>
+                  <span className="text-xs font-medium truncate max-w-[120px]">{property.inquilino}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex gap-1.5 pt-3 mt-auto">
+              <Link to={`/property/${property.id}`} className="flex-1" onClick={(e) => e.stopPropagation()}>
+                <Button variant="default" size="sm" className="w-full h-8 text-xs">
+                  <Eye className="h-3.5 w-3.5 mr-1" />
+                  Ver
+                </Button>
+              </Link>
+              <Link to={`/edit/${property.id}`} onClick={(e) => e.stopPropagation()}>
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                  <Edit className="h-3.5 w-3.5" />
+                </Button>
+              </Link>
+              {onDelete && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(property.id);
+                  }}
+                  className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -230,7 +289,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
             <DialogTitle>Detalhes do Imóvel - {getAddressDisplay()}</DialogTitle>
           </VisuallyHidden>
           
-          {/* Close button - always visible */}
+          {/* Close button */}
           <button
             onClick={() => setIsModalOpen(false)}
             className="absolute top-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-foreground hover:bg-card hover:scale-110 hover:rotate-90 active:scale-95 transition-all duration-200 shadow-lg z-30"
@@ -240,7 +299,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
           
           {/* Horizontal layout on desktop, vertical on mobile */}
           <div className="flex flex-col md:flex-row max-h-[90vh]">
-            {/* Image Section - Square aspect on desktop */}
+            {/* Image Section */}
             <div className="relative w-full md:w-1/2 aspect-square md:aspect-auto md:min-h-[500px] flex-shrink-0 bg-muted overflow-hidden">
               {hasRealPhotos ? (
                 <>
@@ -291,12 +350,19 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                   cidade={property.cidade}
                   estado={property.estado}
                   showControls={true}
+                  propertyId={property.id}
                 />
               )}
               
               {/* Status badges */}
               <div className="absolute top-4 left-4 flex gap-2 z-20">
-                {getStatusBadge()}
+                {property.vendido ? (
+                  <Badge className="bg-destructive text-destructive-foreground">Vendido</Badge>
+                ) : property.alugado ? (
+                  <Badge className="bg-info text-info-foreground">Alugado</Badge>
+                ) : (
+                  <Badge className="bg-success text-success-foreground">Disponível</Badge>
+                )}
                 {property.validado ? (
                   <Badge variant="outline" className="bg-card/90 backdrop-blur-sm border-success text-success">
                     <CheckCircle className="h-3 w-3 mr-1" />
@@ -323,7 +389,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                   </div>
                 </div>
 
-                {/* Values - Vertical stack */}
+                {/* Values */}
                 <div className="space-y-3">
                   <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
                     <div className="flex items-center justify-between">
@@ -413,35 +479,36 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-info/5 border border-info/10">
                       <User className="h-5 w-5 text-info flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-info">Inquilino</p>
-                        <p className="font-medium truncate">{property.inquilino}</p>
+                        <p className="text-xs text-info/70">Inquilino</p>
+                        <p className="font-medium text-info truncate">{property.inquilino}</p>
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex flex-col gap-2 pt-4 border-t border-border">
+                {/* Action buttons */}
+                <div className="flex flex-col gap-3 pt-3">
                   <Link to={`/property/${property.id}`} className="w-full">
-                    <Button className="w-full" size="lg">
+                    <Button className="w-full h-12 text-base">
                       <Eye className="h-5 w-5 mr-2" />
                       Ver Detalhes Completos
                     </Button>
                   </Link>
-                  <div className="flex gap-2">
+
+                  <div className="flex gap-3">
                     <Link to={`/edit/${property.id}`} className="flex-1">
-                      <Button variant="outline" size="default" className="w-full">
+                      <Button variant="outline" className="w-full h-11">
                         <Edit className="h-4 w-4 mr-2" />
                         Editar
                       </Button>
                     </Link>
                     <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getFullAddress())}`}
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex-1"
                     >
-                      <Button variant="outline" size="default" className="w-full">
+                      <Button variant="outline" className="w-full h-11">
                         <MapPin className="h-4 w-4 mr-2" />
                         Mapa
                       </Button>
@@ -456,4 +523,3 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
     </>
   );
 }
-
