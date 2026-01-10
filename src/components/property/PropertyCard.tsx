@@ -1,6 +1,7 @@
 import { Property } from '@/types/property';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { PropertyMapImage } from './PropertyMapImage';
 import { 
   MapPin, 
   Home, 
@@ -13,7 +14,6 @@ import {
   Key
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { cn } from '@/lib/utils';
 
 interface PropertyCardProps {
   property: Property;
@@ -29,11 +29,6 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
     }).format(value);
   };
 
-  const getGoogleMapsUrl = () => {
-    const address = `${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`;
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-  };
-
   const getAddressDisplay = () => {
     let address = property.rua;
     if (property.numero) address += `, ${property.numero}`;
@@ -41,6 +36,9 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
     if (property.complemento) address += ` (${property.complemento})`;
     return address;
   };
+
+  // Check if property has real photos
+  const hasRealPhotos = property.photos && property.photos.length > 0 && property.photos[0];
 
   const getStatusBadge = () => {
     if (property.vendido) {
@@ -55,14 +53,35 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
   return (
     <div className="property-card group">
       <div className="relative aspect-[16/10] overflow-hidden">
-        <img
-          src={property.photos[0] || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800'}
-          alt={`${property.rua}, ${property.numero}`}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
+        {hasRealPhotos ? (
+          <>
+            <img
+              src={property.photos[0]}
+              alt={`${property.rua}, ${property.numero}`}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-primary hover:bg-card hover:scale-110 transition-all shadow-md"
+              title="Ver no Google Maps"
+            >
+              <MapPin className="h-4 w-4" />
+            </a>
+          </>
+        ) : (
+          <PropertyMapImage
+            rua={property.rua}
+            numero={property.numero}
+            bairro={property.bairro}
+            cidade={property.cidade}
+            estado={property.estado}
+          />
+        )}
         
-        <div className="absolute top-3 left-3 flex gap-2">
+        <div className="absolute top-3 left-3 flex gap-2 z-10">
           {getStatusBadge()}
           {property.validado ? (
             <Badge variant="outline" className="bg-card/80 backdrop-blur-sm border-success text-success">
@@ -77,17 +96,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
           )}
         </div>
 
-        <a
-          href={getGoogleMapsUrl()}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-primary hover:bg-card hover:scale-110 transition-all shadow-md"
-          title="Ver no Google Maps"
-        >
-          <MapPin className="h-4 w-4" />
-        </a>
-
-        <div className="absolute bottom-3 left-3 right-3">
+        <div className="absolute bottom-3 left-3 right-3 z-10">
           <p className="text-lg font-semibold text-card truncate">
             {getAddressDisplay()}
           </p>
