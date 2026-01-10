@@ -1,15 +1,26 @@
-import { Home, BarChart3, PlusCircle } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Home, BarChart3, PlusCircle, LogOut } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 export function Header() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut, user } = useAuth();
 
   const navItems = [
     { path: '/', label: 'Coleção', icon: Home },
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
     { path: '/add', label: 'Adicionar', icon: PlusCircle },
   ];
+
+  const handleLogout = async () => {
+    await signOut();
+    toast.success('Logout realizado com sucesso');
+    navigate('/auth');
+  };
 
   return (
     <header className="sticky top-0 z-50 glass-effect border-b border-border">
@@ -29,26 +40,40 @@ export function Header() {
             </div>
           </Link>
 
-          <nav className="flex items-center gap-1">
-            {navItems.map((item) => {
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={cn(
-                    'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                  )}
-                >
-                  <item.icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
+          <div className="flex items-center gap-4">
+            <nav className="flex items-center gap-1">
+              {navItems.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={cn(
+                      'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
+                      isActive
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                    )}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span className="hidden sm:inline">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {user && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Sair</span>
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </header>

@@ -4,11 +4,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { PropertyProvider } from "@/contexts/PropertyContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import AddProperty from "./pages/AddProperty";
 import EditProperty from "./pages/EditProperty";
 import PropertyDetails from "./pages/PropertyDetails";
 import Analytics from "./pages/Analytics";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -16,21 +19,24 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <PropertyProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/add" element={<AddProperty />} />
-            <Route path="/edit/:id" element={<EditProperty />} />
-            <Route path="/property/:id" element={<PropertyDetails />} />
-            <Route path="/analytics" element={<Analytics />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </PropertyProvider>
+      <AuthProvider>
+        <PropertyProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+              <Route path="/add" element={<ProtectedRoute><AddProperty /></ProtectedRoute>} />
+              <Route path="/edit/:id" element={<ProtectedRoute><EditProperty /></ProtectedRoute>} />
+              <Route path="/property/:id" element={<ProtectedRoute><PropertyDetails /></ProtectedRoute>} />
+              <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </PropertyProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
