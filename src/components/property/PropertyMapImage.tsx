@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface PropertyMapImageProps {
@@ -26,11 +26,16 @@ export function PropertyMapImage({
   const address = `${rua}, ${numero || ''}, ${bairro}, ${cidade}, ${estado}, Brasil`;
   const encodedAddress = encodeURIComponent(address);
   
+  // Generate a cache-busting key based on the address - changes when address changes
+  const cacheKey = useMemo(() => {
+    return btoa(address).slice(0, 10);
+  }, [address]);
+  
   // Google Street View Static API URL (primary - index 0)
-  const streetViewStaticUrl = `https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${encodedAddress}&fov=90&heading=235&pitch=10&key=${GOOGLE_MAPS_API_KEY}`;
+  const streetViewStaticUrl = `https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${encodedAddress}&fov=90&heading=235&pitch=10&key=${GOOGLE_MAPS_API_KEY}&_=${cacheKey}`;
   
   // Google Maps Static API URL (secondary - index 1)
-  const mapStaticUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodedAddress}&zoom=17&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${encodedAddress}&key=${GOOGLE_MAPS_API_KEY}`;
+  const mapStaticUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodedAddress}&zoom=17&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${encodedAddress}&key=${GOOGLE_MAPS_API_KEY}&_=${cacheKey}`;
   
   // Fallback embed URLs
   const streetViewEmbedUrl = `https://www.google.com/maps?q=${encodedAddress}&layer=c&cbll=&cbp=&output=embed`;
