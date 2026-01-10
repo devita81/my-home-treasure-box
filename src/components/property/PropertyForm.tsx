@@ -10,6 +10,31 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Save, ArrowLeft, MapPin, DollarSign, FileText, User } from 'lucide-react';
+import { z } from 'zod';
+
+// Validation schema for property form
+const propertySchema = z.object({
+  estado: z.string().min(2).max(2),
+  cidade: z.string().trim().min(2, 'Cidade deve ter pelo menos 2 caracteres').max(100, 'Cidade muito longa'),
+  bairro: z.string().trim().max(100, 'Bairro muito longo').optional().or(z.literal('')),
+  rua: z.string().trim().min(2, 'Rua deve ter pelo menos 2 caracteres').max(200, 'Rua muito longa'),
+  numero: z.string().trim().min(1, 'Número é obrigatório').max(20, 'Número muito longo'),
+  apartamento: z.string().trim().max(20, 'Apartamento muito longo').optional().or(z.literal('')),
+  declared_value: z.number().min(0, 'Valor não pode ser negativo').max(100000000000, 'Valor muito alto'),
+  numero_matricula: z.string().trim().max(50, 'Matrícula muito longa').optional().or(z.literal('')),
+  market_value: z.number().min(0, 'Valor não pode ser negativo').max(100000000000, 'Valor muito alto'),
+  iptu_value: z.number().min(0, 'Valor não pode ser negativo').max(10000000, 'Valor muito alto'),
+  photos: z.array(z.string().url().or(z.literal(''))).optional(),
+  iptu_pago: z.boolean(),
+  proprietario_papel: z.string().trim().max(200, 'Nome muito longo').optional().or(z.literal('')),
+  proprietario_matricula: z.string().trim().max(200, 'Nome muito longo').optional().or(z.literal('')),
+  validado: z.boolean(),
+  vendido: z.boolean(),
+  alugado: z.boolean(),
+  inquilino: z.string().trim().max(200, 'Nome muito longo').optional().or(z.literal('')),
+  valor_aluguel: z.number().min(0, 'Valor não pode ser negativo').max(10000000, 'Valor muito alto'),
+  valor_condominio: z.number().min(0, 'Valor não pode ser negativo').max(1000000, 'Valor muito alto'),
+});
 
 const estados = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
 
@@ -48,16 +73,23 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.cidade || !formData.rua || !formData.numero) {
-      toast.error('Preencha os campos obrigatórios');
+    // Validate form data using zod schema
+    const result = propertySchema.safeParse(formData);
+    
+    if (!result.success) {
+      const firstError = result.error.errors[0];
+      toast.error(firstError.message || 'Dados inválidos');
       return;
     }
 
+    // Use validated data
+    const validatedData = result.data;
+
     if (mode === 'add') {
-      addProperty(formData);
+      addProperty(validatedData as PropertyFormData);
       toast.success('Imóvel adicionado com sucesso!');
     } else if (property) {
-      updateProperty(property.id, formData);
+      updateProperty(property.id, validatedData as PropertyFormData);
       toast.success('Imóvel atualizado com sucesso!');
     }
     
