@@ -4,8 +4,9 @@ export interface Property {
   cidade: string;
   bairro: string;
   rua: string;
-  numero: string;
-  apartamento?: string;
+  numero: string | null;
+  apartamento?: string | null;
+  complemento?: string | null;
   declared_value: number;
   numero_matricula: string;
   market_value: number;
