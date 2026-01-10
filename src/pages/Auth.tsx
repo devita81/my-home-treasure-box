@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { Building2, LogIn, UserPlus } from 'lucide-react';
+import { Building2, LogIn } from 'lucide-react';
 
 const authSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -15,11 +15,10 @@ const authSchema = z.object({
 });
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp, user, loading: authLoading } = useAuth();
+  const { signIn, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   // Redirect if already authenticated
@@ -49,31 +48,17 @@ export default function Auth() {
     }
 
     try {
-      if (isLogin) {
-        const { error } = await signIn(email, password);
-        if (error) {
-          if (error.message.includes('Invalid login credentials')) {
-            toast.error('Email ou senha incorretos');
-          } else {
-            toast.error(error.message);
-          }
-          return;
+      const { error } = await signIn(email, password);
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          toast.error('Email ou senha incorretos');
+        } else {
+          toast.error(error.message);
         }
-        toast.success('Login realizado com sucesso!');
-        navigate('/');
-      } else {
-        const { error } = await signUp(email, password);
-        if (error) {
-          if (error.message.includes('User already registered')) {
-            toast.error('Este email já está cadastrado');
-          } else {
-            toast.error(error.message);
-          }
-          return;
-        }
-        toast.success('Conta criada com sucesso! Você já pode fazer login.');
-        navigate('/');
+        return;
       }
+      toast.success('Login realizado com sucesso!');
+      navigate('/');
     } finally {
       setLoading(false);
     }
@@ -88,13 +73,9 @@ export default function Auth() {
               <Building2 className="h-8 w-8 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl">
-            {isLogin ? 'Entrar' : 'Criar Conta'}
-          </CardTitle>
+          <CardTitle className="text-2xl">Entrar</CardTitle>
           <CardDescription>
-            {isLogin
-              ? 'Acesse sua conta para gerenciar seus imóveis'
-              : 'Crie sua conta para começar a gerenciar imóveis'}
+            Acesse sua conta para gerenciar seus imóveis
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -127,31 +108,14 @@ export default function Auth() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              ) : isLogin ? (
+              ) : (
                 <>
                   <LogIn className="mr-2 h-4 w-4" />
                   Entrar
                 </>
-              ) : (
-                <>
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Criar Conta
-                </>
               )}
             </Button>
           </form>
-          <div className="mt-4 text-center">
-            <button
-              type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              disabled={loading}
-            >
-              {isLogin
-                ? 'Não tem uma conta? Cadastre-se'
-                : 'Já tem uma conta? Faça login'}
-            </button>
-          </div>
         </CardContent>
       </Card>
     </div>
