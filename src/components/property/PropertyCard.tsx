@@ -47,11 +47,16 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
     }).format(value);
   };
 
+  const toSentenceCase = (text: string) => {
+    if (!text) return '';
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  };
+
   const getAddressDisplay = () => {
-    let address = property.rua;
+    let address = toSentenceCase(property.rua);
     if (property.numero) address += `, ${property.numero}`;
     if (property.apartamento) address += ` - Ap ${property.apartamento}`;
-    if (property.complemento) address += ` (${property.complemento})`;
+    if (property.complemento) address += ` (${toSentenceCase(property.complemento)})`;
     return address;
   };
 
