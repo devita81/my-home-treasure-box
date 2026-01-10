@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 import { MapPin, ChevronLeft, ChevronRight, RefreshCw, RotateCcw } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 
@@ -79,6 +79,7 @@ export function PropertyMapImage({
   showControls = false,
   propertyId,
 }: PropertyMapImageProps) {
+  const instanceId = useId();
   const [currentIndex, setCurrentIndex] = useState(0); // 0 = Street View, 1 = Map
   const [imageErrors, setImageErrors] = useState<{ [key: number]: boolean }>({});
   const [refreshKey, setRefreshKey] = useState(Date.now());
@@ -93,6 +94,22 @@ export function PropertyMapImage({
   useEffect(() => {
     setHeading(getStoredHeading(propertyId));
   }, [propertyId]);
+
+  // Listen for heading changes from other instances (sync between card and modal)
+  useEffect(() => {
+    if (!propertyId) return;
+
+    const handleHeadingEvent = (e: Event) => {
+      const detail = (e as CustomEvent<HeadingChangeDetail>).detail;
+      if (detail.propertyId === propertyId && detail.senderId !== instanceId) {
+        setHeading(detail.heading);
+        setRefreshKey(Date.now());
+      }
+    };
+
+    window.addEventListener(HEADING_EVENT, handleHeadingEvent);
+    return () => window.removeEventListener(HEADING_EVENT, handleHeadingEvent);
+  }, [propertyId, instanceId]);
 
   // Auto-refresh when address changes (prevents stale images after edits)
   useEffect(() => {
@@ -116,12 +133,19 @@ export function PropertyMapImage({
     setTimeout(() => setIsRefreshing(false), 1000);
   };
 
-  const handleHeadingChange = (value: number[]) => {
+  const handleHeadingChange = useCallback((value: number[]) => {
     const newHeading = value[0];
     setHeading(newHeading);
-    saveHeading(propertyId, newHeading);
+    saveHeading(propertyId, newHeading, instanceId);
     setRefreshKey(Date.now());
-  };
+  }, [propertyId, instanceId]);
+
+  const handleResetHeading = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setHeading(DEFAULT_HEADING);
+    saveHeading(propertyId, DEFAULT_HEADING, instanceId);
+    setRefreshKey(Date.now());
+  }, [propertyId, instanceId]);
 
   const toggleHeadingControl = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -234,11 +258,7 @@ export function PropertyMapImage({
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-white/80 text-xs">Ângulo: {heading}°</span>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setHeading(DEFAULT_HEADING);
-                    setRefreshKey(Date.now());
-                  }}
+                  onClick={handleResetHeading}
                   className="ml-auto text-white/60 hover:text-white text-xs flex items-center gap-1"
                   title="Resetar ângulo"
                 >
