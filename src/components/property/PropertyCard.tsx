@@ -106,7 +106,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
         className="property-card group cursor-pointer"
         onClick={handleCardClick}
       >
-        <div className="relative aspect-[16/10] overflow-hidden">
+        <div className={`relative ${hasRealPhotos ? 'aspect-[16/10]' : ''} overflow-hidden`}>
           {hasRealPhotos ? (
             <>
               <img
@@ -127,13 +127,15 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
               </a>
             </>
           ) : (
-            <PropertyMapImage
-              rua={property.rua}
-              numero={property.numero}
-              bairro={property.bairro}
-              cidade={property.cidade}
-              estado={property.estado}
-            />
+            <div className="aspect-[16/10]">
+              <PropertyMapImage
+                rua={property.rua}
+                numero={property.numero}
+                bairro={property.bairro}
+                cidade={property.cidade}
+                estado={property.estado}
+              />
+            </div>
           )}
           
           <div className="absolute top-3 left-3 flex gap-2 z-10">
