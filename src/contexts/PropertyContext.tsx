@@ -1,16 +1,19 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import { Property, PropertyFormData, PropertyFilters } from '@/types/property';
-import { mockProperties } from '@/data/mockProperties';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface PropertyContextType {
   properties: Property[];
   filters: PropertyFilters;
+  loading: boolean;
   setFilters: (filters: PropertyFilters) => void;
-  addProperty: (property: PropertyFormData) => void;
-  updateProperty: (id: string, property: Partial<Property>) => void;
-  deleteProperty: (id: string) => void;
+  addProperty: (property: PropertyFormData) => Promise<void>;
+  updateProperty: (id: string, property: Partial<Property>) => Promise<void>;
+  deleteProperty: (id: string) => Promise<void>;
   getFilteredProperties: () => Property[];
   getPropertyById: (id: string) => Property | undefined;
+  refreshProperties: () => Promise<void>;
 }
 
 const PropertyContext = createContext<PropertyContextType | undefined>(undefined);
@@ -24,32 +27,84 @@ const initialFilters: PropertyFilters = {
 };
 
 export function PropertyProvider({ children }: { children: ReactNode }) {
-  const [properties, setProperties] = useState<Property[]>(mockProperties);
+  const [properties, setProperties] = useState<Property[]>([]);
   const [filters, setFilters] = useState<PropertyFilters>(initialFilters);
+  const [loading, setLoading] = useState(true);
 
-  const addProperty = useCallback((propertyData: PropertyFormData) => {
-    const newProperty: Property = {
-      ...propertyData,
-      id: `prop-${Date.now()}`,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      user_id: 'user-1',
-    };
-    setProperties((prev) => [newProperty, ...prev]);
+  const fetchProperties = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      setProperties(data as Property[]);
+    } catch (error: any) {
+      console.error('Error fetching properties:', error);
+      toast.error('Erro ao carregar imóveis');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const updateProperty = useCallback((id: string, updates: Partial<Property>) => {
-    setProperties((prev) =>
-      prev.map((prop) =>
-        prop.id === id
-          ? { ...prop, ...updates, updated_at: new Date().toISOString() }
-          : prop
-      )
-    );
+  useEffect(() => {
+    fetchProperties();
+  }, [fetchProperties]);
+
+  const addProperty = useCallback(async (propertyData: PropertyFormData) => {
+    try {
+      const { data, error } = await supabase
+        .from('properties')
+        .insert([propertyData])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setProperties((prev) => [data as Property, ...prev]);
+    } catch (error: any) {
+      console.error('Error adding property:', error);
+      throw error;
+    }
   }, []);
 
-  const deleteProperty = useCallback((id: string) => {
-    setProperties((prev) => prev.filter((prop) => prop.id !== id));
+  const updateProperty = useCallback(async (id: string, updates: Partial<Property>) => {
+    try {
+      const { data, error } = await supabase
+        .from('properties')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setProperties((prev) =>
+        prev.map((prop) => (prop.id === id ? (data as Property) : prop))
+      );
+    } catch (error: any) {
+      console.error('Error updating property:', error);
+      throw error;
+    }
+  }, []);
+
+  const deleteProperty = useCallback(async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('properties')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setProperties((prev) => prev.filter((prop) => prop.id !== id));
+    } catch (error: any) {
+      console.error('Error deleting property:', error);
+      throw error;
+    }
   }, []);
 
   const getFilteredProperties = useCallback(() => {
@@ -61,7 +116,7 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
           property.rua.toLowerCase().includes(searchLower) ||
           property.bairro.toLowerCase().includes(searchLower) ||
           property.cidade.toLowerCase().includes(searchLower) ||
-          property.numero_matricula.toLowerCase().includes(searchLower);
+          (property.numero_matricula?.toLowerCase().includes(searchLower) ?? false);
         if (!matchesSearch) return false;
       }
 
@@ -93,17 +148,23 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
     [properties]
   );
 
+  const refreshProperties = useCallback(async () => {
+    await fetchProperties();
+  }, [fetchProperties]);
+
   return (
     <PropertyContext.Provider
       value={{
         properties,
         filters,
+        loading,
         setFilters,
         addProperty,
         updateProperty,
         deleteProperty,
         getFilteredProperties,
         getPropertyById,
+        refreshProperties,
       }}
     >
       {children}

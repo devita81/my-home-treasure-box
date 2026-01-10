@@ -30,8 +30,16 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
   };
 
   const getGoogleMapsUrl = () => {
-    const address = `${property.rua}, ${property.numero}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`;
+    const address = `${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`;
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+  };
+
+  const getAddressDisplay = () => {
+    let address = property.rua;
+    if (property.numero) address += `, ${property.numero}`;
+    if (property.apartamento) address += ` - ${property.apartamento}`;
+    if (property.complemento) address += ` (${property.complemento})`;
+    return address;
   };
 
   const getStatusBadge = () => {
@@ -81,12 +89,11 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
 
         <div className="absolute bottom-3 left-3 right-3">
           <p className="text-lg font-semibold text-card truncate">
-            {property.rua}, {property.numero}
-            {property.apartamento && ` - Apt ${property.apartamento}`}
+            {getAddressDisplay()}
           </p>
           <div className="flex items-center gap-1 text-card/80 text-sm">
             <MapPin className="h-3 w-3" />
-            <span>{property.bairro}, {property.cidade} - {property.estado}</span>
+            <span>{property.bairro || property.cidade} - {property.estado}</span>
           </div>
         </div>
       </div>
@@ -116,10 +123,12 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
           )}
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Home className="h-3 w-3" />
-          <span>Matrícula: {property.numero_matricula}</span>
-        </div>
+        {property.numero_matricula && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Home className="h-3 w-3" />
+            <span>Matrícula: {property.numero_matricula}</span>
+          </div>
+        )}
 
         <div className="flex gap-2 pt-2 border-t border-border">
           <Link to={`/property/${property.id}`} className="flex-1">

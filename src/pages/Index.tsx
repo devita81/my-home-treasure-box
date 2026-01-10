@@ -9,13 +9,17 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 const Index = () => {
-  const { getFilteredProperties, deleteProperty } = useProperties();
+  const { getFilteredProperties, deleteProperty, loading } = useProperties();
   const filteredProperties = getFilteredProperties();
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir este imóvel?')) {
-      deleteProperty(id);
-      toast.success('Imóvel excluído com sucesso!');
+      try {
+        await deleteProperty(id);
+        toast.success('Imóvel excluído com sucesso!');
+      } catch {
+        toast.error('Erro ao excluir imóvel');
+      }
     }
   };
 

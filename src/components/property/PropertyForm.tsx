@@ -18,8 +18,9 @@ const propertySchema = z.object({
   cidade: z.string().trim().min(2, 'Cidade deve ter pelo menos 2 caracteres').max(100, 'Cidade muito longa'),
   bairro: z.string().trim().max(100, 'Bairro muito longo').optional().or(z.literal('')),
   rua: z.string().trim().min(2, 'Rua deve ter pelo menos 2 caracteres').max(200, 'Rua muito longa'),
-  numero: z.string().trim().min(1, 'Número é obrigatório').max(20, 'Número muito longo'),
-  apartamento: z.string().trim().max(20, 'Apartamento muito longo').optional().or(z.literal('')),
+  numero: z.string().trim().max(20, 'Número muito longo').optional().or(z.literal('')).nullable(),
+  apartamento: z.string().trim().max(20, 'Apartamento muito longo').optional().or(z.literal('')).nullable(),
+  complemento: z.string().trim().max(100, 'Complemento muito longo').optional().or(z.literal('')).nullable(),
   declared_value: z.number().min(0, 'Valor não pode ser negativo').max(100000000000, 'Valor muito alto'),
   numero_matricula: z.string().trim().max(50, 'Matrícula muito longa').optional().or(z.literal('')),
   market_value: z.number().min(0, 'Valor não pode ser negativo').max(100000000000, 'Valor muito alto'),
@@ -54,6 +55,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
     rua: property?.rua || '',
     numero: property?.numero || '',
     apartamento: property?.apartamento || '',
+    complemento: property?.complemento || '',
     declared_value: property?.declared_value || 0,
     numero_matricula: property?.numero_matricula || '',
     market_value: property?.market_value || 0,
@@ -173,23 +175,33 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="numero">Número *</Label>
+                <Label htmlFor="numero">Número</Label>
                 <Input
                   id="numero"
-                  value={formData.numero}
+                  value={formData.numero || ''}
                   onChange={(e) => handleChange('numero', e.target.value)}
                   placeholder="1500"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="apartamento">Apartamento</Label>
+                <Label htmlFor="apartamento">Unidade (AP/CJ/LT)</Label>
                 <Input
                   id="apartamento"
-                  value={formData.apartamento}
+                  value={formData.apartamento || ''}
                   onChange={(e) => handleChange('apartamento', e.target.value)}
-                  placeholder="121"
+                  placeholder="AP 121"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="complemento">Complemento</Label>
+              <Input
+                id="complemento"
+                value={formData.complemento || ''}
+                onChange={(e) => handleChange('complemento', e.target.value)}
+                placeholder="Quadra H, Bloco B"
+              />
             </div>
           </CardContent>
         </Card>

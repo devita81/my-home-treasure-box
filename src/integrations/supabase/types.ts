@@ -14,7 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      properties: {
+        Row: {
+          alugado: boolean | null
+          apartamento: string | null
+          bairro: string
+          cidade: string
+          complemento: string | null
+          created_at: string
+          declared_value: number
+          estado: string
+          id: string
+          inquilino: string | null
+          iptu_pago: boolean | null
+          iptu_value: number | null
+          market_value: number | null
+          numero: string | null
+          numero_matricula: string | null
+          photos: string[] | null
+          proprietario_matricula: string | null
+          proprietario_papel: string | null
+          rua: string
+          updated_at: string
+          user_id: string | null
+          validado: boolean | null
+          valor_aluguel: number | null
+          valor_condominio: number | null
+          vendido: boolean | null
+        }
+        Insert: {
+          alugado?: boolean | null
+          apartamento?: string | null
+          bairro?: string
+          cidade?: string
+          complemento?: string | null
+          created_at?: string
+          declared_value?: number
+          estado?: string
+          id?: string
+          inquilino?: string | null
+          iptu_pago?: boolean | null
+          iptu_value?: number | null
+          market_value?: number | null
+          numero?: string | null
+          numero_matricula?: string | null
+          photos?: string[] | null
+          proprietario_matricula?: string | null
+          proprietario_papel?: string | null
+          rua: string
+          updated_at?: string
+          user_id?: string | null
+          validado?: boolean | null
+          valor_aluguel?: number | null
+          valor_condominio?: number | null
+          vendido?: boolean | null
+        }
+        Update: {
+          alugado?: boolean | null
+          apartamento?: string | null
+          bairro?: string
+          cidade?: string
+          complemento?: string | null
+          created_at?: string
+          declared_value?: number
+          estado?: string
+          id?: string
+          inquilino?: string | null
+          iptu_pago?: boolean | null
+          iptu_value?: number | null
+          market_value?: number | null
+          numero?: string | null
+          numero_matricula?: string | null
+          photos?: string[] | null
+          proprietario_matricula?: string | null
+          proprietario_papel?: string | null
+          rua?: string
+          updated_at?: string
+          user_id?: string | null
+          validado?: boolean | null
+          valor_aluguel?: number | null
+          valor_condominio?: number | null
+          vendido?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
