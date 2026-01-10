@@ -10,12 +10,10 @@ import {
   CheckCircle, 
   XCircle,
   DollarSign,
-  Key,
-  Copy
+  Key
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
 
 interface PropertyCardProps {
   property: Property;
@@ -31,17 +29,9 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
     }).format(value);
   };
 
-  const getFullAddress = () => {
-    return `${property.rua}, ${property.numero}${property.apartamento ? ` - Apt ${property.apartamento}` : ''}, ${property.bairro}, ${property.cidade} - ${property.estado}, Brasil`;
-  };
-
-  const copyAddressToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(getFullAddress());
-      toast.success('Endereço copiado!');
-    } catch {
-      toast.error('Erro ao copiar endereço');
-    }
+  const getGoogleMapsUrl = () => {
+    const address = `${property.rua}, ${property.numero}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`;
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
   };
 
   const getStatusBadge = () => {
@@ -79,13 +69,15 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
           )}
         </div>
 
-        <button
-          onClick={copyAddressToClipboard}
+        <a
+          href={getGoogleMapsUrl()}
+          target="_blank"
+          rel="noopener noreferrer"
           className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-primary hover:bg-card hover:scale-110 transition-all shadow-md"
-          title="Copiar endereço"
+          title="Ver no Google Maps"
         >
-          <Copy className="h-4 w-4" />
-        </button>
+          <MapPin className="h-4 w-4" />
+        </a>
 
         <div className="absolute bottom-3 left-3 right-3">
           <p className="text-lg font-semibold text-card truncate">
