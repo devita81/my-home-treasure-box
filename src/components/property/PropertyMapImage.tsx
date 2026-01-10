@@ -43,6 +43,7 @@ export function PropertyMapImage({
 
   const handleRefresh = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     setIsRefreshing(true);
     setImageErrors({});
     setRefreshKey(Date.now());
@@ -79,7 +80,7 @@ export function PropertyMapImage({
   const hasError = imageErrors[currentIndex];
 
   return (
-    <div className={`relative w-full h-full ${className}`}>
+    <div className={`relative w-full h-full group ${className}`}>
       {/* Image or Fallback Iframe */}
       {!hasError ? (
         <img
@@ -141,13 +142,14 @@ export function PropertyMapImage({
         ))}
       </div>
       
-      {/* Refresh button */}
+      {/* Refresh button - discrete, only visible on hover */}
       <button
         onClick={handleRefresh}
-        className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-muted-foreground hover:text-foreground hover:bg-card hover:scale-110 transition-all shadow-md z-10"
+        onMouseDown={(e) => e.stopPropagation()}
+        className="absolute bottom-3 right-3 flex h-6 w-6 items-center justify-center rounded-full bg-black/30 backdrop-blur-sm text-white/60 hover:text-white hover:bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10"
         title="Atualizar imagem"
       >
-        <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+        <RefreshCw className={`h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`} />
       </button>
       
       {/* Google Maps link */}
