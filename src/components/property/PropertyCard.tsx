@@ -38,7 +38,8 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number | null | undefined) => {
+    if (value === null || value === undefined) return null;
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
@@ -49,12 +50,11 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
   const getAddressDisplay = () => {
     let address = property.rua;
     if (property.numero) address += `, ${property.numero}`;
-    if (property.apartamento) address += ` - ${property.apartamento}`;
+    if (property.apartamento) address += ` - Ap ${property.apartamento}`;
     if (property.complemento) address += ` (${property.complemento})`;
     return address;
   };
 
-  // Check if property has real photos
   const hasRealPhotos = property.photos && property.photos.length > 0 && property.photos[0];
   const photos = hasRealPhotos ? property.photos : [];
 
@@ -72,16 +72,6 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
     }
   };
 
-  const getStatusBadge = () => {
-    if (property.vendido) {
-      return <Badge className="bg-destructive text-destructive-foreground text-[10px] px-2 py-0.5">Vendido</Badge>;
-    }
-    if (property.alugado) {
-      return <Badge className="bg-info text-info-foreground text-[10px] px-2 py-0.5">Alugado</Badge>;
-    }
-    return <Badge className="bg-success text-success-foreground text-[10px] px-2 py-0.5">Disponível</Badge>;
-  };
-
   const handleCardClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
     if (target.closest('button') || target.closest('a')) {
@@ -93,30 +83,30 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
   return (
     <>
       <div 
-        className="property-card group cursor-pointer overflow-hidden"
+        className="bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
         onClick={handleCardClick}
       >
         {/* Main horizontal layout */}
         <div className="flex flex-col sm:flex-row">
-          {/* Image section - left side */}
-          <div className="relative w-full sm:w-1/2 aspect-[4/3] sm:aspect-square overflow-hidden">
+          {/* Image section */}
+          <div className="relative w-full sm:w-[45%] aspect-[4/3] overflow-hidden bg-muted">
             {hasRealPhotos ? (
               <>
                 <img
                   src={property.photos[0]}
                   alt={`${property.rua}, ${property.numero}`}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
                 <a
                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-primary hover:bg-card hover:scale-110 transition-all shadow-md z-10"
+                  className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-primary hover:bg-white hover:scale-110 transition-all shadow-md z-10"
                   title="Ver no Google Maps"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <MapPin className="h-3.5 w-3.5" />
+                  <MapPin className="h-4 w-4" />
                 </a>
               </>
             ) : (
@@ -130,138 +120,144 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
               />
             )}
             
-            {/* Badges on image */}
-            <div className="absolute top-2 left-2 flex flex-wrap gap-1.5 z-10">
-              {getStatusBadge()}
+            {/* Status badges */}
+            <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
+              {property.vendido ? (
+                <Badge className="bg-destructive text-destructive-foreground text-xs">Vendido</Badge>
+              ) : property.alugado ? (
+                <Badge className="bg-info text-info-foreground text-xs">Alugado</Badge>
+              ) : (
+                <Badge className="bg-success text-success-foreground text-xs">Disponível</Badge>
+              )}
               {property.validado ? (
-                <Badge variant="outline" className="bg-card/80 backdrop-blur-sm border-success text-success text-[10px] px-1.5 py-0.5">
-                  <CheckCircle className="h-2.5 w-2.5 mr-0.5" />
-                  OK
+                <Badge variant="outline" className="bg-white/90 border-success text-success text-xs">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Validado
                 </Badge>
               ) : (
-                <Badge variant="outline" className="bg-card/80 backdrop-blur-sm border-warning text-warning text-[10px] px-1.5 py-0.5">
-                  <XCircle className="h-2.5 w-2.5 mr-0.5" />
+                <Badge variant="outline" className="bg-white/90 border-warning text-warning text-xs">
+                  <XCircle className="h-3 w-3 mr-1" />
                   Pendente
                 </Badge>
               )}
             </div>
 
             {/* Address on image */}
-            <div className="absolute bottom-2 left-2 right-2 z-10">
-              <p className="text-sm font-semibold text-card truncate leading-tight">
+            <div className="absolute bottom-3 left-3 right-3 z-10">
+              <p className="text-white font-semibold text-sm truncate drop-shadow-md">
                 {getAddressDisplay()}
               </p>
-              <div className="flex items-center gap-1 text-card/80 text-[11px]">
-                <MapPin className="h-2.5 w-2.5" />
-                <span>{property.bairro || property.cidade} - {property.estado}</span>
+              <div className="flex items-center gap-1 text-white/90 text-xs mt-0.5">
+                <MapPin className="h-3 w-3" />
+                <span>{property.bairro}, {property.cidade} - {property.estado}</span>
               </div>
             </div>
           </div>
 
-          {/* Info section - right side */}
-          <div className="flex-1 p-3 sm:p-4 flex flex-col justify-between bg-card">
-            {/* Values and info */}
-            <div className="space-y-2">
-              {/* Market Value */}
+          {/* Info section */}
+          <div className="flex-1 p-4 sm:p-5 flex flex-col">
+            {/* Values section */}
+            <div className="space-y-3 flex-1">
+              {/* Market Value - Primary */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-muted-foreground">
-                  <DollarSign className="h-3.5 w-3.5" />
-                  <span className="text-xs">Mercado</span>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+                    <DollarSign className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="text-sm">Valor de mercado</span>
                 </div>
-                <span className="text-sm font-semibold">{formatCurrency(property.market_value)}</span>
+                <span className="text-base font-bold">{formatCurrency(property.market_value) || '—'}</span>
               </div>
 
               {/* Declared Value */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-muted-foreground">
-                  <FileText className="h-3.5 w-3.5" />
-                  <span className="text-xs">Declarado</span>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
+                    <FileText className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm">Valor declarado</span>
                 </div>
-                <span className="text-sm font-medium text-muted-foreground">{formatCurrency(property.declared_value)}</span>
+                <span className="text-sm font-medium text-muted-foreground">{formatCurrency(property.declared_value) || '—'}</span>
               </div>
 
-              {/* Divider */}
-              <div className="border-t border-border my-1" />
+              {/* Separator */}
+              <div className="border-t border-border" />
 
               {/* Rental info */}
-              {property.alugado && property.valor_aluguel && property.valor_aluguel > 0 ? (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-info">
-                    <Key className="h-3.5 w-3.5" />
-                    <span className="text-xs">Aluguel</span>
-                  </div>
-                  <span className="text-sm font-semibold text-info">{formatCurrency(property.valor_aluguel)}/mês</span>
-                </div>
-              ) : !property.vendido ? (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Key className="h-3.5 w-3.5" />
-                    <span className="text-xs">Aluguel</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground">-</span>
-                </div>
-              ) : null}
-
-              {/* Condominium */}
-              {property.valor_condominio && property.valor_condominio > 0 ? (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Building className="h-3.5 w-3.5" />
-                    <span className="text-xs">Condomínio</span>
-                  </div>
-                  <span className="text-xs font-medium">{formatCurrency(property.valor_condominio)}/mês</span>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Building className="h-3.5 w-3.5" />
-                    <span className="text-xs">Condomínio</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground">-</span>
-                </div>
-              )}
-
-              {/* IPTU */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-muted-foreground">
-                  <Calendar className="h-3.5 w-3.5" />
-                  <span className="text-xs">IPTU</span>
-                </div>
-                {property.iptu_value && property.iptu_value > 0 ? (
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-medium">{formatCurrency(property.iptu_value)}/ano</span>
-                    {property.iptu_pago && (
-                      <Badge className="bg-success/10 text-success border-0 text-[9px] px-1 py-0">Pago</Badge>
-                    )}
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${property.alugado && property.valor_aluguel && property.valor_aluguel > 0 ? 'bg-info/10' : 'bg-muted'}`}>
+                    <Key className={`h-4 w-4 ${property.alugado && property.valor_aluguel && property.valor_aluguel > 0 ? 'text-info' : ''}`} />
                   </div>
+                  <span className="text-sm">Aluguel</span>
+                </div>
+                {property.alugado && property.valor_aluguel && property.valor_aluguel > 0 ? (
+                  <span className="text-sm font-semibold text-info">{formatCurrency(property.valor_aluguel)}/mês</span>
                 ) : (
-                  <span className="text-xs text-muted-foreground">-</span>
+                  <span className="text-sm text-muted-foreground">—</span>
                 )}
               </div>
 
-              {/* Tenant info if rented */}
+              {/* Condominium */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
+                    <Building className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm">Condomínio</span>
+                </div>
+                {property.valor_condominio && property.valor_condominio > 0 ? (
+                  <span className="text-sm font-medium">{formatCurrency(property.valor_condominio)}/mês</span>
+                ) : (
+                  <span className="text-sm text-muted-foreground">—</span>
+                )}
+              </div>
+
+              {/* IPTU */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
+                    <Calendar className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm">IPTU anual</span>
+                </div>
+                {property.iptu_value && property.iptu_value > 0 ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">{formatCurrency(property.iptu_value)}</span>
+                    {property.iptu_pago && (
+                      <Badge className="bg-success/10 text-success border-0 text-[10px] px-1.5">Pago</Badge>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-sm text-muted-foreground">—</span>
+                )}
+              </div>
+
+              {/* Tenant if rented */}
               {property.alugado && property.inquilino && (
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <User className="h-3.5 w-3.5" />
-                    <span className="text-xs">Inquilino</span>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-info/10">
+                      <User className="h-4 w-4 text-info" />
+                    </div>
+                    <span className="text-sm">Inquilino</span>
                   </div>
-                  <span className="text-xs font-medium truncate max-w-[120px]">{property.inquilino}</span>
+                  <span className="text-sm font-medium truncate max-w-[140px]">{property.inquilino}</span>
                 </div>
               )}
             </div>
 
             {/* Action buttons */}
-            <div className="flex gap-1.5 pt-3 mt-auto">
+            <div className="flex gap-2 pt-4 mt-auto border-t border-border">
               <Link to={`/property/${property.id}`} className="flex-1" onClick={(e) => e.stopPropagation()}>
-                <Button variant="default" size="sm" className="w-full h-8 text-xs">
-                  <Eye className="h-3.5 w-3.5 mr-1" />
-                  Ver
+                <Button variant="default" size="sm" className="w-full">
+                  <Eye className="h-4 w-4 mr-1.5" />
+                  Ver detalhes
                 </Button>
               </Link>
               <Link to={`/edit/${property.id}`} onClick={(e) => e.stopPropagation()}>
-                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                  <Edit className="h-3.5 w-3.5" />
+                <Button variant="outline" size="sm" className="px-3">
+                  <Edit className="h-4 w-4" />
                 </Button>
               </Link>
               {onDelete && (
@@ -272,9 +268,9 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                     e.stopPropagation();
                     onDelete(property.id);
                   }}
-                  className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  className="px-3 text-destructive hover:text-destructive hover:bg-destructive/10"
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               )}
             </div>
@@ -286,18 +282,16 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden p-0 data-[state=open]:animate-modal-enter data-[state=closed]:animate-modal-exit">
           <VisuallyHidden>
-            <DialogTitle>Detalhes do Imóvel - {getAddressDisplay()}</DialogTitle>
+            <DialogTitle>Detalhes do imóvel - {getAddressDisplay()}</DialogTitle>
           </VisuallyHidden>
           
-          {/* Close button */}
           <button
             onClick={() => setIsModalOpen(false)}
-            className="absolute top-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-foreground hover:bg-card hover:scale-110 hover:rotate-90 active:scale-95 transition-all duration-200 shadow-lg z-30"
+            className="absolute top-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-foreground hover:bg-white hover:scale-110 hover:rotate-90 active:scale-95 transition-all duration-200 shadow-lg z-30"
           >
             <X className="h-5 w-5" />
           </button>
           
-          {/* Horizontal layout on desktop, vertical on mobile */}
           <div className="flex flex-col md:flex-row max-h-[90vh]">
             {/* Image Section */}
             <div className="relative w-full md:w-1/2 aspect-square md:aspect-auto md:min-h-[500px] flex-shrink-0 bg-muted overflow-hidden">
@@ -313,13 +307,13 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                     <>
                       <button
                         onClick={prevPhoto}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-foreground hover:bg-card hover:scale-110 active:scale-95 transition-all duration-200 shadow-lg"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-foreground hover:bg-white hover:scale-110 active:scale-95 transition-all duration-200 shadow-lg"
                       >
                         <ChevronLeft className="h-6 w-6" />
                       </button>
                       <button
                         onClick={nextPhoto}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-foreground hover:bg-card hover:scale-110 active:scale-95 transition-all duration-200 shadow-lg"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-foreground hover:bg-white hover:scale-110 active:scale-95 transition-all duration-200 shadow-lg"
                       >
                         <ChevronRight className="h-6 w-6" />
                       </button>
@@ -334,7 +328,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                             className={`h-2 w-2 rounded-full transition-all ${
                               index === currentPhotoIndex 
                                 ? 'bg-primary w-6' 
-                                : 'bg-card/60 hover:bg-card/80'
+                                : 'bg-white/60 hover:bg-white/80'
                             }`}
                           />
                         ))}
@@ -364,12 +358,12 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                   <Badge className="bg-success text-success-foreground">Disponível</Badge>
                 )}
                 {property.validado ? (
-                  <Badge variant="outline" className="bg-card/90 backdrop-blur-sm border-success text-success">
+                  <Badge variant="outline" className="bg-white/90 border-success text-success">
                     <CheckCircle className="h-3 w-3 mr-1" />
                     Validado
                   </Badge>
                 ) : (
-                  <Badge variant="outline" className="bg-card/90 backdrop-blur-sm border-warning text-warning">
+                  <Badge variant="outline" className="bg-white/90 border-warning text-warning">
                     <XCircle className="h-3 w-3 mr-1" />
                     Pendente
                   </Badge>
@@ -377,7 +371,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
               </div>
             </div>
 
-            {/* Content Section - Scrollable */}
+            {/* Content Section */}
             <div className="w-full md:w-1/2 overflow-y-auto max-h-[50vh] md:max-h-[90vh]">
               <div className="p-6 space-y-5 animate-content-slide-up bg-background">
                 {/* Address */}
@@ -395,9 +389,9 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-primary">
                         <DollarSign className="h-5 w-5" />
-                        <span className="text-sm font-medium">Valor de Mercado</span>
+                        <span className="text-sm font-medium">Valor de mercado</span>
                       </div>
-                      <p className="text-xl font-bold">{formatCurrency(property.market_value)}</p>
+                      <p className="text-xl font-bold">{formatCurrency(property.market_value) || '—'}</p>
                     </div>
                   </div>
 
@@ -405,13 +399,13 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <FileText className="h-5 w-5" />
-                        <span className="text-sm font-medium">Valor Declarado</span>
+                        <span className="text-sm font-medium">Valor declarado</span>
                       </div>
-                      <p className="text-xl font-bold">{formatCurrency(property.declared_value)}</p>
+                      <p className="text-xl font-bold">{formatCurrency(property.declared_value) || '—'}</p>
                     </div>
                   </div>
 
-                  {property.valor_aluguel && property.valor_aluguel > 0 && (
+                  {property.valor_aluguel && property.valor_aluguel > 0 ? (
                     <div className="p-4 rounded-xl bg-info/5 border border-info/10">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-info">
@@ -421,9 +415,9 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                         <p className="text-xl font-bold">{formatCurrency(property.valor_aluguel)}/mês</p>
                       </div>
                     </div>
-                  )}
+                  ) : null}
 
-                  {property.valor_condominio && property.valor_condominio > 0 && (
+                  {property.valor_condominio && property.valor_condominio > 0 ? (
                     <div className="p-4 rounded-xl bg-muted/50 border border-border">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-muted-foreground">
@@ -433,24 +427,24 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                         <p className="text-xl font-bold">{formatCurrency(property.valor_condominio)}/mês</p>
                       </div>
                     </div>
-                  )}
+                  ) : null}
 
-                  {property.iptu_value && property.iptu_value > 0 && (
+                  {property.iptu_value && property.iptu_value > 0 ? (
                     <div className="p-4 rounded-xl bg-muted/50 border border-border">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Calendar className="h-5 w-5" />
-                          <span className="text-sm font-medium">IPTU</span>
+                          <span className="text-sm font-medium">IPTU anual</span>
                         </div>
                         <div className="text-right">
-                          <p className="text-xl font-bold">{formatCurrency(property.iptu_value)}/ano</p>
+                          <p className="text-xl font-bold">{formatCurrency(property.iptu_value)}</p>
                           {property.iptu_pago && (
                             <Badge className="mt-1 bg-success/10 text-success border-0">Pago</Badge>
                           )}
                         </div>
                       </div>
                     </div>
-                  )}
+                  ) : null}
                 </div>
 
                 {/* Additional Info */}
@@ -459,7 +453,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                       <Home className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-muted-foreground">Número da Matrícula</p>
+                        <p className="text-xs text-muted-foreground">Número da matrícula</p>
                         <p className="font-medium truncate">{property.numero_matricula}</p>
                       </div>
                     </div>
@@ -469,7 +463,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                       <User className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-muted-foreground">Proprietário na Matrícula</p>
+                        <p className="text-xs text-muted-foreground">Proprietário na matrícula</p>
                         <p className="font-medium truncate">{property.proprietario_matricula}</p>
                       </div>
                     </div>
@@ -491,7 +485,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                   <Link to={`/property/${property.id}`} className="w-full">
                     <Button className="w-full h-12 text-base">
                       <Eye className="h-5 w-5 mr-2" />
-                      Ver Detalhes Completos
+                      Ver detalhes completos
                     </Button>
                   </Link>
 
