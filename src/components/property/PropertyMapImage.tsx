@@ -9,6 +9,7 @@ interface PropertyMapImageProps {
   cidade: string;
   estado: string;
   className?: string;
+  showControls?: boolean;
 }
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyBSbKS3g4EggVq_jqMCzQRQQFmTRSfMEHw';
@@ -21,6 +22,7 @@ export function PropertyMapImage({
   cidade,
   estado,
   className = '',
+  showControls = false,
 }: PropertyMapImageProps) {
   const [currentIndex, setCurrentIndex] = useState(0); // 0 = Street View, 1 = Map
   const [imageErrors, setImageErrors] = useState<{ [key: number]: boolean }>({});
@@ -96,148 +98,150 @@ export function PropertyMapImage({
   const hasError = imageErrors[currentIndex];
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Image container */}
-      <div className={`relative flex-1 group ${className}`}>
-        {/* Image or Fallback Iframe */}
-        {!hasError ? (
-          <img
-            key={`${currentIndex}-${refreshKey}`}
-            src={currentImage.url}
-            alt={`${currentImage.label} de ${rua}`}
-            className="w-full h-full object-cover animate-photo-fade"
-            loading="lazy"
-            onError={() => handleImageError(currentIndex)}
+    <div className={`relative w-full h-full ${className}`}>
+      {/* Image or Fallback Iframe */}
+      {!hasError ? (
+        <img
+          key={`${currentIndex}-${refreshKey}`}
+          src={currentImage.url}
+          alt={`${currentImage.label} de ${rua}`}
+          className="w-full h-full object-cover animate-photo-fade"
+          loading="lazy"
+          onError={() => handleImageError(currentIndex)}
+        />
+      ) : (
+        <iframe
+          key={`${currentIndex}-${refreshKey}`}
+          src={currentImage.fallbackUrl}
+          className="w-full h-full border-0"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          title={`${currentImage.label} de ${rua}`}
+          style={{ pointerEvents: 'none' }}
+        />
+      )}
+      
+      {/* Overlay gradient for text readability */}
+      <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-foreground/20 to-transparent pointer-events-none" />
+      
+      {/* Navigation arrows */}
+      <button
+        onClick={goToPrevious}
+        className="absolute left-2 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-foreground hover:bg-card hover:scale-110 active:scale-95 transition-all duration-200 shadow-md z-10"
+        title="Anterior"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+      
+      <button
+        onClick={goToNext}
+        className="absolute right-12 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-foreground hover:bg-card hover:scale-110 active:scale-95 transition-all duration-200 shadow-md z-10"
+        title="Próximo"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </button>
+      
+      {/* Dots indicator */}
+      <div className="absolute top-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+        {images.map((_, index) => (
+          <button
+            key={index}
+            onClick={(e) => {
+              e.stopPropagation();
+              setCurrentIndex(index);
+            }}
+            className={`h-1.5 rounded-full transition-all duration-200 ${
+              index === currentIndex 
+                ? 'bg-card w-4' 
+                : 'bg-card/50 w-1.5 hover:bg-card/70'
+            }`}
+            title={images[index].label}
           />
-        ) : (
-          <iframe
-            key={`${currentIndex}-${refreshKey}`}
-            src={currentImage.fallbackUrl}
-            className="w-full h-full border-0"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            title={`${currentImage.label} de ${rua}`}
-            style={{ pointerEvents: 'none' }}
-          />
-        )}
-        
-        {/* Overlay gradient for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-foreground/20 to-transparent pointer-events-none" />
-        
-        {/* Navigation arrows */}
-        <button
-          onClick={goToPrevious}
-          className="absolute left-2 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-foreground hover:bg-card hover:scale-110 active:scale-95 transition-all duration-200 shadow-md z-10"
-          title="Anterior"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-        
-        <button
-          onClick={goToNext}
-          className="absolute right-12 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-foreground hover:bg-card hover:scale-110 active:scale-95 transition-all duration-200 shadow-md z-10"
-          title="Próximo"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
-        
-        {/* Dots indicator */}
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-          {images.map((_, index) => (
-            <button
-              key={index}
-              onClick={(e) => {
-                e.stopPropagation();
-                setCurrentIndex(index);
-              }}
-              className={`h-1.5 rounded-full transition-all duration-200 ${
-                index === currentIndex 
-                  ? 'bg-card w-4' 
-                  : 'bg-card/50 w-1.5 hover:bg-card/70'
-              }`}
-              title={images[index].label}
-            />
-          ))}
-        </div>
-
-        {/* Heading control slider - only for Street View */}
-        {currentIndex === 0 && showHeadingControl && (
-          <div 
-            className="absolute bottom-3 left-3 right-3 z-20 bg-black/60 backdrop-blur-sm rounded-lg p-3"
-            onClick={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-white/80 text-xs">Ângulo: {heading}°</span>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setHeading(DEFAULT_HEADING);
-                  setRefreshKey(Date.now());
-                }}
-                className="ml-auto text-white/60 hover:text-white text-xs flex items-center gap-1"
-                title="Resetar ângulo"
-              >
-                <RotateCcw className="h-3 w-3" />
-                Reset
-              </button>
-            </div>
-            <Slider
-              value={[heading]}
-              onValueChange={handleHeadingChange}
-              min={0}
-              max={360}
-              step={5}
-              className="w-full"
-            />
-          </div>
-        )}
-        
-        {/* Google Maps link */}
-        <a
-          href={googleMapsUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-primary hover:bg-card hover:scale-110 transition-all shadow-md z-10"
-          title="Abrir no Google Maps"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <MapPin className="h-4 w-4" />
-        </a>
+        ))}
       </div>
 
-      {/* Controls bar - outside the image */}
-      <div 
-        className="flex items-center justify-between px-2 py-1.5 bg-muted/50 border-t border-border"
+      {/* Controls - only shown when showControls is true */}
+      {showControls && (
+        <>
+          {/* Heading control slider - only for Street View */}
+          {currentIndex === 0 && showHeadingControl && (
+            <div 
+              className="absolute bottom-14 left-3 right-3 z-20 bg-black/60 backdrop-blur-sm rounded-lg p-3"
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-white/80 text-xs">Ângulo: {heading}°</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setHeading(DEFAULT_HEADING);
+                    setRefreshKey(Date.now());
+                  }}
+                  className="ml-auto text-white/60 hover:text-white text-xs flex items-center gap-1"
+                  title="Resetar ângulo"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                  Reset
+                </button>
+              </div>
+              <Slider
+                value={[heading]}
+                onValueChange={handleHeadingChange}
+                min={0}
+                max={360}
+                step={5}
+                className="w-full"
+              />
+            </div>
+          )}
+
+          {/* Bottom control bar */}
+          <div 
+            className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-3 py-2 bg-black/50 backdrop-blur-sm z-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-white/80 text-xs font-medium">{images[currentIndex].label}</span>
+              {currentIndex === 0 && (
+                <button
+                  onClick={toggleHeadingControl}
+                  className={`text-xs flex items-center gap-1 px-2 py-1 rounded transition-colors ${
+                    showHeadingControl 
+                      ? 'bg-white/20 text-white' 
+                      : 'text-white/60 hover:text-white'
+                  }`}
+                  title="Ajustar ângulo da câmera"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                  Ângulo
+                </button>
+              )}
+            </div>
+            
+            <button
+              onClick={handleRefresh}
+              className="text-xs flex items-center gap-1 text-white/60 hover:text-white transition-colors px-2 py-1"
+              title="Atualizar imagem"
+            >
+              <RefreshCw className={`h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Atualizar
+            </button>
+          </div>
+        </>
+      )}
+      
+      {/* Google Maps link */}
+      <a
+        href={googleMapsUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-primary hover:bg-card hover:scale-110 transition-all shadow-md z-10"
+        title="Abrir no Google Maps"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">{images[currentIndex].label}</span>
-          {currentIndex === 0 && (
-            <button
-              onClick={toggleHeadingControl}
-              className={`text-xs flex items-center gap-1 px-2 py-0.5 rounded transition-colors ${
-                showHeadingControl 
-                  ? 'bg-primary/10 text-primary' 
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              title="Ajustar ângulo da câmera"
-            >
-              <RotateCcw className="h-3 w-3" />
-              Ângulo
-            </button>
-          )}
-        </div>
-        
-        <button
-          onClick={handleRefresh}
-          className="text-xs flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-          title="Atualizar imagem"
-        >
-          <RefreshCw className={`h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`} />
-          Atualizar
-        </button>
-      </div>
+        <MapPin className="h-4 w-4" />
+      </a>
     </div>
   );
 }

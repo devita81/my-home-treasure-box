@@ -127,15 +127,13 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
               </a>
             </>
           ) : (
-            <div className="aspect-[16/10]">
-              <PropertyMapImage
-                rua={property.rua}
-                numero={property.numero}
-                bairro={property.bairro}
-                cidade={property.cidade}
-                estado={property.estado}
-              />
-            </div>
+            <PropertyMapImage
+              rua={property.rua}
+              numero={property.numero}
+              bairro={property.bairro}
+              cidade={property.cidade}
+              estado={property.estado}
+            />
           )}
           
           <div className="absolute top-3 left-3 flex gap-2 z-10">
@@ -286,12 +284,13 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                   )}
                 </>
               ) : (
-                <ModalMapCarousel
+                <PropertyMapImage
                   rua={property.rua}
                   numero={property.numero}
                   bairro={property.bairro}
                   cidade={property.cidade}
                   estado={property.estado}
+                  showControls={true}
                 />
               )}
               
@@ -346,7 +345,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                     </div>
                   </div>
 
-                  {property.valor_aluguel && (
+                  {property.valor_aluguel && property.valor_aluguel > 0 && (
                     <div className="p-4 rounded-xl bg-info/5 border border-info/10">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-info">
@@ -358,7 +357,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                     </div>
                   )}
 
-                  {property.valor_condominio && (
+                  {property.valor_condominio && property.valor_condominio > 0 && (
                     <div className="p-4 rounded-xl bg-muted/50 border border-border">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-muted-foreground">
@@ -370,7 +369,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                     </div>
                   )}
 
-                  {property.iptu_value && (
+                  {property.iptu_value && property.iptu_value > 0 && (
                     <div className="p-4 rounded-xl bg-muted/50 border border-border">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-muted-foreground">
@@ -454,118 +453,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
           </div>
         </DialogContent>
       </Dialog>
-    
     </>
   );
 }
 
-// Modal Map Carousel Component - simpler version without overlay elements
-function ModalMapCarousel({ 
-  rua, 
-  numero, 
-  bairro, 
-  cidade, 
-  estado 
-}: { 
-  rua: string; 
-  numero?: string | null; 
-  bairro: string; 
-  cidade: string; 
-  estado: string; 
-}) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [imageErrors, setImageErrors] = useState<{ [key: number]: boolean }>({});
-  
-  const GOOGLE_MAPS_API_KEY = 'AIzaSyBSbKS3g4EggVq_jqMCzQRQQFmTRSfMEHw';
-  const address = `${rua}, ${numero || ''}, ${bairro}, ${cidade}, ${estado}, Brasil`;
-  const encodedAddress = encodeURIComponent(address);
-  
-  const streetViewStaticUrl = `https://maps.googleapis.com/maps/api/streetview?size=800x600&location=${encodedAddress}&fov=90&heading=235&pitch=10&key=${GOOGLE_MAPS_API_KEY}`;
-  const mapStaticUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodedAddress}&zoom=17&size=800x600&scale=2&maptype=roadmap&markers=color:red%7C${encodedAddress}&key=${GOOGLE_MAPS_API_KEY}`;
-  
-  const streetViewEmbedUrl = `https://www.google.com/maps?q=${encodedAddress}&layer=c&cbll=&cbp=&output=embed`;
-  const mapEmbedUrl = `https://www.google.com/maps?q=${encodedAddress}&output=embed&z=17`;
-
-  const images = [
-    { url: streetViewStaticUrl, fallbackUrl: streetViewEmbedUrl, label: 'Street View' },
-    { url: mapStaticUrl, fallbackUrl: mapEmbedUrl, label: 'Mapa' }
-  ];
-
-  const handleImageError = (index: number) => {
-    setImageErrors(prev => ({ ...prev, [index]: true }));
-  };
-
-  const goToPrevious = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
-
-  const goToNext = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCurrentIndex((prev) => (prev + 1) % images.length);
-  };
-
-  const currentImage = images[currentIndex];
-  const hasError = imageErrors[currentIndex];
-
-  return (
-    <div className="relative w-full h-full">
-      {!hasError ? (
-        <img
-          key={currentIndex}
-          src={currentImage.url}
-          alt={`${currentImage.label} de ${rua}`}
-          className="w-full h-full object-cover animate-photo-fade"
-          loading="lazy"
-          onError={() => handleImageError(currentIndex)}
-        />
-      ) : (
-        <iframe
-          src={currentImage.fallbackUrl}
-          className="w-full h-full border-0"
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          title={`${currentImage.label} de ${rua}`}
-          style={{ pointerEvents: 'none' }}
-        />
-      )}
-      
-      {/* Navigation arrows */}
-      <button
-        onClick={goToPrevious}
-        className="absolute left-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-foreground hover:bg-card hover:scale-110 active:scale-95 transition-all duration-200 shadow-lg z-10"
-        title="Anterior"
-      >
-        <ChevronLeft className="h-6 w-6" />
-      </button>
-      
-      <button
-        onClick={goToNext}
-        className="absolute right-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-foreground hover:bg-card hover:scale-110 active:scale-95 transition-all duration-200 shadow-lg z-10"
-        title="Próximo"
-      >
-        <ChevronRight className="h-6 w-6" />
-      </button>
-      
-      {/* Dots indicator */}
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-        {images.map((img, index) => (
-          <button
-            key={index}
-            onClick={(e) => {
-              e.stopPropagation();
-              setCurrentIndex(index);
-            }}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
-              index === currentIndex 
-                ? 'bg-primary text-primary-foreground' 
-                : 'bg-card/70 text-foreground hover:bg-card/90'
-            }`}
-          >
-            {img.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
