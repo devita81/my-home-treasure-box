@@ -126,7 +126,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
             )}
             
             {/* Status badges */}
-            <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
+            <div className="absolute top-3 left-3 right-12 flex flex-wrap gap-1.5 z-10">
               {property.vendido ? (
                 <Badge className="bg-destructive text-destructive-foreground text-xs">Vendido</Badge>
               ) : property.alugado ? (
