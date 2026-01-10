@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MapPin, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 
 interface PropertyMapImageProps {
@@ -12,25 +12,32 @@ interface PropertyMapImageProps {
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyBSbKS3g4EggVq_jqMCzQRQQFmTRSfMEHw';
 
-export function PropertyMapImage({ 
-  rua, 
-  numero, 
-  bairro, 
-  cidade, 
+export function PropertyMapImage({
+  rua,
+  numero,
+  bairro,
+  cidade,
   estado,
-  className = ''
+  className = '',
 }: PropertyMapImageProps) {
   const [currentIndex, setCurrentIndex] = useState(0); // 0 = Street View, 1 = Map
   const [imageErrors, setImageErrors] = useState<{ [key: number]: boolean }>({});
   const [refreshKey, setRefreshKey] = useState(Date.now());
   const [isRefreshing, setIsRefreshing] = useState(false);
-  
+
   const address = `${rua}, ${numero || ''}, ${bairro}, ${cidade}, ${estado}, Brasil`;
   const encodedAddress = encodeURIComponent(address);
-  
+
+  // Auto-refresh when address changes (prevents stale images after edits)
+  useEffect(() => {
+    setCurrentIndex(0);
+    setImageErrors({});
+    setRefreshKey(Date.now());
+  }, [address]);
+
   // Google Street View Static API URL (primary - index 0)
   const streetViewStaticUrl = `https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${encodedAddress}&fov=90&heading=235&pitch=10&key=${GOOGLE_MAPS_API_KEY}&_=${refreshKey}`;
-  
+
   // Google Maps Static API URL (secondary - index 1)
   const mapStaticUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodedAddress}&zoom=17&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${encodedAddress}&key=${GOOGLE_MAPS_API_KEY}&_=${refreshKey}`;
 
@@ -76,7 +83,7 @@ export function PropertyMapImage({
       {/* Image or Fallback Iframe */}
       {!hasError ? (
         <img
-          key={currentIndex}
+          key={`${currentIndex}-${refreshKey}`}
           src={currentImage.url}
           alt={`${currentImage.label} de ${rua}`}
           className="w-full h-full object-cover animate-photo-fade"
@@ -85,6 +92,7 @@ export function PropertyMapImage({
         />
       ) : (
         <iframe
+          key={`${currentIndex}-${refreshKey}`}
           src={currentImage.fallbackUrl}
           className="w-full h-full border-0"
           loading="lazy"
