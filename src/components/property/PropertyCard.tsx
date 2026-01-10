@@ -225,14 +225,23 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
 
       {/* Expanded Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0 data-[state=open]:animate-modal-enter data-[state=closed]:animate-modal-exit">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden p-0 data-[state=open]:animate-modal-enter data-[state=closed]:animate-modal-exit">
           <VisuallyHidden>
             <DialogTitle>Detalhes do Imóvel - {getAddressDisplay()}</DialogTitle>
           </VisuallyHidden>
           
-          <div className="flex flex-col max-h-[90vh]">
-            {/* Image Section - Fixed height */}
-            <div className="relative h-64 md:h-80 flex-shrink-0 bg-muted overflow-hidden">
+          {/* Close button - always visible */}
+          <button
+            onClick={() => setIsModalOpen(false)}
+            className="absolute top-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-foreground hover:bg-card hover:scale-110 hover:rotate-90 active:scale-95 transition-all duration-200 shadow-lg z-30"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          
+          {/* Horizontal layout on desktop, vertical on mobile */}
+          <div className="flex flex-col md:flex-row max-h-[90vh]">
+            {/* Image Section - Square aspect on desktop */}
+            <div className="relative w-full md:w-1/2 aspect-square md:aspect-auto md:min-h-[500px] flex-shrink-0 bg-muted overflow-hidden">
               {hasRealPhotos ? (
                 <>
                   <img
@@ -299,141 +308,151 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                   </Badge>
                 )}
               </div>
-
-              {/* Close button */}
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="absolute top-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-foreground hover:bg-card hover:scale-110 hover:rotate-90 active:scale-95 transition-all duration-200 shadow-lg z-20"
-              >
-                <X className="h-5 w-5" />
-              </button>
             </div>
 
-            {/* Content Section */}
-            <div className="p-6 space-y-6 animate-content-slide-up bg-background">
-              {/* Address */}
-              <div>
-                <h2 className="text-2xl font-bold">{getAddressDisplay()}</h2>
-                <div className="flex items-center gap-2 text-muted-foreground mt-1">
-                  <MapPin className="h-4 w-4" />
-                  <span>{property.bairro}, {property.cidade} - {property.estado}</span>
-                </div>
-              </div>
-
-              {/* Values Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
-                  <div className="flex items-center gap-2 text-primary mb-2">
-                    <DollarSign className="h-5 w-5" />
-                    <span className="text-sm font-medium">Valor de Mercado</span>
+            {/* Content Section - Scrollable */}
+            <div className="w-full md:w-1/2 overflow-y-auto max-h-[50vh] md:max-h-[90vh]">
+              <div className="p-6 space-y-5 animate-content-slide-up bg-background">
+                {/* Address */}
+                <div>
+                  <h2 className="text-xl md:text-2xl font-bold">{getAddressDisplay()}</h2>
+                  <div className="flex items-center gap-2 text-muted-foreground mt-1">
+                    <MapPin className="h-4 w-4" />
+                    <span className="text-sm">{property.bairro}, {property.cidade} - {property.estado}</span>
                   </div>
-                  <p className="text-xl font-bold">{formatCurrency(property.market_value)}</p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-muted/50 border border-border">
-                  <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                    <FileText className="h-5 w-5" />
-                    <span className="text-sm font-medium">Valor Declarado</span>
-                  </div>
-                  <p className="text-xl font-bold">{formatCurrency(property.declared_value)}</p>
-                </div>
-
-                {property.valor_aluguel && (
-                  <div className="p-4 rounded-xl bg-info/5 border border-info/10">
-                    <div className="flex items-center gap-2 text-info mb-2">
-                      <Key className="h-5 w-5" />
-                      <span className="text-sm font-medium">Aluguel</span>
+                {/* Values - Vertical stack */}
+                <div className="space-y-3">
+                  <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-primary">
+                        <DollarSign className="h-5 w-5" />
+                        <span className="text-sm font-medium">Valor de Mercado</span>
+                      </div>
+                      <p className="text-xl font-bold">{formatCurrency(property.market_value)}</p>
                     </div>
-                    <p className="text-xl font-bold">{formatCurrency(property.valor_aluguel)}/mês</p>
                   </div>
-                )}
 
-                {property.valor_condominio && (
                   <div className="p-4 rounded-xl bg-muted/50 border border-border">
-                    <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                      <Building className="h-5 w-5" />
-                      <span className="text-sm font-medium">Condomínio</span>
-                    </div>
-                    <p className="text-xl font-bold">{formatCurrency(property.valor_condominio)}/mês</p>
-                  </div>
-                )}
-
-                {property.iptu_value && (
-                  <div className="p-4 rounded-xl bg-muted/50 border border-border">
-                    <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                      <Calendar className="h-5 w-5" />
-                      <span className="text-sm font-medium">IPTU</span>
-                    </div>
-                    <p className="text-xl font-bold">{formatCurrency(property.iptu_value)}/ano</p>
-                    {property.iptu_pago && (
-                      <Badge className="mt-1 bg-success/10 text-success border-0">Pago</Badge>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Additional Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {property.numero_matricula && (
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                    <Home className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Número da Matrícula</p>
-                      <p className="font-medium">{property.numero_matricula}</p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <FileText className="h-5 w-5" />
+                        <span className="text-sm font-medium">Valor Declarado</span>
+                      </div>
+                      <p className="text-xl font-bold">{formatCurrency(property.declared_value)}</p>
                     </div>
                   </div>
-                )}
 
-                {property.proprietario_matricula && (
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                    <User className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Proprietário na Matrícula</p>
-                      <p className="font-medium">{property.proprietario_matricula}</p>
+                  {property.valor_aluguel && (
+                    <div className="p-4 rounded-xl bg-info/5 border border-info/10">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-info">
+                          <Key className="h-5 w-5" />
+                          <span className="text-sm font-medium">Aluguel</span>
+                        </div>
+                        <p className="text-xl font-bold">{formatCurrency(property.valor_aluguel)}/mês</p>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {property.inquilino && (
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-info/5 border border-info/10">
-                    <User className="h-5 w-5 text-info" />
-                    <div>
-                      <p className="text-xs text-info">Inquilino</p>
-                      <p className="font-medium">{property.inquilino}</p>
+                  {property.valor_condominio && (
+                    <div className="p-4 rounded-xl bg-muted/50 border border-border">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Building className="h-5 w-5" />
+                          <span className="text-sm font-medium">Condomínio</span>
+                        </div>
+                        <p className="text-xl font-bold">{formatCurrency(property.valor_condominio)}/mês</p>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
 
-              {/* Action Buttons */}
-              <div className="flex gap-3 pt-4 border-t border-border">
-                <Link to={`/property/${property.id}`} className="flex-1">
-                  <Button className="w-full" size="lg">
-                    <Eye className="h-5 w-5 mr-2" />
-                    Ver Detalhes Completos
-                  </Button>
-                </Link>
-                <Link to={`/edit/${property.id}`}>
-                  <Button variant="outline" size="lg">
-                    <Edit className="h-5 w-5 mr-2" />
-                    Editar
-                  </Button>
-                </Link>
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getFullAddress())}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Button variant="outline" size="lg">
-                    <MapPin className="h-5 w-5 mr-2" />
-                    Mapa
-                  </Button>
-                </a>
+                  {property.iptu_value && (
+                    <div className="p-4 rounded-xl bg-muted/50 border border-border">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Calendar className="h-5 w-5" />
+                          <span className="text-sm font-medium">IPTU</span>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xl font-bold">{formatCurrency(property.iptu_value)}/ano</p>
+                          {property.iptu_pago && (
+                            <Badge className="mt-1 bg-success/10 text-success border-0">Pago</Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Additional Info */}
+                <div className="space-y-2">
+                  {property.numero_matricula && (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                      <Home className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground">Número da Matrícula</p>
+                        <p className="font-medium truncate">{property.numero_matricula}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {property.proprietario_matricula && (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                      <User className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground">Proprietário na Matrícula</p>
+                        <p className="font-medium truncate">{property.proprietario_matricula}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {property.inquilino && (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-info/5 border border-info/10">
+                      <User className="h-5 w-5 text-info flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-info">Inquilino</p>
+                        <p className="font-medium truncate">{property.inquilino}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col gap-2 pt-4 border-t border-border">
+                  <Link to={`/property/${property.id}`} className="w-full">
+                    <Button className="w-full" size="lg">
+                      <Eye className="h-5 w-5 mr-2" />
+                      Ver Detalhes Completos
+                    </Button>
+                  </Link>
+                  <div className="flex gap-2">
+                    <Link to={`/edit/${property.id}`} className="flex-1">
+                      <Button variant="outline" size="default" className="w-full">
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
+                      </Button>
+                    </Link>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getFullAddress())}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1"
+                    >
+                      <Button variant="outline" size="default" className="w-full">
+                        <MapPin className="h-4 w-4 mr-2" />
+                        Mapa
+                      </Button>
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </DialogContent>
       </Dialog>
+    
     </>
   );
 }
