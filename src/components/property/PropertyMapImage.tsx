@@ -10,10 +10,25 @@ interface PropertyMapImageProps {
   estado: string;
   className?: string;
   showControls?: boolean;
+  propertyId?: string;
 }
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyBSbKS3g4EggVq_jqMCzQRQQFmTRSfMEHw';
 const DEFAULT_HEADING = 235;
+
+// Get stored heading for a property
+const getStoredHeading = (propertyId: string | undefined): number => {
+  if (!propertyId) return DEFAULT_HEADING;
+  const stored = localStorage.getItem(`property_heading_${propertyId}`);
+  return stored ? parseInt(stored, 10) : DEFAULT_HEADING;
+};
+
+// Save heading for a property
+const saveHeading = (propertyId: string | undefined, heading: number) => {
+  if (propertyId) {
+    localStorage.setItem(`property_heading_${propertyId}`, heading.toString());
+  }
+};
 
 export function PropertyMapImage({
   rua,
@@ -23,23 +38,28 @@ export function PropertyMapImage({
   estado,
   className = '',
   showControls = false,
+  propertyId,
 }: PropertyMapImageProps) {
   const [currentIndex, setCurrentIndex] = useState(0); // 0 = Street View, 1 = Map
   const [imageErrors, setImageErrors] = useState<{ [key: number]: boolean }>({});
   const [refreshKey, setRefreshKey] = useState(Date.now());
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [heading, setHeading] = useState(DEFAULT_HEADING);
+  const [heading, setHeading] = useState(() => getStoredHeading(propertyId));
   const [showHeadingControl, setShowHeadingControl] = useState(false);
 
   const address = `${rua}, ${numero || ''}, ${bairro}, ${cidade}, ${estado}, Brasil`;
   const encodedAddress = encodeURIComponent(address);
+
+  // Load stored heading when propertyId changes
+  useEffect(() => {
+    setHeading(getStoredHeading(propertyId));
+  }, [propertyId]);
 
   // Auto-refresh when address changes (prevents stale images after edits)
   useEffect(() => {
     setCurrentIndex(0);
     setImageErrors({});
     setRefreshKey(Date.now());
-    setHeading(DEFAULT_HEADING);
   }, [address]);
 
   // Google Street View Static API URL (primary - index 0)
@@ -58,7 +78,9 @@ export function PropertyMapImage({
   };
 
   const handleHeadingChange = (value: number[]) => {
-    setHeading(value[0]);
+    const newHeading = value[0];
+    setHeading(newHeading);
+    saveHeading(propertyId, newHeading);
     setRefreshKey(Date.now());
   };
 
