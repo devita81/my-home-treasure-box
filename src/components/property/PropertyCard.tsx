@@ -405,46 +405,52 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                     </div>
                   </div>
 
-                  {property.valor_aluguel && property.valor_aluguel > 0 ? (
-                    <div className="p-4 rounded-xl bg-info/5 border border-info/10">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-info">
-                          <Key className="h-5 w-5" />
-                          <span className="text-sm font-medium">Aluguel</span>
-                        </div>
-                        <p className="text-xl font-bold">{formatCurrency(property.valor_aluguel)}/mês</p>
+                  <div className={`p-4 rounded-xl ${property.alugado && property.valor_aluguel && property.valor_aluguel > 0 ? 'bg-info/5 border border-info/10' : 'bg-muted/50 border border-border'}`}>
+                    <div className="flex items-center justify-between">
+                      <div className={`flex items-center gap-2 ${property.alugado && property.valor_aluguel && property.valor_aluguel > 0 ? 'text-info' : 'text-muted-foreground'}`}>
+                        <Key className="h-5 w-5" />
+                        <span className="text-sm font-medium">Aluguel</span>
                       </div>
+                      <p className="text-xl font-bold">
+                        {property.valor_aluguel && property.valor_aluguel > 0 
+                          ? `${formatCurrency(property.valor_aluguel)}/mês` 
+                          : '—'}
+                      </p>
                     </div>
-                  ) : null}
+                  </div>
 
-                  {property.valor_condominio && property.valor_condominio > 0 ? (
-                    <div className="p-4 rounded-xl bg-muted/50 border border-border">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Building className="h-5 w-5" />
-                          <span className="text-sm font-medium">Condomínio</span>
-                        </div>
-                        <p className="text-xl font-bold">{formatCurrency(property.valor_condominio)}/mês</p>
+                  <div className="p-4 rounded-xl bg-muted/50 border border-border">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Building className="h-5 w-5" />
+                        <span className="text-sm font-medium">Condomínio</span>
                       </div>
+                      <p className="text-xl font-bold">
+                        {property.valor_condominio && property.valor_condominio > 0 
+                          ? `${formatCurrency(property.valor_condominio)}/mês` 
+                          : '—'}
+                      </p>
                     </div>
-                  ) : null}
+                  </div>
 
-                  {property.iptu_value && property.iptu_value > 0 ? (
-                    <div className="p-4 rounded-xl bg-muted/50 border border-border">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Calendar className="h-5 w-5" />
-                          <span className="text-sm font-medium">IPTU anual</span>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xl font-bold">{formatCurrency(property.iptu_value)}</p>
-                          {property.iptu_pago && (
-                            <Badge className="mt-1 bg-success/10 text-success border-0">Pago</Badge>
-                          )}
-                        </div>
+                  <div className="p-4 rounded-xl bg-muted/50 border border-border">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Calendar className="h-5 w-5" />
+                        <span className="text-sm font-medium">IPTU anual</span>
+                      </div>
+                      <div className="text-right flex items-center gap-2">
+                        <p className="text-xl font-bold">
+                          {property.iptu_value && property.iptu_value > 0 
+                            ? formatCurrency(property.iptu_value) 
+                            : '—'}
+                        </p>
+                        {property.iptu_pago && property.iptu_value && property.iptu_value > 0 && (
+                          <Badge className="bg-success/10 text-success border-0">Pago</Badge>
+                        )}
                       </div>
                     </div>
-                  ) : null}
+                  </div>
                 </div>
 
                 {/* Additional Info */}
