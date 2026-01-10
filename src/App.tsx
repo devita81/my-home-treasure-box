@@ -12,7 +12,6 @@ import EditProperty from "./pages/EditProperty";
 import PropertyDetails from "./pages/PropertyDetails";
 import Analytics from "./pages/Analytics";
 import Auth from "./pages/Auth";
-import MigrateProperties from "./pages/MigrateProperties";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,7 +31,6 @@ const App = () => (
               <Route path="/edit/:id" element={<ProtectedRoute><EditProperty /></ProtectedRoute>} />
               <Route path="/property/:id" element={<ProtectedRoute><PropertyDetails /></ProtectedRoute>} />
               <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-              <Route path="/migrate" element={<ProtectedRoute><MigrateProperties /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
