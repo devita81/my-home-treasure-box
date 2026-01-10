@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { MapPin, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { MapPin, ChevronLeft, ChevronRight, RefreshCw, RotateCcw } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
 
 interface PropertyMapImageProps {
   rua: string;
@@ -11,6 +12,7 @@ interface PropertyMapImageProps {
 }
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyBSbKS3g4EggVq_jqMCzQRQQFmTRSfMEHw';
+const DEFAULT_HEADING = 235;
 
 export function PropertyMapImage({
   rua,
@@ -24,6 +26,8 @@ export function PropertyMapImage({
   const [imageErrors, setImageErrors] = useState<{ [key: number]: boolean }>({});
   const [refreshKey, setRefreshKey] = useState(Date.now());
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [heading, setHeading] = useState(DEFAULT_HEADING);
+  const [showHeadingControl, setShowHeadingControl] = useState(false);
 
   const address = `${rua}, ${numero || ''}, ${bairro}, ${cidade}, ${estado}, Brasil`;
   const encodedAddress = encodeURIComponent(address);
@@ -33,10 +37,11 @@ export function PropertyMapImage({
     setCurrentIndex(0);
     setImageErrors({});
     setRefreshKey(Date.now());
+    setHeading(DEFAULT_HEADING);
   }, [address]);
 
   // Google Street View Static API URL (primary - index 0)
-  const streetViewStaticUrl = `https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${encodedAddress}&fov=90&heading=235&pitch=10&key=${GOOGLE_MAPS_API_KEY}&_=${refreshKey}`;
+  const streetViewStaticUrl = `https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${encodedAddress}&fov=90&heading=${heading}&pitch=10&key=${GOOGLE_MAPS_API_KEY}&_=${refreshKey}`;
 
   // Google Maps Static API URL (secondary - index 1)
   const mapStaticUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodedAddress}&zoom=17&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${encodedAddress}&key=${GOOGLE_MAPS_API_KEY}&_=${refreshKey}`;
@@ -48,6 +53,17 @@ export function PropertyMapImage({
     setImageErrors({});
     setRefreshKey(Date.now());
     setTimeout(() => setIsRefreshing(false), 1000);
+  };
+
+  const handleHeadingChange = (value: number[]) => {
+    setHeading(value[0]);
+    setRefreshKey(Date.now());
+  };
+
+  const toggleHeadingControl = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setShowHeadingControl(!showHeadingControl);
   };
   
   // Fallback embed URLs
@@ -141,6 +157,55 @@ export function PropertyMapImage({
           />
         ))}
       </div>
+
+      {/* Heading control slider - only for Street View */}
+      {currentIndex === 0 && showHeadingControl && (
+        <div 
+          className="absolute bottom-12 left-3 right-3 z-20 bg-black/60 backdrop-blur-sm rounded-lg p-3"
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-white/80 text-xs">Ângulo: {heading}°</span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setHeading(DEFAULT_HEADING);
+                setRefreshKey(Date.now());
+              }}
+              className="ml-auto text-white/60 hover:text-white text-xs flex items-center gap-1"
+              title="Resetar ângulo"
+            >
+              <RotateCcw className="h-3 w-3" />
+              Reset
+            </button>
+          </div>
+          <Slider
+            value={[heading]}
+            onValueChange={handleHeadingChange}
+            min={0}
+            max={360}
+            step={5}
+            className="w-full"
+          />
+        </div>
+      )}
+
+      {/* Rotate/Heading button - only visible on hover and for Street View */}
+      {currentIndex === 0 && (
+        <button
+          onClick={toggleHeadingControl}
+          onMouseDown={(e) => e.stopPropagation()}
+          className={`absolute bottom-3 left-3 flex h-6 w-6 items-center justify-center rounded-full backdrop-blur-sm transition-all duration-200 z-10 ${
+            showHeadingControl 
+              ? 'bg-primary text-primary-foreground' 
+              : 'bg-black/30 text-white/60 hover:text-white hover:bg-black/50 opacity-0 group-hover:opacity-100'
+          }`}
+          title="Ajustar ângulo da câmera"
+        >
+          <RotateCcw className="h-3 w-3" />
+        </button>
+      )}
       
       {/* Refresh button - discrete, only visible on hover */}
       <button
