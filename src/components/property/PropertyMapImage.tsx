@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { MapPin, ChevronLeft, ChevronRight, RefreshCw, RotateCcw } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 
@@ -15,18 +15,57 @@ interface PropertyMapImageProps {
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyBSbKS3g4EggVq_jqMCzQRQQFmTRSfMEHw';
 const DEFAULT_HEADING = 235;
+const HEADING_EVENT = 'property_heading_change';
+
+type HeadingChangeDetail = {
+  propertyId: string;
+  heading: number;
+  senderId?: string;
+};
+
+const getHeadingStorageKey = (propertyId: string) => `property_heading_${propertyId}`;
+
+const normalizeHeading = (value: number) => {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return DEFAULT_HEADING;
+  const rounded = Math.round(n);
+  return ((rounded % 360) + 360) % 360;
+};
+
+const parseStoredHeading = (stored: string | null): number | null => {
+  if (stored === null) return null;
+  const n = Number(stored);
+  if (!Number.isFinite(n)) return null;
+  return normalizeHeading(n);
+};
 
 // Get stored heading for a property
 const getStoredHeading = (propertyId: string | undefined): number => {
   if (!propertyId) return DEFAULT_HEADING;
-  const stored = localStorage.getItem(`property_heading_${propertyId}`);
-  return stored ? parseInt(stored, 10) : DEFAULT_HEADING;
+  try {
+    return parseStoredHeading(localStorage.getItem(getHeadingStorageKey(propertyId))) ?? DEFAULT_HEADING;
+  } catch {
+    return DEFAULT_HEADING;
+  }
 };
 
 // Save heading for a property
-const saveHeading = (propertyId: string | undefined, heading: number) => {
-  if (propertyId) {
-    localStorage.setItem(`property_heading_${propertyId}`, heading.toString());
+const saveHeading = (propertyId: string | undefined, heading: number, senderId?: string) => {
+  if (!propertyId) return;
+  const normalized = normalizeHeading(heading);
+
+  try {
+    localStorage.setItem(getHeadingStorageKey(propertyId), normalized.toString());
+  } catch {
+    // ignore
+  }
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(
+      new CustomEvent<HeadingChangeDetail>(HEADING_EVENT, {
+        detail: { propertyId, heading: normalized, senderId },
+      }),
+    );
   }
 };
 
