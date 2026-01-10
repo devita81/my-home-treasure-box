@@ -58,6 +58,25 @@ const ChartContainer = React.forwardRef<
 });
 ChartContainer.displayName = "Chart";
 
+// Validate color values to prevent CSS injection
+const isValidColor = (color: string): boolean => {
+  // Allow hex colors, hsl/hsla, rgb/rgba, and CSS variables
+  const colorPatterns = [
+    /^#[0-9A-Fa-f]{3,8}$/, // hex
+    /^hsl\(\s*\d{1,3}\s*,?\s*\d{1,3}%?\s*,?\s*\d{1,3}%?\s*\)$/i, // hsl
+    /^hsla\(\s*\d{1,3}\s*,?\s*[\d.]+%?\s*,?\s*[\d.]+%?\s*,?\s*[\d.]+\s*\)$/i, // hsla
+    /^rgb\(\s*\d{1,3}\s*,?\s*\d{1,3}\s*,?\s*\d{1,3}\s*\)$/i, // rgb
+    /^rgba\(\s*\d{1,3}\s*,?\s*\d{1,3}\s*,?\s*\d{1,3}\s*,?\s*[\d.]+\s*\)$/i, // rgba
+    /^var\(--[a-zA-Z0-9-]+\)$/, // CSS variables
+  ];
+  return colorPatterns.some(pattern => pattern.test(color.trim()));
+};
+
+// Sanitize config key to prevent CSS injection
+const sanitizeKey = (key: string): string => {
+  return key.replace(/[^a-zA-Z0-9-_]/g, '');
+};
+
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(([_, config]) => config.theme || config.color);
 
@@ -65,25 +84,30 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     return null;
   }
 
+  // Build CSS safely without dangerouslySetInnerHTML
+  const cssRules = Object.entries(THEMES).map(([theme, prefix]) => {
+    const variables = colorConfig
+      .map(([key, itemConfig]) => {
+        const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
+        if (color && isValidColor(color)) {
+          const safeKey = sanitizeKey(key);
+          return `--color-${safeKey}: ${color}`;
+        }
+        return null;
+      })
+      .filter(Boolean);
+    
+    return { prefix, variables };
+  });
+
   return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
-    return color ? `  --color-${key}: ${color};` : null;
-  })
-  .join("\n")}
-}
-`,
-          )
-          .join("\n"),
-      }}
-    />
+    <>
+      {cssRules.map(({ prefix, variables }, index) => (
+        <style key={index}>
+          {`${prefix} [data-chart=${id}] { ${variables.join('; ')} }`}
+        </style>
+      ))}
+    </>
   );
 };
 
