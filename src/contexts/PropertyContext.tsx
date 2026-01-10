@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useCallback, ReactNode, use
 import { Property, PropertyFormData, PropertyFilters } from '@/types/property';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
+import { useAuth } from '@/contexts/AuthContext';
 interface PropertyContextType {
   properties: Property[];
   filters: PropertyFilters;
@@ -30,8 +30,15 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
   const [properties, setProperties] = useState<Property[]>([]);
   const [filters, setFilters] = useState<PropertyFilters>(initialFilters);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   const fetchProperties = useCallback(async () => {
+    if (!user) {
+      setProperties([]);
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -48,17 +55,21 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     fetchProperties();
   }, [fetchProperties]);
 
   const addProperty = useCallback(async (propertyData: PropertyFormData) => {
+    if (!user) {
+      throw new Error('User must be authenticated to add properties');
+    }
+    
     try {
       const { data, error } = await supabase
         .from('properties')
-        .insert([propertyData])
+        .insert([{ ...propertyData, user_id: user.id }])
         .select()
         .single();
 
@@ -69,7 +80,7 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
       console.error('Error adding property:', error);
       throw error;
     }
-  }, []);
+  }, [user]);
 
   const updateProperty = useCallback(async (id: string, updates: Partial<Property>) => {
     try {
