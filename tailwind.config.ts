@@ -100,6 +100,30 @@ export default {
           from: { opacity: "0", transform: "scale(0.95)" },
           to: { opacity: "1", transform: "scale(1)" },
         },
+        "modal-enter": {
+          from: { opacity: "0", transform: "translate(-50%, -48%) scale(0.96)" },
+          to: { opacity: "1", transform: "translate(-50%, -50%) scale(1)" },
+        },
+        "modal-exit": {
+          from: { opacity: "1", transform: "translate(-50%, -50%) scale(1)" },
+          to: { opacity: "0", transform: "translate(-50%, -48%) scale(0.96)" },
+        },
+        "overlay-enter": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        "overlay-exit": {
+          from: { opacity: "1" },
+          to: { opacity: "0" },
+        },
+        "content-slide-up": {
+          from: { opacity: "0", transform: "translateY(20px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "photo-fade": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -107,6 +131,12 @@ export default {
         "fade-in": "fade-in 0.5s ease-out forwards",
         "slide-up": "slide-up 0.5s ease-out forwards",
         "scale-in": "scale-in 0.3s ease-out forwards",
+        "modal-enter": "modal-enter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "modal-exit": "modal-exit 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "overlay-enter": "overlay-enter 0.3s ease-out forwards",
+        "overlay-exit": "overlay-exit 0.2s ease-out forwards",
+        "content-slide-up": "content-slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "photo-fade": "photo-fade 0.3s ease-out forwards",
       },
     },
   },

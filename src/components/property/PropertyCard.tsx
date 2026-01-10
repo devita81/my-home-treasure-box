@@ -225,31 +225,32 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
 
       {/* Expanded Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 data-[state=open]:animate-modal-enter data-[state=closed]:animate-modal-exit">
           <VisuallyHidden>
             <DialogTitle>Detalhes do Imóvel - {getAddressDisplay()}</DialogTitle>
           </VisuallyHidden>
           
           {/* Image Section */}
-          <div className="relative aspect-[16/9] bg-muted">
+          <div className="relative aspect-[16/9] bg-muted overflow-hidden">
             {hasRealPhotos ? (
               <>
                 <img
+                  key={currentPhotoIndex}
                   src={photos[currentPhotoIndex]}
                   alt={`${property.rua} - Foto ${currentPhotoIndex + 1}`}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover animate-photo-fade"
                 />
                 {photos.length > 1 && (
                   <>
                     <button
                       onClick={prevPhoto}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-foreground hover:bg-card transition-all shadow-lg"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-foreground hover:bg-card hover:scale-110 active:scale-95 transition-all duration-200 shadow-lg"
                     >
                       <ChevronLeft className="h-6 w-6" />
                     </button>
                     <button
                       onClick={nextPhoto}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-foreground hover:bg-card transition-all shadow-lg"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-foreground hover:bg-card hover:scale-110 active:scale-95 transition-all duration-200 shadow-lg"
                     >
                       <ChevronRight className="h-6 w-6" />
                     </button>
@@ -302,14 +303,14 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
             {/* Close button */}
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-foreground hover:bg-card transition-all shadow-lg"
+              className="absolute top-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-foreground hover:bg-card hover:scale-110 hover:rotate-90 active:scale-95 transition-all duration-200 shadow-lg"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
           {/* Content Section */}
-          <div className="p-6 space-y-6">
+          <div className="p-6 space-y-6 animate-content-slide-up">
             {/* Address */}
             <div>
               <h2 className="text-2xl font-bold">{getAddressDisplay()}</h2>
