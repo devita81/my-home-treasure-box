@@ -70,26 +70,25 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
           )}
         </div>
 
-        <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
-          <div>
-            <p className="text-lg font-semibold text-card truncate">
-              {property.rua}, {property.numero}
-              {property.apartamento && ` - Apt ${property.apartamento}`}
-            </p>
-            <div className="flex items-center gap-1 text-card/80 text-sm">
-              <MapPin className="h-3 w-3" />
-              <span>{property.bairro}, {property.cidade} - {property.estado}</span>
-            </div>
+        <a
+          href={getGoogleMapsUrl()}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-primary hover:bg-card hover:scale-110 transition-all shadow-md"
+          title="Ver no Google Maps"
+        >
+          <MapPin className="h-4 w-4" />
+        </a>
+
+        <div className="absolute bottom-3 left-3 right-3">
+          <p className="text-lg font-semibold text-card truncate">
+            {property.rua}, {property.numero}
+            {property.apartamento && ` - Apt ${property.apartamento}`}
+          </p>
+          <div className="flex items-center gap-1 text-card/80 text-sm">
+            <MapPin className="h-3 w-3" />
+            <span>{property.bairro}, {property.cidade} - {property.estado}</span>
           </div>
-          <a
-            href={getGoogleMapsUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-foreground hover:bg-card transition-colors"
-            title="Ver no Google Maps"
-          >
-            <ExternalLink className="h-4 w-4" />
-          </a>
         </div>
       </div>
 
