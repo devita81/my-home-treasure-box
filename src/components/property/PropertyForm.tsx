@@ -426,9 +426,9 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                   id="metragem"
                   type="number"
                   min="0"
-                  value={formData.metragem}
+                  value={formData.metragem || ''}
                   onChange={(e) => {
-                    const metragem = Number(e.target.value);
+                    const metragem = e.target.value === '' ? 0 : Number(e.target.value);
                     handleChange('metragem', metragem);
                     handleChange('area_total', metragem + (formData.area_comum || 0));
                   }}
@@ -441,9 +441,9 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                   id="area_comum"
                   type="number"
                   min="0"
-                  value={formData.area_comum}
+                  value={formData.area_comum || ''}
                   onChange={(e) => {
-                    const areaComum = Number(e.target.value);
+                    const areaComum = e.target.value === '' ? 0 : Number(e.target.value);
                     handleChange('area_comum', areaComum);
                     handleChange('area_total', (formData.metragem || 0) + areaComum);
                   }}
@@ -456,8 +456,8 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                   id="area_total"
                   type="number"
                   min="0"
-                  value={formData.area_total}
-                  onChange={(e) => handleChange('area_total', Number(e.target.value))}
+                  value={formData.area_total || ''}
+                  onChange={(e) => handleChange('area_total', e.target.value === '' ? 0 : Number(e.target.value))}
                   placeholder="150"
                   className="bg-muted"
                 />
