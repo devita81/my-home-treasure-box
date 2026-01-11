@@ -93,9 +93,12 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
-      setProperties((prev) =>
-        prev.map((prop) => (prop.id === id ? (data as Property) : prop))
-      );
+      // Move updated property to the beginning of the list (most recent)
+      setProperties((prev) => {
+        const updated = data as Property;
+        const filtered = prev.filter((prop) => prop.id !== id);
+        return [updated, ...filtered];
+      });
     } catch (error: any) {
       console.error('Error updating property:', error);
       throw error;
