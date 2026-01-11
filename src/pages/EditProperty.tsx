@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { PropertyForm } from '@/components/property/PropertyForm';
@@ -7,32 +7,30 @@ import { Property } from '@/types/property';
 
 const EditProperty = () => {
   const { id } = useParams<{ id: string }>();
-  const { getPropertyById, refreshProperties, loading } = useProperties();
+  const { getPropertyById, refreshProperties, loading, properties } = useProperties();
   const [initialProperty, setInitialProperty] = useState<Property | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const loadedIdRef = useRef<string | null>(null);
 
-  // Load property data only once on initial mount
+  // Load property data only once per property id
   useEffect(() => {
-    if (!isInitialized && id) {
-      const loadProperty = async () => {
-        await refreshProperties();
-        setIsInitialized(true);
-      };
-      loadProperty();
+    if (id && loadedIdRef.current !== id) {
+      loadedIdRef.current = id;
+      setInitialProperty(null);
+      refreshProperties();
     }
-  }, [id, isInitialized, refreshProperties]);
+  }, [id, refreshProperties]);
 
-  // Capture the property only once after initialization
+  // Capture the property after properties are loaded
   useEffect(() => {
-    if (isInitialized && !initialProperty && id) {
+    if (id && !initialProperty && !loading && properties.length > 0) {
       const prop = getPropertyById(id);
       if (prop) {
         setInitialProperty(prop);
       }
     }
-  }, [isInitialized, initialProperty, id, getPropertyById]);
+  }, [id, initialProperty, loading, properties, getPropertyById]);
 
-  if (loading || (!initialProperty && !isInitialized)) {
+  if (loading || !initialProperty) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -46,14 +44,6 @@ const EditProperty = () => {
         </main>
       </div>
     );
-  }
-
-  if (isInitialized && !initialProperty) {
-    return <Navigate to="/" replace />;
-  }
-
-  if (!initialProperty) {
-    return null;
   }
 
   return (
