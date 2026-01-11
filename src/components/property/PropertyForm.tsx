@@ -47,6 +47,7 @@ const propertySchema = z.object({
   tipo_imovel: z.string().optional(),
   latitude: z.number().nullable().optional(),
   longitude: z.number().nullable().optional(),
+  ano_construcao: z.number().min(1800).max(new Date().getFullYear()).nullable().optional(),
 });
 
 const estados = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
@@ -94,6 +95,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
       tipo_imovel: property?.tipo_imovel || 'apartamento',
       latitude: property?.latitude || null,
       longitude: property?.longitude || null,
+      ano_construcao: property?.ano_construcao || null,
     }),
     [property]
   );
@@ -536,6 +538,19 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                   className="bg-muted"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ano_construcao">Ano de Construção</Label>
+              <Input
+                id="ano_construcao"
+                type="number"
+                min="1800"
+                max={new Date().getFullYear()}
+                placeholder="Ex: 1995"
+                value={formData.ano_construcao || ''}
+                onChange={(e) => handleChange('ano_construcao', e.target.value === '' ? null : Number(e.target.value))}
+              />
             </div>
           </CardContent>
         </Card>
