@@ -23,8 +23,14 @@ const initialFilters: PropertyFilters = {
   search: '',
   estado: '',
   cidade: '',
+  bairro: '',
+  tipoImovel: '',
+  proprietarioPapel: '',
+  proprietarioMatricula: '',
   status: 'all',
   validado: 'all',
+  sortField: 'updated_at',
+  sortOrder: 'desc',
 };
 
 export function PropertyProvider({ children }: { children: ReactNode }) {
@@ -123,15 +129,29 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const getFilteredProperties = useCallback(() => {
-    return properties.filter((property) => {
-      // Search filter
+    // First filter
+    const filtered = properties.filter((property) => {
+      // Generic search across all text fields
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
-        const matchesSearch =
-          property.rua.toLowerCase().includes(searchLower) ||
-          property.bairro.toLowerCase().includes(searchLower) ||
-          property.cidade.toLowerCase().includes(searchLower) ||
-          (property.numero_matricula?.toLowerCase().includes(searchLower) ?? false);
+        const searchableFields = [
+          property.rua,
+          property.bairro,
+          property.cidade,
+          property.estado,
+          property.numero,
+          property.apartamento,
+          property.complemento,
+          property.numero_matricula,
+          property.proprietario_papel,
+          property.proprietario_matricula,
+          property.inquilino,
+          property.numero_contribuinte,
+          property.tipo_imovel,
+        ];
+        const matchesSearch = searchableFields.some(
+          (field) => field?.toLowerCase().includes(searchLower)
+        );
         if (!matchesSearch) return false;
       }
 
@@ -140,6 +160,18 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
 
       // Cidade filter
       if (filters.cidade && property.cidade !== filters.cidade) return false;
+
+      // Bairro filter
+      if (filters.bairro && property.bairro !== filters.bairro) return false;
+
+      // Tipo de imóvel filter
+      if (filters.tipoImovel && property.tipo_imovel !== filters.tipoImovel) return false;
+
+      // Proprietário papel filter
+      if (filters.proprietarioPapel && property.proprietario_papel !== filters.proprietarioPapel) return false;
+
+      // Proprietário matrícula filter
+      if (filters.proprietarioMatricula && property.proprietario_matricula !== filters.proprietarioMatricula) return false;
 
       // Status filter
       if (filters.status !== 'all') {
@@ -155,6 +187,28 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
       }
 
       return true;
+    });
+
+    // Then sort
+    return filtered.sort((a, b) => {
+      const { sortField, sortOrder } = filters;
+      const multiplier = sortOrder === 'asc' ? 1 : -1;
+
+      switch (sortField) {
+        case 'area_total':
+          return multiplier * ((a.area_total ?? 0) - (b.area_total ?? 0));
+        case 'declared_value':
+          return multiplier * (a.declared_value - b.declared_value);
+        case 'market_value':
+          return multiplier * ((a.market_value ?? 0) - (b.market_value ?? 0));
+        case 'iptu_value':
+          return multiplier * ((a.iptu_value ?? 0) - (b.iptu_value ?? 0));
+        case 'rua':
+          return multiplier * a.rua.localeCompare(b.rua, 'pt-BR');
+        case 'updated_at':
+        default:
+          return multiplier * (new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime());
+      }
     });
   }, [properties, filters]);
 
