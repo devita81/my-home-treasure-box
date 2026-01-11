@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { MapPin, Navigation, RotateCcw } from 'lucide-react';
+import { MapPin, Navigation, RotateCcw, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyBSbKS3g4EggVq_jqMCzQRQQFmTRSfMEHw';
 
@@ -66,21 +68,30 @@ export function LocationPicker({
     setTempLng(longitude?.toString() || '');
   }, [latitude, longitude]);
 
+  const [isGeocoding, setIsGeocoding] = useState(false);
+
   const handleGeocode = async () => {
+    setIsGeocoding(true);
     try {
-      const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}&key=${GOOGLE_MAPS_API_KEY}`
-      );
-      const data = await response.json();
+      const { data, error } = await supabase.functions.invoke('geocode', {
+        body: { address }
+      });
       
-      if (data.results && data.results.length > 0) {
-        const location = data.results[0].geometry.location;
-        setTempLat(location.lat.toString());
-        setTempLng(location.lng.toString());
-        onLocationChange(location.lat, location.lng);
+      if (error) throw error;
+      
+      if (data.success) {
+        setTempLat(data.latitude.toString());
+        setTempLng(data.longitude.toString());
+        onLocationChange(data.latitude, data.longitude);
+        toast.success('Localização encontrada!');
+      } else {
+        toast.error('Endereço não encontrado');
       }
     } catch (error) {
       console.error('Erro ao geocodificar:', error);
+      toast.error('Erro ao buscar localização');
+    } finally {
+      setIsGeocoding(false);
     }
   };
 
@@ -198,10 +209,15 @@ export function LocationPicker({
               variant="outline"
               size="sm"
               onClick={handleGeocode}
+              disabled={isGeocoding}
               className="flex-1"
             >
-              <MapPin className="h-4 w-4 mr-1" />
-              Buscar pelo endereço
+              {isGeocoding ? (
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              ) : (
+                <MapPin className="h-4 w-4 mr-1" />
+              )}
+              {isGeocoding ? 'Buscando...' : 'Buscar pelo endereço'}
             </Button>
             <Button
               type="button"
