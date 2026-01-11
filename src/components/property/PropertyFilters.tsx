@@ -6,7 +6,8 @@ import { Search, X, Filter, ArrowUpDown, ChevronUp, ChevronDown, MapPin, User, H
 import { SortField, SortOrder } from '@/types/property';
 import { Label } from '@/components/ui/label';
 
-const estados = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
+
+// Estados serão derivados dinamicamente dos imóveis
 
 const tiposImovel = [
   { value: 'apartamento', label: 'Apartamento' },
@@ -31,10 +32,15 @@ export function PropertyFilters() {
   const { filters, setFilters, properties } = useProperties();
 
   // Get unique values from properties for dynamic filters
+  const estados = [...new Set(properties.map((p) => p.estado).filter(Boolean))].sort();
   const cidades = [...new Set(properties.map((p) => p.cidade).filter(Boolean))].sort();
   const bairros = [...new Set(properties.map((p) => p.bairro).filter(Boolean))].sort();
+  
+  // Proprietários - incluir opção para não preenchidos
   const proprietariosPapel = [...new Set(properties.map((p) => p.proprietario_papel).filter(Boolean))].sort();
   const proprietariosMatricula = [...new Set(properties.map((p) => p.proprietario_matricula).filter(Boolean))].sort();
+  const hasEmptyProprietarioPapel = properties.some((p) => !p.proprietario_papel);
+  const hasEmptyProprietarioMatricula = properties.some((p) => !p.proprietario_matricula);
 
   const handleClearFilters = () => {
     setFilters({
@@ -109,64 +115,76 @@ export function PropertyFilters() {
       </div>
 
       {/* 2. Tipo e Proprietário */}
-      <div className="mb-5 p-3 bg-muted/30 rounded-lg border border-border/50">
-        <div className="flex items-center gap-1.5 mb-3">
-          <User className="h-3.5 w-3.5 text-primary" />
-          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tipo e Proprietário</Label>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Select
-            value={filters.tipoImovel || 'all'}
-            onValueChange={(value) => setFilters({ ...filters, tipoImovel: value === 'all' ? '' : value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Tipo de Imóvel" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os Tipos</SelectItem>
-              {tiposImovel.map((tipo) => (
-                <SelectItem key={tipo.value} value={tipo.value}>
-                  {tipo.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {(proprietariosPapel.length > 0 || proprietariosMatricula.length > 0 || hasEmptyProprietarioPapel || hasEmptyProprietarioMatricula) && (
+        <div className="mb-5 p-3 bg-muted/30 rounded-lg border border-border/50">
+          <div className="flex items-center gap-1.5 mb-3">
+            <User className="h-3.5 w-3.5 text-primary" />
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tipo e Proprietário</Label>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Select
+              value={filters.tipoImovel || 'all'}
+              onValueChange={(value) => setFilters({ ...filters, tipoImovel: value === 'all' ? '' : value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Tipo de Imóvel" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Tipos</SelectItem>
+                {tiposImovel.map((tipo) => (
+                  <SelectItem key={tipo.value} value={tipo.value}>
+                    {tipo.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          <Select
-            value={filters.proprietarioPapel || 'all'}
-            onValueChange={(value) => setFilters({ ...filters, proprietarioPapel: value === 'all' ? '' : value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Proprietário (Papel)" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              {proprietariosPapel.map((prop) => (
-                <SelectItem key={prop} value={prop}>
-                  {prop}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {(proprietariosPapel.length > 0 || hasEmptyProprietarioPapel) && (
+              <Select
+                value={filters.proprietarioPapel || 'all'}
+                onValueChange={(value) => setFilters({ ...filters, proprietarioPapel: value === 'all' ? '' : value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Proprietário (Papel)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {hasEmptyProprietarioPapel && (
+                    <SelectItem value="__empty__">Não preenchido</SelectItem>
+                  )}
+                  {proprietariosPapel.map((prop) => (
+                    <SelectItem key={prop} value={prop}>
+                      {prop}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
 
-          <Select
-            value={filters.proprietarioMatricula || 'all'}
-            onValueChange={(value) => setFilters({ ...filters, proprietarioMatricula: value === 'all' ? '' : value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Proprietário (Matrícula)" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              {proprietariosMatricula.map((prop) => (
-                <SelectItem key={prop} value={prop}>
-                  {prop}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {(proprietariosMatricula.length > 0 || hasEmptyProprietarioMatricula) && (
+              <Select
+                value={filters.proprietarioMatricula || 'all'}
+                onValueChange={(value) => setFilters({ ...filters, proprietarioMatricula: value === 'all' ? '' : value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Proprietário (Matrícula)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {hasEmptyProprietarioMatricula && (
+                    <SelectItem value="__empty__">Não preenchido</SelectItem>
+                  )}
+                  {proprietariosMatricula.map((prop) => (
+                    <SelectItem key={prop} value={prop}>
+                      {prop}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 3. Localização */}
       <div className="mb-5 p-3 bg-muted/30 rounded-lg border border-border/50">
