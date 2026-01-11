@@ -827,74 +827,79 @@ const Analytics = () => {
 
       {/* ==================== DRILL-DOWN DIALOG ==================== */}
       <Dialog open={dialogState.isOpen} onOpenChange={(open) => !open && closeDialog()}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+        <DialogContent className="max-w-6xl max-h-[85vh] overflow-hidden flex flex-col p-0">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b">
+            <DialogTitle className="flex items-center gap-2 text-lg">
               <Home className="h-5 w-5" />
               {dialogState.title}
             </DialogTitle>
             <p className="text-sm text-muted-foreground">{dialogState.subtitle}</p>
           </DialogHeader>
           
-          <div className="flex-1 overflow-auto">
-            <Table>
-              <TableHeader className="sticky top-0 bg-background z-10">
-                <TableRow className="bg-muted/50">
-                  <SortableHeader field="rua" label="Endereço" />
-                  <SortableHeader field="tipo_imovel" label="Tipo" />
-                  <SortableHeader field="cidade" label="Cidade" />
-                  <SortableHeader field="declared_value" label="Declarado" />
-                  <SortableHeader field="market_value" label="Mercado" />
-                  <SortableHeader field="valor_condominio" label="Condom." />
-                  <SortableHeader field="iptu_value" label="IPTU" />
-                  <SortableHeader field="valor_aluguel" label="Aluguel" />
-                  <SortableHeader field="alugado" label="Status" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedDialogProperties.map((property) => (
-                  <TableRow key={property.id} className="hover:bg-muted/30">
-                    <TableCell className="font-medium">
-                      <Link 
-                        to={`/property/${property.id}`}
-                        className="hover:text-primary hover:underline"
-                        onClick={closeDialog}
-                      >
-                        {getPropertyAddress(property)}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{getTipoLabel(property.tipo_imovel)}</Badge>
-                    </TableCell>
-                    <TableCell>{property.cidade} - {property.estado}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(property.declared_value)}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(property.market_value || 0)}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(property.valor_condominio || 0)}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(property.iptu_value || 0)}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(property.valor_aluguel || 0)}</TableCell>
-                    <TableCell className="text-center">
-                      {property.alugado ? (
-                        <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                          <Key className="h-3 w-3 mr-1" />
-                          Alugado
-                        </Badge>
-                      ) : (
-                        <Badge className="bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400">
-                          Vago
-                        </Badge>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {sortedDialogProperties.length === 0 && (
+          <div className="flex-1 overflow-auto px-6 py-4">
+            <div className="rounded-lg border overflow-hidden">
+              <Table>
+                <TableHeader className="sticky top-0 bg-muted/80 backdrop-blur-sm z-10">
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
-                      Nenhum imóvel encontrado
-                    </TableCell>
+                    <SortableHeader field="rua" label="Endereço ↕" />
+                    <SortableHeader field="tipo_imovel" label="Tipo ↕" />
+                    <SortableHeader field="cidade" label="Cidade ↕" />
+                    <SortableHeader field="declared_value" label="Declarado ↕" />
+                    <SortableHeader field="market_value" label="Mercado ↕" />
+                    <SortableHeader field="valor_condominio" label="Condom. ↕" />
+                    <SortableHeader field="iptu_value" label="IPTU ↕" />
+                    <SortableHeader field="valor_aluguel" label="Aluguel ↕" />
+                    <SortableHeader field="alugado" label="Status ↕" />
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {sortedDialogProperties.map((property, index) => (
+                    <TableRow 
+                      key={property.id} 
+                      className={`hover:bg-muted/50 transition-colors ${index % 2 === 0 ? 'bg-background' : 'bg-muted/20'}`}
+                    >
+                      <TableCell className="font-medium py-4 max-w-[180px]">
+                        <Link 
+                          to={`/property/${property.id}`}
+                          className="hover:text-primary hover:underline block truncate"
+                          onClick={closeDialog}
+                          title={getPropertyAddress(property)}
+                        >
+                          {getPropertyAddress(property)}
+                        </Link>
+                      </TableCell>
+                      <TableCell className="py-4">
+                        <Badge variant="outline" className="font-normal">{getTipoLabel(property.tipo_imovel)}</Badge>
+                      </TableCell>
+                      <TableCell className="py-4 whitespace-nowrap">{property.cidade} - {property.estado}</TableCell>
+                      <TableCell className="text-right py-4 font-medium whitespace-nowrap">{formatCurrency(property.declared_value)}</TableCell>
+                      <TableCell className="text-right py-4 font-medium whitespace-nowrap">{formatCurrency(property.market_value || 0)}</TableCell>
+                      <TableCell className="text-right py-4 whitespace-nowrap">{formatCurrency(property.valor_condominio || 0)}</TableCell>
+                      <TableCell className="text-right py-4 whitespace-nowrap">{formatCurrency(property.iptu_value || 0)}</TableCell>
+                      <TableCell className="text-right py-4 whitespace-nowrap">{formatCurrency(property.valor_aluguel || 0)}</TableCell>
+                      <TableCell className="text-center py-4">
+                        {property.alugado ? (
+                          <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-normal">
+                            Alugado
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 font-normal">
+                            Vago
+                          </Badge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {sortedDialogProperties.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center text-muted-foreground py-12">
+                        Nenhum imóvel encontrado
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
