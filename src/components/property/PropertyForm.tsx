@@ -376,8 +376,8 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                   id="quartos"
                   type="number"
                   min="0"
-                  value={formData.quartos}
-                  onChange={(e) => handleChange('quartos', Number(e.target.value))}
+                  value={formData.quartos || ''}
+                  onChange={(e) => handleChange('quartos', e.target.value === '' ? 0 : Number(e.target.value))}
                   placeholder="3"
                 />
               </div>
@@ -387,8 +387,8 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                   id="banheiros"
                   type="number"
                   min="0"
-                  value={formData.banheiros}
-                  onChange={(e) => handleChange('banheiros', Number(e.target.value))}
+                  value={formData.banheiros || ''}
+                  onChange={(e) => handleChange('banheiros', e.target.value === '' ? 0 : Number(e.target.value))}
                   placeholder="2"
                 />
               </div>
@@ -401,8 +401,8 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                   id="suites"
                   type="number"
                   min="0"
-                  value={formData.suites}
-                  onChange={(e) => handleChange('suites', Number(e.target.value))}
+                  value={formData.suites || ''}
+                  onChange={(e) => handleChange('suites', e.target.value === '' ? 0 : Number(e.target.value))}
                   placeholder="1"
                 />
               </div>
@@ -412,8 +412,8 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                   id="garagens"
                   type="number"
                   min="0"
-                  value={formData.garagens}
-                  onChange={(e) => handleChange('garagens', Number(e.target.value))}
+                  value={formData.garagens || ''}
+                  onChange={(e) => handleChange('garagens', e.target.value === '' ? 0 : Number(e.target.value))}
                   placeholder="2"
                 />
               </div>
@@ -426,13 +426,14 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                   id="metragem"
                   type="number"
                   min="0"
+                  step="0.01"
                   value={formData.metragem || ''}
                   onChange={(e) => {
                     const metragem = e.target.value === '' ? 0 : Number(e.target.value);
                     handleChange('metragem', metragem);
                     handleChange('area_total', metragem + (formData.area_comum || 0));
                   }}
-                  placeholder="120"
+                  placeholder="120.00"
                 />
               </div>
               <div className="space-y-2">
@@ -441,13 +442,14 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                   id="area_comum"
                   type="number"
                   min="0"
+                  step="0.01"
                   value={formData.area_comum || ''}
                   onChange={(e) => {
                     const areaComum = e.target.value === '' ? 0 : Number(e.target.value);
                     handleChange('area_comum', areaComum);
                     handleChange('area_total', (formData.metragem || 0) + areaComum);
                   }}
-                  placeholder="30"
+                  placeholder="30.00"
                 />
               </div>
               <div className="space-y-2">
@@ -456,9 +458,10 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                   id="area_total"
                   type="number"
                   min="0"
+                  step="0.01"
                   value={formData.area_total || ''}
                   onChange={(e) => handleChange('area_total', e.target.value === '' ? 0 : Number(e.target.value))}
-                  placeholder="150"
+                  placeholder="150.00"
                   className="bg-muted"
                 />
               </div>
