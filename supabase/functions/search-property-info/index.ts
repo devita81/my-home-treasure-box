@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { cidade, rua, numero, bairro, estado, tipo_imovel, quartos, suites, banheiros, garagens, metragem, area_total } = await req.json();
+    const { cidade, rua, numero, bairro, estado, tipo_imovel, quartos, suites, banheiros, garagens, metragem, area_total, ano_construcao } = await req.json();
 
     if (!LOVABLE_API_KEY) {
       console.error('LOVABLE_API_KEY is not configured');
@@ -27,6 +27,10 @@ serve(async (req) => {
     
     const prompt = `Você é um especialista em avaliação imobiliária no Brasil, com profundo conhecimento do mercado imobiliário de ${cidade} - ${estado}.
 
+**FONTES DE REFERÊNCIA OBRIGATÓRIAS:**
+- Use como base os preços praticados no QuintoAndar (quintoandar.com.br) e Loft (loft.com.br)
+- Considere imóveis similares listados nestas plataformas para a região de ${bairro}
+
 Analise o seguinte imóvel e forneça uma estimativa de valor de VENDA e ALUGUEL em formato de range (mínimo e máximo):
 
 **Dados do Imóvel:**
@@ -34,6 +38,7 @@ Analise o seguinte imóvel e forneça uma estimativa de valor de VENDA e ALUGUEL
 - Bairro: ${bairro}
 - Cidade: ${cidade} - ${estado}
 - Tipo: ${tipo_imovel || 'Não informado'}
+- Ano de Construção: ${ano_construcao ? ano_construcao : 'Não informado'}
 - Quartos: ${quartos || 0}
 - Suítes: ${suites || 0}
 - Banheiros: ${banheiros || 0}
@@ -43,16 +48,28 @@ Analise o seguinte imóvel e forneça uma estimativa de valor de VENDA e ALUGUEL
 
 **Instruções:**
 1. Considere a localização específica do bairro ${bairro} em ${cidade}
-2. Compare com imóveis similares na região
-3. Considere fatores como infraestrutura, valorização da região, proximidade de serviços
-4. Forneça valores realistas para o mercado atual (2026)
+2. Compare com imóveis similares no QuintoAndar e Loft para a região
+3. ${ano_construcao ? `Considere que o imóvel foi construído em ${ano_construcao} (${new Date().getFullYear() - ano_construcao} anos de idade)` : 'Considere uma idade média para imóveis da região'}
+4. Considere fatores como infraestrutura, valorização da região, proximidade de serviços
+5. Forneça valores realistas para o mercado atual (2026)
 
 **Formato da Resposta:**
-Forneça sua análise de forma estruturada:
-- Estimativa de VENDA: R$ [mínimo] a R$ [máximo]
-- Estimativa de ALUGUEL mensal: R$ [mínimo] a R$ [máximo]
-- Justificativa breve da avaliação (fatores considerados)
-- Observações sobre o mercado da região`;
+📊 **ESTIMATIVA DE VALORES**
+
+💰 **Valor de VENDA:** R$ [mínimo] a R$ [máximo]
+📍 **Preço por m²:** R$ [valor] a R$ [valor]
+
+🏠 **Aluguel MENSAL:** R$ [mínimo] a R$ [máximo]
+
+📋 **Justificativa:**
+- [Fatores que influenciam positivamente]
+- [Fatores que influenciam negativamente]
+
+🔍 **Referências de mercado:**
+- Cite exemplos de imóveis similares encontrados no QuintoAndar/Loft
+
+⚠️ **Observações:**
+- [Considerações sobre o mercado da região]`;
 
     console.log('Estimating property value for:', address);
 

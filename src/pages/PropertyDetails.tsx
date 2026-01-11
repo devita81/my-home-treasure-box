@@ -58,7 +58,8 @@ const PropertyDetails = () => {
           banheiros: property.banheiros,
           garagens: property.garagens,
           metragem: property.metragem,
-          area_total: property.area_total
+          area_total: property.area_total,
+          ano_construcao: property.ano_construcao
         }
       });
 

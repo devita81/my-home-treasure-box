@@ -35,6 +35,7 @@ export interface Property {
   tipo_imovel?: string;
   latitude?: number | null;
   longitude?: number | null;
+  ano_construcao?: number | null;
 }
 
 export type PropertyFormData = Omit<Property, 'id' | 'created_at' | 'updated_at' | 'user_id'>;
