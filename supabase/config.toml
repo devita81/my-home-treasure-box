@@ -1,1 +1,7 @@
 project_id = "rbsghoxhcpvrnkemksex"
+
+[functions.geocode]
+verify_jwt = false
+
+[functions.search-property-info]
+verify_jwt = false
