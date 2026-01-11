@@ -173,140 +173,133 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
           </div>
 
           {/* Info section */}
-          <div className="flex-1 p-3 sm:p-4 flex flex-col">
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-0 flex-1">
+          <div className="flex-1 p-2.5 sm:p-3 flex flex-col">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 sm:gap-3 flex-1">
               
-              {/* Column 1: Valores + Custos */}
-              <div className="flex-1 space-y-2.5 sm:pr-4">
+              {/* Column 1: Valores + Custos + Rentabilidade */}
+              <div className="space-y-1.5">
                 {/* Bloco Valores */}
-                <div className="space-y-1">
-                  <h4 className="text-[10px] font-bold text-primary uppercase tracking-wide">Valores</h4>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Mercado</span>
-                    <span className="text-xs font-semibold">{formatCurrency(property.market_value) || '—'}</span>
+                <div className="space-y-0.5">
+                  <h4 className="text-[9px] font-bold text-primary uppercase tracking-wide mb-1">Valores</h4>
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[11px] text-muted-foreground">Mercado</span>
+                    <span className="text-[11px] font-semibold">{formatCurrency(property.market_value) || '—'}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Declarado</span>
-                    <span className="text-xs font-medium">{formatCurrency(property.declared_value) || '—'}</span>
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[11px] text-muted-foreground">Declarado</span>
+                    <span className="text-[11px] font-medium">{formatCurrency(property.declared_value) || '—'}</span>
                   </div>
                 </div>
 
                 {/* Bloco Custos */}
-                <div className="space-y-1 pt-2 border-t border-border">
-                  <h4 className="text-[10px] font-bold text-primary uppercase tracking-wide">Custos</h4>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">IPTU</span>
+                <div className="space-y-0.5 pt-1.5 border-t border-border">
+                  <h4 className="text-[9px] font-bold text-primary uppercase tracking-wide mb-1">Custos</h4>
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[11px] text-muted-foreground">IPTU</span>
                     <div className="flex items-center gap-1">
-                      <span className="text-xs font-medium">{property.iptu_value ? formatCurrency(property.iptu_value) : '—'}</span>
+                      <span className="text-[11px] font-medium">{property.iptu_value ? formatCurrency(property.iptu_value) : '—'}</span>
                       {property.iptu_pago && (
-                        <Badge className="bg-success/10 text-success border-0 text-[8px] px-1 py-0">Pago</Badge>
+                        <Badge className="bg-success/10 text-success border-0 text-[7px] px-1 py-0 h-3">Pago</Badge>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Condomínio</span>
-                    <span className="text-xs font-medium">{property.valor_condominio ? `${formatCurrency(property.valor_condominio)}/mês` : '—'}</span>
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[11px] text-muted-foreground">Condomínio</span>
+                    <span className="text-[11px] font-medium">{property.valor_condominio ? `${formatCurrency(property.valor_condominio)}/mês` : '—'}</span>
                   </div>
                 </div>
 
                 {/* Bloco Rentabilidade */}
-                <div className="space-y-1 pt-2 border-t border-border">
-                  <h4 className="text-[10px] font-bold text-primary uppercase tracking-wide">Rentabilidade</h4>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Status</span>
-                    <span className={`text-xs font-medium ${property.alugado ? 'text-info' : 'text-muted-foreground'}`}>
+                <div className="space-y-0.5 pt-1.5 border-t border-border">
+                  <h4 className="text-[9px] font-bold text-primary uppercase tracking-wide mb-1">Rentabilidade</h4>
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[11px] text-muted-foreground">Status</span>
+                    <span className={`text-[11px] font-medium ${property.alugado ? 'text-info' : 'text-muted-foreground'}`}>
                       {property.alugado ? 'Alugado' : 'Não alugado'}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Aluguel</span>
-                    <span className={`text-xs font-medium ${property.alugado && property.valor_aluguel ? 'text-info' : ''}`}>
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[11px] text-muted-foreground">Aluguel</span>
+                    <span className={`text-[11px] font-medium ${property.alugado && property.valor_aluguel ? 'text-info' : ''}`}>
                       {property.valor_aluguel ? `${formatCurrency(property.valor_aluguel)}/mês` : '—'}
                     </span>
                   </div>
                   {property.alugado && property.inquilino && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">Inquilino</span>
-                      <span className="text-xs font-medium truncate max-w-[120px]">{property.inquilino}</span>
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-[11px] text-muted-foreground">Inquilino</span>
+                      <span className="text-[11px] font-medium truncate max-w-[100px]">{property.inquilino}</span>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Separator */}
-              <div className="hidden sm:block w-px bg-border" />
-
-              {/* Column 2: Propriedade + Características */}
-              <div className="flex-1 space-y-2.5 sm:px-4 sm:border-l-0">
-                {/* Bloco Propriedade */}
-                <div className="space-y-1">
-                  <h4 className="text-[10px] font-bold text-primary uppercase tracking-wide">Propriedade</h4>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs text-muted-foreground shrink-0">Tipo</span>
-                    <span className="text-xs font-medium text-right capitalize">{property.tipo_imovel || 'Apartamento'}</span>
-                  </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs text-muted-foreground shrink-0">Proprietário</span>
-                    <span className="text-xs font-medium text-right">{abbreviateOwnerName(property.proprietario_papel)}</span>
-                  </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs text-muted-foreground shrink-0">Na matrícula</span>
-                    <span className="text-xs font-medium text-right">{abbreviateOwnerName(property.proprietario_matricula)}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Nº matrícula</span>
-                    <span className="text-xs font-medium">{property.numero_matricula || '—'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Nº contribuinte</span>
-                    <span className="text-xs font-medium">{property.numero_contribuinte || '—'}</span>
-                  </div>
+              {/* Column 2: Propriedade */}
+              <div className="space-y-0.5 sm:border-l sm:border-border sm:pl-3">
+                <h4 className="text-[9px] font-bold text-primary uppercase tracking-wide mb-1">Propriedade</h4>
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[11px] text-muted-foreground">Tipo</span>
+                  <span className="text-[11px] font-medium capitalize">{property.tipo_imovel || 'Apartamento'}</span>
                 </div>
-
-                {/* Bloco Características */}
-                <div className="space-y-1 pt-2 border-t border-border">
-                  <h4 className="text-[10px] font-bold text-primary uppercase tracking-wide">Características</h4>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">Quartos</span>
-                      <span className="text-xs font-medium">{property.quartos || '—'}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">Suítes</span>
-                      <span className="text-xs font-medium">{property.suites || '—'}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">Banheiros</span>
-                      <span className="text-xs font-medium">{property.banheiros || '—'}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">Garagens</span>
-                      <span className="text-xs font-medium">{property.garagens || '—'}</span>
-                    </div>
-                  </div>
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[11px] text-muted-foreground">Proprietário</span>
+                  <span className="text-[11px] font-medium">{abbreviateOwnerName(property.proprietario_papel)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[11px] text-muted-foreground">Na matrícula</span>
+                  <span className="text-[11px] font-medium">{abbreviateOwnerName(property.proprietario_matricula)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[11px] text-muted-foreground">Nº matrícula</span>
+                  <span className="text-[11px] font-medium">{property.numero_matricula || '—'}</span>
+                </div>
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[11px] text-muted-foreground">Nº contribuinte</span>
+                  <span className="text-[11px] font-medium">{property.numero_contribuinte || '—'}</span>
                 </div>
               </div>
 
-              {/* Separator */}
-              <div className="hidden sm:block w-px bg-border" />
-
               {/* Column 3: Metragens */}
-              <div className="flex-1 space-y-1 sm:pl-4">
-                <h4 className="text-[10px] font-bold text-primary uppercase tracking-wide">Metragens</h4>
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Área útil</span>
-                    <span className="text-xs font-medium">{property.metragem ? `${property.metragem} m²` : '—'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Área comum</span>
-                    <span className="text-xs font-medium">{property.area_comum ? `${property.area_comum} m²` : '—'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Área total</span>
-                    <span className="text-xs font-semibold text-primary">{property.area_total ? `${property.area_total} m²` : '—'}</span>
-                  </div>
+              <div className="space-y-0.5 sm:border-l sm:border-border sm:pl-3">
+                <h4 className="text-[9px] font-bold text-primary uppercase tracking-wide mb-1">Metragens</h4>
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[11px] text-muted-foreground">Área útil</span>
+                  <span className="text-[11px] font-medium">{property.metragem ? `${property.metragem} m²` : '—'}</span>
                 </div>
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[11px] text-muted-foreground">Área comum</span>
+                  <span className="text-[11px] font-medium">{property.area_comum ? `${property.area_comum} m²` : '—'}</span>
+                </div>
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[11px] text-muted-foreground">Área total</span>
+                  <span className="text-[11px] font-semibold text-primary">{property.area_total ? `${property.area_total} m²` : '—'}</span>
+                </div>
+              </div>
+
+              {/* Column 4: Características */}
+              <div className="space-y-0.5 sm:border-l sm:border-border sm:pl-3">
+                <h4 className="text-[9px] font-bold text-primary uppercase tracking-wide mb-1">Características</h4>
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[11px] text-muted-foreground">Quartos</span>
+                  <span className="text-[11px] font-medium">{property.quartos || '—'}</span>
+                </div>
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[11px] text-muted-foreground">Suítes</span>
+                  <span className="text-[11px] font-medium">{property.suites || '—'}</span>
+                </div>
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[11px] text-muted-foreground">Banheiros</span>
+                  <span className="text-[11px] font-medium">{property.banheiros || '—'}</span>
+                </div>
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[11px] text-muted-foreground">Garagens</span>
+                  <span className="text-[11px] font-medium">{property.garagens || '—'}</span>
+                </div>
+                {property.ano_construcao && (
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[11px] text-muted-foreground">Ano</span>
+                    <span className="text-[11px] font-medium">{property.ano_construcao}</span>
+                  </div>
+                )}
               </div>
             </div>
 
