@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Save, ArrowLeft, MapPin, DollarSign, FileText, User } from 'lucide-react';
+import { Save, ArrowLeft, MapPin, DollarSign, FileText, User, Home } from 'lucide-react';
 import { z } from 'zod';
 
 // Validation schema for property form
@@ -35,6 +35,11 @@ const propertySchema = z.object({
   inquilino: z.string().trim().max(200, 'Nome muito longo').optional().or(z.literal('')),
   valor_aluguel: z.number().min(0, 'Valor não pode ser negativo').max(10000000, 'Valor muito alto'),
   valor_condominio: z.number().min(0, 'Valor não pode ser negativo').max(1000000, 'Valor muito alto'),
+  quartos: z.number().min(0).max(50),
+  banheiros: z.number().min(0).max(50),
+  suites: z.number().min(0).max(50),
+  garagens: z.number().min(0).max(50),
+  metragem: z.number().min(0).max(100000),
 });
 
 const estados = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
@@ -70,6 +75,11 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
     inquilino: property?.inquilino || '',
     valor_aluguel: property?.valor_aluguel || 0,
     valor_condominio: property?.valor_condominio || 0,
+    quartos: property?.quartos || 0,
+    banheiros: property?.banheiros || 0,
+    suites: property?.suites || 0,
+    garagens: property?.garagens || 0,
+    metragem: property?.metragem || 0,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -328,6 +338,79 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                 id="validado"
                 checked={formData.validado}
                 onCheckedChange={(checked) => handleChange('validado', checked)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Características */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Home className="h-5 w-5 text-primary" />
+              Características
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="quartos">Quartos</Label>
+                <Input
+                  id="quartos"
+                  type="number"
+                  min="0"
+                  value={formData.quartos}
+                  onChange={(e) => handleChange('quartos', Number(e.target.value))}
+                  placeholder="3"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="banheiros">Banheiros</Label>
+                <Input
+                  id="banheiros"
+                  type="number"
+                  min="0"
+                  value={formData.banheiros}
+                  onChange={(e) => handleChange('banheiros', Number(e.target.value))}
+                  placeholder="2"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="suites">Suítes</Label>
+                <Input
+                  id="suites"
+                  type="number"
+                  min="0"
+                  value={formData.suites}
+                  onChange={(e) => handleChange('suites', Number(e.target.value))}
+                  placeholder="1"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="garagens">Garagens</Label>
+                <Input
+                  id="garagens"
+                  type="number"
+                  min="0"
+                  value={formData.garagens}
+                  onChange={(e) => handleChange('garagens', Number(e.target.value))}
+                  placeholder="2"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="metragem">Metragem (m²)</Label>
+              <Input
+                id="metragem"
+                type="number"
+                min="0"
+                value={formData.metragem}
+                onChange={(e) => handleChange('metragem', Number(e.target.value))}
+                placeholder="120"
               />
             </div>
           </CardContent>
