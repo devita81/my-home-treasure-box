@@ -161,27 +161,6 @@ export function PropertyFilters() {
               </Select>
             )}
 
-            {(proprietariosMatricula.length > 0 || hasEmptyProprietarioMatricula) && (
-              <Select
-                value={filters.proprietarioMatricula || 'all'}
-                onValueChange={(value) => setFilters({ ...filters, proprietarioMatricula: value === 'all' ? '' : value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Proprietário (Matrícula)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {hasEmptyProprietarioMatricula && (
-                    <SelectItem value="__empty__">Não preenchido</SelectItem>
-                  )}
-                  {proprietariosMatricula.map((prop) => (
-                    <SelectItem key={prop} value={prop}>
-                      {prop}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
           </div>
         </div>
       )}
