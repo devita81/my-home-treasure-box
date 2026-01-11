@@ -30,7 +30,12 @@ const EditProperty = () => {
     }
   }, [id, initialProperty, loading, properties, getPropertyById]);
 
-  if (loading || !initialProperty) {
+  if (!initialProperty) {
+    // Se já terminou de carregar e não achou o imóvel, volta pra home
+    if (!loading && id && loadedIdRef.current === id) {
+      return <Navigate to="/" replace />;
+    }
+
     return (
       <div className="min-h-screen bg-background">
         <Header />
