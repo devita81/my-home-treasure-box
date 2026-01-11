@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { MapPin, Navigation, RotateCcw, Loader2 } from 'lucide-react';
+import { MapPin, Navigation, RotateCcw, Loader2, MousePointerClick } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { InteractiveMap } from './InteractiveMap';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyBSbKS3g4EggVq_jqMCzQRQQFmTRSfMEHw';
 
@@ -30,6 +31,7 @@ export function LocationPicker({
   onLocationChange,
 }: LocationPickerProps) {
   const [isAdjusting, setIsAdjusting] = useState(false);
+  const [showInteractiveMap, setShowInteractiveMap] = useState(false);
   const [tempLat, setTempLat] = useState<string>(latitude?.toString() || '');
   const [tempLng, setTempLng] = useState<string>(longitude?.toString() || '');
   const [mapUrl, setMapUrl] = useState('');
@@ -100,6 +102,8 @@ export function LocationPicker({
     const lng = tempLng ? parseFloat(tempLng) : null;
     onLocationChange(lat, lng);
     setIsAdjusting(false);
+    setShowInteractiveMap(false);
+    toast.success('Localização salva!');
   };
 
   const handleReset = () => {
@@ -107,6 +111,12 @@ export function LocationPicker({
     setTempLng('');
     onLocationChange(null, null);
     setIsAdjusting(false);
+    setShowInteractiveMap(false);
+  };
+
+  const handleMapLocationSelect = (lat: number, lng: number) => {
+    setTempLat(lat.toFixed(6));
+    setTempLng(lng.toFixed(6));
   };
 
   const openGoogleMaps = () => {
@@ -169,75 +179,125 @@ export function LocationPicker({
         </div>
       </div>
 
-      {/* Coordinate inputs */}
+      {/* Interactive Map Toggle */}
       {isAdjusting && (
         <div className="space-y-3 p-3 bg-muted rounded-lg">
-          <p className="text-xs text-muted-foreground">
-            Para encontrar as coordenadas corretas, abra o Google Maps, clique com botão direito no local desejado e copie as coordenadas.
-          </p>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="latitude" className="text-xs">Latitude</Label>
-              <Input
-                id="latitude"
-                type="number"
-                step="any"
-                value={tempLat}
-                onChange={(e) => setTempLat(e.target.value)}
-                placeholder="-23.550520"
-                className="text-sm"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="longitude" className="text-xs">Longitude</Label>
-              <Input
-                id="longitude"
-                type="number"
-                step="any"
-                value={tempLng}
-                onChange={(e) => setTempLng(e.target.value)}
-                placeholder="-46.633308"
-                className="text-sm"
-              />
-            </div>
-          </div>
-
-          <div className="flex gap-2">
+          <div className="flex gap-2 mb-3">
             <Button
               type="button"
-              variant="outline"
+              variant={showInteractiveMap ? "default" : "outline"}
               size="sm"
-              onClick={handleGeocode}
-              disabled={isGeocoding}
+              onClick={() => setShowInteractiveMap(true)}
               className="flex-1"
             >
-              {isGeocoding ? (
-                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-              ) : (
-                <MapPin className="h-4 w-4 mr-1" />
-              )}
-              {isGeocoding ? 'Buscando...' : 'Buscar pelo endereço'}
+              <MousePointerClick className="h-4 w-4 mr-1" />
+              Selecionar no Mapa
             </Button>
+            <Button
+              type="button"
+              variant={!showInteractiveMap ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowInteractiveMap(false)}
+              className="flex-1"
+            >
+              <MapPin className="h-4 w-4 mr-1" />
+              Digitar Coordenadas
+            </Button>
+          </div>
+
+          {showInteractiveMap ? (
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Clique no mapa para selecionar a localização ou arraste o marcador para ajustar.
+              </p>
+              
+              <InteractiveMap
+                latitude={tempLat ? parseFloat(tempLat) : null}
+                longitude={tempLng ? parseFloat(tempLng) : null}
+                onLocationSelect={handleMapLocationSelect}
+                address={address}
+              />
+
+              {(tempLat && tempLng) && (
+                <p className="text-xs text-muted-foreground">
+                  Coordenadas selecionadas: {tempLat}, {tempLng}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Digite as coordenadas manualmente ou busque pelo endereço.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="latitude" className="text-xs">Latitude</Label>
+                  <Input
+                    id="latitude"
+                    type="number"
+                    step="any"
+                    value={tempLat}
+                    onChange={(e) => setTempLat(e.target.value)}
+                    placeholder="-23.550520"
+                    className="text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="longitude" className="text-xs">Longitude</Label>
+                  <Input
+                    id="longitude"
+                    type="number"
+                    step="any"
+                    value={tempLng}
+                    onChange={(e) => setTempLng(e.target.value)}
+                    placeholder="-46.633308"
+                    className="text-sm"
+                  />
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleGeocode}
+                disabled={isGeocoding}
+                className="w-full"
+              >
+                {isGeocoding ? (
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                ) : (
+                  <MapPin className="h-4 w-4 mr-1" />
+                )}
+                {isGeocoding ? 'Buscando...' : 'Buscar pelo endereço'}
+              </Button>
+            </div>
+          )}
+
+          <div className="flex gap-2 pt-2 border-t">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={handleReset}
             >
-              <RotateCcw className="h-4 w-4" />
+              <RotateCcw className="h-4 w-4 mr-1" />
+              Limpar
             </Button>
             <Button
               type="button"
               size="sm"
               onClick={handleSaveLocation}
+              disabled={!tempLat || !tempLng}
+              className="flex-1"
             >
-              Salvar
+              Salvar Localização
             </Button>
           </div>
 
           {(latitude || longitude) && (
-            <p className="text-xs text-success">
+            <p className="text-xs text-green-600">
               ✓ Coordenadas personalizadas salvas
             </p>
           )}
