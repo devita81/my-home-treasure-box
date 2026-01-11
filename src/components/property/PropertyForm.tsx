@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Property, PropertyFormData } from '@/types/property';
 import { useProperties } from '@/contexts/PropertyContext';
@@ -60,47 +60,93 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
   const navigate = useNavigate();
   const { addProperty, updateProperty } = useProperties();
 
-  const [formData, setFormData] = useState<PropertyFormData>({
-    estado: property?.estado || 'SP',
-    cidade: property?.cidade || '',
-    bairro: property?.bairro || '',
-    rua: property?.rua || '',
-    numero: property?.numero || '',
-    apartamento: property?.apartamento || '',
-    complemento: property?.complemento || '',
-    declared_value: property?.declared_value || 0,
-    numero_matricula: property?.numero_matricula || '',
-    market_value: property?.market_value || 0,
-    iptu_value: property?.iptu_value || 0,
-    photos: property?.photos || [],
-    iptu_pago: property?.iptu_pago || false,
-    proprietario_papel: property?.proprietario_papel || '',
-    proprietario_matricula: property?.proprietario_matricula || '',
-    validado: property?.validado || false,
-    vendido: property?.vendido || false,
-    alugado: property?.alugado || false,
-    inquilino: property?.inquilino || '',
-    valor_aluguel: property?.valor_aluguel || 0,
-    valor_condominio: property?.valor_condominio || 0,
-    quartos: property?.quartos || 0,
-    banheiros: property?.banheiros || 0,
-    suites: property?.suites || 0,
-    garagens: property?.garagens || 0,
-    metragem: property?.metragem || 0,
-    area_comum: property?.area_comum || 0,
-    area_total: property?.area_total || 0,
-    numero_contribuinte: property?.numero_contribuinte || '',
-    tipo_imovel: property?.tipo_imovel || 'apartamento',
-    latitude: property?.latitude || null,
-    longitude: property?.longitude || null,
-  });
+  const initialFromProp = useMemo<PropertyFormData>(
+    () => ({
+      estado: property?.estado || 'SP',
+      cidade: property?.cidade || '',
+      bairro: property?.bairro || '',
+      rua: property?.rua || '',
+      numero: property?.numero || '',
+      apartamento: property?.apartamento || '',
+      complemento: property?.complemento || '',
+      declared_value: property?.declared_value || 0,
+      numero_matricula: property?.numero_matricula || '',
+      market_value: property?.market_value || 0,
+      iptu_value: property?.iptu_value || 0,
+      photos: property?.photos || [],
+      iptu_pago: property?.iptu_pago || false,
+      proprietario_papel: property?.proprietario_papel || '',
+      proprietario_matricula: property?.proprietario_matricula || '',
+      validado: property?.validado || false,
+      vendido: property?.vendido || false,
+      alugado: property?.alugado || false,
+      inquilino: property?.inquilino || '',
+      valor_aluguel: property?.valor_aluguel || 0,
+      valor_condominio: property?.valor_condominio || 0,
+      quartos: property?.quartos || 0,
+      banheiros: property?.banheiros || 0,
+      suites: property?.suites || 0,
+      garagens: property?.garagens || 0,
+      metragem: property?.metragem || 0,
+      area_comum: property?.area_comum || 0,
+      area_total: property?.area_total || 0,
+      numero_contribuinte: property?.numero_contribuinte || '',
+      tipo_imovel: property?.tipo_imovel || 'apartamento',
+      latitude: property?.latitude || null,
+      longitude: property?.longitude || null,
+    }),
+    [property]
+  );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const draftKey = useMemo(() => {
+    if (mode === 'edit' && property?.id) return `property_draft:${property.id}`;
+    return 'property_draft:add';
+  }, [mode, property?.id]);
+
+  const [formData, setFormData] = useState<PropertyFormData>(initialFromProp);
+  const saveTimeoutRef = useRef<number | null>(null);
+
+  // Restaura rascunho ao montar/recarregar a página (evita perder dados ao alt+tab, refresh, etc.)
+  useEffect(() => {
+    setFormData(initialFromProp);
+
+    if (mode !== 'edit' || !property?.id) return;
+
+    const raw = sessionStorage.getItem(draftKey);
+    if (!raw) return;
+
+    try {
+      const parsed = JSON.parse(raw) as Partial<PropertyFormData>;
+      setFormData((prev) => ({ ...prev, ...parsed }));
+    } catch {
+      // ignore
+    }
+  }, [draftKey, initialFromProp, mode, property?.id]);
+
+  // Auto-salva o rascunho no sessionStorage
+  useEffect(() => {
+    if (mode !== 'edit' || !property?.id) return;
+
+    if (saveTimeoutRef.current) window.clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = window.setTimeout(() => {
+      try {
+        sessionStorage.setItem(draftKey, JSON.stringify(formData));
+      } catch {
+        // ignore
+      }
+    }, 250);
+
+    return () => {
+      if (saveTimeoutRef.current) window.clearTimeout(saveTimeoutRef.current);
+    };
+  }, [draftKey, formData, mode, property?.id]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate form data using zod schema
     const result = propertySchema.safeParse(formData);
-    
+
     if (!result.success) {
       const firstError = result.error.errors[0];
       toast.error(firstError.message || 'Dados inválidos');
@@ -110,15 +156,21 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
     // Use validated data
     const validatedData = result.data;
 
-    if (mode === 'add') {
-      addProperty(validatedData as PropertyFormData);
-      toast.success('Imóvel adicionado com sucesso!');
-    } else if (property) {
-      updateProperty(property.id, validatedData as PropertyFormData);
-      toast.success('Imóvel atualizado com sucesso!');
+    try {
+      if (mode === 'add') {
+        await addProperty(validatedData as PropertyFormData);
+        toast.success('Imóvel adicionado com sucesso!');
+      } else if (property) {
+        await updateProperty(property.id, validatedData as PropertyFormData);
+        toast.success('Imóvel atualizado com sucesso!');
+        sessionStorage.removeItem(draftKey);
+      }
+
+      navigate('/');
+    } catch (error: any) {
+      console.error('Error saving property:', error);
+      toast.error('Erro ao salvar. Tente novamente.');
     }
-    
-    navigate('/');
   };
 
   const handleChange = (field: keyof PropertyFormData, value: any) => {
