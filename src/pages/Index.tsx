@@ -73,7 +73,7 @@ const Index = () => {
               </Link>
             </div>
           ) : (
-            <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+            <div className="grid gap-6 grid-cols-1">
               {filteredProperties.map((property, index) => (
                 <div
                   key={property.id}
