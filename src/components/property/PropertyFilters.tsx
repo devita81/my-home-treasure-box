@@ -79,17 +79,28 @@ export function PropertyFilters() {
     filters.sortOrder !== 'desc';
 
   return (
-    <div className="bg-card rounded-xl p-4 shadow-sm border border-border">
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-4">
-        <Filter className="h-4 w-4 text-primary" />
-        <h3 className="font-medium text-sm">Filtros</h3>
+    <div className="bg-card rounded-xl p-3 shadow-sm border border-border">
+      {/* Header + Search */}
+      <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-primary" />
+          <h3 className="font-medium text-sm">Filtros</h3>
+        </div>
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por endereço, proprietário, matrícula..."
+            value={filters.search}
+            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+            className="pl-9 h-9"
+          />
+        </div>
         {hasActiveFilters && (
           <Button
             variant="ghost"
             size="sm"
             onClick={handleClearFilters}
-            className="ml-auto text-xs text-muted-foreground hover:text-foreground"
+            className="text-xs text-muted-foreground hover:text-foreground h-9 px-2"
           >
             <X className="h-3 w-3 mr-1" />
             Limpar
@@ -97,214 +108,155 @@ export function PropertyFilters() {
         )}
       </div>
 
-      {/* 1. Busca Genérica */}
-      <div className="mb-5">
-        <div className="flex items-center gap-1.5 mb-2">
-          <Search className="h-3.5 w-3.5 text-primary" />
-          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Busca Geral</Label>
-        </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por endereço, proprietário, matrícula..."
-            value={filters.search}
-            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-            className="pl-9"
-          />
-        </div>
-      </div>
+      {/* All filters in a compact grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+        {/* Tipo */}
+        <Select
+          value={filters.tipoImovel || 'all'}
+          onValueChange={(value) => setFilters({ ...filters, tipoImovel: value === 'all' ? '' : value })}
+        >
+          <SelectTrigger className="h-9 text-xs">
+            <SelectValue placeholder="Tipo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os Tipos</SelectItem>
+            {tiposImovel.map((tipo) => (
+              <SelectItem key={tipo.value} value={tipo.value}>
+                {tipo.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-      {/* 2. Tipo e Proprietário */}
-      {(proprietariosPapel.length > 0 || proprietariosMatricula.length > 0 || hasEmptyProprietarioPapel || hasEmptyProprietarioMatricula) && (
-        <div className="mb-5 p-3 bg-muted/30 rounded-lg border border-border/50">
-          <div className="flex items-center gap-1.5 mb-3">
-            <User className="h-3.5 w-3.5 text-primary" />
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tipo e Proprietário</Label>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <Select
-              value={filters.tipoImovel || 'all'}
-              onValueChange={(value) => setFilters({ ...filters, tipoImovel: value === 'all' ? '' : value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Tipo de Imóvel" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Tipos</SelectItem>
-                {tiposImovel.map((tipo) => (
-                  <SelectItem key={tipo.value} value={tipo.value}>
-                    {tipo.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {(proprietariosPapel.length > 0 || hasEmptyProprietarioPapel) && (
-              <Select
-                value={filters.proprietarioPapel || 'all'}
-                onValueChange={(value) => setFilters({ ...filters, proprietarioPapel: value === 'all' ? '' : value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Proprietário (Papel)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {hasEmptyProprietarioPapel && (
-                    <SelectItem value="__empty__">Não preenchido</SelectItem>
-                  )}
-                  {proprietariosPapel.map((prop) => (
-                    <SelectItem key={prop} value={prop}>
-                      {prop}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-
-          </div>
-        </div>
-      )}
-
-      {/* 3. Localização */}
-      <div className="mb-5 p-3 bg-muted/30 rounded-lg border border-border/50">
-        <div className="flex items-center gap-1.5 mb-3">
-          <MapPin className="h-3.5 w-3.5 text-primary" />
-          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Localização</Label>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Proprietário */}
+        {(proprietariosPapel.length > 0 || hasEmptyProprietarioPapel) && (
           <Select
-            value={filters.estado || 'all'}
-            onValueChange={(value) => setFilters({ ...filters, estado: value === 'all' ? '' : value })}
+            value={filters.proprietarioPapel || 'all'}
+            onValueChange={(value) => setFilters({ ...filters, proprietarioPapel: value === 'all' ? '' : value })}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Estado" />
+            <SelectTrigger className="h-9 text-xs">
+              <SelectValue placeholder="Proprietário" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos os Estados</SelectItem>
-              {estados.map((uf) => (
-                <SelectItem key={uf} value={uf}>
-                  {uf}
+              <SelectItem value="all">Todos Proprietários</SelectItem>
+              {hasEmptyProprietarioPapel && (
+                <SelectItem value="__empty__">Não preenchido</SelectItem>
+              )}
+              {proprietariosPapel.map((prop) => (
+                <SelectItem key={prop} value={prop}>
+                  {prop}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+        )}
 
-          <Select
-            value={filters.cidade || 'all'}
-            onValueChange={(value) => setFilters({ ...filters, cidade: value === 'all' ? '' : value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Cidade" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as Cidades</SelectItem>
-              {cidades.map((cidade) => (
-                <SelectItem key={cidade} value={cidade}>
-                  {cidade}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {/* Estado */}
+        <Select
+          value={filters.estado || 'all'}
+          onValueChange={(value) => setFilters({ ...filters, estado: value === 'all' ? '' : value })}
+        >
+          <SelectTrigger className="h-9 text-xs">
+            <SelectValue placeholder="Estado" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos Estados</SelectItem>
+            {estados.map((uf) => (
+              <SelectItem key={uf} value={uf}>
+                {uf}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-          <Select
-            value={filters.bairro || 'all'}
-            onValueChange={(value) => setFilters({ ...filters, bairro: value === 'all' ? '' : value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Bairro" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os Bairros</SelectItem>
-              {bairros.map((bairro) => (
-                <SelectItem key={bairro} value={bairro}>
-                  {bairro}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+        {/* Cidade */}
+        <Select
+          value={filters.cidade || 'all'}
+          onValueChange={(value) => setFilters({ ...filters, cidade: value === 'all' ? '' : value })}
+        >
+          <SelectTrigger className="h-9 text-xs">
+            <SelectValue placeholder="Cidade" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas Cidades</SelectItem>
+            {cidades.map((cidade) => (
+              <SelectItem key={cidade} value={cidade}>
+                {cidade}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-      {/* 4. Status de Aluguel e Validação */}
-      <div className="mb-5 p-3 bg-muted/30 rounded-lg border border-border/50">
-        <div className="flex items-center gap-1.5 mb-3">
-          <Key className="h-3.5 w-3.5 text-primary" />
-          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Status</Label>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Select
-            value={filters.status}
-            onValueChange={(value) => setFilters({ ...filters, status: value as any })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Status de Ocupação" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os Status</SelectItem>
-              <SelectItem value="disponivel">Disponível</SelectItem>
-              <SelectItem value="alugado">Alugado</SelectItem>
-              <SelectItem value="vendido">Vendido</SelectItem>
-            </SelectContent>
-          </Select>
+        {/* Bairro */}
+        <Select
+          value={filters.bairro || 'all'}
+          onValueChange={(value) => setFilters({ ...filters, bairro: value === 'all' ? '' : value })}
+        >
+          <SelectTrigger className="h-9 text-xs">
+            <SelectValue placeholder="Bairro" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos Bairros</SelectItem>
+            {bairros.map((bairro) => (
+              <SelectItem key={bairro} value={bairro}>
+                {bairro}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-          <Select
-            value={filters.validado}
-            onValueChange={(value) => setFilters({ ...filters, validado: value as any })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Validação" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as Validações</SelectItem>
-              <SelectItem value="sim">Validado</SelectItem>
-              <SelectItem value="nao">Pendente</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+        {/* Status */}
+        <Select
+          value={filters.status}
+          onValueChange={(value) => setFilters({ ...filters, status: value as any })}
+        >
+          <SelectTrigger className="h-9 text-xs">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos Status</SelectItem>
+            <SelectItem value="disponivel">Disponível</SelectItem>
+            <SelectItem value="alugado">Alugado</SelectItem>
+            <SelectItem value="vendido">Vendido</SelectItem>
+          </SelectContent>
+        </Select>
 
-      {/* 5. Ordenamento */}
-      <div className="p-3 bg-primary/5 rounded-lg border border-primary/10">
-        <div className="flex items-center gap-1.5 mb-3">
-          <ArrowDownUp className="h-3.5 w-3.5 text-primary" />
-          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Ordenamento</Label>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Select
-            value={filters.sortField}
-            onValueChange={(value) => setFilters({ ...filters, sortField: value as SortField })}
-          >
-            <SelectTrigger>
-              <ArrowUpDown className="h-4 w-4 mr-2 text-muted-foreground" />
-              <SelectValue placeholder="Ordenar por" />
-            </SelectTrigger>
-            <SelectContent>
-              {sortOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {/* Ordenar por */}
+        <Select
+          value={filters.sortField}
+          onValueChange={(value) => setFilters({ ...filters, sortField: value as SortField })}
+        >
+          <SelectTrigger className="h-9 text-xs">
+            <ArrowUpDown className="h-3 w-3 mr-1 text-muted-foreground" />
+            <SelectValue placeholder="Ordenar" />
+          </SelectTrigger>
+          <SelectContent>
+            {sortOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-          <Button
-            variant="outline"
-            onClick={toggleSortOrder}
-            className="flex items-center gap-2 justify-center"
-          >
-            {filters.sortOrder === 'asc' ? (
-              <>
-                <ChevronUp className="h-4 w-4" />
-                Crescente
-              </>
-            ) : (
-              <>
-                <ChevronDown className="h-4 w-4" />
-                Decrescente
-              </>
-            )}
-          </Button>
-        </div>
+        {/* Ordem */}
+        <Button
+          variant="outline"
+          onClick={toggleSortOrder}
+          className="h-9 text-xs px-2"
+        >
+          {filters.sortOrder === 'asc' ? (
+            <>
+              <ChevronUp className="h-3 w-3 mr-1" />
+              Cresc.
+            </>
+          ) : (
+            <>
+              <ChevronDown className="h-3 w-3 mr-1" />
+              Decresc.
+            </>
+          )}
+        </Button>
       </div>
     </div>
   );
