@@ -383,35 +383,34 @@ const PropertyDetails = () => {
             </Card>
           </div>
 
-          {/* Estimativa de Valor - Apenas para teste com Rua Japão */}
-          {property.rua.toLowerCase().includes('japao') || property.rua.toLowerCase().includes('japão') ? (
-            <Card className="border-primary/30 bg-primary/5">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <DollarSign className="h-5 w-5 text-primary" />
-                  Estimativa de Valor (IA)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Use inteligência artificial para estimar o valor de venda e aluguel deste imóvel baseado nas suas características e localização.
-                </p>
-                
-                <Button
-                  onClick={estimatePropertyValue}
-                  disabled={isSearching}
-                  className="gap-2"
-                >
-                  {isSearching ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Search className="h-4 w-4" />
-                  )}
-                  {isSearching ? 'Estimando...' : 'Estimar Valor'}
-                </Button>
-              </CardContent>
-            </Card>
-          ) : null}
+          {/* Estimativa de Valor - Disponível para todos os imóveis */}
+          <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <DollarSign className="h-5 w-5 text-primary" />
+                Estimativa de Valor por IA
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Use inteligência artificial para estimar o valor de venda e aluguel deste imóvel baseado nas suas características, localização e comparativos de mercado (QuintoAndar e Loft).
+              </p>
+              
+              <Button
+                onClick={estimatePropertyValue}
+                disabled={isSearching}
+                className="gap-2"
+                size="lg"
+              >
+                {isSearching ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Search className="h-4 w-4" />
+                )}
+                {isSearching ? 'Analisando mercado...' : 'Estimar Valor com IA'}
+              </Button>
+            </CardContent>
+          </Card>
 
           {/* Timestamps */}
           <div className="flex items-center justify-center gap-6 py-4 text-sm text-muted-foreground">
@@ -429,17 +428,48 @@ const PropertyDetails = () => {
 
       {/* Dialog para resultado da estimativa */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col p-0">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b">
+            <DialogTitle className="flex items-center gap-2 text-lg">
               <DollarSign className="h-5 w-5 text-primary" />
               Estimativa de Valor do Imóvel
             </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              Análise baseada em dados de mercado do QuintoAndar e Loft
+            </p>
           </DialogHeader>
-          <div className="prose prose-sm dark:prose-invert max-w-none">
+          <div className="flex-1 overflow-y-auto px-6 py-4">
             {searchResult && (
-              <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                {searchResult}
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <div 
+                  className="space-y-4"
+                  dangerouslySetInnerHTML={{ 
+                    __html: searchResult
+                      // Convert markdown headers
+                      .replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold text-primary border-b pb-2 mb-3 mt-6 first:mt-0">$1</h2>')
+                      .replace(/^### (.*$)/gim, '<h3 class="text-base font-semibold text-foreground mt-4 mb-2">$1</h3>')
+                      // Convert markdown bold
+                      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+                      // Convert markdown tables
+                      .replace(/\|(.+)\|/g, (match) => {
+                        const cells = match.split('|').filter(cell => cell.trim());
+                        const isHeader = match.includes('---');
+                        if (isHeader) return '';
+                        return `<div class="grid grid-cols-3 gap-2 py-2 border-b border-border/50">${cells.map((cell, i) => 
+                          `<span class="${i === 0 ? 'font-medium' : 'text-right'}">${cell.trim()}</span>`
+                        ).join('')}</div>`;
+                      })
+                      // Convert markdown lists
+                      .replace(/^- (.*$)/gim, '<li class="ml-4 text-muted-foreground">$1</li>')
+                      // Convert horizontal rules
+                      .replace(/^---$/gim, '<hr class="my-4 border-border/50" />')
+                      // Wrap consecutive li elements in ul
+                      .replace(/(<li.*<\/li>\n?)+/g, '<ul class="space-y-1 my-2">$&</ul>')
+                      // Convert newlines to breaks for readability
+                      .replace(/\n\n/g, '<br/>')
+                      .replace(/\n/g, ' ')
+                  }}
+                />
               </div>
             )}
           </div>
