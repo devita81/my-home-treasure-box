@@ -58,6 +58,7 @@ const Analytics = () => {
   const { properties } = useProperties();
   const [rankingSortOrder, setRankingSortOrder] = useState<'asc' | 'desc'>('desc');
   const [rankingMetric, setRankingMetric] = useState<'declared_value' | 'market_value' | 'valor_aluguel' | 'valor_condominio' | 'iptu_value'>('market_value');
+  const [distributionMetric, setDistributionMetric] = useState<'declared_value' | 'market_value' | 'valor_aluguel'>('market_value');
   
   // Dialog state
   const [dialogState, setDialogState] = useState<DialogState>({
@@ -160,6 +161,24 @@ const Analytics = () => {
     : 0;
 
   // ==================== GROUPED DATA ====================
+  const getPropertyValueByMetric = (p: Property, metric: 'declared_value' | 'market_value' | 'valor_aluguel') => {
+    switch (metric) {
+      case 'market_value': return p.market_value || 0;
+      case 'declared_value': return p.declared_value || 0;
+      case 'valor_aluguel': return p.valor_aluguel || 0;
+      default: return 0;
+    }
+  };
+
+  const getDistributionMetricLabel = () => {
+    switch (distributionMetric) {
+      case 'market_value': return 'Valor Mercado';
+      case 'declared_value': return 'Valor Declarado';
+      case 'valor_aluguel': return 'Aluguel';
+      default: return 'Valor';
+    }
+  };
+
   const propertiesByType = useMemo((): GroupedData[] => {
     const grouped: Record<string, { count: number; value: number; properties: Property[] }> = {};
     properties.forEach(p => {
@@ -174,13 +193,13 @@ const Analytics = () => {
         grouped[label] = { count: 0, value: 0, properties: [] };
       }
       grouped[label].count += 1;
-      grouped[label].value += p.declared_value || 0;
+      grouped[label].value += getPropertyValueByMetric(p, distributionMetric);
       grouped[label].properties.push(p);
     });
     return Object.entries(grouped)
       .map(([name, data]) => ({ name, ...data }))
       .sort((a, b) => b.count - a.count);
-  }, [properties]);
+  }, [properties, distributionMetric]);
 
   const propertiesByCity = useMemo((): GroupedData[] => {
     const grouped: Record<string, { count: number; value: number; properties: Property[] }> = {};
@@ -190,13 +209,13 @@ const Analytics = () => {
         grouped[city] = { count: 0, value: 0, properties: [] };
       }
       grouped[city].count += 1;
-      grouped[city].value += p.declared_value || 0;
+      grouped[city].value += getPropertyValueByMetric(p, distributionMetric);
       grouped[city].properties.push(p);
     });
     return Object.entries(grouped)
       .map(([name, data]) => ({ name, ...data }))
       .sort((a, b) => b.count - a.count);
-  }, [properties]);
+  }, [properties, distributionMetric]);
 
   const proprietariosPapel = useMemo((): GroupedData[] => {
     const grouped: Record<string, { count: number; value: number; properties: Property[] }> = {};
@@ -206,13 +225,13 @@ const Analytics = () => {
         grouped[owner] = { count: 0, value: 0, properties: [] };
       }
       grouped[owner].count += 1;
-      grouped[owner].value += p.declared_value || 0;
+      grouped[owner].value += getPropertyValueByMetric(p, distributionMetric);
       grouped[owner].properties.push(p);
     });
     return Object.entries(grouped)
       .map(([name, data]) => ({ name, ...data }))
       .sort((a, b) => b.count - a.count);
-  }, [properties]);
+  }, [properties, distributionMetric]);
 
   const proprietariosMatricula = useMemo((): GroupedData[] => {
     const grouped: Record<string, { count: number; value: number; properties: Property[] }> = {};
@@ -222,7 +241,7 @@ const Analytics = () => {
         grouped[owner] = { count: 0, value: 0, properties: [] };
       }
       grouped[owner].count += 1;
-      grouped[owner].value += p.declared_value || 0;
+      grouped[owner].value += getPropertyValueByMetric(p, distributionMetric);
       grouped[owner].properties.push(p);
     });
     return Object.entries(grouped)
@@ -593,13 +612,40 @@ const Analytics = () => {
         {/* ==================== DISTRIBUTION (CLICKABLE GROUPS) ==================== */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary" />
-              Distribuição de Propriedade e Uso
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Clique em cada grupo para ver os imóveis detalhados
-            </p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  Distribuição de Propriedade e Uso
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Clique em cada grupo para ver os imóveis detalhados
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant={distributionMetric === 'market_value' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setDistributionMetric('market_value')}
+                >
+                  Valor Mercado
+                </Button>
+                <Button
+                  variant={distributionMetric === 'declared_value' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setDistributionMetric('declared_value')}
+                >
+                  Valor Declarado
+                </Button>
+                <Button
+                  variant={distributionMetric === 'valor_aluguel' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setDistributionMetric('valor_aluguel')}
+                >
+                  Aluguel
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
