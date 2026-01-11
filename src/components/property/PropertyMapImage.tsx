@@ -165,7 +165,26 @@ export function PropertyMapImage({
   const mapEmbedUrl = `https://www.google.com/maps?q=${encodedAddress}&output=embed&z=17`;
   
   // Google Maps link for navigation
-  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+  const googleMapsUrl = hasCustomLocation 
+    ? `https://www.google.com/maps?q=${latitude},${longitude}` 
+    : `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+
+  const handleOpenGoogleMaps = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    // Use window.open with specific parameters to avoid iframe blocking
+    const newWindow = window.open(googleMapsUrl, '_blank', 'noopener,noreferrer');
+    if (!newWindow) {
+      // Fallback: create a temporary link and click it
+      const link = document.createElement('a');
+      link.href = googleMapsUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
 
   const images = [
     { url: streetViewStaticUrl, fallbackUrl: streetViewEmbedUrl, label: 'Street View' },
@@ -320,16 +339,13 @@ export function PropertyMapImage({
       )}
       
       {/* Google Maps link */}
-      <a
-        href={googleMapsUrl}
-        target="_blank"
-        rel="noopener noreferrer"
+      <button
+        onClick={handleOpenGoogleMaps}
         className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-primary hover:bg-card hover:scale-110 transition-all shadow-md z-10"
         title="Abrir no Google Maps"
-        onClick={(e) => e.stopPropagation()}
       >
         <MapPin className="h-4 w-4" />
-      </a>
+      </button>
     </div>
   );
 }
