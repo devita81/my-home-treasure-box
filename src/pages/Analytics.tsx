@@ -12,6 +12,11 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { 
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { 
   TrendingUp, 
   Home, 
   DollarSign,
@@ -20,18 +25,32 @@ import {
   XCircle,
   Users,
   Building2,
-  ArrowUpDown,
   ChevronUp,
   ChevronDown,
+  ChevronRight,
   Receipt
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { Property } from '@/types/property';
+import { Link } from 'react-router-dom';
+
+interface GroupedData {
+  name: string;
+  count: number;
+  value: number;
+  properties: Property[];
+}
 
 const Analytics = () => {
   const { properties } = useProperties();
   const [rankingSortOrder, setRankingSortOrder] = useState<'asc' | 'desc'>('desc');
   const [rankingMetric, setRankingMetric] = useState<'declared_value' | 'market_value'>('market_value');
+  
+  // Drill-down states
+  const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set());
+  const [expandedCities, setExpandedCities] = useState<Set<string>>(new Set());
+  const [expandedPapel, setExpandedPapel] = useState<Set<string>>(new Set());
+  const [expandedMatricula, setExpandedMatricula] = useState<Set<string>>(new Set());
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -42,8 +61,14 @@ const Analytics = () => {
     }).format(value);
   };
 
-  const formatNumber = (value: number) => {
-    return new Intl.NumberFormat('pt-BR').format(value);
+  const toggleExpanded = (set: Set<string>, setFn: React.Dispatch<React.SetStateAction<Set<string>>>, key: string) => {
+    const newSet = new Set(set);
+    if (newSet.has(key)) {
+      newSet.delete(key);
+    } else {
+      newSet.add(key);
+    }
+    setFn(newSet);
   };
 
   // ==================== SUMMARY STATS ====================
@@ -64,40 +89,9 @@ const Analytics = () => {
     ? Math.round((iptuPagoCount / properties.length) * 100) 
     : 0;
 
-  // ==================== OWNERSHIP DISTRIBUTION ====================
-  const proprietariosPapel = useMemo(() => {
-    const grouped: Record<string, { count: number; value: number }> = {};
-    properties.forEach(p => {
-      const owner = p.proprietario_papel || 'Não informado';
-      if (!grouped[owner]) {
-        grouped[owner] = { count: 0, value: 0 };
-      }
-      grouped[owner].count += 1;
-      grouped[owner].value += p.declared_value || 0;
-    });
-    return Object.entries(grouped)
-      .map(([name, data]) => ({ name, ...data }))
-      .sort((a, b) => b.count - a.count);
-  }, [properties]);
-
-  const proprietariosMatricula = useMemo(() => {
-    const grouped: Record<string, { count: number; value: number }> = {};
-    properties.forEach(p => {
-      const owner = p.proprietario_matricula || 'Não informado';
-      if (!grouped[owner]) {
-        grouped[owner] = { count: 0, value: 0 };
-      }
-      grouped[owner].count += 1;
-      grouped[owner].value += p.declared_value || 0;
-    });
-    return Object.entries(grouped)
-      .map(([name, data]) => ({ name, ...data }))
-      .sort((a, b) => b.count - a.count);
-  }, [properties]);
-
-  // ==================== PROPERTIES BY TYPE ====================
-  const propertiesByType = useMemo(() => {
-    const grouped: Record<string, { count: number; value: number }> = {};
+  // ==================== GROUPED DATA WITH PROPERTIES ====================
+  const propertiesByType = useMemo((): GroupedData[] => {
+    const grouped: Record<string, { count: number; value: number; properties: Property[] }> = {};
     properties.forEach(p => {
       const tipo = p.tipo_imovel || 'Não informado';
       const label = {
@@ -107,26 +101,59 @@ const Analytics = () => {
         'conjunto_comercial': 'Conjunto Comercial',
       }[tipo] || tipo;
       if (!grouped[label]) {
-        grouped[label] = { count: 0, value: 0 };
+        grouped[label] = { count: 0, value: 0, properties: [] };
       }
       grouped[label].count += 1;
       grouped[label].value += p.declared_value || 0;
+      grouped[label].properties.push(p);
     });
     return Object.entries(grouped)
       .map(([name, data]) => ({ name, ...data }))
       .sort((a, b) => b.count - a.count);
   }, [properties]);
 
-  // ==================== PROPERTIES BY CITY ====================
-  const propertiesByCity = useMemo(() => {
-    const grouped: Record<string, { count: number; value: number }> = {};
+  const propertiesByCity = useMemo((): GroupedData[] => {
+    const grouped: Record<string, { count: number; value: number; properties: Property[] }> = {};
     properties.forEach(p => {
       const city = `${p.cidade} - ${p.estado}`;
       if (!grouped[city]) {
-        grouped[city] = { count: 0, value: 0 };
+        grouped[city] = { count: 0, value: 0, properties: [] };
       }
       grouped[city].count += 1;
       grouped[city].value += p.declared_value || 0;
+      grouped[city].properties.push(p);
+    });
+    return Object.entries(grouped)
+      .map(([name, data]) => ({ name, ...data }))
+      .sort((a, b) => b.count - a.count);
+  }, [properties]);
+
+  const proprietariosPapel = useMemo((): GroupedData[] => {
+    const grouped: Record<string, { count: number; value: number; properties: Property[] }> = {};
+    properties.forEach(p => {
+      const owner = p.proprietario_papel || 'Não informado';
+      if (!grouped[owner]) {
+        grouped[owner] = { count: 0, value: 0, properties: [] };
+      }
+      grouped[owner].count += 1;
+      grouped[owner].value += p.declared_value || 0;
+      grouped[owner].properties.push(p);
+    });
+    return Object.entries(grouped)
+      .map(([name, data]) => ({ name, ...data }))
+      .sort((a, b) => b.count - a.count);
+  }, [properties]);
+
+  const proprietariosMatricula = useMemo((): GroupedData[] => {
+    const grouped: Record<string, { count: number; value: number; properties: Property[] }> = {};
+    properties.forEach(p => {
+      const owner = p.proprietario_matricula || 'Não informado';
+      if (!grouped[owner]) {
+        grouped[owner] = { count: 0, value: 0, properties: [] };
+      }
+      grouped[owner].count += 1;
+      grouped[owner].value += p.declared_value || 0;
+      grouped[owner].properties.push(p);
     });
     return Object.entries(grouped)
       .map(([name, data]) => ({ name, ...data }))
@@ -158,6 +185,73 @@ const Analytics = () => {
     };
     return labels[tipo || ''] || tipo || '-';
   };
+
+  // ==================== DRILL-DOWN COMPONENT ====================
+  const DrillDownSection = ({ 
+    data, 
+    expanded, 
+    setExpanded,
+    icon: Icon
+  }: { 
+    data: GroupedData[]; 
+    expanded: Set<string>; 
+    setExpanded: React.Dispatch<React.SetStateAction<Set<string>>>;
+    icon: React.ElementType;
+  }) => (
+    <div className="space-y-2 max-h-[400px] overflow-y-auto">
+      {data.map((item, index) => (
+        <Collapsible
+          key={index}
+          open={expanded.has(item.name)}
+          onOpenChange={() => toggleExpanded(expanded, setExpanded, item.name)}
+        >
+          <CollapsibleTrigger asChild>
+            <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg cursor-pointer hover:bg-secondary transition-colors">
+              <div className="flex items-center gap-2">
+                {expanded.has(item.name) ? (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                )}
+                <span className="font-medium">{item.name}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge variant="secondary">{item.count} imóveis</Badge>
+                <span className="text-sm text-muted-foreground">{formatCurrency(item.value)}</span>
+              </div>
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="ml-6 mt-2 space-y-1 border-l-2 border-primary/20 pl-4">
+              {item.properties.map((property) => (
+                <Link 
+                  key={property.id} 
+                  to={`/property/${property.id}`}
+                  className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors text-sm"
+                >
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <Home className="h-3 w-3 text-muted-foreground shrink-0" />
+                    <span className="truncate">{getPropertyAddress(property)}</span>
+                    <Badge variant="outline" className="shrink-0 text-xs">
+                      {getTipoLabel(property.tipo_imovel)}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0 ml-2">
+                    <span className="text-muted-foreground">{formatCurrency(property.declared_value)}</span>
+                    {property.iptu_pago ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-red-500" />
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      ))}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -290,7 +384,7 @@ const Analytics = () => {
           </CardContent>
         </Card>
 
-        {/* ==================== OWNERSHIP DISTRIBUTION ==================== */}
+        {/* ==================== DISTRIBUTION WITH DRILL-DOWN ==================== */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -298,7 +392,7 @@ const Analytics = () => {
               Distribuição de Propriedade e Uso
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              Visão detalhada sobre titularidade e classificação dos imóveis
+              Clique em cada grupo para ver os imóveis individuais (drill-down)
             </p>
           </CardHeader>
           <CardContent>
@@ -309,17 +403,12 @@ const Analytics = () => {
                   <Building2 className="h-4 w-4 text-muted-foreground" />
                   <h4 className="font-medium text-sm">Por Tipo de Imóvel</h4>
                 </div>
-                <div className="space-y-2">
-                  {propertiesByType.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
-                      <span className="font-medium">{item.name}</span>
-                      <div className="flex items-center gap-3">
-                        <Badge variant="secondary">{item.count} imóveis</Badge>
-                        <span className="text-sm text-muted-foreground">{formatCurrency(item.value)}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <DrillDownSection 
+                  data={propertiesByType} 
+                  expanded={expandedTypes} 
+                  setExpanded={setExpandedTypes}
+                  icon={Building2}
+                />
               </div>
 
               {/* By City */}
@@ -328,17 +417,12 @@ const Analytics = () => {
                   <Home className="h-4 w-4 text-muted-foreground" />
                   <h4 className="font-medium text-sm">Por Cidade</h4>
                 </div>
-                <div className="space-y-2 max-h-[250px] overflow-y-auto">
-                  {propertiesByCity.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
-                      <span className="font-medium">{item.name}</span>
-                      <div className="flex items-center gap-3">
-                        <Badge variant="secondary">{item.count} imóveis</Badge>
-                        <span className="text-sm text-muted-foreground">{formatCurrency(item.value)}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <DrillDownSection 
+                  data={propertiesByCity} 
+                  expanded={expandedCities} 
+                  setExpanded={setExpandedCities}
+                  icon={Home}
+                />
               </div>
             </div>
 
@@ -350,17 +434,12 @@ const Analytics = () => {
                     <FileCheck className="h-4 w-4 text-muted-foreground" />
                     <h4 className="font-medium text-sm">Por Proprietário no Papel</h4>
                   </div>
-                  <div className="space-y-2 max-h-[250px] overflow-y-auto">
-                    {proprietariosPapel.map((item, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
-                        <span className="font-medium">{item.name}</span>
-                        <div className="flex items-center gap-3">
-                          <Badge variant="secondary">{item.count} imóveis</Badge>
-                          <span className="text-sm text-muted-foreground">{formatCurrency(item.value)}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <DrillDownSection 
+                    data={proprietariosPapel} 
+                    expanded={expandedPapel} 
+                    setExpanded={setExpandedPapel}
+                    icon={FileCheck}
+                  />
                 </div>
 
                 {/* Por Proprietário na Matrícula */}
@@ -369,17 +448,12 @@ const Analytics = () => {
                     <Users className="h-4 w-4 text-muted-foreground" />
                     <h4 className="font-medium text-sm">Por Proprietário na Matrícula</h4>
                   </div>
-                  <div className="space-y-2 max-h-[250px] overflow-y-auto">
-                    {proprietariosMatricula.map((item, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
-                        <span className="font-medium">{item.name}</span>
-                        <div className="flex items-center gap-3">
-                          <Badge variant="secondary">{item.count} imóveis</Badge>
-                          <span className="text-sm text-muted-foreground">{formatCurrency(item.value)}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <DrillDownSection 
+                    data={proprietariosMatricula} 
+                    expanded={expandedMatricula} 
+                    setExpanded={setExpandedMatricula}
+                    icon={Users}
+                  />
                 </div>
               </div>
             </div>
@@ -449,8 +523,13 @@ const Analytics = () => {
                       <TableCell className="font-medium text-muted-foreground">
                         {index + 1}
                       </TableCell>
-                      <TableCell className="font-medium max-w-[200px] truncate">
-                        {getPropertyAddress(property)}
+                      <TableCell className="font-medium max-w-[200px]">
+                        <Link 
+                          to={`/property/${property.id}`}
+                          className="hover:text-primary hover:underline truncate block"
+                        >
+                          {getPropertyAddress(property)}
+                        </Link>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">{getTipoLabel(property.tipo_imovel)}</Badge>
