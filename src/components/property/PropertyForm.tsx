@@ -320,8 +320,8 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                 <Input
                   id="valor_aluguel"
                   type="number"
-                  value={formData.valor_aluguel}
-                  onChange={(e) => handleChange('valor_aluguel', Number(e.target.value))}
+                  value={formData.valor_aluguel || ''}
+                  onChange={(e) => handleChange('valor_aluguel', e.target.value === '' ? 0 : Number(e.target.value))}
                   placeholder="8500"
                 />
               </div>
@@ -330,8 +330,8 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                 <Input
                   id="valor_condominio"
                   type="number"
-                  value={formData.valor_condominio}
-                  onChange={(e) => handleChange('valor_condominio', Number(e.target.value))}
+                  value={formData.valor_condominio || ''}
+                  onChange={(e) => handleChange('valor_condominio', e.target.value === '' ? 0 : Number(e.target.value))}
                   placeholder="1200"
                 />
               </div>
