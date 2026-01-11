@@ -40,7 +40,7 @@ export interface Property {
 
 export type PropertyFormData = Omit<Property, 'id' | 'created_at' | 'updated_at' | 'user_id'>;
 
-export type SortField = 'updated_at' | 'area_total' | 'declared_value' | 'market_value' | 'iptu_value' | 'rua';
+export type SortField = 'updated_at' | 'area_total' | 'declared_value' | 'market_value' | 'iptu_value' | 'rua' | 'valor_aluguel' | 'valor_condominio' | 'cidade';
 export type SortOrder = 'asc' | 'desc';
 
 export interface PropertyFilters {
