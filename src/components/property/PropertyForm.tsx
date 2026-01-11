@@ -286,6 +286,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                     <SelectItem value="apartamento">Apartamento</SelectItem>
                     <SelectItem value="casa">Casa</SelectItem>
                     <SelectItem value="terreno">Terreno</SelectItem>
+                    <SelectItem value="conjunto_comercial">Conjunto Comercial</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
