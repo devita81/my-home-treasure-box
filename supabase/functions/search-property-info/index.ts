@@ -8,13 +8,12 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { matricula, cidade, rua, numero, bairro, estado } = await req.json();
+    const { cidade, rua, numero, bairro, estado, tipo_imovel, quartos, suites, banheiros, garagens, metragem, area_total } = await req.json();
 
     if (!LOVABLE_API_KEY) {
       console.error('LOVABLE_API_KEY is not configured');
@@ -26,23 +25,36 @@ serve(async (req) => {
 
     const address = `${rua}${numero ? `, ${numero}` : ''}, ${bairro}, ${cidade} - ${estado}`;
     
-    const prompt = `Você é um assistente especializado em pesquisa de imóveis no Brasil.
+    const prompt = `Você é um especialista em avaliação imobiliária no Brasil, com profundo conhecimento do mercado imobiliário de ${cidade} - ${estado}.
 
-Pesquise informações públicas disponíveis sobre o imóvel com os seguintes dados:
+Analise o seguinte imóvel e forneça uma estimativa de valor de VENDA e ALUGUEL em formato de range (mínimo e máximo):
+
+**Dados do Imóvel:**
 - Endereço: ${address}
-${matricula ? `- Número da Matrícula: ${matricula}` : ''}
-- Cidade: ${cidade}
-- Estado: ${estado}
+- Bairro: ${bairro}
+- Cidade: ${cidade} - ${estado}
+- Tipo: ${tipo_imovel || 'Não informado'}
+- Quartos: ${quartos || 0}
+- Suítes: ${suites || 0}
+- Banheiros: ${banheiros || 0}
+- Vagas de Garagem: ${garagens || 0}
+- Área Útil: ${metragem ? `${metragem} m²` : 'Não informada'}
+- Área Total: ${area_total ? `${area_total} m²` : 'Não informada'}
 
-Por favor, forneça:
-1. Informações sobre o cartório de registro de imóveis responsável pela região
-2. Link ou informações de contato do cartório (se disponível)
-3. Informações públicas sobre o bairro e região (valorização, infraestrutura)
-4. Qualquer informação pública relevante sobre o imóvel ou região
+**Instruções:**
+1. Considere a localização específica do bairro ${bairro} em ${cidade}
+2. Compare com imóveis similares na região
+3. Considere fatores como infraestrutura, valorização da região, proximidade de serviços
+4. Forneça valores realistas para o mercado atual (2026)
 
-Seja objetivo e forneça apenas informações verificáveis. Se não encontrar informações específicas, indique claramente.`;
+**Formato da Resposta:**
+Forneça sua análise de forma estruturada:
+- Estimativa de VENDA: R$ [mínimo] a R$ [máximo]
+- Estimativa de ALUGUEL mensal: R$ [mínimo] a R$ [máximo]
+- Justificativa breve da avaliação (fatores considerados)
+- Observações sobre o mercado da região`;
 
-    console.log('Searching property info for:', address);
+    console.log('Estimating property value for:', address);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -55,7 +67,7 @@ Seja objetivo e forneça apenas informações verificáveis. Se não encontrar i
         messages: [
           { 
             role: 'system', 
-            content: 'Você é um assistente especializado em pesquisa de imóveis e registros públicos no Brasil. Forneça informações precisas e úteis sobre cartórios, registros e dados públicos de imóveis.' 
+            content: 'Você é um corretor e avaliador de imóveis experiente no Brasil. Forneça estimativas de valor baseadas em dados de mercado reais. Seja preciso nos valores e justifique suas estimativas.' 
           },
           { role: 'user', content: prompt }
         ],
@@ -88,7 +100,7 @@ Seja objetivo e forneça apenas informações verificáveis. Se não encontrar i
     const data = await response.json();
     const result = data.choices[0].message.content;
 
-    console.log('Property info search completed successfully');
+    console.log('Property value estimation completed successfully');
 
     return new Response(
       JSON.stringify({ result }),
