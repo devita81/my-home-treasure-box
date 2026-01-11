@@ -17,6 +17,7 @@ export type Database = {
       properties: {
         Row: {
           alugado: boolean | null
+          ano_construcao: number | null
           apartamento: string | null
           area_comum: number | null
           area_total: number | null
@@ -55,6 +56,7 @@ export type Database = {
         }
         Insert: {
           alugado?: boolean | null
+          ano_construcao?: number | null
           apartamento?: string | null
           area_comum?: number | null
           area_total?: number | null
@@ -93,6 +95,7 @@ export type Database = {
         }
         Update: {
           alugado?: boolean | null
+          ano_construcao?: number | null
           apartamento?: string | null
           area_comum?: number | null
           area_total?: number | null
