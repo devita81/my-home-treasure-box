@@ -18,6 +18,8 @@ export type Database = {
         Row: {
           alugado: boolean | null
           apartamento: string | null
+          area_comum: number | null
+          area_total: number | null
           bairro: string
           banheiros: number | null
           cidade: string
@@ -33,6 +35,7 @@ export type Database = {
           market_value: number | null
           metragem: number | null
           numero: string | null
+          numero_contribuinte: string | null
           numero_matricula: string | null
           photos: string[] | null
           proprietario_matricula: string | null
@@ -50,6 +53,8 @@ export type Database = {
         Insert: {
           alugado?: boolean | null
           apartamento?: string | null
+          area_comum?: number | null
+          area_total?: number | null
           bairro?: string
           banheiros?: number | null
           cidade?: string
@@ -65,6 +70,7 @@ export type Database = {
           market_value?: number | null
           metragem?: number | null
           numero?: string | null
+          numero_contribuinte?: string | null
           numero_matricula?: string | null
           photos?: string[] | null
           proprietario_matricula?: string | null
@@ -82,6 +88,8 @@ export type Database = {
         Update: {
           alugado?: boolean | null
           apartamento?: string | null
+          area_comum?: number | null
+          area_total?: number | null
           bairro?: string
           banheiros?: number | null
           cidade?: string
@@ -97,6 +105,7 @@ export type Database = {
           market_value?: number | null
           metragem?: number | null
           numero?: string | null
+          numero_contribuinte?: string | null
           numero_matricula?: string | null
           photos?: string[] | null
           proprietario_matricula?: string | null

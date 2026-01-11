@@ -40,6 +40,9 @@ const propertySchema = z.object({
   suites: z.number().min(0).max(50),
   garagens: z.number().min(0).max(50),
   metragem: z.number().min(0).max(100000),
+  area_comum: z.number().min(0).max(100000),
+  area_total: z.number().min(0).max(200000),
+  numero_contribuinte: z.string().trim().max(50, 'Número do contribuinte muito longo').optional().or(z.literal('')),
 });
 
 const estados = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
@@ -80,6 +83,9 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
     suites: property?.suites || 0,
     garagens: property?.garagens || 0,
     metragem: property?.metragem || 0,
+    area_comum: property?.area_comum || 0,
+    area_total: property?.area_total || 0,
+    numero_contribuinte: property?.numero_contribuinte || '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -302,14 +308,25 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="numero_matricula">Número da Matrícula</Label>
-              <Input
-                id="numero_matricula"
-                value={formData.numero_matricula}
-                onChange={(e) => handleChange('numero_matricula', e.target.value)}
-                placeholder="MAT-2024-001"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="numero_matricula">Número da Matrícula</Label>
+                <Input
+                  id="numero_matricula"
+                  value={formData.numero_matricula}
+                  onChange={(e) => handleChange('numero_matricula', e.target.value)}
+                  placeholder="MAT-2024-001"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="numero_contribuinte">Número do Contribuinte</Label>
+                <Input
+                  id="numero_contribuinte"
+                  value={formData.numero_contribuinte}
+                  onChange={(e) => handleChange('numero_contribuinte', e.target.value)}
+                  placeholder="000.000.0000-0"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -402,16 +419,49 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="metragem">Metragem (m²)</Label>
-              <Input
-                id="metragem"
-                type="number"
-                min="0"
-                value={formData.metragem}
-                onChange={(e) => handleChange('metragem', Number(e.target.value))}
-                placeholder="120"
-              />
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="metragem">Área Útil (m²)</Label>
+                <Input
+                  id="metragem"
+                  type="number"
+                  min="0"
+                  value={formData.metragem}
+                  onChange={(e) => {
+                    const metragem = Number(e.target.value);
+                    handleChange('metragem', metragem);
+                    handleChange('area_total', metragem + (formData.area_comum || 0));
+                  }}
+                  placeholder="120"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="area_comum">Área Comum (m²)</Label>
+                <Input
+                  id="area_comum"
+                  type="number"
+                  min="0"
+                  value={formData.area_comum}
+                  onChange={(e) => {
+                    const areaComum = Number(e.target.value);
+                    handleChange('area_comum', areaComum);
+                    handleChange('area_total', (formData.metragem || 0) + areaComum);
+                  }}
+                  placeholder="30"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="area_total">Área Total (m²)</Label>
+                <Input
+                  id="area_total"
+                  type="number"
+                  min="0"
+                  value={formData.area_total}
+                  onChange={(e) => handleChange('area_total', Number(e.target.value))}
+                  placeholder="150"
+                  className="bg-muted"
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
