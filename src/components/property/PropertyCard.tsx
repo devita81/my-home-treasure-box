@@ -24,7 +24,11 @@ import {
   Building,
   FileText,
   User,
-  Calendar
+  Calendar,
+  BedDouble,
+  Bath,
+  Car,
+  Ruler
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
@@ -155,6 +159,33 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
               <div className="flex items-center gap-1 text-white/90 text-xs mt-0.5">
                 <MapPin className="h-3 w-3" />
                 <span>{property.bairro}, {property.cidade} - {property.estado}</span>
+              </div>
+              {/* Property features */}
+              <div className="flex items-center gap-3 mt-1.5">
+                {property.quartos && property.quartos > 0 && (
+                  <div className="flex items-center gap-1 text-white/90 text-xs">
+                    <BedDouble className="h-3 w-3" />
+                    <span>{property.quartos}</span>
+                  </div>
+                )}
+                {property.banheiros && property.banheiros > 0 && (
+                  <div className="flex items-center gap-1 text-white/90 text-xs">
+                    <Bath className="h-3 w-3" />
+                    <span>{property.banheiros}</span>
+                  </div>
+                )}
+                {property.garagens && property.garagens > 0 && (
+                  <div className="flex items-center gap-1 text-white/90 text-xs">
+                    <Car className="h-3 w-3" />
+                    <span>{property.garagens}</span>
+                  </div>
+                )}
+                {property.metragem && property.metragem > 0 && (
+                  <div className="flex items-center gap-1 text-white/90 text-xs">
+                    <Ruler className="h-3 w-3" />
+                    <span>{property.metragem}m²</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

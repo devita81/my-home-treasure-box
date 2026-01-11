@@ -24,6 +24,11 @@ export interface Property {
   inquilino?: string;
   valor_aluguel?: number;
   valor_condominio?: number;
+  quartos?: number;
+  banheiros?: number;
+  suites?: number;
+  garagens?: number;
+  metragem?: number;
 }
 
 export type PropertyFormData = Omit<Property, 'id' | 'created_at' | 'updated_at' | 'user_id'>;

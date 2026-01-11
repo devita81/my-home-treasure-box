@@ -19,22 +19,27 @@ export type Database = {
           alugado: boolean | null
           apartamento: string | null
           bairro: string
+          banheiros: number | null
           cidade: string
           complemento: string | null
           created_at: string
           declared_value: number
           estado: string
+          garagens: number | null
           id: string
           inquilino: string | null
           iptu_pago: boolean | null
           iptu_value: number | null
           market_value: number | null
+          metragem: number | null
           numero: string | null
           numero_matricula: string | null
           photos: string[] | null
           proprietario_matricula: string | null
           proprietario_papel: string | null
+          quartos: number | null
           rua: string
+          suites: number | null
           updated_at: string
           user_id: string | null
           validado: boolean | null
@@ -46,22 +51,27 @@ export type Database = {
           alugado?: boolean | null
           apartamento?: string | null
           bairro?: string
+          banheiros?: number | null
           cidade?: string
           complemento?: string | null
           created_at?: string
           declared_value?: number
           estado?: string
+          garagens?: number | null
           id?: string
           inquilino?: string | null
           iptu_pago?: boolean | null
           iptu_value?: number | null
           market_value?: number | null
+          metragem?: number | null
           numero?: string | null
           numero_matricula?: string | null
           photos?: string[] | null
           proprietario_matricula?: string | null
           proprietario_papel?: string | null
+          quartos?: number | null
           rua: string
+          suites?: number | null
           updated_at?: string
           user_id?: string | null
           validado?: boolean | null
@@ -73,22 +83,27 @@ export type Database = {
           alugado?: boolean | null
           apartamento?: string | null
           bairro?: string
+          banheiros?: number | null
           cidade?: string
           complemento?: string | null
           created_at?: string
           declared_value?: number
           estado?: string
+          garagens?: number | null
           id?: string
           inquilino?: string | null
           iptu_pago?: boolean | null
           iptu_value?: number | null
           market_value?: number | null
+          metragem?: number | null
           numero?: string | null
           numero_matricula?: string | null
           photos?: string[] | null
           proprietario_matricula?: string | null
           proprietario_papel?: string | null
+          quartos?: number | null
           rua?: string
+          suites?: number | null
           updated_at?: string
           user_id?: string | null
           validado?: boolean | null
