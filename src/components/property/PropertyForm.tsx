@@ -418,7 +418,6 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                   min="0"
                   value={formData.quartos || ''}
                   onChange={(e) => handleChange('quartos', e.target.value === '' ? 0 : Number(e.target.value))}
-                  placeholder="3"
                 />
               </div>
               <div className="space-y-2">
@@ -429,7 +428,6 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                   min="0"
                   value={formData.banheiros || ''}
                   onChange={(e) => handleChange('banheiros', e.target.value === '' ? 0 : Number(e.target.value))}
-                  placeholder="2"
                 />
               </div>
             </div>
@@ -443,7 +441,6 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                   min="0"
                   value={formData.suites || ''}
                   onChange={(e) => handleChange('suites', e.target.value === '' ? 0 : Number(e.target.value))}
-                  placeholder="1"
                 />
               </div>
               <div className="space-y-2">
@@ -454,7 +451,6 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                   min="0"
                   value={formData.garagens || ''}
                   onChange={(e) => handleChange('garagens', e.target.value === '' ? 0 : Number(e.target.value))}
-                  placeholder="2"
                 />
               </div>
             </div>
