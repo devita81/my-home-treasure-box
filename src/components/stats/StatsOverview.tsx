@@ -1,5 +1,5 @@
 import { useProperties } from '@/contexts/PropertyContext';
-import { Home, DollarSign, Key, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Home, DollarSign, Key, CheckCircle, AlertTriangle, FileText } from 'lucide-react';
 
 export function StatsOverview() {
   const { properties } = useProperties();
@@ -15,7 +15,8 @@ export function StatsOverview() {
   };
 
   const totalProperties = properties.length;
-  const totalMarketValue = properties.reduce((acc, p) => acc + p.market_value, 0);
+  const totalMarketValue = properties.reduce((acc, p) => acc + (p.market_value || 0), 0);
+  const totalDeclaredValue = properties.reduce((acc, p) => acc + (p.declared_value || 0), 0);
   const rentedProperties = properties.filter((p) => p.alugado).length;
   const monthlyRent = properties
     .filter((p) => p.alugado && p.valor_aluguel)
@@ -35,6 +36,12 @@ export function StatsOverview() {
       value: formatCurrency(totalMarketValue),
       icon: DollarSign,
       color: 'bg-success/10 text-success',
+    },
+    {
+      label: 'Valor Declarado',
+      value: formatCurrency(totalDeclaredValue),
+      icon: FileText,
+      color: 'bg-amber-500/10 text-amber-600',
     },
     {
       label: 'Imóveis Alugados',
