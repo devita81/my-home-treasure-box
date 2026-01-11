@@ -192,95 +192,180 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
 
           {/* Info section */}
           <div className="flex-1 p-4 sm:p-5 flex flex-col">
-            {/* Values section */}
-            <div className="space-y-3 flex-1">
-              {/* Market Value - Primary */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
-                    <DollarSign className="h-4 w-4 text-primary" />
-                  </div>
-                  <span className="text-sm">Valor de mercado</span>
-                </div>
-                <span className="text-base font-bold">{formatCurrency(property.market_value) || '—'}</span>
-              </div>
-
-              {/* Declared Value */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
-                    <FileText className="h-4 w-4" />
-                  </div>
-                  <span className="text-sm">Valor declarado</span>
-                </div>
-                <span className="text-sm font-medium text-muted-foreground">{formatCurrency(property.declared_value) || '—'}</span>
-              </div>
-
-              {/* Separator */}
-              <div className="border-t border-border" />
-
-              {/* Rental info */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${property.alugado && property.valor_aluguel && property.valor_aluguel > 0 ? 'bg-info/10' : 'bg-muted'}`}>
-                    <Key className={`h-4 w-4 ${property.alugado && property.valor_aluguel && property.valor_aluguel > 0 ? 'text-info' : ''}`} />
-                  </div>
-                  <span className="text-sm">Aluguel</span>
-                </div>
-                {property.alugado && property.valor_aluguel && property.valor_aluguel > 0 ? (
-                  <span className="text-sm font-semibold text-info">{formatCurrency(property.valor_aluguel)}/mês</span>
-                ) : (
-                  <span className="text-sm text-muted-foreground">—</span>
-                )}
-              </div>
-
-              {/* Condominium */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
-                    <Building className="h-4 w-4" />
-                  </div>
-                  <span className="text-sm">Condomínio</span>
-                </div>
-                {property.valor_condominio && property.valor_condominio > 0 ? (
-                  <span className="text-sm font-medium">{formatCurrency(property.valor_condominio)}/mês</span>
-                ) : (
-                  <span className="text-sm text-muted-foreground">—</span>
-                )}
-              </div>
-
-              {/* IPTU */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
-                    <Calendar className="h-4 w-4" />
-                  </div>
-                  <span className="text-sm">IPTU anual</span>
-                </div>
-                {property.iptu_value && property.iptu_value > 0 ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{formatCurrency(property.iptu_value)}</span>
-                    {property.iptu_pago && (
-                      <Badge className="bg-success/10 text-success border-0 text-[10px] px-1.5">Pago</Badge>
-                    )}
-                  </div>
-                ) : (
-                  <span className="text-sm text-muted-foreground">—</span>
-                )}
-              </div>
-
-              {/* Tenant if rented */}
-              {property.alugado && property.inquilino && (
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 flex-1">
+              {/* Values column */}
+              <div className="space-y-3 flex-1 min-w-0">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Valores</h4>
+                
+                {/* Market Value - Primary */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-muted-foreground">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-info/10">
-                      <User className="h-4 w-4 text-info" />
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+                      <DollarSign className="h-4 w-4 text-primary" />
                     </div>
-                    <span className="text-sm">Inquilino</span>
+                    <span className="text-sm">Valor de mercado</span>
                   </div>
-                  <span className="text-sm font-medium truncate max-w-[140px]">{property.inquilino}</span>
+                  <span className="text-base font-bold">{formatCurrency(property.market_value) || '—'}</span>
                 </div>
-              )}
+
+                {/* Declared Value */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
+                      <FileText className="h-4 w-4" />
+                    </div>
+                    <span className="text-sm">Valor declarado</span>
+                  </div>
+                  <span className="text-sm font-medium text-muted-foreground">{formatCurrency(property.declared_value) || '—'}</span>
+                </div>
+
+                {/* Rental info */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${property.alugado && property.valor_aluguel && property.valor_aluguel > 0 ? 'bg-info/10' : 'bg-muted'}`}>
+                      <Key className={`h-4 w-4 ${property.alugado && property.valor_aluguel && property.valor_aluguel > 0 ? 'text-info' : ''}`} />
+                    </div>
+                    <span className="text-sm">Aluguel</span>
+                  </div>
+                  {property.alugado && property.valor_aluguel && property.valor_aluguel > 0 ? (
+                    <span className="text-sm font-semibold text-info">{formatCurrency(property.valor_aluguel)}/mês</span>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">—</span>
+                  )}
+                </div>
+
+                {/* Condominium */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
+                      <Building className="h-4 w-4" />
+                    </div>
+                    <span className="text-sm">Condomínio</span>
+                  </div>
+                  {property.valor_condominio && property.valor_condominio > 0 ? (
+                    <span className="text-sm font-medium">{formatCurrency(property.valor_condominio)}/mês</span>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">—</span>
+                  )}
+                </div>
+
+                {/* IPTU */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
+                      <Calendar className="h-4 w-4" />
+                    </div>
+                    <span className="text-sm">IPTU anual</span>
+                  </div>
+                  {property.iptu_value && property.iptu_value > 0 ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{formatCurrency(property.iptu_value)}</span>
+                      {property.iptu_pago && (
+                        <Badge className="bg-success/10 text-success border-0 text-[10px] px-1.5">Pago</Badge>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">—</span>
+                  )}
+                </div>
+
+                {/* Tenant if rented */}
+                {property.alugado && property.inquilino && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-info/10">
+                        <User className="h-4 w-4 text-info" />
+                      </div>
+                      <span className="text-sm">Inquilino</span>
+                    </div>
+                    <span className="text-sm font-medium truncate max-w-[140px]">{property.inquilino}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Separator for desktop */}
+              <div className="hidden sm:block w-px bg-border" />
+              {/* Separator for mobile */}
+              <div className="sm:hidden border-t border-border" />
+
+              {/* Characteristics column */}
+              <div className="space-y-3 flex-1 min-w-0">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Características</h4>
+                
+                {/* Quartos */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
+                      <BedDouble className="h-4 w-4" />
+                    </div>
+                    <span className="text-sm">Quartos</span>
+                  </div>
+                  <span className="text-sm font-medium">{property.quartos || '—'}</span>
+                </div>
+
+                {/* Suítes */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
+                      <Bath className="h-4 w-4" />
+                    </div>
+                    <span className="text-sm">Suítes / Banheiros</span>
+                  </div>
+                  <span className="text-sm font-medium">
+                    {property.suites || 0} / {property.banheiros || 0}
+                  </span>
+                </div>
+
+                {/* Garagens */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
+                      <Car className="h-4 w-4" />
+                    </div>
+                    <span className="text-sm">Garagens</span>
+                  </div>
+                  <span className="text-sm font-medium">{property.garagens || '—'}</span>
+                </div>
+
+                {/* Área Útil */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
+                      <Ruler className="h-4 w-4" />
+                    </div>
+                    <span className="text-sm">Área útil</span>
+                  </div>
+                  <span className="text-sm font-medium">
+                    {property.metragem ? `${property.metragem} m²` : '—'}
+                  </span>
+                </div>
+
+                {/* Área Comum */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
+                      <Home className="h-4 w-4" />
+                    </div>
+                    <span className="text-sm">Área comum</span>
+                  </div>
+                  <span className="text-sm font-medium">
+                    {property.area_comum ? `${property.area_comum} m²` : '—'}
+                  </span>
+                </div>
+
+                {/* Área Total */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+                      <Ruler className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="text-sm">Área total</span>
+                  </div>
+                  <span className="text-sm font-bold text-primary">
+                    {property.area_total ? `${property.area_total} m²` : '—'}
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Action buttons */}
