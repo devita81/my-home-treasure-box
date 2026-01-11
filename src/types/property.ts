@@ -29,6 +29,9 @@ export interface Property {
   suites?: number;
   garagens?: number;
   metragem?: number;
+  area_comum?: number;
+  area_total?: number;
+  numero_contribuinte?: string;
 }
 
 export type PropertyFormData = Omit<Property, 'id' | 'created_at' | 'updated_at' | 'user_id'>;
