@@ -4,6 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { 
   Table, 
   TableBody, 
   TableCell, 
@@ -11,11 +17,6 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { 
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import { 
   TrendingUp, 
   Home, 
@@ -27,7 +28,7 @@ import {
   Building2,
   ChevronUp,
   ChevronDown,
-  ChevronRight,
+  ArrowUpDown,
   Receipt
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
@@ -41,16 +42,30 @@ interface GroupedData {
   properties: Property[];
 }
 
+type SortField = 'rua' | 'tipo_imovel' | 'cidade' | 'declared_value' | 'market_value' | 'iptu_value' | 'iptu_pago';
+type SortOrder = 'asc' | 'desc';
+
+interface DialogState {
+  isOpen: boolean;
+  title: string;
+  subtitle: string;
+  properties: Property[];
+}
+
 const Analytics = () => {
   const { properties } = useProperties();
   const [rankingSortOrder, setRankingSortOrder] = useState<'asc' | 'desc'>('desc');
   const [rankingMetric, setRankingMetric] = useState<'declared_value' | 'market_value'>('market_value');
   
-  // Drill-down states
-  const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set());
-  const [expandedCities, setExpandedCities] = useState<Set<string>>(new Set());
-  const [expandedPapel, setExpandedPapel] = useState<Set<string>>(new Set());
-  const [expandedMatricula, setExpandedMatricula] = useState<Set<string>>(new Set());
+  // Dialog state
+  const [dialogState, setDialogState] = useState<DialogState>({
+    isOpen: false,
+    title: '',
+    subtitle: '',
+    properties: []
+  });
+  const [dialogSortField, setDialogSortField] = useState<SortField>('declared_value');
+  const [dialogSortOrder, setDialogSortOrder] = useState<SortOrder>('desc');
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -61,15 +76,48 @@ const Analytics = () => {
     }).format(value);
   };
 
-  const toggleExpanded = (set: Set<string>, setFn: React.Dispatch<React.SetStateAction<Set<string>>>, key: string) => {
-    const newSet = new Set(set);
-    if (newSet.has(key)) {
-      newSet.delete(key);
-    } else {
-      newSet.add(key);
-    }
-    setFn(newSet);
+  const openDialog = (title: string, subtitle: string, props: Property[]) => {
+    setDialogState({ isOpen: true, title, subtitle, properties: props });
+    setDialogSortField('declared_value');
+    setDialogSortOrder('desc');
   };
+
+  const closeDialog = () => {
+    setDialogState({ isOpen: false, title: '', subtitle: '', properties: [] });
+  };
+
+  const toggleDialogSort = (field: SortField) => {
+    if (dialogSortField === field) {
+      setDialogSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setDialogSortField(field);
+      setDialogSortOrder('desc');
+    }
+  };
+
+  const sortedDialogProperties = useMemo(() => {
+    return [...dialogState.properties].sort((a, b) => {
+      const multiplier = dialogSortOrder === 'asc' ? 1 : -1;
+      switch (dialogSortField) {
+        case 'rua':
+          return multiplier * a.rua.localeCompare(b.rua, 'pt-BR');
+        case 'tipo_imovel':
+          return multiplier * (a.tipo_imovel || '').localeCompare(b.tipo_imovel || '', 'pt-BR');
+        case 'cidade':
+          return multiplier * a.cidade.localeCompare(b.cidade, 'pt-BR');
+        case 'declared_value':
+          return multiplier * ((a.declared_value || 0) - (b.declared_value || 0));
+        case 'market_value':
+          return multiplier * ((a.market_value || 0) - (b.market_value || 0));
+        case 'iptu_value':
+          return multiplier * ((a.iptu_value || 0) - (b.iptu_value || 0));
+        case 'iptu_pago':
+          return multiplier * ((a.iptu_pago ? 1 : 0) - (b.iptu_pago ? 1 : 0));
+        default:
+          return 0;
+      }
+    });
+  }, [dialogState.properties, dialogSortField, dialogSortOrder]);
 
   // ==================== SUMMARY STATS ====================
   const totalDeclaredValue = properties.reduce((acc, p) => acc + (p.declared_value || 0), 0);
@@ -81,15 +129,17 @@ const Analytics = () => {
     : '0';
 
   // ==================== IPTU STATS ====================
-  const iptuPagoValue = properties.filter(p => p.iptu_pago).reduce((acc, p) => acc + (p.iptu_value || 0), 0);
-  const iptuPendenteValue = properties.filter(p => !p.iptu_pago).reduce((acc, p) => acc + (p.iptu_value || 0), 0);
-  const iptuPagoCount = properties.filter(p => p.iptu_pago).length;
-  const iptuPendenteCount = properties.filter(p => !p.iptu_pago).length;
+  const iptuPagoProperties = properties.filter(p => p.iptu_pago);
+  const iptuPendenteProperties = properties.filter(p => !p.iptu_pago);
+  const iptuPagoValue = iptuPagoProperties.reduce((acc, p) => acc + (p.iptu_value || 0), 0);
+  const iptuPendenteValue = iptuPendenteProperties.reduce((acc, p) => acc + (p.iptu_value || 0), 0);
+  const iptuPagoCount = iptuPagoProperties.length;
+  const iptuPendenteCount = iptuPendenteProperties.length;
   const iptuPagoPercentage = properties.length > 0 
     ? Math.round((iptuPagoCount / properties.length) * 100) 
     : 0;
 
-  // ==================== GROUPED DATA WITH PROPERTIES ====================
+  // ==================== GROUPED DATA ====================
   const propertiesByType = useMemo((): GroupedData[] => {
     const grouped: Record<string, { count: number; value: number; properties: Property[] }> = {};
     properties.forEach(p => {
@@ -160,7 +210,7 @@ const Analytics = () => {
       .sort((a, b) => b.count - a.count);
   }, [properties]);
 
-  // ==================== RANKING BY VALUE ====================
+  // ==================== RANKING ====================
   const rankedProperties = useMemo(() => {
     return [...properties].sort((a, b) => {
       const valueA = rankingMetric === 'market_value' ? (a.market_value || 0) : (a.declared_value || 0);
@@ -186,70 +236,37 @@ const Analytics = () => {
     return labels[tipo || ''] || tipo || '-';
   };
 
-  // ==================== DRILL-DOWN COMPONENT ====================
-  const DrillDownSection = ({ 
-    data, 
-    expanded, 
-    setExpanded,
-    icon: Icon
-  }: { 
-    data: GroupedData[]; 
-    expanded: Set<string>; 
-    setExpanded: React.Dispatch<React.SetStateAction<Set<string>>>;
-    icon: React.ElementType;
-  }) => (
-    <div className="space-y-2 max-h-[400px] overflow-y-auto">
-      {data.map((item, index) => (
-        <Collapsible
-          key={index}
-          open={expanded.has(item.name)}
-          onOpenChange={() => toggleExpanded(expanded, setExpanded, item.name)}
-        >
-          <CollapsibleTrigger asChild>
-            <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg cursor-pointer hover:bg-secondary transition-colors">
-              <div className="flex items-center gap-2">
-                {expanded.has(item.name) ? (
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                ) : (
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                )}
-                <span className="font-medium">{item.name}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Badge variant="secondary">{item.count} imóveis</Badge>
-                <span className="text-sm text-muted-foreground">{formatCurrency(item.value)}</span>
-              </div>
-            </div>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="ml-6 mt-2 space-y-1 border-l-2 border-primary/20 pl-4">
-              {item.properties.map((property) => (
-                <Link 
-                  key={property.id} 
-                  to={`/property/${property.id}`}
-                  className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors text-sm"
-                >
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <Home className="h-3 w-3 text-muted-foreground shrink-0" />
-                    <span className="truncate">{getPropertyAddress(property)}</span>
-                    <Badge variant="outline" className="shrink-0 text-xs">
-                      {getTipoLabel(property.tipo_imovel)}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0 ml-2">
-                    <span className="text-muted-foreground">{formatCurrency(property.declared_value)}</span>
-                    {property.iptu_pago ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <XCircle className="h-4 w-4 text-red-500" />
-                    )}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      ))}
+  const SortableHeader = ({ field, label }: { field: SortField; label: string }) => (
+    <TableHead 
+      className="cursor-pointer hover:bg-muted/50 select-none"
+      onClick={() => toggleDialogSort(field)}
+    >
+      <div className="flex items-center gap-1">
+        {label}
+        {dialogSortField === field ? (
+          dialogSortOrder === 'desc' ? (
+            <ChevronDown className="h-4 w-4" />
+          ) : (
+            <ChevronUp className="h-4 w-4" />
+          )
+        ) : (
+          <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
+        )}
+      </div>
+    </TableHead>
+  );
+
+  // ==================== GROUP ITEM COMPONENT ====================
+  const GroupItem = ({ item, onClick }: { item: GroupedData; onClick: () => void }) => (
+    <div 
+      className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg cursor-pointer hover:bg-secondary transition-colors"
+      onClick={onClick}
+    >
+      <span className="font-medium">{item.name}</span>
+      <div className="flex items-center gap-3">
+        <Badge variant="secondary">{item.count} imóveis</Badge>
+        <span className="text-sm text-muted-foreground">{formatCurrency(item.value)}</span>
+      </div>
     </div>
   );
 
@@ -269,9 +286,16 @@ const Analytics = () => {
           </div>
         </div>
 
-        {/* ==================== TOP SUMMARY CARDS ==================== */}
+        {/* ==================== TOP SUMMARY CARDS (CLICKABLE) ==================== */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="border-l-4 border-l-blue-500">
+          <Card 
+            className="border-l-4 border-l-blue-500 cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => openDialog(
+              'Total Valor Mercado',
+              `${properties.length} imóveis • Total: ${formatCurrency(totalMarketValue)}`,
+              properties
+            )}
+          >
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
@@ -286,7 +310,14 @@ const Analytics = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-green-500">
+          <Card 
+            className="border-l-4 border-l-green-500 cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => openDialog(
+              'Total Valor Declarado',
+              `${properties.length} imóveis • Total: ${formatCurrency(totalDeclaredValue)}`,
+              properties
+            )}
+          >
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
@@ -301,7 +332,14 @@ const Analytics = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-orange-500">
+          <Card 
+            className="border-l-4 border-l-orange-500 cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => openDialog(
+              'Total IPTU',
+              `${properties.length} imóveis • Total: ${formatCurrency(totalIptu)}`,
+              properties
+            )}
+          >
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30">
@@ -316,7 +354,14 @@ const Analytics = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-purple-500">
+          <Card 
+            className="border-l-4 border-l-purple-500 cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => openDialog(
+              'Total Valorização',
+              `${properties.length} imóveis • Valorização: +${valorizationPercentage}%`,
+              properties
+            )}
+          >
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/30">
@@ -332,7 +377,7 @@ const Analytics = () => {
           </Card>
         </div>
 
-        {/* ==================== IPTU SECTION ==================== */}
+        {/* ==================== IPTU SECTION (CLICKABLE CARDS) ==================== */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -340,12 +385,19 @@ const Analytics = () => {
               Resumo de IPTU
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              Visão detalhada sobre o pagamento de IPTU dos imóveis
+              Clique nos cards para ver os imóveis detalhados
             </p>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+              <div 
+                className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => openDialog(
+                  'IPTU Pago',
+                  `${iptuPagoCount} imóveis • Total: ${formatCurrency(iptuPagoValue)}`,
+                  iptuPagoProperties
+                )}
+              >
                 <div className="flex items-center gap-2 mb-2">
                   <CheckCircle2 className="h-5 w-5 text-green-600" />
                   <span className="text-sm font-medium text-green-700 dark:text-green-400">IPTU Pago</span>
@@ -354,7 +406,14 @@ const Analytics = () => {
                 <p className="text-xs text-green-600 dark:text-green-400">{iptuPagoCount} imóveis</p>
               </div>
 
-              <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+              <div 
+                className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => openDialog(
+                  'IPTU Pendente',
+                  `${iptuPendenteCount} imóveis • Total: ${formatCurrency(iptuPendenteValue)}`,
+                  iptuPendenteProperties
+                )}
+              >
                 <div className="flex items-center gap-2 mb-2">
                   <XCircle className="h-5 w-5 text-red-600" />
                   <span className="text-sm font-medium text-red-700 dark:text-red-400">IPTU Pendente</span>
@@ -363,7 +422,14 @@ const Analytics = () => {
                 <p className="text-xs text-red-600 dark:text-red-400">{iptuPendenteCount} imóveis</p>
               </div>
 
-              <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+              <div 
+                className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => openDialog(
+                  'Todos os Imóveis',
+                  `${properties.length} imóveis cadastrados`,
+                  properties
+                )}
+              >
                 <div className="flex items-center gap-2 mb-2">
                   <Home className="h-5 w-5 text-blue-600" />
                   <span className="text-sm font-medium text-blue-700 dark:text-blue-400">Imóveis</span>
@@ -372,7 +438,14 @@ const Analytics = () => {
                 <p className="text-xs text-blue-600 dark:text-blue-400">total cadastrado</p>
               </div>
 
-              <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+              <div 
+                className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => openDialog(
+                  'Imóveis com IPTU Pago',
+                  `${iptuPagoCount} de ${properties.length} imóveis`,
+                  iptuPagoProperties
+                )}
+              >
                 <div className="flex items-center gap-2 mb-2">
                   <TrendingUp className="h-5 w-5 text-amber-600" />
                   <span className="text-sm font-medium text-amber-700 dark:text-amber-400">Pagaram</span>
@@ -384,7 +457,7 @@ const Analytics = () => {
           </CardContent>
         </Card>
 
-        {/* ==================== DISTRIBUTION WITH DRILL-DOWN ==================== */}
+        {/* ==================== DISTRIBUTION (CLICKABLE GROUPS) ==================== */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -392,7 +465,7 @@ const Analytics = () => {
               Distribuição de Propriedade e Uso
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              Clique em cada grupo para ver os imóveis individuais (drill-down)
+              Clique em cada grupo para ver os imóveis detalhados
             </p>
           </CardHeader>
           <CardContent>
@@ -403,12 +476,19 @@ const Analytics = () => {
                   <Building2 className="h-4 w-4 text-muted-foreground" />
                   <h4 className="font-medium text-sm">Por Tipo de Imóvel</h4>
                 </div>
-                <DrillDownSection 
-                  data={propertiesByType} 
-                  expanded={expandedTypes} 
-                  setExpanded={setExpandedTypes}
-                  icon={Building2}
-                />
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {propertiesByType.map((item, index) => (
+                    <GroupItem 
+                      key={index} 
+                      item={item} 
+                      onClick={() => openDialog(
+                        `Tipo: ${item.name}`,
+                        `${item.count} imóveis • Total: ${formatCurrency(item.value)}`,
+                        item.properties
+                      )}
+                    />
+                  ))}
+                </div>
               </div>
 
               {/* By City */}
@@ -417,12 +497,19 @@ const Analytics = () => {
                   <Home className="h-4 w-4 text-muted-foreground" />
                   <h4 className="font-medium text-sm">Por Cidade</h4>
                 </div>
-                <DrillDownSection 
-                  data={propertiesByCity} 
-                  expanded={expandedCities} 
-                  setExpanded={setExpandedCities}
-                  icon={Home}
-                />
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {propertiesByCity.map((item, index) => (
+                    <GroupItem 
+                      key={index} 
+                      item={item} 
+                      onClick={() => openDialog(
+                        `Cidade: ${item.name}`,
+                        `${item.count} imóveis • Total: ${formatCurrency(item.value)}`,
+                        item.properties
+                      )}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -434,12 +521,19 @@ const Analytics = () => {
                     <FileCheck className="h-4 w-4 text-muted-foreground" />
                     <h4 className="font-medium text-sm">Por Proprietário no Papel</h4>
                   </div>
-                  <DrillDownSection 
-                    data={proprietariosPapel} 
-                    expanded={expandedPapel} 
-                    setExpanded={setExpandedPapel}
-                    icon={FileCheck}
-                  />
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                    {proprietariosPapel.map((item, index) => (
+                      <GroupItem 
+                        key={index} 
+                        item={item} 
+                        onClick={() => openDialog(
+                          `Proprietário (Papel): ${item.name}`,
+                          `${item.count} imóveis • Total: ${formatCurrency(item.value)}`,
+                          item.properties
+                        )}
+                      />
+                    ))}
+                  </div>
                 </div>
 
                 {/* Por Proprietário na Matrícula */}
@@ -448,12 +542,19 @@ const Analytics = () => {
                     <Users className="h-4 w-4 text-muted-foreground" />
                     <h4 className="font-medium text-sm">Por Proprietário na Matrícula</h4>
                   </div>
-                  <DrillDownSection 
-                    data={proprietariosMatricula} 
-                    expanded={expandedMatricula} 
-                    setExpanded={setExpandedMatricula}
-                    icon={Users}
-                  />
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                    {proprietariosMatricula.map((item, index) => (
+                      <GroupItem 
+                        key={index} 
+                        item={item} 
+                        onClick={() => openDialog(
+                          `Proprietário (Matrícula): ${item.name}`,
+                          `${item.count} imóveis • Total: ${formatCurrency(item.value)}`,
+                          item.properties
+                        )}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -566,6 +667,77 @@ const Analytics = () => {
           </CardContent>
         </Card>
       </main>
+
+      {/* ==================== DRILL-DOWN DIALOG ==================== */}
+      <Dialog open={dialogState.isOpen} onOpenChange={(open) => !open && closeDialog()}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Home className="h-5 w-5" />
+              {dialogState.title}
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">{dialogState.subtitle}</p>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-auto">
+            <Table>
+              <TableHeader className="sticky top-0 bg-background z-10">
+                <TableRow className="bg-muted/50">
+                  <SortableHeader field="rua" label="Endereço" />
+                  <SortableHeader field="tipo_imovel" label="Tipo" />
+                  <SortableHeader field="cidade" label="Cidade" />
+                  <SortableHeader field="declared_value" label="Valor Declarado" />
+                  <SortableHeader field="market_value" label="Valor Mercado" />
+                  <SortableHeader field="iptu_value" label="IPTU" />
+                  <SortableHeader field="iptu_pago" label="Status" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedDialogProperties.map((property) => (
+                  <TableRow key={property.id} className="hover:bg-muted/30">
+                    <TableCell className="font-medium">
+                      <Link 
+                        to={`/property/${property.id}`}
+                        className="hover:text-primary hover:underline"
+                        onClick={closeDialog}
+                      >
+                        {getPropertyAddress(property)}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{getTipoLabel(property.tipo_imovel)}</Badge>
+                    </TableCell>
+                    <TableCell>{property.cidade} - {property.estado}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(property.declared_value)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(property.market_value || 0)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(property.iptu_value || 0)}</TableCell>
+                    <TableCell className="text-center">
+                      {property.iptu_pago ? (
+                        <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Pago
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                          <XCircle className="h-3 w-3 mr-1" />
+                          Pendente
+                        </Badge>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {sortedDialogProperties.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                      Nenhum imóvel encontrado
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
