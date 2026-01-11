@@ -1,21 +1,38 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { PropertyForm } from '@/components/property/PropertyForm';
 import { useProperties } from '@/contexts/PropertyContext';
+import { Property } from '@/types/property';
 
 const EditProperty = () => {
   const { id } = useParams<{ id: string }>();
   const { getPropertyById, refreshProperties, loading } = useProperties();
+  const [initialProperty, setInitialProperty] = useState<Property | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Ensure we always render the latest backend values (avoid stale cached state)
+  // Load property data only once on initial mount
   useEffect(() => {
-    refreshProperties();
-  }, [refreshProperties]);
+    if (!isInitialized && id) {
+      const loadProperty = async () => {
+        await refreshProperties();
+        setIsInitialized(true);
+      };
+      loadProperty();
+    }
+  }, [id, isInitialized, refreshProperties]);
 
-  const property = id ? getPropertyById(id) : undefined;
+  // Capture the property only once after initialization
+  useEffect(() => {
+    if (isInitialized && !initialProperty && id) {
+      const prop = getPropertyById(id);
+      if (prop) {
+        setInitialProperty(prop);
+      }
+    }
+  }, [isInitialized, initialProperty, id, getPropertyById]);
 
-  if (loading) {
+  if (loading || (!initialProperty && !isInitialized)) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -31,8 +48,12 @@ const EditProperty = () => {
     );
   }
 
-  if (!property) {
+  if (isInitialized && !initialProperty) {
     return <Navigate to="/" replace />;
+  }
+
+  if (!initialProperty) {
+    return null;
   }
 
   return (
@@ -44,11 +65,11 @@ const EditProperty = () => {
           <div className="mb-8">
             <h1 className="font-display text-3xl font-bold">Editar Imóvel</h1>
             <p className="text-muted-foreground mt-2">
-              {property.rua}, {property.numero} - {property.cidade}/{property.estado}
+              {initialProperty.rua}, {initialProperty.numero} - {initialProperty.cidade}/{initialProperty.estado}
             </p>
           </div>
 
-          <PropertyForm property={property} mode="edit" />
+          <PropertyForm key={initialProperty.id} property={initialProperty} mode="edit" />
         </div>
       </main>
     </div>
