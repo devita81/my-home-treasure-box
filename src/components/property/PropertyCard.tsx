@@ -161,40 +161,13 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
             </div>
 
             {/* Address on image */}
-            <div className="absolute bottom-3 left-3 right-3 z-10">
+            <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
               <p className="text-white font-semibold text-sm truncate drop-shadow-md">
                 {getAddressDisplay()}
               </p>
               <div className="flex items-center gap-1 text-white/90 text-xs mt-0.5">
                 <MapPin className="h-3 w-3" />
                 <span>{property.bairro}, {property.cidade} - {property.estado}</span>
-              </div>
-              {/* Property features */}
-              <div className="flex items-center gap-3 mt-1.5">
-                {property.quartos && property.quartos > 0 && (
-                  <div className="flex items-center gap-1 text-white/90 text-xs">
-                    <BedDouble className="h-3 w-3" />
-                    <span>{property.quartos}</span>
-                  </div>
-                )}
-                {property.banheiros && property.banheiros > 0 && (
-                  <div className="flex items-center gap-1 text-white/90 text-xs">
-                    <Bath className="h-3 w-3" />
-                    <span>{property.banheiros}</span>
-                  </div>
-                )}
-                {property.garagens && property.garagens > 0 && (
-                  <div className="flex items-center gap-1 text-white/90 text-xs">
-                    <Car className="h-3 w-3" />
-                    <span>{property.garagens}</span>
-                  </div>
-                )}
-                {property.metragem && property.metragem > 0 && (
-                  <div className="flex items-center gap-1 text-white/90 text-xs">
-                    <Ruler className="h-3 w-3" />
-                    <span>{property.metragem}m²</span>
-                  </div>
-                )}
               </div>
             </div>
           </div>
