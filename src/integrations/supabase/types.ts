@@ -32,6 +32,8 @@ export type Database = {
           inquilino: string | null
           iptu_pago: boolean | null
           iptu_value: number | null
+          latitude: number | null
+          longitude: number | null
           market_value: number | null
           metragem: number | null
           numero: string | null
@@ -43,6 +45,7 @@ export type Database = {
           quartos: number | null
           rua: string
           suites: number | null
+          tipo_imovel: string | null
           updated_at: string
           user_id: string | null
           validado: boolean | null
@@ -67,6 +70,8 @@ export type Database = {
           inquilino?: string | null
           iptu_pago?: boolean | null
           iptu_value?: number | null
+          latitude?: number | null
+          longitude?: number | null
           market_value?: number | null
           metragem?: number | null
           numero?: string | null
@@ -78,6 +83,7 @@ export type Database = {
           quartos?: number | null
           rua: string
           suites?: number | null
+          tipo_imovel?: string | null
           updated_at?: string
           user_id?: string | null
           validado?: boolean | null
@@ -102,6 +108,8 @@ export type Database = {
           inquilino?: string | null
           iptu_pago?: boolean | null
           iptu_value?: number | null
+          latitude?: number | null
+          longitude?: number | null
           market_value?: number | null
           metragem?: number | null
           numero?: string | null
@@ -113,6 +121,7 @@ export type Database = {
           quartos?: number | null
           rua?: string
           suites?: number | null
+          tipo_imovel?: string | null
           updated_at?: string
           user_id?: string | null
           validado?: boolean | null

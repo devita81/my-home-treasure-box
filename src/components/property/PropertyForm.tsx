@@ -9,8 +9,9 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Save, ArrowLeft, MapPin, DollarSign, FileText, User, Home } from 'lucide-react';
+import { Save, ArrowLeft, MapPin, DollarSign, FileText, User, Home, Building } from 'lucide-react';
 import { z } from 'zod';
+import { LocationPicker } from './LocationPicker';
 
 // Validation schema for property form
 const propertySchema = z.object({
@@ -43,6 +44,9 @@ const propertySchema = z.object({
   area_comum: z.number().min(0).max(100000),
   area_total: z.number().min(0).max(200000),
   numero_contribuinte: z.string().trim().max(50, 'Número do contribuinte muito longo').optional().or(z.literal('')),
+  tipo_imovel: z.string().optional(),
+  latitude: z.number().nullable().optional(),
+  longitude: z.number().nullable().optional(),
 });
 
 const estados = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
@@ -86,6 +90,9 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
     area_comum: property?.area_comum || 0,
     area_total: property?.area_total || 0,
     numero_contribuinte: property?.numero_contribuinte || '',
+    tipo_imovel: property?.tipo_imovel || 'apartamento',
+    latitude: property?.latitude || null,
+    longitude: property?.longitude || null,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -210,15 +217,48 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="complemento">Complemento</Label>
-              <Input
-                id="complemento"
-                value={formData.complemento || ''}
-                onChange={(e) => handleChange('complemento', e.target.value)}
-                placeholder="Quadra H, Bloco B"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="complemento">Complemento</Label>
+                <Input
+                  id="complemento"
+                  value={formData.complemento || ''}
+                  onChange={(e) => handleChange('complemento', e.target.value)}
+                  placeholder="Quadra H, Bloco B"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tipo_imovel">Tipo de Imóvel</Label>
+                <Select
+                  value={formData.tipo_imovel || 'apartamento'}
+                  onValueChange={(value) => handleChange('tipo_imovel', value)}
+                >
+                  <SelectTrigger id="tipo_imovel">
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="apartamento">Apartamento</SelectItem>
+                    <SelectItem value="casa">Casa</SelectItem>
+                    <SelectItem value="terreno">Terreno</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+
+            {/* Location Picker */}
+            <LocationPicker
+              rua={formData.rua}
+              numero={formData.numero}
+              bairro={formData.bairro}
+              cidade={formData.cidade}
+              estado={formData.estado}
+              latitude={formData.latitude}
+              longitude={formData.longitude}
+              onLocationChange={(lat, lng) => {
+                handleChange('latitude', lat);
+                handleChange('longitude', lng);
+              }}
+            />
           </CardContent>
         </Card>
 

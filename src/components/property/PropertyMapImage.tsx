@@ -11,6 +11,8 @@ interface PropertyMapImageProps {
   className?: string;
   showControls?: boolean;
   propertyId?: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyBSbKS3g4EggVq_jqMCzQRQQFmTRSfMEHw';
@@ -78,6 +80,8 @@ export function PropertyMapImage({
   className = '',
   showControls = false,
   propertyId,
+  latitude,
+  longitude,
 }: PropertyMapImageProps) {
   const instanceId = useId();
   const [currentIndex, setCurrentIndex] = useState(0); // 0 = Street View, 1 = Map
@@ -87,6 +91,9 @@ export function PropertyMapImage({
   const [heading, setHeading] = useState(() => getStoredHeading(propertyId));
   const [showHeadingControl, setShowHeadingControl] = useState(false);
 
+  // Use coordinates if available, otherwise use address
+  const hasCustomLocation = latitude !== null && latitude !== undefined && longitude !== null && longitude !== undefined;
+  const locationParam = hasCustomLocation ? `${latitude},${longitude}` : encodeURIComponent(`${rua}, ${numero || ''}, ${bairro}, ${cidade}, ${estado}, Brasil`);
   const address = `${rua}, ${numero || ''}, ${bairro}, ${cidade}, ${estado}, Brasil`;
   const encodedAddress = encodeURIComponent(address);
 
@@ -119,10 +126,10 @@ export function PropertyMapImage({
   }, [address]);
 
   // Google Street View Static API URL (primary - index 0)
-  const streetViewStaticUrl = `https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${encodedAddress}&fov=90&heading=${heading}&pitch=10&key=${GOOGLE_MAPS_API_KEY}&_=${refreshKey}`;
+  const streetViewStaticUrl = `https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${locationParam}&fov=90&heading=${heading}&pitch=10&key=${GOOGLE_MAPS_API_KEY}&_=${refreshKey}`;
 
   // Google Maps Static API URL (secondary - index 1)
-  const mapStaticUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodedAddress}&zoom=17&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${encodedAddress}&key=${GOOGLE_MAPS_API_KEY}&_=${refreshKey}`;
+  const mapStaticUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${locationParam}&zoom=17&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${locationParam}&key=${GOOGLE_MAPS_API_KEY}&_=${refreshKey}`;
 
   const handleRefresh = (e: React.MouseEvent) => {
     e.stopPropagation();
