@@ -177,7 +177,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
             <div className="grid grid-cols-3 gap-3 flex-1">
               
               {/* Card: Valores */}
-              <div className="bg-muted/30 rounded-lg p-3 border border-border/50">
+              <div className="bg-primary/5 rounded-lg p-3 border border-primary/10">
                 <div className="flex items-center gap-1.5 mb-2">
                   <DollarSign className="h-3.5 w-3.5 text-primary" />
                   <h4 className="text-xs font-bold text-primary uppercase tracking-wide">Valores</h4>
@@ -195,7 +195,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
               </div>
 
               {/* Card: Custos */}
-              <div className="bg-muted/30 rounded-lg p-3 border border-border/50">
+              <div className="bg-amber-500/5 rounded-lg p-3 border border-amber-500/10">
                 <div className="flex items-center gap-1.5 mb-2">
                   <FileText className="h-3.5 w-3.5 text-primary" />
                   <h4 className="text-xs font-bold text-primary uppercase tracking-wide">Custos</h4>
@@ -220,7 +220,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
               </div>
 
               {/* Card: Rentabilidade */}
-              <div className="bg-muted/30 rounded-lg p-3 border border-border/50">
+              <div className="bg-info/5 rounded-lg p-3 border border-info/10">
                 <div className="flex items-center gap-1.5 mb-2">
                   <Key className="h-3.5 w-3.5 text-primary" />
                   <h4 className="text-xs font-bold text-primary uppercase tracking-wide">Rentabilidade</h4>
@@ -242,7 +242,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
               </div>
 
               {/* Card: Propriedade */}
-              <div className="bg-muted/30 rounded-lg p-3 border border-border/50">
+              <div className="bg-slate-500/5 rounded-lg p-3 border border-slate-500/10">
                 <div className="flex items-center gap-1.5 mb-2">
                   <Building className="h-3.5 w-3.5 text-primary" />
                   <h4 className="text-xs font-bold text-primary uppercase tracking-wide">Propriedade</h4>
@@ -268,7 +268,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
               </div>
 
               {/* Card: Características */}
-              <div className="bg-muted/30 rounded-lg p-3 border border-border/50">
+              <div className="bg-violet-500/5 rounded-lg p-3 border border-violet-500/10">
                 <div className="flex items-center gap-1.5 mb-2">
                   <Home className="h-3.5 w-3.5 text-primary" />
                   <h4 className="text-xs font-bold text-primary uppercase tracking-wide">Características</h4>
@@ -306,7 +306,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
               </div>
 
               {/* Card: Metragens */}
-              <div className="bg-muted/30 rounded-lg p-3 border border-border/50">
+              <div className="bg-emerald-500/5 rounded-lg p-3 border border-emerald-500/10">
                 <div className="flex items-center gap-1.5 mb-2">
                   <Ruler className="h-3.5 w-3.5 text-primary" />
                   <h4 className="text-xs font-bold text-primary uppercase tracking-wide">Metragens</h4>
