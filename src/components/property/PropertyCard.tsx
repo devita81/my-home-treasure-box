@@ -192,13 +192,13 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
 
           {/* Info section */}
           <div className="flex-1 p-3 sm:p-4 flex flex-col">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 flex-1">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-0 flex-1">
               
               {/* Column 1: Valores + Custos */}
-              <div className="space-y-3">
+              <div className="flex-1 space-y-2.5 sm:pr-4">
                 {/* Bloco Valores */}
-                <div className="space-y-1.5">
-                  <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Valores</h4>
+                <div className="space-y-1">
+                  <h4 className="text-[10px] font-bold text-primary uppercase tracking-wide">Valores</h4>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">Mercado</span>
                     <span className="text-xs font-semibold">{formatCurrency(property.market_value) || '—'}</span>
@@ -210,8 +210,8 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                 </div>
 
                 {/* Bloco Custos */}
-                <div className="space-y-1.5 pt-2 border-t border-border">
-                  <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Custos</h4>
+                <div className="space-y-1 pt-2 border-t border-border">
+                  <h4 className="text-[10px] font-bold text-primary uppercase tracking-wide">Custos</h4>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">IPTU</span>
                     <div className="flex items-center gap-1">
@@ -226,13 +226,10 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                     <span className="text-xs font-medium">{property.valor_condominio ? `${formatCurrency(property.valor_condominio)}/mês` : '—'}</span>
                   </div>
                 </div>
-              </div>
 
-              {/* Column 2: Rentabilidade + Propriedade */}
-              <div className="space-y-3">
                 {/* Bloco Rentabilidade */}
-                <div className="space-y-1.5">
-                  <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Rentabilidade</h4>
+                <div className="space-y-1 pt-2 border-t border-border">
+                  <h4 className="text-[10px] font-bold text-primary uppercase tracking-wide">Rentabilidade</h4>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">Status</span>
                     <span className={`text-xs font-medium ${property.alugado ? 'text-info' : 'text-muted-foreground'}`}>
@@ -248,63 +245,73 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                   {property.alugado && property.inquilino && (
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">Inquilino</span>
-                      <span className="text-xs font-medium truncate max-w-[100px]">{property.inquilino}</span>
+                      <span className="text-xs font-medium truncate max-w-[120px]">{property.inquilino}</span>
                     </div>
                   )}
                 </div>
+              </div>
 
-                {/* Bloco Propriedade */}
-                <div className="space-y-1.5 pt-2 border-t border-border">
-                  <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Propriedade</h4>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Proprietário</span>
-                    <span className="text-xs font-medium truncate max-w-[100px]">{property.proprietario_papel || '—'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Na matrícula</span>
-                    <span className="text-xs font-medium truncate max-w-[100px]">{property.proprietario_matricula || '—'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Matrícula</span>
-                    <span className="text-xs font-medium">{property.numero_matricula || '—'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Contribuinte</span>
-                    <span className="text-xs font-medium">{property.numero_contribuinte || '—'}</span>
-                  </div>
+              {/* Separator */}
+              <div className="hidden sm:block w-px bg-border" />
+
+              {/* Column 2: Propriedade */}
+              <div className="flex-1 space-y-1 sm:px-4 sm:border-l-0">
+                <h4 className="text-[10px] font-bold text-primary uppercase tracking-wide">Propriedade</h4>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs text-muted-foreground shrink-0">Proprietário</span>
+                  <span className="text-xs font-medium text-right">{property.proprietario_papel || '—'}</span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs text-muted-foreground shrink-0">Na matrícula</span>
+                  <span className="text-xs font-medium text-right">{property.proprietario_matricula || '—'}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Nº matrícula</span>
+                  <span className="text-xs font-medium">{property.numero_matricula || '—'}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Nº contribuinte</span>
+                  <span className="text-xs font-medium">{property.numero_contribuinte || '—'}</span>
                 </div>
               </div>
 
+              {/* Separator */}
+              <div className="hidden sm:block w-px bg-border" />
+
               {/* Column 3: Características */}
-              <div className="space-y-1.5">
-                <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Características</h4>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Quartos</span>
-                  <span className="text-xs font-medium">{property.quartos || '—'}</span>
+              <div className="flex-1 space-y-1 sm:pl-4">
+                <h4 className="text-[10px] font-bold text-primary uppercase tracking-wide">Características</h4>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Quartos</span>
+                    <span className="text-xs font-medium">{property.quartos || '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Suítes</span>
+                    <span className="text-xs font-medium">{property.suites || '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Banheiros</span>
+                    <span className="text-xs font-medium">{property.banheiros || '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Garagens</span>
+                    <span className="text-xs font-medium">{property.garagens || '—'}</span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Suítes</span>
-                  <span className="text-xs font-medium">{property.suites || '—'}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Banheiros</span>
-                  <span className="text-xs font-medium">{property.banheiros || '—'}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Garagens</span>
-                  <span className="text-xs font-medium">{property.garagens || '—'}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Área útil</span>
-                  <span className="text-xs font-medium">{property.metragem ? `${property.metragem} m²` : '—'}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Área comum</span>
-                  <span className="text-xs font-medium">{property.area_comum ? `${property.area_comum} m²` : '—'}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Área total</span>
-                  <span className="text-xs font-semibold text-primary">{property.area_total ? `${property.area_total} m²` : '—'}</span>
+                <div className="pt-1.5 mt-1 border-t border-border space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Área útil</span>
+                    <span className="text-xs font-medium">{property.metragem ? `${property.metragem} m²` : '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Área comum</span>
+                    <span className="text-xs font-medium">{property.area_comum ? `${property.area_comum} m²` : '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Área total</span>
+                    <span className="text-xs font-semibold text-primary">{property.area_total ? `${property.area_total} m²` : '—'}</span>
+                  </div>
                 </div>
               </div>
             </div>
