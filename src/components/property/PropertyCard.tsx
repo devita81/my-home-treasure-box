@@ -133,6 +133,8 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                 cidade={property.cidade}
                 estado={property.estado}
                 propertyId={property.id}
+                latitude={property.latitude}
+                longitude={property.longitude}
               />
             )}
             
@@ -266,6 +268,10 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                 {/* Bloco Propriedade */}
                 <div className="space-y-1">
                   <h4 className="text-[10px] font-bold text-primary uppercase tracking-wide">Propriedade</h4>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs text-muted-foreground shrink-0">Tipo</span>
+                    <span className="text-xs font-medium text-right capitalize">{property.tipo_imovel || 'Apartamento'}</span>
+                  </div>
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs text-muted-foreground shrink-0">Proprietário</span>
                     <span className="text-xs font-medium text-right">{abbreviateOwnerName(property.proprietario_papel)}</span>
