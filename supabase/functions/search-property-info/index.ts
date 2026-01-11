@@ -25,52 +25,68 @@ serve(async (req) => {
 
     const address = `${rua}${numero ? `, ${numero}` : ''}, ${bairro}, ${cidade} - ${estado}`;
     
-    const prompt = `Você é um especialista em avaliação imobiliária no Brasil, com profundo conhecimento do mercado imobiliário de ${cidade} - ${estado}.
+    const prompt = `Você é um corretor e avaliador imobiliário com foco no mercado de luxo e alto padrão de ${cidade} - ${estado}.
 
-**FONTES DE REFERÊNCIA OBRIGATÓRIAS:**
-- Use como base os preços praticados no QuintoAndar (quintoandar.com.br) e Loft (loft.com.br)
-- Considere imóveis similares listados nestas plataformas para a região de ${bairro}
+Analise as características do imóvel localizado na **${rua}${numero ? `, ${numero}` : ''}**, no ${bairro}.
 
-Analise o seguinte imóvel e forneça uma estimativa de valor de VENDA e ALUGUEL em formato de range (mínimo e máximo):
-
-**Dados do Imóvel:**
-- Endereço: ${address}
+**DADOS DO IMÓVEL:**
+- Endereço completo: ${address}
 - Bairro: ${bairro}
-- Cidade: ${cidade} - ${estado}
-- Tipo: ${tipo_imovel || 'Não informado'}
+- Tipo: ${tipo_imovel || 'Apartamento'}
 - Ano de Construção: ${ano_construcao ? ano_construcao : 'Não informado'}
-- Quartos: ${quartos || 0}
-- Suítes: ${suites || 0}
-- Banheiros: ${banheiros || 0}
-- Vagas de Garagem: ${garagens || 0}
 - Área Útil: ${metragem ? `${metragem} m²` : 'Não informada'}
 - Área Total: ${area_total ? `${area_total} m²` : 'Não informada'}
+- Quartos: ${quartos || 0} (${suites || 0} suítes)
+- Banheiros: ${banheiros || 0}
+- Vagas de Garagem: ${garagens || 0}
 
-**Instruções:**
-1. Considere a localização específica do bairro ${bairro} em ${cidade}
-2. Compare com imóveis similares no QuintoAndar e Loft para a região
-3. ${ano_construcao ? `Considere que o imóvel foi construído em ${ano_construcao} (${new Date().getFullYear() - ano_construcao} anos de idade)` : 'Considere uma idade média para imóveis da região'}
-4. Considere fatores como infraestrutura, valorização da região, proximidade de serviços
-5. Forneça valores realistas para o mercado atual (2026)
+**FONTES OBRIGATÓRIAS:**
+Considere os preços praticados no **QuintoAndar** e **Loft** para imóveis similares na região.
 
-**Formato da Resposta:**
-📊 **ESTIMATIVA DE VALORES**
+**FORMATO DA RESPOSTA - SIGA EXATAMENTE ESTA ESTRUTURA:**
 
-💰 **Valor de VENDA:** R$ [mínimo] a R$ [máximo]
-📍 **Preço por m²:** R$ [valor] a R$ [valor]
+---
 
-🏠 **Aluguel MENSAL:** R$ [mínimo] a R$ [máximo]
+## 📊 ESTIMATIVA DE VALORES
 
-📋 **Justificativa:**
-- [Fatores que influenciam positivamente]
-- [Fatores que influenciam negativamente]
+| Tipo | Valor Mínimo | Valor Máximo |
+|------|--------------|--------------|
+| 💰 **Valor de VENDA** | R$ [valor] | R$ [valor] |
+| 📍 **Preço por m²** | R$ [valor]/m² | R$ [valor]/m² |
+| 🏠 **Aluguel MENSAL** | R$ [valor] | R$ [valor] (Pacote sem taxas, pode variar conforme estado de reforma) |
 
-🔍 **Referências de mercado:**
-- Cite exemplos de imóveis similares encontrados no QuintoAndar/Loft
+---
 
-⚠️ **Observações:**
-- [Considerações sobre o mercado da região]`;
+## 📋 JUSTIFICATIVA
 
+### ✅ Fatores Positivos
+- [Liste 3-5 fatores que valorizam o imóvel]
+- Considere localização, infraestrutura, layout, vagas, etc.
+
+### ⚠️ Fatores Negativos
+- [Liste 2-3 fatores que podem impactar negativamente]
+- Considere idade do imóvel, necessidade de reformas, etc.
+
+---
+
+## 🔍 REFERÊNCIAS DE MERCADO
+
+- **Loft:** Imóveis similares na mesma zona (cite ruas ou condomínios próximos)
+- **QuintoAndar:** Valores praticados para aluguel na região
+- Compare com imóveis de características semelhantes
+
+---
+
+## 💡 OBSERVAÇÕES
+
+- [Considerações sobre o mercado da região em 2024/2025]
+- [Tendências de valorização ou desvalorização]
+- [Recomendações para o proprietário]
+
+---
+
+**IMPORTANTE:** Forneça valores realistas baseados no mercado atual. Seja preciso e objetivo.`;
+    
     console.log('Estimating property value for:', address);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
