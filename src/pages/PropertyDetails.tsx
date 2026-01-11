@@ -13,9 +13,8 @@ import {
   MapPin, 
   Edit, 
   ArrowLeft, 
-  DollarSign, 
+  DollarSign,
   FileText, 
-  User, 
   CheckCircle, 
   XCircle,
   Calendar,
@@ -26,7 +25,6 @@ import {
   BedDouble,
   Bath,
   Car,
-  ExternalLink,
   Search,
   Loader2
 } from 'lucide-react';
@@ -41,40 +39,32 @@ const PropertyDetails = () => {
   
   const property = id ? getPropertyById(id) : undefined;
 
-  // Função para obter link do cartório baseado na cidade
-  const getCartorioLink = (cidade: string) => {
-    const cidadeLower = cidade.toLowerCase();
-    // Links para consulta de cartórios por cidade
-    if (cidadeLower.includes('são paulo') || cidadeLower.includes('sao paulo')) {
-      return 'https://www.arisp.com.br/';
-    }
-    if (cidadeLower.includes('rio de janeiro')) {
-      return 'https://www.registradoronline.com.br/';
-    }
-    // Link genérico para ONR (Operador Nacional do Registro)
-    return 'https://www.registradores.org.br/';
-  };
-
-  // Função para buscar informações via ChatGPT
-  const searchPropertyInfo = async () => {
+  // Função para estimar valor do imóvel via IA
+  const estimatePropertyValue = async () => {
     setIsSearching(true);
     setSearchResult(null);
     
     try {
       const { data, error } = await supabase.functions.invoke('search-property-info', {
         body: {
-          matricula: property.numero_matricula,
           cidade: property.cidade,
           rua: property.rua,
           numero: property.numero,
           bairro: property.bairro,
-          estado: property.estado
+          estado: property.estado,
+          tipo_imovel: property.tipo_imovel,
+          quartos: property.quartos,
+          suites: property.suites,
+          banheiros: property.banheiros,
+          garagens: property.garagens,
+          metragem: property.metragem,
+          area_total: property.area_total
         }
       });
 
       if (error) {
-        console.error('Error searching property info:', error);
-        toast.error('Erro ao buscar informações do imóvel');
+        console.error('Error estimating property value:', error);
+        toast.error('Erro ao estimar valor do imóvel');
         return;
       }
 
@@ -84,7 +74,7 @@ const PropertyDetails = () => {
       }
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Erro ao buscar informações do imóvel');
+      toast.error('Erro ao estimar valor do imóvel');
     } finally {
       setIsSearching(false);
     }
@@ -392,45 +382,32 @@ const PropertyDetails = () => {
             </Card>
           </div>
 
-          {/* Consulta Cartório - Apenas para teste com Rua Japão */}
+          {/* Estimativa de Valor - Apenas para teste com Rua Japão */}
           {property.rua.toLowerCase().includes('japao') || property.rua.toLowerCase().includes('japão') ? (
             <Card className="border-primary/30 bg-primary/5">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <FileText className="h-5 w-5 text-primary" />
-                  Consulta de Registro
+                  <DollarSign className="h-5 w-5 text-primary" />
+                  Estimativa de Valor (IA)
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Consulte informações do cartório de registro de imóveis e busque dados públicos sobre este imóvel.
+                  Use inteligência artificial para estimar o valor de venda e aluguel deste imóvel baseado nas suas características e localização.
                 </p>
                 
-                <div className="flex flex-wrap gap-3">
-                  <Button
-                    variant="outline"
-                    asChild
-                    className="gap-2"
-                  >
-                    <a href={getCartorioLink(property.cidade)} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="h-4 w-4" />
-                      Acessar Portal do Cartório
-                    </a>
-                  </Button>
-
-                  <Button
-                    onClick={searchPropertyInfo}
-                    disabled={isSearching}
-                    className="gap-2"
-                  >
-                    {isSearching ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Search className="h-4 w-4" />
-                    )}
-                    {isSearching ? 'Buscando...' : 'Buscar Informações (IA)'}
-                  </Button>
-                </div>
+                <Button
+                  onClick={estimatePropertyValue}
+                  disabled={isSearching}
+                  className="gap-2"
+                >
+                  {isSearching ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Search className="h-4 w-4" />
+                  )}
+                  {isSearching ? 'Estimando...' : 'Estimar Valor'}
+                </Button>
               </CardContent>
             </Card>
           ) : null}
@@ -449,13 +426,13 @@ const PropertyDetails = () => {
         </div>
       </main>
 
-      {/* Dialog para resultado da busca */}
+      {/* Dialog para resultado da estimativa */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Search className="h-5 w-5 text-primary" />
-              Informações do Imóvel
+              <DollarSign className="h-5 w-5 text-primary" />
+              Estimativa de Valor do Imóvel
             </DialogTitle>
           </DialogHeader>
           <div className="prose prose-sm dark:prose-invert max-w-none">
