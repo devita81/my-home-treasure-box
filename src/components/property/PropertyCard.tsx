@@ -173,85 +173,66 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
           </div>
 
           {/* Info section */}
-          <div className="flex-1 p-3 sm:p-4 flex flex-col justify-between h-full">
-            <div className="grid grid-cols-2 gap-x-6 gap-y-4 flex-1">
+          <div className="flex-1 p-3 flex flex-col">
+            <div className="grid grid-cols-3 gap-3 flex-1">
               
-              {/* Row 1, Col 1: Valores */}
-              <div className="flex flex-col">
-                <h4 className="text-xs font-bold text-primary uppercase tracking-wide mb-2">Valores</h4>
-                <div className="space-y-1.5 flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Mercado</span>
+              {/* Card: Valores */}
+              <div className="bg-muted/30 rounded-lg p-3 border border-border/50">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <DollarSign className="h-3.5 w-3.5 text-primary" />
+                  <h4 className="text-xs font-bold text-primary uppercase tracking-wide">Valores</h4>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between py-1 border-b border-border/30">
+                    <span className="text-sm text-muted-foreground">Valor de Mercado</span>
                     <span className="text-sm font-semibold">{formatCurrency(property.market_value) || '—'}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Declarado</span>
+                  <div className="flex items-center justify-between py-1">
+                    <span className="text-sm text-muted-foreground">Valor Declarado</span>
                     <span className="text-sm font-medium">{formatCurrency(property.declared_value) || '—'}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Row 1, Col 2: Propriedade */}
-              <div className="flex flex-col">
-                <h4 className="text-xs font-bold text-primary uppercase tracking-wide mb-2">Propriedade</h4>
-                <div className="space-y-1.5 flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Tipo</span>
-                    <span className="text-sm font-medium capitalize">{property.tipo_imovel || 'Apartamento'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Proprietário</span>
-                    <span className="text-sm font-medium">{abbreviateOwnerName(property.proprietario_papel)}</span>
-                  </div>
+              {/* Card: Custos */}
+              <div className="bg-muted/30 rounded-lg p-3 border border-border/50">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <FileText className="h-3.5 w-3.5 text-primary" />
+                  <h4 className="text-xs font-bold text-primary uppercase tracking-wide">Custos</h4>
                 </div>
-              </div>
-
-              {/* Row 2, Col 1: Custos */}
-              <div className="flex flex-col border-t border-border pt-3">
-                <h4 className="text-xs font-bold text-primary uppercase tracking-wide mb-2">Custos</h4>
-                <div className="space-y-1.5 flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">IPTU</span>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between py-1 border-b border-border/30">
+                    <span className="text-sm text-muted-foreground">IPTU (anual)</span>
                     <div className="flex items-center gap-1.5">
                       <span className="text-sm font-medium">{property.iptu_value ? formatCurrency(property.iptu_value) : '—'}</span>
-                      {property.iptu_pago && (
+                      {property.iptu_pago ? (
                         <Badge className="bg-success/10 text-success border-0 text-[9px] px-1.5 py-0.5">Pago</Badge>
-                      )}
+                      ) : property.iptu_value ? (
+                        <Badge className="bg-warning/10 text-warning border-0 text-[9px] px-1.5 py-0.5">Pendente</Badge>
+                      ) : null}
                     </div>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between py-1">
                     <span className="text-sm text-muted-foreground">Condomínio</span>
                     <span className="text-sm font-medium">{property.valor_condominio ? `${formatCurrency(property.valor_condominio)}/mês` : '—'}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Row 2, Col 2: Metragens */}
-              <div className="flex flex-col border-t border-border pt-3">
-                <h4 className="text-xs font-bold text-primary uppercase tracking-wide mb-2">Metragens</h4>
-                <div className="space-y-1.5 flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Área útil</span>
-                    <span className="text-sm font-medium">{property.metragem ? `${property.metragem} m²` : '—'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Área total</span>
-                    <span className="text-sm font-semibold text-primary">{property.area_total ? `${property.area_total} m²` : '—'}</span>
-                  </div>
+              {/* Card: Rentabilidade */}
+              <div className="bg-muted/30 rounded-lg p-3 border border-border/50">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Key className="h-3.5 w-3.5 text-primary" />
+                  <h4 className="text-xs font-bold text-primary uppercase tracking-wide">Rentabilidade</h4>
                 </div>
-              </div>
-
-              {/* Row 3, Col 1: Rentabilidade */}
-              <div className="flex flex-col border-t border-border pt-3">
-                <h4 className="text-xs font-bold text-primary uppercase tracking-wide mb-2">Rentabilidade</h4>
-                <div className="space-y-1.5 flex-1">
-                  <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between py-1 border-b border-border/30">
                     <span className="text-sm text-muted-foreground">Status</span>
-                    <span className={`text-sm font-medium ${property.alugado ? 'text-info' : 'text-muted-foreground'}`}>
+                    <span className={`text-sm font-medium ${property.alugado ? 'text-info' : ''}`}>
                       {property.alugado ? 'Alugado' : 'Não alugado'}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between py-1">
                     <span className="text-sm text-muted-foreground">Aluguel</span>
                     <span className={`text-sm font-medium ${property.alugado && property.valor_aluguel ? 'text-info' : ''}`}>
                       {property.valor_aluguel ? `${formatCurrency(property.valor_aluguel)}/mês` : '—'}
@@ -260,33 +241,95 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                 </div>
               </div>
 
-              {/* Row 3, Col 2: Características */}
-              <div className="flex flex-col border-t border-border pt-3">
-                <h4 className="text-xs font-bold text-primary uppercase tracking-wide mb-2">Características</h4>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Quartos</span>
+              {/* Card: Propriedade */}
+              <div className="bg-muted/30 rounded-lg p-3 border border-border/50">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Building className="h-3.5 w-3.5 text-primary" />
+                  <h4 className="text-xs font-bold text-primary uppercase tracking-wide">Propriedade</h4>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between py-1 border-b border-border/30">
+                    <span className="text-sm text-muted-foreground">Tipo</span>
+                    <span className="text-sm font-medium capitalize">{property.tipo_imovel || 'Apartamento'}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1 border-b border-border/30">
+                    <span className="text-sm text-muted-foreground">Proprietário (Papel)</span>
+                    <span className="text-sm font-medium">{abbreviateOwnerName(property.proprietario_papel)}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1 border-b border-border/30">
+                    <span className="text-sm text-muted-foreground">Nº Matrícula</span>
+                    <span className="text-sm font-medium">{property.numero_matricula || '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1">
+                    <span className="text-sm text-muted-foreground">Nº Contribuinte</span>
+                    <span className="text-sm font-medium font-mono text-xs">{property.numero_contribuinte || '—'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card: Características */}
+              <div className="bg-muted/30 rounded-lg p-3 border border-border/50">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Home className="h-3.5 w-3.5 text-primary" />
+                  <h4 className="text-xs font-bold text-primary uppercase tracking-wide">Características</h4>
+                </div>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                  <div className="flex items-center justify-between py-1 border-b border-border/30">
+                    <div className="flex items-center gap-1">
+                      <BedDouble className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Quartos</span>
+                    </div>
                     <span className="text-sm font-medium">{property.quartos || '—'}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Suítes</span>
+                  <div className="flex items-center justify-between py-1 border-b border-border/30">
+                    <div className="flex items-center gap-1">
+                      <BedDouble className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Suítes</span>
+                    </div>
                     <span className="text-sm font-medium">{property.suites || '—'}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Banheiros</span>
+                  <div className="flex items-center justify-between py-1">
+                    <div className="flex items-center gap-1">
+                      <Bath className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Banheiros</span>
+                    </div>
                     <span className="text-sm font-medium">{property.banheiros || '—'}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Garagens</span>
+                  <div className="flex items-center justify-between py-1">
+                    <div className="flex items-center gap-1">
+                      <Car className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Garagens</span>
+                    </div>
                     <span className="text-sm font-medium">{property.garagens || '—'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card: Metragens */}
+              <div className="bg-muted/30 rounded-lg p-3 border border-border/50">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Ruler className="h-3.5 w-3.5 text-primary" />
+                  <h4 className="text-xs font-bold text-primary uppercase tracking-wide">Metragens</h4>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between py-1 border-b border-border/30">
+                    <span className="text-sm text-muted-foreground">Área Útil</span>
+                    <span className="text-sm font-medium">{property.metragem ? `${property.metragem} m²` : '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1 border-b border-border/30">
+                    <span className="text-sm text-muted-foreground">Área Comum</span>
+                    <span className="text-sm font-medium">{property.area_comum ? `${property.area_comum} m²` : '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1">
+                    <span className="text-sm text-muted-foreground">Área Total</span>
+                    <span className="text-sm font-semibold text-primary">{property.area_total ? `${property.area_total} m²` : '—'}</span>
                   </div>
                 </div>
               </div>
             </div>
 
-
             {/* Action buttons */}
-            <div className="flex gap-2 pt-3 mt-auto border-t border-border">
+            <div className="flex gap-2 pt-3 mt-3 border-t border-border">
               <Link to={`/property/${property.id}`} className="flex-1" onClick={(e) => e.stopPropagation()}>
                 <Button variant="default" size="sm" className="w-full">
                   <Eye className="h-4 w-4 mr-1.5" />
