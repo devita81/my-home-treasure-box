@@ -1,10 +1,14 @@
 import { useParams, Navigate, Link } from 'react-router-dom';
+import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { useProperties } from '@/contexts/PropertyContext';
 import { PropertyMapImage } from '@/components/property/PropertyMapImage';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { 
   MapPin, 
   Edit, 
@@ -21,14 +25,70 @@ import {
   Ruler,
   BedDouble,
   Bath,
-  Car
+  Car,
+  ExternalLink,
+  Search,
+  Loader2
 } from 'lucide-react';
 
 const PropertyDetails = () => {
   const { id } = useParams<{ id: string }>();
   const { getPropertyById } = useProperties();
   
+  const [searchResult, setSearchResult] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  
   const property = id ? getPropertyById(id) : undefined;
+
+  // Função para obter link do cartório baseado na cidade
+  const getCartorioLink = (cidade: string) => {
+    const cidadeLower = cidade.toLowerCase();
+    // Links para consulta de cartórios por cidade
+    if (cidadeLower.includes('são paulo') || cidadeLower.includes('sao paulo')) {
+      return 'https://www.arisp.com.br/';
+    }
+    if (cidadeLower.includes('rio de janeiro')) {
+      return 'https://www.registradoronline.com.br/';
+    }
+    // Link genérico para ONR (Operador Nacional do Registro)
+    return 'https://www.registradores.org.br/';
+  };
+
+  // Função para buscar informações via ChatGPT
+  const searchPropertyInfo = async () => {
+    setIsSearching(true);
+    setSearchResult(null);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('search-property-info', {
+        body: {
+          matricula: property.numero_matricula,
+          cidade: property.cidade,
+          rua: property.rua,
+          numero: property.numero,
+          bairro: property.bairro,
+          estado: property.estado
+        }
+      });
+
+      if (error) {
+        console.error('Error searching property info:', error);
+        toast.error('Erro ao buscar informações do imóvel');
+        return;
+      }
+
+      if (data?.result) {
+        setSearchResult(data.result);
+        setDialogOpen(true);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Erro ao buscar informações do imóvel');
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   if (!property) {
     return <Navigate to="/" replace />;
@@ -332,6 +392,49 @@ const PropertyDetails = () => {
             </Card>
           </div>
 
+          {/* Consulta Cartório - Apenas para teste com Rua Japão */}
+          {property.rua.toLowerCase().includes('japao') || property.rua.toLowerCase().includes('japão') ? (
+            <Card className="border-primary/30 bg-primary/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <FileText className="h-5 w-5 text-primary" />
+                  Consulta de Registro
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Consulte informações do cartório de registro de imóveis e busque dados públicos sobre este imóvel.
+                </p>
+                
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    variant="outline"
+                    asChild
+                    className="gap-2"
+                  >
+                    <a href={getCartorioLink(property.cidade)} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4" />
+                      Acessar Portal do Cartório
+                    </a>
+                  </Button>
+
+                  <Button
+                    onClick={searchPropertyInfo}
+                    disabled={isSearching}
+                    className="gap-2"
+                  >
+                    {isSearching ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Search className="h-4 w-4" />
+                    )}
+                    {isSearching ? 'Buscando...' : 'Buscar Informações (IA)'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+
           {/* Timestamps */}
           <div className="flex items-center justify-center gap-6 py-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
@@ -345,6 +448,25 @@ const PropertyDetails = () => {
           </div>
         </div>
       </main>
+
+      {/* Dialog para resultado da busca */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Search className="h-5 w-5 text-primary" />
+              Informações do Imóvel
+            </DialogTitle>
+          </DialogHeader>
+          <div className="prose prose-sm dark:prose-invert max-w-none">
+            {searchResult && (
+              <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                {searchResult}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
