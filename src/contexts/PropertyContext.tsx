@@ -168,10 +168,22 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
       if (filters.tipoImovel && property.tipo_imovel !== filters.tipoImovel) return false;
 
       // Proprietário papel filter
-      if (filters.proprietarioPapel && property.proprietario_papel !== filters.proprietarioPapel) return false;
+      if (filters.proprietarioPapel) {
+        if (filters.proprietarioPapel === '__empty__') {
+          if (property.proprietario_papel) return false;
+        } else if (property.proprietario_papel !== filters.proprietarioPapel) {
+          return false;
+        }
+      }
 
       // Proprietário matrícula filter
-      if (filters.proprietarioMatricula && property.proprietario_matricula !== filters.proprietarioMatricula) return false;
+      if (filters.proprietarioMatricula) {
+        if (filters.proprietarioMatricula === '__empty__') {
+          if (property.proprietario_matricula) return false;
+        } else if (property.proprietario_matricula !== filters.proprietarioMatricula) {
+          return false;
+        }
+      }
 
       // Status filter
       if (filters.status !== 'all') {
@@ -205,6 +217,12 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
           return multiplier * ((a.iptu_value ?? 0) - (b.iptu_value ?? 0));
         case 'rua':
           return multiplier * a.rua.localeCompare(b.rua, 'pt-BR');
+        case 'valor_aluguel':
+          return multiplier * ((a.valor_aluguel ?? 0) - (b.valor_aluguel ?? 0));
+        case 'valor_condominio':
+          return multiplier * ((a.valor_condominio ?? 0) - (b.valor_condominio ?? 0));
+        case 'cidade':
+          return multiplier * a.cidade.localeCompare(b.cidade, 'pt-BR');
         case 'updated_at':
         default:
           return multiplier * (new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime());
