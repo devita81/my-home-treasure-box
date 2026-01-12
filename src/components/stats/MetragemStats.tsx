@@ -1,5 +1,5 @@
 import { useProperties } from '@/contexts/PropertyContext';
-import { Ruler, ArrowUpDown } from 'lucide-react';
+import { Ruler, ArrowUpDown, DollarSign } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Property } from '@/types/property';
 import {
@@ -167,8 +167,11 @@ export function MetragemStats() {
           >
             <p className="text-sm font-semibold text-foreground truncate">{group.cidade}</p>
             <p className="text-lg lg:text-xl font-bold font-display mt-1">{formatMetragem(group.metragem)}</p>
-            <p className="text-xs text-success font-medium">{formatCurrency(group.marketValue)}</p>
-            <p className="text-[10px] lg:text-xs text-muted-foreground mt-0.5">
+            <div className="flex items-center gap-1 mt-1">
+              <DollarSign className="h-3 w-3 text-success" />
+              <p className="text-sm font-semibold text-success">{formatCurrency(group.marketValue)}</p>
+            </div>
+            <p className="text-[10px] lg:text-xs text-muted-foreground mt-1">
               {group.count} {tipoLabels[group.tipo] || group.tipo}
             </p>
           </div>
