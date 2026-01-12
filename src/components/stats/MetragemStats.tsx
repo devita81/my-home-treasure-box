@@ -1,5 +1,5 @@
 import { useProperties } from '@/contexts/PropertyContext';
-import { Ruler } from 'lucide-react';
+import { Ruler, ArrowUpDown } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Property } from '@/types/property';
 import {
@@ -8,26 +8,51 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
 interface GroupedMetragem {
   cidade: string;
   tipo: string;
   metragem: number;
+  marketValue: number;
   count: number;
   properties: Property[];
 }
+
+type SortField = 'address' | 'metragem' | 'market_value';
+type SortOrder = 'asc' | 'desc';
 
 export function MetragemStats() {
   const { properties } = useProperties();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<GroupedMetragem | null>(null);
+  const [sortField, setSortField] = useState<SortField>('metragem');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
   const formatMetragem = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value) + ' m²';
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 0,
+      notation: 'compact',
+      compactDisplay: 'short',
+    }).format(value);
+  };
+
+  const formatCurrencyFull = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2,
+    }).format(value);
   };
 
   const tipoLabels: Record<string, string> = {
@@ -52,6 +77,7 @@ export function MetragemStats() {
           cidade,
           tipo,
           metragem: 0,
+          marketValue: 0,
           count: 0,
           properties: [],
         });
@@ -59,17 +85,68 @@ export function MetragemStats() {
 
       const group = groups.get(key)!;
       group.metragem += p.metragem || 0;
+      group.marketValue += p.market_value || 0;
       group.count += 1;
       group.properties.push(p);
     });
 
-    return Array.from(groups.values()).sort((a, b) => b.metragem - a.metragem);
+    // Sort by cidade first, then by metragem
+    return Array.from(groups.values()).sort((a, b) => {
+      const cidadeCompare = a.cidade.localeCompare(b.cidade, 'pt-BR');
+      if (cidadeCompare !== 0) return cidadeCompare;
+      return b.metragem - a.metragem;
+    });
   }, [properties]);
 
   const handleCardClick = (group: GroupedMetragem) => {
     setSelectedGroup(group);
+    setSortField('metragem');
+    setSortOrder('desc');
     setDialogOpen(true);
   };
+
+  const toggleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('desc');
+    }
+  };
+
+  const sortedProperties = useMemo(() => {
+    if (!selectedGroup) return [];
+    
+    return [...selectedGroup.properties].sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortField) {
+        case 'address':
+          comparison = `${a.rua} ${a.numero}`.localeCompare(`${b.rua} ${b.numero}`, 'pt-BR');
+          break;
+        case 'metragem':
+          comparison = (a.metragem || 0) - (b.metragem || 0);
+          break;
+        case 'market_value':
+          comparison = (a.market_value || 0) - (b.market_value || 0);
+          break;
+      }
+      
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+  }, [selectedGroup, sortField, sortOrder]);
+
+  const SortButton = ({ field, label }: { field: SortField; label: string }) => (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="h-auto p-1 text-xs font-medium"
+      onClick={() => toggleSort(field)}
+    >
+      {label}
+      <ArrowUpDown className={`ml-1 h-3 w-3 ${sortField === field ? 'text-primary' : 'text-muted-foreground'}`} />
+    </Button>
+  );
 
   return (
     <div className="space-y-4">
@@ -90,6 +167,7 @@ export function MetragemStats() {
           >
             <p className="text-sm font-semibold text-foreground truncate">{group.cidade}</p>
             <p className="text-lg lg:text-xl font-bold font-display mt-1">{formatMetragem(group.metragem)}</p>
+            <p className="text-xs text-success font-medium">{formatCurrency(group.marketValue)}</p>
             <p className="text-[10px] lg:text-xs text-muted-foreground mt-0.5">
               {group.count} {tipoLabels[group.tipo] || group.tipo}
             </p>
@@ -107,10 +185,20 @@ export function MetragemStats() {
           </DialogHeader>
           <div className="space-y-2 mt-4">
             <p className="text-sm text-muted-foreground mb-4">
-              Total: {formatMetragem(selectedGroup?.metragem || 0)} em {selectedGroup?.count} imóveis
+              Total: {formatMetragem(selectedGroup?.metragem || 0)} | {formatCurrencyFull(selectedGroup?.marketValue || 0)} em {selectedGroup?.count} imóveis
             </p>
+            
+            {/* Sort Headers */}
+            <div className="flex items-center justify-between border-b pb-2 mb-2">
+              <SortButton field="address" label="Endereço" />
+              <div className="flex gap-2">
+                <SortButton field="metragem" label="Metragem" />
+                <SortButton field="market_value" label="Valor" />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              {selectedGroup?.properties.map((property) => (
+              {sortedProperties.map((property) => (
                 <Link
                   key={property.id}
                   to={`/property/${property.id}`}
@@ -126,9 +214,14 @@ export function MetragemStats() {
                         {property.bairro}, {property.cidade}
                       </p>
                     </div>
-                    <p className="font-semibold text-sm">
-                      {formatMetragem(property.metragem || 0)}
-                    </p>
+                    <div className="text-right">
+                      <p className="font-semibold text-sm">
+                        {formatMetragem(property.metragem || 0)}
+                      </p>
+                      <p className="text-xs text-success">
+                        {formatCurrencyFull(property.market_value || 0)}
+                      </p>
+                    </div>
                   </div>
                 </Link>
               ))}

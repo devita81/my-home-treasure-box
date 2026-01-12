@@ -1,5 +1,5 @@
 import { useProperties } from '@/contexts/PropertyContext';
-import { Home, DollarSign, Key, CheckCircle, AlertTriangle, FileText } from 'lucide-react';
+import { Home, DollarSign, Key, CheckCircle, AlertTriangle, FileText, ArrowUpDown } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { Property } from '@/types/property';
 import {
@@ -8,9 +8,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
 type StatType = 'total' | 'market' | 'declared' | 'rented' | 'rent' | 'validated' | 'iptu';
+type SortField = 'address' | 'value';
+type SortOrder = 'asc' | 'desc';
 
 interface DialogState {
   open: boolean;
@@ -26,6 +29,8 @@ export function StatsOverview() {
     title: '',
     properties: [],
   });
+  const [sortField, setSortField] = useState<SortField>('value');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -54,6 +59,9 @@ export function StatsOverview() {
   const pendingIptuProperties = properties.filter((p) => !p.iptu_pago);
 
   const handleStatClick = (type: StatType) => {
+    setSortField('value');
+    setSortOrder('desc');
+    
     switch (type) {
       case 'total':
         setDialog({
@@ -166,10 +174,50 @@ export function StatsOverview() {
     },
   ];
 
+  const toggleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('desc');
+    }
+  };
+
+  const sortedProperties = useMemo(() => {
+    return [...dialog.properties].sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortField) {
+        case 'address':
+          comparison = `${a.rua} ${a.numero}`.localeCompare(`${b.rua} ${b.numero}`, 'pt-BR');
+          break;
+        case 'value':
+          if (dialog.valueKey) {
+            comparison = (Number(a[dialog.valueKey]) || 0) - (Number(b[dialog.valueKey]) || 0);
+          }
+          break;
+      }
+      
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+  }, [dialog.properties, dialog.valueKey, sortField, sortOrder]);
+
   const dialogTotal = useMemo(() => {
     if (!dialog.valueKey) return 0;
     return dialog.properties.reduce((acc, p) => acc + (Number(p[dialog.valueKey!]) || 0), 0);
   }, [dialog.properties, dialog.valueKey]);
+
+  const SortButton = ({ field, label }: { field: SortField; label: string }) => (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="h-auto p-1 text-xs font-medium"
+      onClick={() => toggleSort(field)}
+    >
+      {label}
+      <ArrowUpDown className={`ml-1 h-3 w-3 ${sortField === field ? 'text-primary' : 'text-muted-foreground'}`} />
+    </Button>
+  );
 
   return (
     <>
@@ -203,8 +251,15 @@ export function StatsOverview() {
                 <> - Total: {formatCurrencyFull(dialogTotal)}</>
               )}
             </p>
+
+            {/* Sort Headers */}
+            <div className="flex items-center justify-between border-b pb-2 mb-2">
+              <SortButton field="address" label="Endereço" />
+              <SortButton field="value" label="Valor" />
+            </div>
+
             <div className="space-y-2">
-              {dialog.properties.map((property) => (
+              {sortedProperties.map((property) => (
                 <Link
                   key={property.id}
                   to={`/property/${property.id}`}
