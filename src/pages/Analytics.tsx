@@ -346,20 +346,20 @@ const Analytics = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="container mx-auto px-4 py-8 space-y-8">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-8">
         {/* Page Header */}
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <TrendingUp className="h-5 w-5" />
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex h-8 sm:h-10 w-8 sm:w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <TrendingUp className="h-4 sm:h-5 w-4 sm:w-5" />
           </div>
           <div>
-            <h1 className="font-display text-3xl font-bold">Analytics</h1>
-            <p className="text-muted-foreground">Visão geral do seu patrimônio imobiliário</p>
+            <h1 className="font-display text-xl sm:text-3xl font-bold">Analytics</h1>
+            <p className="text-xs sm:text-base text-muted-foreground">Visão geral do seu patrimônio imobiliário</p>
           </div>
         </div>
 
         {/* ==================== TOP SUMMARY CARDS (CLICKABLE) ==================== */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           <Card 
             className="border-l-4 border-l-blue-500 cursor-pointer hover:shadow-lg transition-shadow"
             onClick={() => openDialog(
@@ -368,15 +368,15 @@ const Analytics = () => {
               properties
             )}
           >
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
-                  <DollarSign className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <CardContent className="pt-3 sm:pt-6 pb-3 sm:pb-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="flex h-8 sm:h-12 w-8 sm:w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 shrink-0">
+                  <DollarSign className="h-4 sm:h-6 w-4 sm:w-6 text-blue-600 dark:text-blue-400" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Valor Mercado</p>
-                  <p className="text-2xl font-bold">{formatCurrency(totalMarketValue)}</p>
-                  <p className="text-xs text-muted-foreground">{properties.length} imóveis</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">Valor Mercado</p>
+                  <p className="text-lg sm:text-2xl font-bold truncate">{formatCurrency(totalMarketValue)}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">{properties.length} imóveis</p>
                 </div>
               </div>
             </CardContent>
@@ -390,15 +390,15 @@ const Analytics = () => {
               properties
             )}
           >
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-                  <FileCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
+            <CardContent className="pt-3 sm:pt-6 pb-3 sm:pb-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="flex h-8 sm:h-12 w-8 sm:w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 shrink-0">
+                  <FileCheck className="h-4 sm:h-6 w-4 sm:w-6 text-green-600 dark:text-green-400" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Valor Declarado</p>
-                  <p className="text-2xl font-bold">{formatCurrency(totalDeclaredValue)}</p>
-                  <p className="text-xs text-muted-foreground">{properties.length} imóveis</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">Valor Declarado</p>
+                  <p className="text-lg sm:text-2xl font-bold truncate">{formatCurrency(totalDeclaredValue)}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">{properties.length} imóveis</p>
                 </div>
               </div>
             </CardContent>
@@ -412,15 +412,15 @@ const Analytics = () => {
               properties
             )}
           >
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30">
-                  <Receipt className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+            <CardContent className="pt-3 sm:pt-6 pb-3 sm:pb-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="flex h-8 sm:h-12 w-8 sm:w-12 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30 shrink-0">
+                  <Receipt className="h-4 sm:h-6 w-4 sm:w-6 text-orange-600 dark:text-orange-400" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total IPTU</p>
-                  <p className="text-2xl font-bold">{formatCurrency(totalIptu)}</p>
-                  <p className="text-xs text-muted-foreground">{properties.length} imóveis</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">Total IPTU</p>
+                  <p className="text-lg sm:text-2xl font-bold truncate">{formatCurrency(totalIptu)}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">{properties.length} imóveis</p>
                 </div>
               </div>
             </CardContent>
@@ -434,15 +434,15 @@ const Analytics = () => {
               properties
             )}
           >
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/30">
-                  <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+            <CardContent className="pt-3 sm:pt-6 pb-3 sm:pb-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="flex h-8 sm:h-12 w-8 sm:w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/30 shrink-0">
+                  <TrendingUp className="h-4 sm:h-6 w-4 sm:w-6 text-purple-600 dark:text-purple-400" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Valorização</p>
-                  <p className="text-2xl font-bold">{formatCurrency(valorization)}</p>
-                  <p className="text-xs text-muted-foreground">+{valorizationPercentage}%</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">Valorização</p>
+                  <p className="text-lg sm:text-2xl font-bold truncate">{formatCurrency(valorization)}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">+{valorizationPercentage}%</p>
                 </div>
               </div>
             </CardContent>
@@ -451,79 +451,79 @@ const Analytics = () => {
 
         {/* ==================== IPTU SECTION (CLICKABLE CARDS) ==================== */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Receipt className="h-5 w-5 text-primary" />
+          <CardHeader className="pb-2 sm:pb-4">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Receipt className="h-4 sm:h-5 w-4 sm:w-5 text-primary" />
               Resumo de IPTU
             </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Clique nos cards para ver os imóveis detalhados
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Clique nos cards para ver detalhes
             </p>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
               <div 
-                className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 cursor-pointer hover:shadow-lg transition-shadow"
+                className="p-2 sm:p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 cursor-pointer hover:shadow-lg transition-shadow"
                 onClick={() => openDialog(
                   'IPTU Pago',
                   `${iptuPagoCount} imóveis • Total: ${formatCurrency(iptuPagoValue)}`,
                   iptuPagoProperties
                 )}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  <span className="text-sm font-medium text-green-700 dark:text-green-400">IPTU Pago</span>
+                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                  <CheckCircle2 className="h-4 sm:h-5 w-4 sm:w-5 text-green-600" />
+                  <span className="text-xs sm:text-sm font-medium text-green-700 dark:text-green-400">IPTU Pago</span>
                 </div>
-                <p className="text-2xl font-bold text-green-700 dark:text-green-300">{formatCurrency(iptuPagoValue)}</p>
-                <p className="text-xs text-green-600 dark:text-green-400">{iptuPagoCount} imóveis</p>
+                <p className="text-lg sm:text-2xl font-bold text-green-700 dark:text-green-300">{formatCurrency(iptuPagoValue)}</p>
+                <p className="text-[10px] sm:text-xs text-green-600 dark:text-green-400">{iptuPagoCount} imóveis</p>
               </div>
 
               <div 
-                className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 cursor-pointer hover:shadow-lg transition-shadow"
+                className="p-2 sm:p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 cursor-pointer hover:shadow-lg transition-shadow"
                 onClick={() => openDialog(
                   'IPTU Pendente',
                   `${iptuPendenteCount} imóveis • Total: ${formatCurrency(iptuPendenteValue)}`,
                   iptuPendenteProperties
                 )}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <XCircle className="h-5 w-5 text-red-600" />
-                  <span className="text-sm font-medium text-red-700 dark:text-red-400">IPTU Pendente</span>
+                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                  <XCircle className="h-4 sm:h-5 w-4 sm:w-5 text-red-600" />
+                  <span className="text-xs sm:text-sm font-medium text-red-700 dark:text-red-400">IPTU Pendente</span>
                 </div>
-                <p className="text-2xl font-bold text-red-700 dark:text-red-300">{formatCurrency(iptuPendenteValue)}</p>
-                <p className="text-xs text-red-600 dark:text-red-400">{iptuPendenteCount} imóveis</p>
+                <p className="text-lg sm:text-2xl font-bold text-red-700 dark:text-red-300">{formatCurrency(iptuPendenteValue)}</p>
+                <p className="text-[10px] sm:text-xs text-red-600 dark:text-red-400">{iptuPendenteCount} imóveis</p>
               </div>
 
               <div 
-                className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-lg transition-shadow"
+                className="p-2 sm:p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-lg transition-shadow"
                 onClick={() => openDialog(
                   'Todos os Imóveis',
                   `${properties.length} imóveis cadastrados`,
                   properties
                 )}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <Home className="h-5 w-5 text-blue-600" />
-                  <span className="text-sm font-medium text-blue-700 dark:text-blue-400">Imóveis</span>
+                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                  <Home className="h-4 sm:h-5 w-4 sm:w-5 text-blue-600" />
+                  <span className="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-400">Imóveis</span>
                 </div>
-                <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{properties.length}</p>
-                <p className="text-xs text-blue-600 dark:text-blue-400">total cadastrado</p>
+                <p className="text-lg sm:text-2xl font-bold text-blue-700 dark:text-blue-300">{properties.length}</p>
+                <p className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-400">total cadastrado</p>
               </div>
 
               <div 
-                className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 cursor-pointer hover:shadow-lg transition-shadow"
+                className="p-2 sm:p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 cursor-pointer hover:shadow-lg transition-shadow"
                 onClick={() => openDialog(
                   'Imóveis com IPTU Pago',
                   `${iptuPagoCount} de ${properties.length} imóveis`,
                   iptuPagoProperties
                 )}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="h-5 w-5 text-amber-600" />
-                  <span className="text-sm font-medium text-amber-700 dark:text-amber-400">Pagaram</span>
+                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                  <TrendingUp className="h-4 sm:h-5 w-4 sm:w-5 text-amber-600" />
+                  <span className="text-xs sm:text-sm font-medium text-amber-700 dark:text-amber-400">Pagaram</span>
                 </div>
-                <p className="text-2xl font-bold text-amber-700 dark:text-amber-300">{iptuPagoPercentage}%</p>
-                <p className="text-xs text-amber-600 dark:text-amber-400">{iptuPagoCount} de {properties.length} imóveis</p>
+                <p className="text-lg sm:text-2xl font-bold text-amber-700 dark:text-amber-300">{iptuPagoPercentage}%</p>
+                <p className="text-[10px] sm:text-xs text-amber-600 dark:text-amber-400">{iptuPagoCount} de {properties.length}</p>
               </div>
             </div>
           </CardContent>
@@ -531,79 +531,79 @@ const Analytics = () => {
 
         {/* ==================== ALUGUEL E CONDOMINIO SECTION (CLICKABLE CARDS) ==================== */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Key className="h-5 w-5 text-primary" />
-              Resumo de Aluguel e Condomínio
+          <CardHeader className="pb-2 sm:pb-4">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Key className="h-4 sm:h-5 w-4 sm:w-5 text-primary" />
+              Aluguel e Condomínio
             </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Clique nos cards para ver os imóveis detalhados
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Clique nos cards para ver detalhes
             </p>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
               <div 
-                className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 cursor-pointer hover:shadow-lg transition-shadow"
+                className="p-2 sm:p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 cursor-pointer hover:shadow-lg transition-shadow"
                 onClick={() => openDialog(
                   'Aluguel Recebido',
                   `${alugadosCount} imóveis alugados • Total: ${formatCurrency(totalAluguelRecebido)}/mês`,
                   alugadosProperties
                 )}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="h-5 w-5 text-green-600" />
-                  <span className="text-sm font-medium text-green-700 dark:text-green-400">Aluguel Recebido</span>
+                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                  <DollarSign className="h-4 sm:h-5 w-4 sm:w-5 text-green-600" />
+                  <span className="text-xs sm:text-sm font-medium text-green-700 dark:text-green-400">Aluguel</span>
                 </div>
-                <p className="text-2xl font-bold text-green-700 dark:text-green-300">{formatCurrency(totalAluguelRecebido)}</p>
-                <p className="text-xs text-green-600 dark:text-green-400">{alugadosCount} imóveis/mês</p>
+                <p className="text-lg sm:text-2xl font-bold text-green-700 dark:text-green-300">{formatCurrency(totalAluguelRecebido)}</p>
+                <p className="text-[10px] sm:text-xs text-green-600 dark:text-green-400">{alugadosCount} imóveis/mês</p>
               </div>
 
               <div 
-                className="p-4 rounded-xl bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 cursor-pointer hover:shadow-lg transition-shadow"
+                className="p-2 sm:p-4 rounded-xl bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 cursor-pointer hover:shadow-lg transition-shadow"
                 onClick={() => openDialog(
                   'Total Condomínio',
                   `${properties.length} imóveis • Total: ${formatCurrency(totalCondominio)}/mês`,
                   properties
                 )}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <Wallet className="h-5 w-5 text-orange-600" />
-                  <span className="text-sm font-medium text-orange-700 dark:text-orange-400">Total Condomínio</span>
+                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                  <Wallet className="h-4 sm:h-5 w-4 sm:w-5 text-orange-600" />
+                  <span className="text-xs sm:text-sm font-medium text-orange-700 dark:text-orange-400">Condomínio</span>
                 </div>
-                <p className="text-2xl font-bold text-orange-700 dark:text-orange-300">{formatCurrency(totalCondominio)}</p>
-                <p className="text-xs text-orange-600 dark:text-orange-400">{properties.length} imóveis/mês</p>
+                <p className="text-lg sm:text-2xl font-bold text-orange-700 dark:text-orange-300">{formatCurrency(totalCondominio)}</p>
+                <p className="text-[10px] sm:text-xs text-orange-600 dark:text-orange-400">{properties.length} imóveis/mês</p>
               </div>
 
               <div 
-                className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-lg transition-shadow"
+                className="p-2 sm:p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-lg transition-shadow"
                 onClick={() => openDialog(
                   'Imóveis Alugados',
                   `${alugadosCount} imóveis alugados`,
                   alugadosProperties
                 )}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <Key className="h-5 w-5 text-blue-600" />
-                  <span className="text-sm font-medium text-blue-700 dark:text-blue-400">Imóveis Alugados</span>
+                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                  <Key className="h-4 sm:h-5 w-4 sm:w-5 text-blue-600" />
+                  <span className="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-400">Alugados</span>
                 </div>
-                <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{alugadosCount}</p>
-                <p className="text-xs text-blue-600 dark:text-blue-400">de {properties.length} imóveis</p>
+                <p className="text-lg sm:text-2xl font-bold text-blue-700 dark:text-blue-300">{alugadosCount}</p>
+                <p className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-400">de {properties.length}</p>
               </div>
 
               <div 
-                className="p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 cursor-pointer hover:shadow-lg transition-shadow"
+                className="p-2 sm:p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 cursor-pointer hover:shadow-lg transition-shadow"
                 onClick={() => openDialog(
                   'Taxa de Ocupação',
                   `${alugadosCount} de ${properties.length} imóveis alugados`,
                   alugadosProperties
                 )}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="h-5 w-5 text-purple-600" />
-                  <span className="text-sm font-medium text-purple-700 dark:text-purple-400">Taxa de Ocupação</span>
+                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                  <TrendingUp className="h-4 sm:h-5 w-4 sm:w-5 text-purple-600" />
+                  <span className="text-xs sm:text-sm font-medium text-purple-700 dark:text-purple-400">Ocupação</span>
                 </div>
-                <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">{alugadosPercentage}%</p>
-                <p className="text-xs text-purple-600 dark:text-purple-400">{alugadosCount} de {properties.length} imóveis</p>
+                <p className="text-lg sm:text-2xl font-bold text-purple-700 dark:text-purple-300">{alugadosPercentage}%</p>
+                <p className="text-[10px] sm:text-xs text-purple-600 dark:text-purple-400">{alugadosCount} de {properties.length}</p>
               </div>
             </div>
           </CardContent>
@@ -611,35 +611,38 @@ const Analytics = () => {
 
         {/* ==================== DISTRIBUTION (CLICKABLE GROUPS) ==================== */}
         <Card>
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <CardHeader className="pb-2 sm:pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
               <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  Distribuição de Propriedade e Uso
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Users className="h-4 sm:h-5 w-4 sm:w-5 text-primary" />
+                  Distribuição
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Clique em cada grupo para ver os imóveis detalhados
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Clique para ver detalhes
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1 sm:gap-2 flex-wrap">
                 <Button
                   variant={distributionMetric === 'market_value' ? 'default' : 'outline'}
                   size="sm"
+                  className="text-xs px-2 sm:px-3 h-7 sm:h-9"
                   onClick={() => setDistributionMetric('market_value')}
                 >
-                  Valor Mercado
+                  Mercado
                 </Button>
                 <Button
                   variant={distributionMetric === 'declared_value' ? 'default' : 'outline'}
                   size="sm"
+                  className="text-xs px-2 sm:px-3 h-7 sm:h-9"
                   onClick={() => setDistributionMetric('declared_value')}
                 >
-                  Valor Declarado
+                  Declarado
                 </Button>
                 <Button
                   variant={distributionMetric === 'valor_aluguel' ? 'default' : 'outline'}
                   size="sm"
+                  className="text-xs px-2 sm:px-3 h-7 sm:h-9"
                   onClick={() => setDistributionMetric('valor_aluguel')}
                 >
                   Aluguel
@@ -647,7 +650,7 @@ const Analytics = () => {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* By Type */}
               <div className="space-y-3">

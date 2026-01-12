@@ -149,29 +149,29 @@ export function MetragemStats() {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* Header */}
       <div className="flex items-center gap-2">
-        <Ruler className="h-4 w-4 text-primary" />
-        <h3 className="text-sm font-semibold text-foreground">Visão de Metragem</h3>
+        <Ruler className="h-3.5 sm:h-4 w-3.5 sm:w-4 text-primary" />
+        <h3 className="text-xs sm:text-sm font-semibold text-foreground">Visão de Metragem</h3>
       </div>
 
       {/* Cards Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-3">
         {groupedData.map((group, index) => (
           <div
             key={`${group.cidade}-${group.tipo}`}
-            className="stat-card animate-slide-up cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+            className="stat-card animate-slide-up cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all p-2 sm:p-3"
             style={{ animationDelay: `${index * 50}ms` }}
             onClick={() => handleCardClick(group)}
           >
-            <p className="text-sm font-semibold text-foreground truncate">{group.cidade}</p>
-            <p className="text-lg lg:text-xl font-bold font-display mt-1">{formatMetragem(group.metragem)}</p>
-            <div className="flex items-center gap-1 mt-1">
-              <DollarSign className="h-3 w-3 text-success" />
-              <p className="text-sm font-semibold text-success">{formatCurrency(group.marketValue)}</p>
+            <p className="text-xs sm:text-sm font-semibold text-foreground truncate">{group.cidade}</p>
+            <p className="text-base sm:text-lg lg:text-xl font-bold font-display mt-0.5 sm:mt-1">{formatMetragem(group.metragem)}</p>
+            <div className="flex items-center gap-0.5 sm:gap-1 mt-0.5 sm:mt-1">
+              <DollarSign className="h-2.5 sm:h-3 w-2.5 sm:w-3 text-success" />
+              <p className="text-xs sm:text-sm font-semibold text-success truncate">{formatCurrency(group.marketValue)}</p>
             </div>
-            <p className="text-[10px] lg:text-xs text-muted-foreground mt-1">
+            <p className="text-[9px] sm:text-[10px] lg:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">
               {group.count} {tipoLabels[group.tipo] || group.tipo}
             </p>
           </div>
