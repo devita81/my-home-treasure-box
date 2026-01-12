@@ -46,6 +46,7 @@ export type Database = {
           proprietario_papel: string | null
           quartos: number | null
           rua: string
+          street_view_heading: number | null
           suites: number | null
           tipo_imovel: string | null
           updated_at: string
@@ -86,6 +87,7 @@ export type Database = {
           proprietario_papel?: string | null
           quartos?: number | null
           rua: string
+          street_view_heading?: number | null
           suites?: number | null
           tipo_imovel?: string | null
           updated_at?: string
@@ -126,6 +128,7 @@ export type Database = {
           proprietario_papel?: string | null
           quartos?: number | null
           rua?: string
+          street_view_heading?: number | null
           suites?: number | null
           tipo_imovel?: string | null
           updated_at?: string

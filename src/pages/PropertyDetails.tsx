@@ -173,6 +173,7 @@ const PropertyDetails = () => {
                 propertyId={property.id}
                 latitude={property.latitude}
                 longitude={property.longitude}
+                initialHeading={property.street_view_heading}
               />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
