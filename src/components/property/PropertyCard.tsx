@@ -426,6 +426,8 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                   estado={property.estado}
                   showControls={true}
                   propertyId={property.id}
+                  latitude={property.latitude}
+                  longitude={property.longitude}
                 />
               )}
               
