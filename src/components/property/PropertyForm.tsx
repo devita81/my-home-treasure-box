@@ -9,7 +9,8 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Save, ArrowLeft, MapPin, DollarSign, FileText, User, Home, MessageSquare } from 'lucide-react';
+import { Save, ArrowLeft, MapPin, DollarSign, FileText, User, Home, MessageSquare, Maximize2, Minimize2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { z } from 'zod';
 import { LocationPicker } from './LocationPicker';
@@ -109,6 +110,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
   }, [mode, property?.id]);
 
   const [formData, setFormData] = useState<PropertyFormData>(initialFromProp);
+  const [isObservacaoExpanded, setIsObservacaoExpanded] = useState(false);
   const saveTimeoutRef = useRef<number | null>(null);
 
   // Restaura rascunho ao montar/recarregar a página (evita perder dados ao alt+tab, refresh, etc.)
@@ -621,13 +623,37 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <Label htmlFor="observacao">Notas e observações sobre o imóvel</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="observacao">Notas e observações sobre o imóvel</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsObservacaoExpanded(!isObservacaoExpanded)}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  {isObservacaoExpanded ? (
+                    <>
+                      <Minimize2 className="h-4 w-4 mr-1" />
+                      Recolher
+                    </>
+                  ) : (
+                    <>
+                      <Maximize2 className="h-4 w-4 mr-1" />
+                      Expandir
+                    </>
+                  )}
+                </Button>
+              </div>
               <Textarea
                 id="observacao"
                 placeholder="Adicione observações, lembretes ou notas importantes sobre este imóvel..."
                 value={formData.observacao || ''}
                 onChange={(e) => handleChange('observacao', e.target.value)}
-                className="min-h-[120px] resize-y"
+                className={cn(
+                  "resize-y transition-all duration-300",
+                  isObservacaoExpanded ? "min-h-[400px]" : "min-h-[120px]"
+                )}
               />
             </div>
           </CardContent>
