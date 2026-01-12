@@ -9,7 +9,8 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Save, ArrowLeft, MapPin, DollarSign, FileText, User, Home, Building } from 'lucide-react';
+import { Save, ArrowLeft, MapPin, DollarSign, FileText, User, Home, MessageSquare } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { z } from 'zod';
 import { LocationPicker } from './LocationPicker';
 
@@ -48,6 +49,7 @@ const propertySchema = z.object({
   latitude: z.number().nullable().optional(),
   longitude: z.number().nullable().optional(),
   ano_construcao: z.number().min(1800).max(new Date().getFullYear()).nullable().optional(),
+  observacao: z.string().max(2000, 'Observação muito longa').nullable().optional(),
 });
 
 const estados = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
@@ -96,6 +98,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
       latitude: property?.latitude || null,
       longitude: property?.longitude || null,
       ano_construcao: property?.ano_construcao || null,
+      observacao: property?.observacao || '',
     }),
     [property]
   );
@@ -598,6 +601,28 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                 />
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Observações */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <MessageSquare className="h-5 w-5 text-primary" />
+              Observações
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Label htmlFor="observacao">Notas e observações sobre o imóvel</Label>
+              <Textarea
+                id="observacao"
+                placeholder="Adicione observações, lembretes ou notas importantes sobre este imóvel..."
+                value={formData.observacao || ''}
+                onChange={(e) => handleChange('observacao', e.target.value)}
+                className="min-h-[120px] resize-y"
+              />
+            </div>
           </CardContent>
         </Card>
       </div>

@@ -36,6 +36,7 @@ export interface Property {
   latitude?: number | null;
   longitude?: number | null;
   ano_construcao?: number | null;
+  observacao?: string | null;
 }
 
 export type PropertyFormData = Omit<Property, 'id' | 'created_at' | 'updated_at' | 'user_id'>;

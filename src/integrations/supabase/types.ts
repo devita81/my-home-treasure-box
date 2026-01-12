@@ -40,6 +40,7 @@ export type Database = {
           numero: string | null
           numero_contribuinte: string | null
           numero_matricula: string | null
+          observacao: string | null
           photos: string[] | null
           proprietario_matricula: string | null
           proprietario_papel: string | null
@@ -79,6 +80,7 @@ export type Database = {
           numero?: string | null
           numero_contribuinte?: string | null
           numero_matricula?: string | null
+          observacao?: string | null
           photos?: string[] | null
           proprietario_matricula?: string | null
           proprietario_papel?: string | null
@@ -118,6 +120,7 @@ export type Database = {
           numero?: string | null
           numero_contribuinte?: string | null
           numero_matricula?: string | null
+          observacao?: string | null
           photos?: string[] | null
           proprietario_matricula?: string | null
           proprietario_papel?: string | null
