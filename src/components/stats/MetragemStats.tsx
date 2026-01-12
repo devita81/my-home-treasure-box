@@ -1,9 +1,27 @@
 import { useProperties } from '@/contexts/PropertyContext';
-import { Ruler, Building2, MapPin } from 'lucide-react';
-import { useMemo } from 'react';
+import { Ruler } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Property } from '@/types/property';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Link } from 'react-router-dom';
+
+interface GroupedMetragem {
+  cidade: string;
+  tipo: string;
+  metragem: number;
+  count: number;
+  properties: Property[];
+}
 
 export function MetragemStats() {
   const { properties } = useProperties();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<GroupedMetragem | null>(null);
 
   const formatMetragem = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -12,42 +30,45 @@ export function MetragemStats() {
     }).format(value) + ' m²';
   };
 
-  const { totalMetragem, byType, byCidade } = useMemo(() => {
-    const total = properties.reduce((acc, p) => acc + (p.metragem || 0), 0);
-    
-    // Group by tipo_imovel
-    const typeMap = new Map<string, number>();
-    properties.forEach((p) => {
-      const tipo = p.tipo_imovel || 'Não informado';
-      typeMap.set(tipo, (typeMap.get(tipo) || 0) + (p.metragem || 0));
-    });
-    
-    // Group by cidade
-    const cidadeMap = new Map<string, number>();
+  const tipoLabels: Record<string, string> = {
+    apartamento: 'apartamentos',
+    casa: 'casas',
+    terreno: 'Terreno',
+    comercial: 'comercial',
+    rural: 'rural',
+    industrial: 'industrial',
+  };
+
+  const groupedData = useMemo(() => {
+    const groups = new Map<string, GroupedMetragem>();
+
     properties.forEach((p) => {
       const cidade = p.cidade || 'Não informado';
-      cidadeMap.set(cidade, (cidadeMap.get(cidade) || 0) + (p.metragem || 0));
+      const tipo = p.tipo_imovel || 'Não informado';
+      const key = `${cidade}-${tipo}`;
+
+      if (!groups.has(key)) {
+        groups.set(key, {
+          cidade,
+          tipo,
+          metragem: 0,
+          count: 0,
+          properties: [],
+        });
+      }
+
+      const group = groups.get(key)!;
+      group.metragem += p.metragem || 0;
+      group.count += 1;
+      group.properties.push(p);
     });
 
-    return {
-      totalMetragem: total,
-      byType: Array.from(typeMap.entries())
-        .map(([name, value]) => ({ name, value }))
-        .sort((a, b) => b.value - a.value),
-      byCidade: Array.from(cidadeMap.entries())
-        .map(([name, value]) => ({ name, value }))
-        .sort((a, b) => b.value - a.value),
-    };
+    return Array.from(groups.values()).sort((a, b) => b.metragem - a.metragem);
   }, [properties]);
 
-  const tipoLabels: Record<string, string> = {
-    apartamento: 'Apartamento',
-    casa: 'Casa',
-    terreno: 'Terreno',
-    comercial: 'Comercial',
-    rural: 'Rural',
-    industrial: 'Industrial',
-    'Não informado': 'Não informado',
+  const handleCardClick = (group: GroupedMetragem) => {
+    setSelectedGroup(group);
+    setDialogOpen(true);
   };
 
   return (
@@ -58,54 +79,63 @@ export function MetragemStats() {
         <h3 className="text-sm font-semibold text-foreground">Visão de Metragem</h3>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Total Metragem */}
-        <div className="stat-card animate-slide-up">
-          <div className="inline-flex p-1.5 rounded-lg bg-primary/10 text-primary mb-2">
-            <Ruler className="h-3.5 w-3.5" />
+      {/* Cards Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+        {groupedData.map((group, index) => (
+          <div
+            key={`${group.cidade}-${group.tipo}`}
+            className="stat-card animate-slide-up cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+            style={{ animationDelay: `${index * 50}ms` }}
+            onClick={() => handleCardClick(group)}
+          >
+            <p className="text-sm font-semibold text-foreground truncate">{group.cidade}</p>
+            <p className="text-lg lg:text-xl font-bold font-display mt-1">{formatMetragem(group.metragem)}</p>
+            <p className="text-[10px] lg:text-xs text-muted-foreground mt-0.5">
+              {group.count} {tipoLabels[group.tipo] || group.tipo}
+            </p>
           </div>
-          <p className="text-lg lg:text-xl font-bold font-display">{formatMetragem(totalMetragem)}</p>
-          <p className="text-[10px] lg:text-xs text-muted-foreground mt-0.5">Metragem Total</p>
-        </div>
-
-        {/* By Type */}
-        <div className="stat-card animate-slide-up" style={{ animationDelay: '50ms' }}>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="inline-flex p-1.5 rounded-lg bg-info/10 text-info">
-              <Building2 className="h-3.5 w-3.5" />
-            </div>
-            <p className="text-xs font-semibold text-foreground">Por Tipo</p>
-          </div>
-          <div className="space-y-1.5 max-h-32 overflow-y-auto">
-            {byType.map((item) => (
-              <div key={item.name} className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground truncate max-w-[60%]">
-                  {tipoLabels[item.name] || item.name}
-                </span>
-                <span className="font-medium text-foreground">{formatMetragem(item.value)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* By Cidade */}
-        <div className="stat-card animate-slide-up" style={{ animationDelay: '100ms' }}>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="inline-flex p-1.5 rounded-lg bg-accent/10 text-accent">
-              <MapPin className="h-3.5 w-3.5" />
-            </div>
-            <p className="text-xs font-semibold text-foreground">Por Cidade</p>
-          </div>
-          <div className="space-y-1.5 max-h-32 overflow-y-auto">
-            {byCidade.map((item) => (
-              <div key={item.name} className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground truncate max-w-[60%]">{item.name}</span>
-                <span className="font-medium text-foreground">{formatMetragem(item.value)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        ))}
       </div>
+
+      {/* Drill-down Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedGroup?.cidade} - {tipoLabels[selectedGroup?.tipo || ''] || selectedGroup?.tipo}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 mt-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              Total: {formatMetragem(selectedGroup?.metragem || 0)} em {selectedGroup?.count} imóveis
+            </p>
+            <div className="space-y-2">
+              {selectedGroup?.properties.map((property) => (
+                <Link
+                  key={property.id}
+                  to={`/property/${property.id}`}
+                  className="block p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-sm">
+                        {property.rua}, {property.numero}
+                        {property.apartamento && ` - Apto ${property.apartamento}`}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {property.bairro}, {property.cidade}
+                      </p>
+                    </div>
+                    <p className="font-semibold text-sm">
+                      {formatMetragem(property.metragem || 0)}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
