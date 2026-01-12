@@ -61,7 +61,7 @@ interface PropertyFormProps {
 
 export function PropertyForm({ property, mode }: PropertyFormProps) {
   const navigate = useNavigate();
-  const { addProperty, updateProperty } = useProperties();
+  const { addProperty, updateProperty, refreshProperties } = useProperties();
 
   const initialFromProp = useMemo<PropertyFormData>(
     () => ({
@@ -306,9 +306,16 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
               estado={formData.estado}
               latitude={formData.latitude}
               longitude={formData.longitude}
+              propertyId={mode === 'edit' ? property?.id : undefined}
               onLocationChange={(lat, lng) => {
                 handleChange('latitude', lat);
                 handleChange('longitude', lng);
+              }}
+              onLocationSaved={() => {
+                // Refresh properties context when location is saved directly
+                if (mode === 'edit') {
+                  refreshProperties();
+                }
               }}
             />
           </CardContent>
