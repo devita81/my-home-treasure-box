@@ -18,6 +18,8 @@ interface LocationPickerProps {
   latitude?: number | null;
   longitude?: number | null;
   onLocationChange: (lat: number | null, lng: number | null) => void;
+  propertyId?: string;
+  onLocationSaved?: () => void;
 }
 
 export function LocationPicker({
@@ -29,6 +31,8 @@ export function LocationPicker({
   latitude,
   longitude,
   onLocationChange,
+  propertyId,
+  onLocationSaved,
 }: LocationPickerProps) {
   const [isAdjusting, setIsAdjusting] = useState(false);
   const [showInteractiveMap, setShowInteractiveMap] = useState(false);
@@ -97,13 +101,41 @@ export function LocationPicker({
     }
   };
 
-  const handleSaveLocation = () => {
+  const [isSavingLocation, setIsSavingLocation] = useState(false);
+
+  const handleSaveLocation = async () => {
     const lat = tempLat ? parseFloat(tempLat) : null;
     const lng = tempLng ? parseFloat(tempLng) : null;
-    onLocationChange(lat, lng);
-    setIsAdjusting(false);
-    setShowInteractiveMap(false);
-    toast.success('Localização salva!');
+    
+    // If we have a propertyId, save directly to database
+    if (propertyId && (lat !== null || lng !== null)) {
+      setIsSavingLocation(true);
+      try {
+        const { error } = await supabase
+          .from('properties')
+          .update({ latitude: lat, longitude: lng })
+          .eq('id', propertyId);
+        
+        if (error) throw error;
+        
+        onLocationChange(lat, lng);
+        setIsAdjusting(false);
+        setShowInteractiveMap(false);
+        toast.success('Localização salva no banco de dados!');
+        onLocationSaved?.();
+      } catch (error) {
+        console.error('Erro ao salvar localização:', error);
+        toast.error('Erro ao salvar localização');
+      } finally {
+        setIsSavingLocation(false);
+      }
+    } else {
+      // Just update local state
+      onLocationChange(lat, lng);
+      setIsAdjusting(false);
+      setShowInteractiveMap(false);
+      toast.success('Localização salva!');
+    }
   };
 
   const handleReset = () => {
@@ -289,10 +321,13 @@ export function LocationPicker({
               type="button"
               size="sm"
               onClick={handleSaveLocation}
-              disabled={!tempLat || !tempLng}
+              disabled={!tempLat || !tempLng || isSavingLocation}
               className="flex-1"
             >
-              Salvar Localização
+              {isSavingLocation ? (
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              ) : null}
+              {isSavingLocation ? 'Salvando...' : 'Salvar Localização'}
             </Button>
           </div>
 
