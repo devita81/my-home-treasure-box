@@ -50,7 +50,7 @@ const propertySchema = z.object({
   latitude: z.number().nullable().optional(),
   longitude: z.number().nullable().optional(),
   ano_construcao: z.number().min(1800).max(new Date().getFullYear()).nullable().optional(),
-  observacao: z.string().max(10000, 'Observação muito longa (máximo 10.000 caracteres)').nullable().optional(),
+  observacao: z.string().nullable().optional(),
 });
 
 const estados = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
@@ -656,7 +656,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                 )}
               />
               <p className="text-xs text-muted-foreground text-right">
-                {(formData.observacao || '').length.toLocaleString('pt-BR')} / 10.000 caracteres
+                {(formData.observacao || '').length.toLocaleString('pt-BR')} caracteres
               </p>
             </div>
           </CardContent>
