@@ -70,18 +70,18 @@ export function StatsOverview() {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
       {stats.map((stat, index) => (
         <div
           key={stat.label}
           className="stat-card animate-slide-up"
           style={{ animationDelay: `${index * 50}ms` }}
         >
-          <div className={`inline-flex p-2 rounded-lg ${stat.color} mb-3`}>
-            <stat.icon className="h-4 w-4" />
+          <div className={`inline-flex p-1.5 rounded-lg ${stat.color} mb-2`}>
+            <stat.icon className="h-3.5 w-3.5" />
           </div>
-          <p className="text-2xl font-bold font-display">{stat.value}</p>
-          <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
+          <p className="text-lg lg:text-xl font-bold font-display truncate">{stat.value}</p>
+          <p className="text-[10px] lg:text-xs text-muted-foreground mt-0.5 truncate">{stat.label}</p>
         </div>
       ))}
     </div>
