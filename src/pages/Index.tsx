@@ -2,6 +2,7 @@ import { useProperties } from '@/contexts/PropertyContext';
 import { PropertyCard } from '@/components/property/PropertyCard';
 import { PropertyFilters } from '@/components/property/PropertyFilters';
 import { StatsOverview } from '@/components/stats/StatsOverview';
+import { MetragemStats } from '@/components/stats/MetragemStats';
 import { Header } from '@/components/layout/Header';
 import { Home, PlusCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -30,6 +31,9 @@ const Index = () => {
       <main className="container mx-auto px-4 py-8 space-y-8">
         {/* Stats */}
         <StatsOverview />
+
+        {/* Metragem Stats */}
+        <MetragemStats />
 
         {/* Filters */}
         <PropertyFilters />
