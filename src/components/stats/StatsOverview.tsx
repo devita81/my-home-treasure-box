@@ -221,19 +221,19 @@ export function StatsOverview() {
 
   return (
     <>
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-3">
         {stats.map((stat, index) => (
           <div
             key={stat.label}
-            className="stat-card animate-slide-up cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+            className="stat-card animate-slide-up cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all p-2 sm:p-3"
             style={{ animationDelay: `${index * 50}ms` }}
             onClick={() => handleStatClick(stat.type)}
           >
-            <div className={`inline-flex p-1.5 rounded-lg ${stat.color} mb-2`}>
-              <stat.icon className="h-3.5 w-3.5" />
+            <div className={`inline-flex p-1 sm:p-1.5 rounded-lg ${stat.color} mb-1.5 sm:mb-2`}>
+              <stat.icon className="h-3 sm:h-3.5 w-3 sm:w-3.5" />
             </div>
-            <p className="text-lg lg:text-xl font-bold font-display truncate">{stat.value}</p>
-            <p className="text-[10px] lg:text-xs text-muted-foreground mt-0.5 truncate">{stat.label}</p>
+            <p className="text-base sm:text-lg lg:text-xl font-bold font-display truncate">{stat.value}</p>
+            <p className="text-[9px] sm:text-[10px] lg:text-xs text-muted-foreground mt-0.5 truncate">{stat.label}</p>
           </div>
         ))}
       </div>
