@@ -50,7 +50,7 @@ const propertySchema = z.object({
   latitude: z.number().nullable().optional(),
   longitude: z.number().nullable().optional(),
   ano_construcao: z.number().min(1800).max(new Date().getFullYear()).nullable().optional(),
-  observacao: z.string().max(2000, 'Observação muito longa').nullable().optional(),
+  observacao: z.string().max(10000, 'Observação muito longa (máximo 10.000 caracteres)').nullable().optional(),
 });
 
 const estados = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
@@ -651,10 +651,13 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                 value={formData.observacao || ''}
                 onChange={(e) => handleChange('observacao', e.target.value)}
                 className={cn(
-                  "resize-y transition-all duration-300",
+                  "resize-y transition-all duration-300 font-mono text-sm leading-relaxed whitespace-pre-wrap",
                   isObservacaoExpanded ? "min-h-[400px]" : "min-h-[120px]"
                 )}
               />
+              <p className="text-xs text-muted-foreground text-right">
+                {(formData.observacao || '').length.toLocaleString('pt-BR')} / 10.000 caracteres
+              </p>
             </div>
           </CardContent>
         </Card>
