@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useState } from 'react';
 import { MapPin, ChevronLeft, ChevronRight, RefreshCw, RotateCcw } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PropertyMapImageProps {
   rua: string;
@@ -13,6 +14,7 @@ interface PropertyMapImageProps {
   propertyId?: string;
   latitude?: number | null;
   longitude?: number | null;
+  initialHeading?: number | null;
 }
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyBSbKS3g4EggVq_jqMCzQRQQFmTRSfMEHw';
@@ -25,8 +27,6 @@ type HeadingChangeDetail = {
   senderId?: string;
 };
 
-const getHeadingStorageKey = (propertyId: string) => `property_heading_${propertyId}`;
-
 const normalizeHeading = (value: number) => {
   const n = Number(value);
   if (!Number.isFinite(n)) return DEFAULT_HEADING;
@@ -34,38 +34,24 @@ const normalizeHeading = (value: number) => {
   return ((rounded % 360) + 360) % 360;
 };
 
-const parseStoredHeading = (stored: string | null): number | null => {
-  if (stored === null) return null;
-  const n = Number(stored);
-  if (!Number.isFinite(n)) return null;
-  return normalizeHeading(n);
-};
-
-// Get stored heading for a property
-const getStoredHeading = (propertyId: string | undefined): number => {
-  if (!propertyId) return DEFAULT_HEADING;
+// Save heading to database
+const saveHeadingToDb = async (propertyId: string, heading: number) => {
   try {
-    return parseStoredHeading(localStorage.getItem(getHeadingStorageKey(propertyId))) ?? DEFAULT_HEADING;
-  } catch {
-    return DEFAULT_HEADING;
+    await supabase
+      .from('properties')
+      .update({ street_view_heading: heading })
+      .eq('id', propertyId);
+  } catch (error) {
+    console.error('Failed to save heading to database:', error);
   }
 };
 
-// Save heading for a property
-const saveHeading = (propertyId: string | undefined, heading: number, senderId?: string) => {
-  if (!propertyId) return;
-  const normalized = normalizeHeading(heading);
-
-  try {
-    localStorage.setItem(getHeadingStorageKey(propertyId), normalized.toString());
-  } catch {
-    // ignore
-  }
-
+// Dispatch event for local sync between components
+const dispatchHeadingEvent = (propertyId: string, heading: number, senderId?: string) => {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(
       new CustomEvent<HeadingChangeDetail>(HEADING_EVENT, {
-        detail: { propertyId, heading: normalized, senderId },
+        detail: { propertyId, heading, senderId },
       }),
     );
   }
@@ -82,13 +68,18 @@ export function PropertyMapImage({
   propertyId,
   latitude,
   longitude,
+  initialHeading,
 }: PropertyMapImageProps) {
   const instanceId = useId();
   const [currentIndex, setCurrentIndex] = useState(0); // 0 = Street View, 1 = Map
   const [imageErrors, setImageErrors] = useState<{ [key: number]: boolean }>({});
   const [refreshKey, setRefreshKey] = useState(Date.now());
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [heading, setHeading] = useState(() => getStoredHeading(propertyId));
+  const [heading, setHeading] = useState(() => 
+    initialHeading !== null && initialHeading !== undefined 
+      ? normalizeHeading(initialHeading) 
+      : DEFAULT_HEADING
+  );
   const [showHeadingControl, setShowHeadingControl] = useState(false);
 
   // Use coordinates if available, otherwise use address
@@ -97,10 +88,12 @@ export function PropertyMapImage({
   const address = `${rua}, ${numero || ''}, ${bairro}, ${cidade}, ${estado}, Brasil`;
   const encodedAddress = encodeURIComponent(address);
 
-  // Load stored heading when propertyId changes
+  // Update heading when initialHeading prop changes
   useEffect(() => {
-    setHeading(getStoredHeading(propertyId));
-  }, [propertyId]);
+    if (initialHeading !== null && initialHeading !== undefined) {
+      setHeading(normalizeHeading(initialHeading));
+    }
+  }, [initialHeading]);
 
   // Listen for heading changes from other instances (sync between card and modal)
   useEffect(() => {
@@ -143,14 +136,20 @@ export function PropertyMapImage({
   const handleHeadingChange = useCallback((value: number[]) => {
     const newHeading = value[0];
     setHeading(newHeading);
-    saveHeading(propertyId, newHeading, instanceId);
+    if (propertyId) {
+      saveHeadingToDb(propertyId, newHeading);
+      dispatchHeadingEvent(propertyId, newHeading, instanceId);
+    }
     setRefreshKey(Date.now());
   }, [propertyId, instanceId]);
 
   const handleResetHeading = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setHeading(DEFAULT_HEADING);
-    saveHeading(propertyId, DEFAULT_HEADING, instanceId);
+    if (propertyId) {
+      saveHeadingToDb(propertyId, DEFAULT_HEADING);
+      dispatchHeadingEvent(propertyId, DEFAULT_HEADING, instanceId);
+    }
     setRefreshKey(Date.now());
   }, [propertyId, instanceId]);
 

@@ -135,6 +135,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                 propertyId={property.id}
                 latitude={property.latitude}
                 longitude={property.longitude}
+                initialHeading={property.street_view_heading}
               />
             )}
             
@@ -428,6 +429,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                   propertyId={property.id}
                   latitude={property.latitude}
                   longitude={property.longitude}
+                  initialHeading={property.street_view_heading}
                 />
               )}
               
