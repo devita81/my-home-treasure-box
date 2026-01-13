@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { z } from 'zod';
 import { LocationPicker } from './LocationPicker';
+import { DocumentUpload } from './DocumentUpload';
 
 // Validation schema for property form
 const propertySchema = z.object({
@@ -449,6 +450,11 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                 onCheckedChange={(checked) => handleChange('validado', checked)}
               />
             </div>
+
+            {/* Document Upload - Only show in edit mode */}
+            {mode === 'edit' && property?.id && (
+              <DocumentUpload propertyId={property.id} mode="edit" />
+            )}
           </CardContent>
         </Card>
 

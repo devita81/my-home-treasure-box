@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { useProperties } from '@/contexts/PropertyContext';
 import { PropertyMapImage } from '@/components/property/PropertyMapImage';
+import { DocumentUpload } from '@/components/property/DocumentUpload';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -412,6 +413,9 @@ const PropertyDetails = () => {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Documentos do Imóvel */}
+          <DocumentUpload propertyId={property.id} mode="view" />
 
           {/* Timestamps */}
           <div className="flex items-center justify-center gap-6 py-4 text-sm text-muted-foreground">
