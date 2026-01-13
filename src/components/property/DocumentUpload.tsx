@@ -114,9 +114,10 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
   };
 
   const handleView = async (doc: PropertyDocument) => {
+    // Since ad blockers may block iframes with blob URLs, 
+    // we'll download and open using a data URL approach
     setIsLoadingPdf(true);
     setViewingFileName(doc.file_name);
-    setPdfViewerOpen(true);
     
     try {
       const { data, error } = await supabase.storage
@@ -125,23 +126,29 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
 
       if (error) throw error;
 
-      const url = URL.createObjectURL(data);
-      setPdfBlobUrl(url);
+      // Convert blob to base64 data URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64data = reader.result as string;
+        setPdfBlobUrl(base64data);
+        setPdfViewerOpen(true);
+        setIsLoadingPdf(false);
+      };
+      reader.onerror = () => {
+        toast.error('Erro ao processar documento');
+        setIsLoadingPdf(false);
+      };
+      reader.readAsDataURL(data);
     } catch (error) {
       console.error('Error viewing document:', error);
       toast.error('Erro ao abrir documento');
-      setPdfViewerOpen(false);
-    } finally {
       setIsLoadingPdf(false);
     }
   };
 
   const closePdfViewer = () => {
     setPdfViewerOpen(false);
-    if (pdfBlobUrl) {
-      URL.revokeObjectURL(pdfBlobUrl);
-      setPdfBlobUrl(null);
-    }
+    setPdfBlobUrl(null);
     setViewingFileName('');
   };
 
