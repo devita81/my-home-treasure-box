@@ -329,15 +329,16 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
               </div>
             </DialogTitle>
           </DialogHeader>
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden bg-muted">
             {isLoadingPdf ? (
               <div className="flex items-center justify-center h-full">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : pdfBlobUrl ? (
-              <iframe
+              <embed
                 src={pdfBlobUrl}
-                className="w-full h-full border-0"
+                type="application/pdf"
+                className="w-full h-full"
                 title={viewingFileName}
               />
             ) : null}
