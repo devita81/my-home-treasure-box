@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { FileText, Upload, Trash2, Eye, Loader2, Download } from 'lucide-react';
+import { FileText, Upload, Trash2, Eye, Loader2, Download, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface PropertyDocument {
@@ -61,13 +61,11 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (file.type !== 'application/pdf') {
       toast.error('Apenas arquivos PDF são permitidos');
       return;
     }
 
-    // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       toast.error('Arquivo muito grande. Máximo 10MB');
       return;
@@ -75,19 +73,16 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
 
     setIsUploading(true);
     try {
-      // Generate unique file path
       const timestamp = Date.now();
       const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
       const filePath = `${propertyId}/${timestamp}-${sanitizedFileName}`;
 
-      // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from('property-documents')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
-      // Save metadata
       const { error: metaError } = await supabase
         .from('property_documents')
         .insert({
@@ -128,8 +123,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
 
       if (error) throw error;
 
-      // Ensure the blob has the correct PDF mime type for <embed>/<object> rendering
-      const pdfBlob = data.type === 'application/pdf' ? data : new Blob([data], { type: 'application/pdf' });
+      const pdfBlob = new Blob([data], { type: 'application/pdf' });
       const url = URL.createObjectURL(pdfBlob);
       setPdfBlobUrl(url);
     } catch (error) {
@@ -174,18 +168,22 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
     }
   };
 
+  const handleOpenInNewTab = () => {
+    if (pdfBlobUrl) {
+      window.open(pdfBlobUrl, '_blank');
+    }
+  };
+
   const handleDelete = async (doc: PropertyDocument) => {
     if (!confirm(`Deseja realmente excluir "${doc.file_name}"?`)) return;
 
     try {
-      // Delete from storage
       const { error: storageError } = await supabase.storage
         .from('property-documents')
         .remove([doc.file_path]);
 
       if (storageError) throw storageError;
 
-      // Delete metadata
       const { error: metaError } = await supabase
         .from('property_documents')
         .delete()
@@ -327,41 +325,84 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
                 <FileText className="h-5 w-5 text-primary shrink-0" />
                 <span className="truncate">{viewingFileName}</span>
               </div>
-              {viewingDoc && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDownload(viewingDoc)}
-                  className="gap-2"
-                  title="Baixar"
-                >
-                  <Download className="h-4 w-4" />
-                  <span className="hidden sm:inline">Baixar</span>
-                </Button>
-              )}
+              <div className="flex items-center gap-2">
+                {pdfBlobUrl && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleOpenInNewTab}
+                    className="gap-2"
+                    title="Abrir em nova aba"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span className="hidden sm:inline">Nova aba</span>
+                  </Button>
+                )}
+                {viewingDoc && (
+                  <Button
+                    type="button"
+                    variant="default"
+                    size="sm"
+                    onClick={() => handleDownload(viewingDoc)}
+                    className="gap-2"
+                    title="Baixar"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span className="hidden sm:inline">Baixar</span>
+                  </Button>
+                )}
+              </div>
             </DialogTitle>
           </DialogHeader>
-          <div className="flex-1 overflow-hidden bg-muted">
+          <div className="flex-1 overflow-hidden bg-muted relative">
             {isLoadingPdf ? (
               <div className="flex items-center justify-center h-full">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : pdfBlobUrl ? (
-              <embed
-                src={pdfBlobUrl}
+              <object
+                data={pdfBlobUrl}
                 type="application/pdf"
                 className="w-full h-full"
                 title={viewingFileName}
-              />
+              >
+                <div className="flex flex-col items-center justify-center h-full gap-4 p-6 text-center">
+                  <FileText className="h-16 w-16 text-muted-foreground/50" />
+                  <p className="text-sm text-muted-foreground">
+                    Seu navegador não suporta visualização de PDF inline.
+                  </p>
+                  <div className="flex gap-2">
+                    <Button onClick={handleOpenInNewTab} variant="outline" className="gap-2">
+                      <ExternalLink className="h-4 w-4" />
+                      Abrir em nova aba
+                    </Button>
+                    {viewingDoc && (
+                      <Button onClick={() => handleDownload(viewingDoc)} className="gap-2">
+                        <Download className="h-4 w-4" />
+                        Baixar PDF
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </object>
             ) : (
-              <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
-                Não foi possível renderizar o PDF.
+              <div className="flex flex-col items-center justify-center h-full gap-4 p-6 text-center">
+                <FileText className="h-16 w-16 text-muted-foreground/50" />
+                <p className="text-sm text-muted-foreground">
+                  Não foi possível carregar o PDF.
+                </p>
+                {viewingDoc && (
+                  <Button onClick={() => handleDownload(viewingDoc)} className="gap-2">
+                    <Download className="h-4 w-4" />
+                    Baixar PDF
+                  </Button>
+                )}
               </div>
             )}
           </div>
-          <div className="border-t p-3 text-xs text-muted-foreground">
-            Se o PDF não aparecer (por bloqueios/extensões do navegador), use o botão “Baixar”.
+          <div className="border-t p-3 text-xs text-muted-foreground text-center">
+            Se o PDF não aparecer, use os botões "Nova aba" ou "Baixar" acima.
           </div>
         </DialogContent>
       </Dialog>
