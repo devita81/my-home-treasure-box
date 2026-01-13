@@ -109,6 +109,8 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
     }
   };
 
+  const SIGNED_URL_TTL_SECONDS = 60 * 10;
+
   const handleView = async (doc: PropertyDocument) => {
     setViewingDoc(doc);
     setViewingFileName(doc.file_name);
@@ -117,6 +119,17 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
     setIsLoadingPdf(true);
 
     try {
+      // Prefer signed URL so Chrome can use its native PDF viewer (and avoids blob navigation blocks)
+      const { data: signed, error: signedError } = await supabase.storage
+        .from('property-documents')
+        .createSignedUrl(doc.file_path, SIGNED_URL_TTL_SECONDS);
+
+      if (!signedError && signed?.signedUrl) {
+        setPdfBlobUrl(signed.signedUrl);
+        return;
+      }
+
+      // Fallback: download and render via blob URL
       const { data, error } = await supabase.storage
         .from('property-documents')
         .download(doc.file_path);
@@ -154,7 +167,8 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
 
       if (error) throw error;
 
-      const url = URL.createObjectURL(data);
+      const pdfBlob = new Blob([data], { type: 'application/pdf' });
+      const url = URL.createObjectURL(pdfBlob);
       const a = document.createElement('a');
       a.href = url;
       a.download = doc.file_name;
@@ -168,9 +182,26 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
     }
   };
 
-  const handleOpenInNewTab = () => {
-    if (pdfBlobUrl) {
-      window.open(pdfBlobUrl, '_blank');
+  const handleOpenInNewTab = async () => {
+    try {
+      if (viewingDoc) {
+        const { data: signed, error: signedError } = await supabase.storage
+          .from('property-documents')
+          .createSignedUrl(viewingDoc.file_path, SIGNED_URL_TTL_SECONDS);
+
+        if (!signedError && signed?.signedUrl) {
+          window.open(signed.signedUrl, '_blank', 'noopener,noreferrer');
+          return;
+        }
+      }
+
+      if (pdfBlobUrl) {
+        window.open(pdfBlobUrl, '_blank', 'noopener,noreferrer');
+      }
+    } catch {
+      if (pdfBlobUrl) {
+        window.open(pdfBlobUrl, '_blank', 'noopener,noreferrer');
+      }
     }
   };
 
