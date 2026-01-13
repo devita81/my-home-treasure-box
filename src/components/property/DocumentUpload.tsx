@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { FileText, Upload, Trash2, Eye, Loader2, Download, X } from 'lucide-react';
+import { FileText, Upload, Trash2, Eye, Loader2, Download } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface PropertyDocument {
@@ -31,6 +31,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
   const [viewingFileName, setViewingFileName] = useState<string>('');
+  const [viewingDoc, setViewingDoc] = useState<PropertyDocument | null>(null);
   const [isLoadingPdf, setIsLoadingPdf] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -114,11 +115,12 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
   };
 
   const handleView = async (doc: PropertyDocument) => {
-    // Since ad blockers may block iframes with blob URLs, 
-    // we'll download and open using a data URL approach
-    setIsLoadingPdf(true);
+    setViewingDoc(doc);
     setViewingFileName(doc.file_name);
-    
+    setPdfBlobUrl(null);
+    setPdfViewerOpen(true);
+    setIsLoadingPdf(true);
+
     try {
       const { data, error } = await supabase.storage
         .from('property-documents')
@@ -126,30 +128,28 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
 
       if (error) throw error;
 
-      // Convert blob to base64 data URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64data = reader.result as string;
-        setPdfBlobUrl(base64data);
-        setPdfViewerOpen(true);
-        setIsLoadingPdf(false);
-      };
-      reader.onerror = () => {
-        toast.error('Erro ao processar documento');
-        setIsLoadingPdf(false);
-      };
-      reader.readAsDataURL(data);
+      // Ensure the blob has the correct PDF mime type for <embed>/<object> rendering
+      const pdfBlob = data.type === 'application/pdf' ? data : new Blob([data], { type: 'application/pdf' });
+      const url = URL.createObjectURL(pdfBlob);
+      setPdfBlobUrl(url);
     } catch (error) {
       console.error('Error viewing document:', error);
       toast.error('Erro ao abrir documento');
+      closePdfViewer();
+    } finally {
       setIsLoadingPdf(false);
     }
   };
 
   const closePdfViewer = () => {
     setPdfViewerOpen(false);
-    setPdfBlobUrl(null);
+    setViewingDoc(null);
     setViewingFileName('');
+
+    if (pdfBlobUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(pdfBlobUrl);
+    }
+    setPdfBlobUrl(null);
   };
 
   const handleDownload = async (doc: PropertyDocument) => {
@@ -322,11 +322,24 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
       <Dialog open={pdfViewerOpen} onOpenChange={(open) => !open && closePdfViewer()}>
         <DialogContent className="max-w-5xl w-[95vw] h-[90vh] p-0 flex flex-col">
           <DialogHeader className="p-4 border-b flex-shrink-0">
-            <DialogTitle className="flex items-center justify-between gap-2 pr-8">
+            <DialogTitle className="flex items-center justify-between gap-3 pr-8">
               <div className="flex items-center gap-2 truncate">
                 <FileText className="h-5 w-5 text-primary shrink-0" />
                 <span className="truncate">{viewingFileName}</span>
               </div>
+              {viewingDoc && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDownload(viewingDoc)}
+                  className="gap-2"
+                  title="Baixar"
+                >
+                  <Download className="h-4 w-4" />
+                  <span className="hidden sm:inline">Baixar</span>
+                </Button>
+              )}
             </DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-hidden bg-muted">
@@ -341,7 +354,14 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
                 className="w-full h-full"
                 title={viewingFileName}
               />
-            ) : null}
+            ) : (
+              <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+                Não foi possível renderizar o PDF.
+              </div>
+            )}
+          </div>
+          <div className="border-t p-3 text-xs text-muted-foreground">
+            Se o PDF não aparecer (por bloqueios/extensões do navegador), use o botão “Baixar”.
           </div>
         </DialogContent>
       </Dialog>
