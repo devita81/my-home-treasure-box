@@ -2,8 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { FileText, Upload, Trash2, Eye, Loader2, Download } from 'lucide-react';
+import { FileText, Upload, Trash2, Eye, Loader2, Download, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface PropertyDocument {
@@ -27,6 +28,10 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
   const [documents, setDocuments] = useState<PropertyDocument[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
+  const [viewingFileName, setViewingFileName] = useState<string>('');
+  const [isLoadingPdf, setIsLoadingPdf] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -109,9 +114,11 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
   };
 
   const handleView = async (doc: PropertyDocument) => {
+    setIsLoadingPdf(true);
+    setViewingFileName(doc.file_name);
+    setPdfViewerOpen(true);
+    
     try {
-      // Download the file and open it in a new tab using blob URL
-      // This avoids ad blocker issues with signed URLs
       const { data, error } = await supabase.storage
         .from('property-documents')
         .download(doc.file_path);
@@ -119,13 +126,23 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
       if (error) throw error;
 
       const url = URL.createObjectURL(data);
-      window.open(url, '_blank');
-      // Clean up after a delay to allow the new tab to load
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      setPdfBlobUrl(url);
     } catch (error) {
       console.error('Error viewing document:', error);
       toast.error('Erro ao abrir documento');
+      setPdfViewerOpen(false);
+    } finally {
+      setIsLoadingPdf(false);
     }
+  };
+
+  const closePdfViewer = () => {
+    setPdfViewerOpen(false);
+    if (pdfBlobUrl) {
+      URL.revokeObjectURL(pdfBlobUrl);
+      setPdfBlobUrl(null);
+    }
+    setViewingFileName('');
   };
 
   const handleDownload = async (doc: PropertyDocument) => {
@@ -293,6 +310,33 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
           </div>
         )}
       </CardContent>
+
+      {/* PDF Viewer Dialog */}
+      <Dialog open={pdfViewerOpen} onOpenChange={(open) => !open && closePdfViewer()}>
+        <DialogContent className="max-w-5xl w-[95vw] h-[90vh] p-0 flex flex-col">
+          <DialogHeader className="p-4 border-b flex-shrink-0">
+            <DialogTitle className="flex items-center justify-between gap-2 pr-8">
+              <div className="flex items-center gap-2 truncate">
+                <FileText className="h-5 w-5 text-primary shrink-0" />
+                <span className="truncate">{viewingFileName}</span>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-hidden">
+            {isLoadingPdf ? (
+              <div className="flex items-center justify-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : pdfBlobUrl ? (
+              <iframe
+                src={pdfBlobUrl}
+                className="w-full h-full border-0"
+                title={viewingFileName}
+              />
+            ) : null}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
