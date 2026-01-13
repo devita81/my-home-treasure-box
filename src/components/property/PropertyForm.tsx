@@ -450,13 +450,13 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                 onCheckedChange={(checked) => handleChange('validado', checked)}
               />
             </div>
-
-            {/* Document Upload - Only show in edit mode */}
-            {mode === 'edit' && property?.id && (
-              <DocumentUpload propertyId={property.id} mode="edit" />
-            )}
           </CardContent>
         </Card>
+
+        {/* Document Upload - Only show in edit mode - SEPARATE CARD */}
+        {mode === 'edit' && property?.id && (
+          <DocumentUpload propertyId={property.id} mode="edit" />
+        )}
 
         {/* Características */}
         <Card>

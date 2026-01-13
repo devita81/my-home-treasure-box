@@ -110,12 +110,18 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
 
   const handleView = async (doc: PropertyDocument) => {
     try {
+      // Download the file and open it in a new tab using blob URL
+      // This avoids ad blocker issues with signed URLs
       const { data, error } = await supabase.storage
         .from('property-documents')
-        .createSignedUrl(doc.file_path, 3600); // 1 hour expiry
+        .download(doc.file_path);
 
       if (error) throw error;
-      window.open(data.signedUrl, '_blank');
+
+      const url = URL.createObjectURL(data);
+      window.open(url, '_blank');
+      // Clean up after a delay to allow the new tab to load
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch (error) {
       console.error('Error viewing document:', error);
       toast.error('Erro ao abrir documento');
