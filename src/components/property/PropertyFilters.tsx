@@ -221,6 +221,21 @@ export function PropertyFilters() {
           </SelectContent>
         </Select>
 
+        {/* Validado */}
+        <Select
+          value={filters.validado}
+          onValueChange={(value) => setFilters({ ...filters, validado: value as any })}
+        >
+          <SelectTrigger className="h-9 text-xs">
+            <SelectValue placeholder="Validação" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="sim">Validado</SelectItem>
+            <SelectItem value="nao">Pendente</SelectItem>
+          </SelectContent>
+        </Select>
+
         {/* Ordenar por */}
         <Select
           value={filters.sortField}
