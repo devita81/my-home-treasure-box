@@ -31,7 +31,9 @@ import {
   ArrowUpDown,
   Receipt,
   Key,
-  Wallet
+  Wallet,
+  AlertTriangle,
+  ClipboardList
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { Property } from '@/types/property';
@@ -247,6 +249,11 @@ const Analytics = () => {
     return Object.entries(grouped)
       .map(([name, data]) => ({ name, ...data }))
       .sort((a, b) => b.count - a.count);
+  }, [properties, distributionMetric]);
+
+  // ==================== IMÓVEIS NÃO VALIDADOS ====================
+  const naoValidadosProperties = useMemo(() => {
+    return properties.filter(p => !p.validado);
   }, [properties]);
 
   // ==================== RANKING ====================
@@ -870,6 +877,84 @@ const Analytics = () => {
                 </TableBody>
               </Table>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* ==================== IMÓVEIS PENDENTES DE VALIDAÇÃO ==================== */}
+        <Card>
+          <CardHeader className="pb-2 sm:pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                <CardTitle className="text-base sm:text-lg">Imóveis Pendentes de Validação</CardTitle>
+                <Badge variant="secondary" className="text-xs">
+                  {naoValidadosProperties.length} pendentes
+                </Badge>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {naoValidadosProperties.length > 0 ? (
+              <div className="rounded-lg border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="w-[50px]">#</TableHead>
+                      <TableHead>Endereço</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Cidade</TableHead>
+                      <TableHead>Matrícula</TableHead>
+                      <TableHead>Proprietário (Papel)</TableHead>
+                      <TableHead>Proprietário (Matrícula)</TableHead>
+                      <TableHead className="text-right">Valor Declarado</TableHead>
+                      <TableHead className="text-right">Valor Mercado</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {naoValidadosProperties.map((property, index) => (
+                      <TableRow key={property.id} className="hover:bg-muted/30">
+                        <TableCell className="font-medium text-muted-foreground">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="font-medium max-w-[200px]">
+                          <Link 
+                            to={`/property/${property.id}`}
+                            className="hover:text-primary hover:underline truncate block"
+                          >
+                            {getPropertyAddress(property)}
+                          </Link>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{getTipoLabel(property.tipo_imovel)}</Badge>
+                        </TableCell>
+                        <TableCell>{property.cidade} - {property.estado}</TableCell>
+                        <TableCell>
+                          {property.numero_matricula ? (
+                            <span className="font-mono text-sm">{property.numero_matricula}</span>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {property.proprietario_papel || <span className="text-muted-foreground">-</span>}
+                        </TableCell>
+                        <TableCell>
+                          {property.proprietario_matricula || <span className="text-muted-foreground">-</span>}
+                        </TableCell>
+                        <TableCell className="text-right">{formatCurrency(property.declared_value)}</TableCell>
+                        <TableCell className="text-right font-medium">{formatCurrency(property.market_value || 0)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <CheckCircle2 className="h-12 w-12 text-green-500 mb-3" />
+                <p className="text-lg font-medium text-green-600 dark:text-green-400">Todos os imóveis estão validados!</p>
+                <p className="text-sm text-muted-foreground mt-1">Não há pendências de validação no momento.</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </main>
