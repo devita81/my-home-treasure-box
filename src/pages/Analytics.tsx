@@ -17,6 +17,14 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
+import {
+  ResizableTable,
+  ResizableTableBody,
+  ResizableTableCell,
+  ResizableTableHead,
+  ResizableTableHeader,
+  ResizableTableRow,
+} from '@/components/ui/resizable-table';
 import { 
   TrendingUp, 
   Home, 
@@ -896,57 +904,69 @@ const Analytics = () => {
           <CardContent>
             {naoValidadosProperties.length > 0 ? (
               <div className="rounded-lg border overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/50">
-                      <TableHead className="w-[50px]">#</TableHead>
-                      <TableHead>Endereço</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Cidade</TableHead>
-                      <TableHead>Matrícula</TableHead>
-                      <TableHead>Proprietário (Papel)</TableHead>
-                      <TableHead>Proprietário (Matrícula)</TableHead>
-                      <TableHead className="text-right">Valor Declarado</TableHead>
-                      <TableHead className="text-right">Valor Mercado</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                <ResizableTable
+                  columns={[
+                    { id: 'num', label: '#', defaultWidth: 50, minWidth: 40 },
+                    { id: 'endereco', label: 'Endereço', defaultWidth: 200, minWidth: 120 },
+                    { id: 'tipo', label: 'Tipo', defaultWidth: 100, minWidth: 70 },
+                    { id: 'cidade', label: 'Cidade', defaultWidth: 150, minWidth: 100 },
+                    { id: 'matricula', label: 'Matrícula', defaultWidth: 120, minWidth: 80 },
+                    { id: 'prop_papel', label: 'Proprietário (Papel)', defaultWidth: 180, minWidth: 100 },
+                    { id: 'prop_matricula', label: 'Proprietário (Matrícula)', defaultWidth: 180, minWidth: 100 },
+                    { id: 'val_declarado', label: 'Valor Declarado', defaultWidth: 130, minWidth: 100, align: 'right' },
+                    { id: 'val_mercado', label: 'Valor Mercado', defaultWidth: 130, minWidth: 100, align: 'right' },
+                  ]}
+                >
+                  <ResizableTableHeader>
+                    <ResizableTableRow className="bg-muted/50">
+                      <ResizableTableHead columnId="num" resizable={false}>#</ResizableTableHead>
+                      <ResizableTableHead columnId="endereco">Endereço</ResizableTableHead>
+                      <ResizableTableHead columnId="tipo">Tipo</ResizableTableHead>
+                      <ResizableTableHead columnId="cidade">Cidade</ResizableTableHead>
+                      <ResizableTableHead columnId="matricula">Matrícula</ResizableTableHead>
+                      <ResizableTableHead columnId="prop_papel">Proprietário (Papel)</ResizableTableHead>
+                      <ResizableTableHead columnId="prop_matricula">Proprietário (Matrícula)</ResizableTableHead>
+                      <ResizableTableHead columnId="val_declarado" className="text-right">Valor Declarado</ResizableTableHead>
+                      <ResizableTableHead columnId="val_mercado" className="text-right">Valor Mercado</ResizableTableHead>
+                    </ResizableTableRow>
+                  </ResizableTableHeader>
+                  <ResizableTableBody>
                     {naoValidadosProperties.map((property, index) => (
-                      <TableRow key={property.id} className="hover:bg-muted/30">
-                        <TableCell className="font-medium text-muted-foreground">
+                      <ResizableTableRow key={property.id} className="hover:bg-muted/30">
+                        <ResizableTableCell className="font-medium text-muted-foreground">
                           {index + 1}
-                        </TableCell>
-                        <TableCell className="font-medium max-w-[200px]">
+                        </ResizableTableCell>
+                        <ResizableTableCell className="font-medium">
                           <Link 
                             to={`/property/${property.id}`}
                             className="hover:text-primary hover:underline truncate block"
                           >
                             {getPropertyAddress(property)}
                           </Link>
-                        </TableCell>
-                        <TableCell>
+                        </ResizableTableCell>
+                        <ResizableTableCell>
                           <Badge variant="outline">{getTipoLabel(property.tipo_imovel)}</Badge>
-                        </TableCell>
-                        <TableCell>{property.cidade} - {property.estado}</TableCell>
-                        <TableCell>
+                        </ResizableTableCell>
+                        <ResizableTableCell>{property.cidade} - {property.estado}</ResizableTableCell>
+                        <ResizableTableCell>
                           {property.numero_matricula ? (
                             <span className="font-mono text-sm">{property.numero_matricula}</span>
                           ) : (
                             <span className="text-muted-foreground text-sm">-</span>
                           )}
-                        </TableCell>
-                        <TableCell>
+                        </ResizableTableCell>
+                        <ResizableTableCell>
                           {property.proprietario_papel || <span className="text-muted-foreground">-</span>}
-                        </TableCell>
-                        <TableCell>
+                        </ResizableTableCell>
+                        <ResizableTableCell>
                           {property.proprietario_matricula || <span className="text-muted-foreground">-</span>}
-                        </TableCell>
-                        <TableCell className="text-right">{formatCurrency(property.declared_value)}</TableCell>
-                        <TableCell className="text-right font-medium">{formatCurrency(property.market_value || 0)}</TableCell>
-                      </TableRow>
+                        </ResizableTableCell>
+                        <ResizableTableCell className="text-right">{formatCurrency(property.declared_value)}</ResizableTableCell>
+                        <ResizableTableCell className="text-right font-medium">{formatCurrency(property.market_value || 0)}</ResizableTableCell>
+                      </ResizableTableRow>
                     ))}
-                  </TableBody>
-                </Table>
+                  </ResizableTableBody>
+                </ResizableTable>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
