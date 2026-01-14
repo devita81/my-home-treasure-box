@@ -61,6 +61,11 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (!user) {
+      toast.error('Você precisa estar logado para enviar documentos');
+      return;
+    }
+
     if (file.type !== 'application/pdf') {
       toast.error('Apenas arquivos PDF são permitidos');
       return;
@@ -79,11 +84,14 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
 
       const { error: uploadError } = await supabase.storage
         .from('property-documents')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          contentType: file.type,
+          upsert: false,
+        });
 
       if (uploadError) throw uploadError;
 
-      const { error: metaError } = await supabase
+      const { data: inserted, error: metaError } = await supabase
         .from('property_documents')
         .insert({
           property_id: propertyId,
@@ -91,16 +99,26 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
           file_path: filePath,
           file_size: file.size,
           document_type: 'matricula',
-          uploaded_by: user?.id
-        });
+          uploaded_by: user.id,
+        })
+        .select('*')
+        .single();
 
-      if (metaError) throw metaError;
+      if (metaError) {
+        // Rollback storage upload to avoid orphan files
+        await supabase.storage.from('property-documents').remove([filePath]);
+        throw metaError;
+      }
+
+      // Optimistic UI update so the user sees the file immediately
+      if (inserted) {
+        setDocuments((prev) => [inserted as PropertyDocument, ...prev]);
+      }
 
       toast.success('Documento enviado com sucesso!');
-      fetchDocuments();
     } catch (error: any) {
       console.error('Error uploading document:', error);
-      toast.error(error.message || 'Erro ao enviar documento');
+      toast.error(error?.message || 'Erro ao enviar documento');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
