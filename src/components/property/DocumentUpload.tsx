@@ -66,8 +66,8 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Arquivo muito grande. Máximo 10MB');
+    if (file.size > 12 * 1024 * 1024) {
+      toast.error('Arquivo muito grande. Máximo 12MB');
       return;
     }
 
@@ -279,7 +279,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
               {isUploading ? 'Enviando...' : 'Enviar Documento (PDF)'}
             </Button>
             <p className="text-xs text-muted-foreground text-center">
-              Máximo 10MB • Apenas PDF
+              Máximo 12MB • Apenas PDF
             </p>
           </div>
         )}
