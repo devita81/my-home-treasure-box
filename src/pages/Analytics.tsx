@@ -54,8 +54,11 @@ interface GroupedData {
   properties: Property[];
 }
 
-type SortField = 'rua' | 'tipo_imovel' | 'cidade' | 'declared_value' | 'market_value' | 'iptu_value' | 'iptu_pago' | 'valor_aluguel' | 'valor_condominio' | 'alugado';
+type SortField = 'rua' | 'tipo_imovel' | 'cidade' | 'declared_value' | 'market_value' | 'iptu_value' | 'iptu_pago' | 'valor_aluguel' | 'valor_condominio' | 'alugado' | 'numero_matricula' | 'proprietario_matricula' | 'proprietario_papel' | 'validado';
 type SortOrder = 'asc' | 'desc';
+
+// Pendentes sort state
+type PendentesSortField = 'endereco' | 'tipo_imovel' | 'cidade' | 'numero_matricula' | 'proprietario_matricula' | 'proprietario_papel' | 'validado' | 'declared_value' | 'market_value';
 
 interface DialogState {
   isOpen: boolean;
@@ -79,6 +82,10 @@ const Analytics = () => {
   });
   const [dialogSortField, setDialogSortField] = useState<SortField>('declared_value');
   const [dialogSortOrder, setDialogSortOrder] = useState<SortOrder>('desc');
+  
+  // Pendentes table sort state
+  const [pendentesSortField, setPendentesSortField] = useState<PendentesSortField>('endereco');
+  const [pendentesSortOrder, setPendentesSortOrder] = useState<SortOrder>('asc');
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -260,9 +267,52 @@ const Analytics = () => {
   }, [properties, distributionMetric]);
 
   // ==================== IMÓVEIS NÃO VALIDADOS ====================
-  const naoValidadosProperties = useMemo(() => {
-    return properties.filter(p => !p.validado);
-  }, [properties]);
+  const togglePendentesSort = (field: PendentesSortField) => {
+    if (pendentesSortField === field) {
+      setPendentesSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setPendentesSortField(field);
+      setPendentesSortOrder('asc');
+    }
+  };
+
+  const getPropertyAddressForSort = (p: Property) => {
+    const parts = [p.rua];
+    if (p.numero) parts.push(p.numero);
+    if (p.apartamento) parts.push(`Apto ${p.apartamento}`);
+    return parts.join(', ');
+  };
+
+  const sortedNaoValidadosProperties = useMemo(() => {
+    const filtered = properties.filter(p => !p.validado);
+    return [...filtered].sort((a, b) => {
+      const multiplier = pendentesSortOrder === 'asc' ? 1 : -1;
+      switch (pendentesSortField) {
+        case 'endereco':
+          return multiplier * getPropertyAddressForSort(a).localeCompare(getPropertyAddressForSort(b), 'pt-BR');
+        case 'tipo_imovel':
+          return multiplier * (a.tipo_imovel || '').localeCompare(b.tipo_imovel || '', 'pt-BR');
+        case 'cidade':
+          return multiplier * `${a.cidade} - ${a.estado}`.localeCompare(`${b.cidade} - ${b.estado}`, 'pt-BR');
+        case 'numero_matricula':
+          return multiplier * (a.numero_matricula || '').localeCompare(b.numero_matricula || '', 'pt-BR');
+        case 'proprietario_matricula':
+          return multiplier * (a.proprietario_matricula || '').localeCompare(b.proprietario_matricula || '', 'pt-BR');
+        case 'proprietario_papel':
+          return multiplier * (a.proprietario_papel || '').localeCompare(b.proprietario_papel || '', 'pt-BR');
+        case 'validado':
+          return multiplier * ((a.validado ? 1 : 0) - (b.validado ? 1 : 0));
+        case 'declared_value':
+          return multiplier * ((a.declared_value || 0) - (b.declared_value || 0));
+        case 'market_value':
+          return multiplier * ((a.market_value || 0) - (b.market_value || 0));
+        default:
+          return 0;
+      }
+    });
+  }, [properties, pendentesSortField, pendentesSortOrder]);
+
+  const naoValidadosProperties = sortedNaoValidadosProperties;
 
   // ==================== RANKING ====================
   const rankedProperties = useMemo(() => {
@@ -341,6 +391,28 @@ const Analytics = () => {
         )}
       </div>
     </TableHead>
+  );
+
+  // Sortable header for Pendentes table
+  const PendentesSortableHeader = ({ field, label, className }: { field: PendentesSortField; label: string; className?: string }) => (
+    <ResizableTableHead 
+      columnId={field}
+      className={`cursor-pointer hover:bg-muted/50 select-none ${className || ''}`}
+      onClick={() => togglePendentesSort(field)}
+    >
+      <div className="flex items-center gap-1">
+        {label}
+        {pendentesSortField === field ? (
+          pendentesSortOrder === 'desc' ? (
+            <ChevronDown className="h-4 w-4" />
+          ) : (
+            <ChevronUp className="h-4 w-4" />
+          )
+        ) : (
+          <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
+        )}
+      </div>
+    </ResizableTableHead>
   );
 
   // ==================== GROUP ITEM COMPONENT ====================
@@ -921,15 +993,60 @@ const Analytics = () => {
                   <ResizableTableHeader>
                     <ResizableTableRow className="bg-muted/50">
                       <ResizableTableHead columnId="num" resizable={false}>#</ResizableTableHead>
-                      <ResizableTableHead columnId="endereco">Endereço</ResizableTableHead>
-                      <ResizableTableHead columnId="tipo">Tipo</ResizableTableHead>
-                      <ResizableTableHead columnId="cidade">Cidade</ResizableTableHead>
-                      <ResizableTableHead columnId="matricula">Matrícula</ResizableTableHead>
-                      <ResizableTableHead columnId="nome_matricula">Nome na Matrícula</ResizableTableHead>
-                      <ResizableTableHead columnId="prop_papel">Proprietário (Papel)</ResizableTableHead>
-                      <ResizableTableHead columnId="validado" className="text-center">Validado</ResizableTableHead>
-                      <ResizableTableHead columnId="val_declarado" className="text-right">Valor Declarado</ResizableTableHead>
-                      <ResizableTableHead columnId="val_mercado" className="text-right">Valor Mercado</ResizableTableHead>
+                      <ResizableTableHead columnId="endereco" className="cursor-pointer hover:bg-muted/50 select-none" onClick={() => togglePendentesSort('endereco')}>
+                        <div className="flex items-center gap-1">
+                          Endereço
+                          {pendentesSortField === 'endereco' ? (pendentesSortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
+                        </div>
+                      </ResizableTableHead>
+                      <ResizableTableHead columnId="tipo" className="cursor-pointer hover:bg-muted/50 select-none" onClick={() => togglePendentesSort('tipo_imovel')}>
+                        <div className="flex items-center gap-1">
+                          Tipo
+                          {pendentesSortField === 'tipo_imovel' ? (pendentesSortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
+                        </div>
+                      </ResizableTableHead>
+                      <ResizableTableHead columnId="cidade" className="cursor-pointer hover:bg-muted/50 select-none" onClick={() => togglePendentesSort('cidade')}>
+                        <div className="flex items-center gap-1">
+                          Cidade
+                          {pendentesSortField === 'cidade' ? (pendentesSortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
+                        </div>
+                      </ResizableTableHead>
+                      <ResizableTableHead columnId="matricula" className="cursor-pointer hover:bg-muted/50 select-none" onClick={() => togglePendentesSort('numero_matricula')}>
+                        <div className="flex items-center gap-1">
+                          Matrícula
+                          {pendentesSortField === 'numero_matricula' ? (pendentesSortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
+                        </div>
+                      </ResizableTableHead>
+                      <ResizableTableHead columnId="nome_matricula" className="cursor-pointer hover:bg-muted/50 select-none" onClick={() => togglePendentesSort('proprietario_matricula')}>
+                        <div className="flex items-center gap-1">
+                          Nome na Matrícula
+                          {pendentesSortField === 'proprietario_matricula' ? (pendentesSortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
+                        </div>
+                      </ResizableTableHead>
+                      <ResizableTableHead columnId="prop_papel" className="cursor-pointer hover:bg-muted/50 select-none" onClick={() => togglePendentesSort('proprietario_papel')}>
+                        <div className="flex items-center gap-1">
+                          Proprietário (Papel)
+                          {pendentesSortField === 'proprietario_papel' ? (pendentesSortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
+                        </div>
+                      </ResizableTableHead>
+                      <ResizableTableHead columnId="validado" className="text-center cursor-pointer hover:bg-muted/50 select-none" onClick={() => togglePendentesSort('validado')}>
+                        <div className="flex items-center justify-center gap-1">
+                          Validado
+                          {pendentesSortField === 'validado' ? (pendentesSortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
+                        </div>
+                      </ResizableTableHead>
+                      <ResizableTableHead columnId="val_declarado" className="text-right cursor-pointer hover:bg-muted/50 select-none" onClick={() => togglePendentesSort('declared_value')}>
+                        <div className="flex items-center justify-end gap-1">
+                          Valor Declarado
+                          {pendentesSortField === 'declared_value' ? (pendentesSortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
+                        </div>
+                      </ResizableTableHead>
+                      <ResizableTableHead columnId="val_mercado" className="text-right cursor-pointer hover:bg-muted/50 select-none" onClick={() => togglePendentesSort('market_value')}>
+                        <div className="flex items-center justify-end gap-1">
+                          Valor Mercado
+                          {pendentesSortField === 'market_value' ? (pendentesSortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
+                        </div>
+                      </ResizableTableHead>
                     </ResizableTableRow>
                   </ResizableTableHeader>
                   <ResizableTableBody>
