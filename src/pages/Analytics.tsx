@@ -911,8 +911,9 @@ const Analytics = () => {
                     { id: 'tipo', label: 'Tipo', defaultWidth: 100, minWidth: 70 },
                     { id: 'cidade', label: 'Cidade', defaultWidth: 150, minWidth: 100 },
                     { id: 'matricula', label: 'Matrícula', defaultWidth: 120, minWidth: 80 },
+                    { id: 'nome_matricula', label: 'Nome na Matrícula', defaultWidth: 180, minWidth: 100 },
                     { id: 'prop_papel', label: 'Proprietário (Papel)', defaultWidth: 180, minWidth: 100 },
-                    { id: 'prop_matricula', label: 'Proprietário (Matrícula)', defaultWidth: 180, minWidth: 100 },
+                    { id: 'validado', label: 'Validado', defaultWidth: 100, minWidth: 80, align: 'center' },
                     { id: 'val_declarado', label: 'Valor Declarado', defaultWidth: 130, minWidth: 100, align: 'right' },
                     { id: 'val_mercado', label: 'Valor Mercado', defaultWidth: 130, minWidth: 100, align: 'right' },
                   ]}
@@ -924,8 +925,9 @@ const Analytics = () => {
                       <ResizableTableHead columnId="tipo">Tipo</ResizableTableHead>
                       <ResizableTableHead columnId="cidade">Cidade</ResizableTableHead>
                       <ResizableTableHead columnId="matricula">Matrícula</ResizableTableHead>
+                      <ResizableTableHead columnId="nome_matricula">Nome na Matrícula</ResizableTableHead>
                       <ResizableTableHead columnId="prop_papel">Proprietário (Papel)</ResizableTableHead>
-                      <ResizableTableHead columnId="prop_matricula">Proprietário (Matrícula)</ResizableTableHead>
+                      <ResizableTableHead columnId="validado" className="text-center">Validado</ResizableTableHead>
                       <ResizableTableHead columnId="val_declarado" className="text-right">Valor Declarado</ResizableTableHead>
                       <ResizableTableHead columnId="val_mercado" className="text-right">Valor Mercado</ResizableTableHead>
                     </ResizableTableRow>
@@ -956,10 +958,23 @@ const Analytics = () => {
                           )}
                         </ResizableTableCell>
                         <ResizableTableCell>
-                          {property.proprietario_papel || <span className="text-muted-foreground">-</span>}
+                          {property.proprietario_matricula || <span className="text-muted-foreground">-</span>}
                         </ResizableTableCell>
                         <ResizableTableCell>
-                          {property.proprietario_matricula || <span className="text-muted-foreground">-</span>}
+                          {property.proprietario_papel || <span className="text-muted-foreground">-</span>}
+                        </ResizableTableCell>
+                        <ResizableTableCell className="text-center">
+                          {property.validado ? (
+                            <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                              Sim
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                              <XCircle className="h-3 w-3 mr-1" />
+                              Não
+                            </Badge>
+                          )}
                         </ResizableTableCell>
                         <ResizableTableCell className="text-right">{formatCurrency(property.declared_value)}</ResizableTableCell>
                         <ResizableTableCell className="text-right font-medium">{formatCurrency(property.market_value || 0)}</ResizableTableCell>
