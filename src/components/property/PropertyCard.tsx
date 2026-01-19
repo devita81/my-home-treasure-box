@@ -253,9 +253,9 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                     <span className="text-xs sm:text-sm text-muted-foreground">Tipo</span>
                     <span className="text-xs sm:text-sm font-medium capitalize">{property.tipo_imovel || 'Apartamento'}</span>
                   </div>
-                  <div className="flex items-center justify-between py-0.5 sm:py-1 border-b border-border/30">
-                    <span className="text-xs sm:text-sm text-muted-foreground">Proprietário</span>
-                    <span className="text-xs sm:text-sm font-medium">{abbreviateOwnerName(property.proprietario_papel)}</span>
+                  <div className="flex items-center justify-between py-0.5 sm:py-1 border-b border-border/30 gap-2">
+                    <span className="text-xs sm:text-sm text-muted-foreground shrink-0">Proprietário</span>
+                    <span className="text-xs sm:text-sm font-medium truncate text-right" title={property.proprietario_papel || '—'}>{abbreviateOwnerName(property.proprietario_papel)}</span>
                   </div>
                   <div className="flex items-center justify-between py-0.5 sm:py-1 border-b border-border/30">
                     <span className="text-xs sm:text-sm text-muted-foreground">Matrícula</span>
