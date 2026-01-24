@@ -433,8 +433,22 @@ const PropertyDetails = () => {
                   variant="outline"
                   className="gap-2"
                   onClick={() => {
-                    const searchQuery = encodeURIComponent(`${property.rua}, ${property.bairro}, ${property.cidade}`);
-                    window.open(`https://www.zapimoveis.com.br/venda/apartamentos/${property.estado.toLowerCase()}-${property.cidade.toLowerCase().replace(/\s+/g, '-')}/?onde=,${property.estado},${property.cidade},${property.bairro},,,,,,&transacao=Venda&endereco=${searchQuery}`, '_blank');
+                    // Formata o bairro para o padrão de URL do ZAP (ex: itaim-bibi)
+                    const bairroFormatado = property.bairro.toLowerCase()
+                      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove acentos
+                      .replace(/\s+/g, '-');
+                    const cidadeFormatada = property.cidade.toLowerCase()
+                      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                      .replace(/\s+/g, '-');
+                    const estadoFormatado = property.estado.toLowerCase();
+                    
+                    // URL base do ZAP com localização + busca textual pela rua
+                    const ruaFormatada = property.rua.toLowerCase()
+                      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                      .replace(/\s+/g, '-');
+                    
+                    const zapUrl = `https://www.zapimoveis.com.br/venda/apartamentos/${estadoFormatado}+${cidadeFormatada}++${bairroFormatado}/?transacao=venda&tipo=apartamento&pagina=1`;
+                    window.open(zapUrl, '_blank');
                   }}
                 >
                   <img 
@@ -451,8 +465,16 @@ const PropertyDetails = () => {
                   variant="outline"
                   className="gap-2"
                   onClick={() => {
-                    const searchQuery = encodeURIComponent(`${property.rua}, ${property.bairro}`);
-                    window.open(`https://www.quintoandar.com.br/comprar/imovel/${property.cidade.toLowerCase().replace(/\s+/g, '-')}-${property.estado.toLowerCase()}?q=${searchQuery}`, '_blank');
+                    const cidadeFormatada = property.cidade.toLowerCase()
+                      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                      .replace(/\s+/g, '-');
+                    const estadoFormatado = property.estado.toLowerCase();
+                    const bairroFormatado = property.bairro.toLowerCase()
+                      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                      .replace(/\s+/g, '-');
+                    
+                    const quintoandarUrl = `https://www.quintoandar.com.br/comprar/imovel/${cidadeFormatada}-${estadoFormatado}-brasil/bairro-${bairroFormatado}`;
+                    window.open(quintoandarUrl, '_blank');
                   }}
                 >
                   <img 
