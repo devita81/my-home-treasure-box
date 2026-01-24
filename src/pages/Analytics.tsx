@@ -1144,8 +1144,8 @@ const Analytics = () => {
           </DialogHeader>
           
           <div className="flex-1 overflow-auto px-6 py-4">
-            <div className="rounded-lg border overflow-hidden">
-              <Table>
+            <div className="rounded-lg border overflow-x-auto">
+              <Table className="min-w-[1600px]">
                 <TableHeader className="sticky top-0 bg-muted/80 backdrop-blur-sm z-10">
                   <TableRow>
                     <SortableHeader field="rua" label="Endereço ↕" />
