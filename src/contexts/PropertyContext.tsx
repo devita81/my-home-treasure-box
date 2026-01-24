@@ -12,6 +12,7 @@ interface PropertyContextType {
   addProperty: (property: PropertyFormData) => Promise<void>;
   updateProperty: (id: string, property: Partial<Property>) => Promise<void>;
   deleteProperty: (id: string) => Promise<void>;
+  duplicateProperty: (id: string) => Promise<string | null>;
   getFilteredProperties: () => Property[];
   getPropertyById: (id: string) => Property | undefined;
   refreshProperties: () => Promise<void>;
@@ -127,6 +128,47 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
       throw error;
     }
   }, []);
+
+  const duplicateProperty = useCallback(async (id: string): Promise<string | null> => {
+    if (!user) {
+      toast.error('Usuário não autenticado');
+      return null;
+    }
+
+    const propertyToDuplicate = properties.find((p) => p.id === id);
+    if (!propertyToDuplicate) {
+      toast.error('Imóvel não encontrado');
+      return null;
+    }
+
+    try {
+      // Remove id, created_at, updated_at and set new user_id
+      const { id: _, created_at, updated_at, ...propertyData } = propertyToDuplicate;
+      
+      const { data, error } = await supabase
+        .from('properties')
+        .insert([{ 
+          ...propertyData, 
+          user_id: user.id,
+          // Add suffix to indicate it's a copy
+          observacao: propertyData.observacao 
+            ? `${propertyData.observacao}\n\n[Duplicado em ${new Date().toLocaleDateString('pt-BR')}]`
+            : `[Duplicado em ${new Date().toLocaleDateString('pt-BR')}]`
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setProperties((prev) => [data as Property, ...prev]);
+      toast.success('Imóvel duplicado com sucesso!');
+      return data.id;
+    } catch (error: any) {
+      console.error('Error duplicating property:', error);
+      toast.error('Erro ao duplicar imóvel');
+      return null;
+    }
+  }, [user, properties]);
 
   const getFilteredProperties = useCallback(() => {
     // First filter
@@ -249,6 +291,7 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
         addProperty,
         updateProperty,
         deleteProperty,
+        duplicateProperty,
         getFilteredProperties,
         getPropertyById,
         refreshProperties,

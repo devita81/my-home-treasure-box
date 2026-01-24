@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 const Index = () => {
-  const { getFilteredProperties, deleteProperty, loading } = useProperties();
+  const { getFilteredProperties, deleteProperty, duplicateProperty, loading } = useProperties();
   const filteredProperties = getFilteredProperties();
 
   const handleDelete = async (id: string) => {
@@ -22,6 +22,10 @@ const Index = () => {
         toast.error('Erro ao excluir imóvel');
       }
     }
+  };
+
+  const handleDuplicate = async (id: string) => {
+    await duplicateProperty(id);
   };
 
   return (
@@ -84,7 +88,7 @@ const Index = () => {
                   className="animate-slide-up"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  <PropertyCard property={property} onDelete={handleDelete} />
+                  <PropertyCard property={property} onDelete={handleDelete} onDuplicate={handleDuplicate} />
                 </div>
               ))}
             </div>
