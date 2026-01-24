@@ -1127,7 +1127,7 @@ const Analytics = () => {
 
       {/* ==================== DRILL-DOWN DIALOG ==================== */}
       <Dialog open={dialogState.isOpen} onOpenChange={(open) => !open && closeDialog()}>
-        <DialogContent className="max-w-6xl max-h-[85vh] overflow-hidden flex flex-col p-0">
+        <DialogContent className="max-w-6xl h-[85vh] overflow-hidden flex flex-col p-0">
           <DialogHeader className="px-6 pt-6 pb-4 border-b">
             <div className="flex items-center justify-between">
               <div>
