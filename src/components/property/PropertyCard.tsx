@@ -254,16 +254,34 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                     <span className="text-xs sm:text-sm font-medium capitalize">{property.tipo_imovel || 'Apartamento'}</span>
                   </div>
                   <div className="flex items-center justify-between py-0.5 sm:py-1 border-b border-border/30 gap-2">
-                    <span className="text-xs sm:text-sm text-muted-foreground shrink-0">Proprietário</span>
+                    <span className="text-xs sm:text-sm text-muted-foreground shrink-0">Prop. Papel</span>
                     <span className="text-xs sm:text-sm font-medium truncate text-right" title={property.proprietario_papel || '—'}>{abbreviateOwnerName(property.proprietario_papel)}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-0.5 sm:py-1 border-b border-border/30 gap-2">
+                    <span className="text-xs sm:text-sm text-muted-foreground shrink-0">Prop. Matrícula</span>
+                    <span className="text-xs sm:text-sm font-medium truncate text-right" title={property.proprietario_matricula || '—'}>{abbreviateOwnerName(property.proprietario_matricula)}</span>
                   </div>
                   <div className="flex items-center justify-between py-0.5 sm:py-1 border-b border-border/30">
                     <span className="text-xs sm:text-sm text-muted-foreground">Matrícula</span>
                     <span className="text-xs sm:text-sm font-medium">{property.numero_matricula || '—'}</span>
                   </div>
-                  <div className="flex items-center justify-between py-0.5 sm:py-1">
+                  <div className="flex items-center justify-between py-0.5 sm:py-1 border-b border-border/30">
                     <span className="text-xs sm:text-sm text-muted-foreground">Contribuinte</span>
                     <span className="text-xs sm:text-sm font-medium font-mono">{property.numero_contribuinte || '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-0.5 sm:py-1">
+                    <span className="text-xs sm:text-sm text-muted-foreground">Validado</span>
+                    {property.validado ? (
+                      <Badge className="bg-success/10 text-success border-0 text-[9px] sm:text-[10px] px-1.5 py-0.5">
+                        <CheckCircle className="h-2.5 w-2.5 mr-0.5" />
+                        Sim
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-warning/10 text-warning border-0 text-[9px] sm:text-[10px] px-1.5 py-0.5">
+                        <XCircle className="h-2.5 w-2.5 mr-0.5" />
+                        Não
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </div>
