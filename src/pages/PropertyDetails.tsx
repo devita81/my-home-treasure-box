@@ -306,8 +306,24 @@ const PropertyDetails = () => {
                 </div>
                 <div className="flex justify-between items-center p-3 bg-secondary rounded-lg">
                   <span className="text-sm text-muted-foreground">Proprietário (Matrícula)</span>
-                  <span className="font-semibold">{abbreviateOwnerName(property.proprietario_matricula)}</span>
+                  <span className="font-semibold">
+                    {abbreviateOwnerName(property.proprietario_matricula)}
+                    {property.percentual_proprietario_matricula != null && property.percentual_proprietario_matricula !== 100 && (
+                      <span className="text-muted-foreground ml-1">({property.percentual_proprietario_matricula}%)</span>
+                    )}
+                  </span>
                 </div>
+                {property.proprietario_matricula_ii && (
+                  <div className="flex justify-between items-center p-3 bg-secondary rounded-lg">
+                    <span className="text-sm text-muted-foreground">Proprietário 2 (Matrícula)</span>
+                    <span className="font-semibold">
+                      {abbreviateOwnerName(property.proprietario_matricula_ii)}
+                      {property.percentual_proprietario_matricula_ii != null && property.percentual_proprietario_matricula_ii > 0 && (
+                        <span className="text-muted-foreground ml-1">({property.percentual_proprietario_matricula_ii}%)</span>
+                      )}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center p-3 bg-secondary rounded-lg">
                   <span className="text-sm text-muted-foreground">Nº Matrícula</span>
                   <span className="font-mono font-semibold">{property.numero_matricula || '—'}</span>
