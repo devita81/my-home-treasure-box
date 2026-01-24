@@ -1,5 +1,6 @@
 import { Property } from '@/types/property';
 import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 
 interface ExportColumn {
   key: string;
@@ -57,13 +58,6 @@ const simpleColumns: ExportColumn[] = [
   { key: 'valor_aluguel', label: 'Aluguel', format: (v) => formatCurrency(v) },
 ];
 
-const escapeCSV = (value: string): string => {
-  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return value;
-};
-
 export function useExportData() {
   const exportToExcel = (
     properties: Property[],
@@ -76,34 +70,38 @@ export function useExportData() {
     }
 
     try {
-      // Create CSV content (Excel compatible)
-      const headers = columns.map(col => escapeCSV(col.label)).join(',');
-      
-      const rows = properties.map(property => {
-        return columns.map(col => {
+      // Build data array for Excel
+      const data = properties.map(property => {
+        const row: Record<string, string> = {};
+        columns.forEach(col => {
           const value = col.key === 'address' 
             ? '' 
             : (property as any)[col.key];
-          const formatted = col.format ? col.format(value, property) : String(value || '');
-          return escapeCSV(formatted);
-        }).join(',');
+          row[col.label] = col.format ? col.format(value, property) : String(value || '');
+        });
+        return row;
       });
 
-      const csvContent = '\uFEFF' + [headers, ...rows].join('\n'); // BOM for Excel UTF-8
+      // Create workbook and worksheet
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
       
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      
-      const fileName = `${title.replace(/[^a-zA-Z0-9áéíóúâêîôûãõçÁÉÍÓÚÂÊÎÔÛÃÕÇ ]/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
-      
-      link.setAttribute('href', url);
-      link.setAttribute('download', fileName);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // Auto-size columns
+      const colWidths = columns.map(col => ({
+        wch: Math.max(
+          col.label.length,
+          ...data.map(row => (row[col.label] || '').length)
+        ) + 2
+      }));
+      worksheet['!cols'] = colWidths;
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Imóveis');
+
+      // Generate filename
+      const fileName = `${title.replace(/[^a-zA-Z0-9áéíóúâêîôûãõçÁÉÍÓÚÂÊÎÔÛÃÕÇ ]/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+      // Write and download
+      XLSX.writeFile(workbook, fileName);
       
       toast.success(`Exportado ${properties.length} imóveis para Excel`);
     } catch (error) {
