@@ -28,7 +28,8 @@ import {
   BedDouble,
   Bath,
   Car,
-  Ruler
+  Ruler,
+  Copy
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
@@ -36,9 +37,10 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 interface PropertyCardProps {
   property: Property;
   onDelete?: (id: string) => void;
+  onDuplicate?: (id: string) => void;
 }
 
-export function PropertyCard({ property, onDelete }: PropertyCardProps) {
+export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
@@ -379,6 +381,20 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                   <Edit className="h-4 w-4" />
                 </Button>
               </Link>
+              {onDuplicate && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDuplicate(property.id);
+                  }}
+                  className="px-3 text-primary hover:text-primary hover:bg-primary/10"
+                  title="Duplicar imóvel"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              )}
               {onDelete && (
                 <Button 
                   variant="outline" 
