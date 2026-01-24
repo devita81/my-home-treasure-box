@@ -433,11 +433,11 @@ const PropertyDetails = () => {
                   variant="outline"
                   className="gap-2"
                   onClick={() => {
-                    // Busca no DuckDuckGo restrita ao ZAP Imóveis com o endereço completo + número
+                    // Busca no Bing restrita ao ZAP Imóveis com o endereço completo + número
                     const endereco = `${property.rua} ${property.numero || ''} ${property.bairro} ${property.cidade}`.trim();
                     const searchQuery = encodeURIComponent(`site:zapimoveis.com.br ${endereco} apartamento venda`);
-                    const duckUrl = `https://duckduckgo.com/?q=${searchQuery}`;
-                    window.open(duckUrl, '_blank');
+                    const bingUrl = `https://www.bing.com/search?q=${searchQuery}`;
+                    window.open(bingUrl, '_blank');
                   }}
                 >
                   <img 
@@ -454,11 +454,11 @@ const PropertyDetails = () => {
                   variant="outline"
                   className="gap-2"
                   onClick={() => {
-                    // Busca no DuckDuckGo restrita ao QuintoAndar com o endereço completo + número
+                    // Busca no Bing restrita ao QuintoAndar com o endereço completo + número
                     const endereco = `${property.rua} ${property.numero || ''} ${property.bairro} ${property.cidade}`.trim();
                     const searchQuery = encodeURIComponent(`site:quintoandar.com.br ${endereco} apartamento`);
-                    const duckUrl = `https://duckduckgo.com/?q=${searchQuery}`;
-                    window.open(duckUrl, '_blank');
+                    const bingUrl = `https://www.bing.com/search?q=${searchQuery}`;
+                    window.open(bingUrl, '_blank');
                   }}
                 >
                   <img 
