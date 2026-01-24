@@ -17,6 +17,9 @@ export interface Property {
   iptu_pago: boolean;
   proprietario_papel: string;
   proprietario_matricula: string;
+  proprietario_matricula_ii?: string | null;
+  percentual_proprietario_matricula?: number | null;
+  percentual_proprietario_matricula_ii?: number | null;
   user_id: string;
   validado: boolean;
   vendido: boolean;
