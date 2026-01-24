@@ -56,7 +56,7 @@ interface GroupedData {
   properties: Property[];
 }
 
-type SortField = 'rua' | 'tipo_imovel' | 'cidade' | 'declared_value' | 'market_value' | 'iptu_value' | 'iptu_pago' | 'valor_aluguel' | 'valor_condominio' | 'alugado' | 'numero_matricula' | 'proprietario_matricula' | 'proprietario_papel' | 'validado';
+type SortField = 'rua' | 'tipo_imovel' | 'cidade' | 'declared_value' | 'market_value' | 'iptu_value' | 'iptu_pago' | 'valor_aluguel' | 'valor_condominio' | 'alugado' | 'numero_matricula' | 'numero_contribuinte' | 'proprietario_matricula' | 'proprietario_matricula_ii' | 'proprietario_papel' | 'validado';
 type SortOrder = 'asc' | 'desc';
 
 // Pendentes sort state
@@ -142,6 +142,16 @@ const Analytics = () => {
           return multiplier * ((a.valor_condominio || 0) - (b.valor_condominio || 0));
         case 'alugado':
           return multiplier * ((a.alugado ? 1 : 0) - (b.alugado ? 1 : 0));
+        case 'numero_matricula':
+          return multiplier * (a.numero_matricula || '').localeCompare(b.numero_matricula || '', 'pt-BR');
+        case 'numero_contribuinte':
+          return multiplier * (a.numero_contribuinte || '').localeCompare(b.numero_contribuinte || '', 'pt-BR');
+        case 'proprietario_papel':
+          return multiplier * (a.proprietario_papel || '').localeCompare(b.proprietario_papel || '', 'pt-BR');
+        case 'proprietario_matricula':
+          return multiplier * (a.proprietario_matricula || '').localeCompare(b.proprietario_matricula || '', 'pt-BR');
+        case 'proprietario_matricula_ii':
+          return multiplier * (a.proprietario_matricula_ii || '').localeCompare(b.proprietario_matricula_ii || '', 'pt-BR');
         default:
           return 0;
       }
@@ -1147,6 +1157,11 @@ const Analytics = () => {
                     <SortableHeader field="iptu_value" label="IPTU ↕" />
                     <SortableHeader field="valor_aluguel" label="Aluguel ↕" />
                     <SortableHeader field="alugado" label="Status ↕" />
+                    <SortableHeader field="numero_matricula" label="Matrícula ↕" />
+                    <SortableHeader field="numero_contribuinte" label="Nº Contrib. ↕" />
+                    <SortableHeader field="proprietario_papel" label="Prop. Papel ↕" />
+                    <SortableHeader field="proprietario_matricula" label="Prop. Matr. I ↕" />
+                    <SortableHeader field="proprietario_matricula_ii" label="Prop. Matr. II ↕" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1185,11 +1200,34 @@ const Analytics = () => {
                           </Badge>
                         )}
                       </TableCell>
+                      <TableCell className="py-4">
+                        {property.numero_matricula ? (
+                          <span className="font-mono text-sm">{property.numero_matricula}</span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="py-4">
+                        {property.numero_contribuinte ? (
+                          <span className="font-mono text-sm">{property.numero_contribuinte}</span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="py-4">
+                        {property.proprietario_papel || <span className="text-muted-foreground">-</span>}
+                      </TableCell>
+                      <TableCell className="py-4">
+                        {property.proprietario_matricula || <span className="text-muted-foreground">-</span>}
+                      </TableCell>
+                      <TableCell className="py-4">
+                        {property.proprietario_matricula_ii || <span className="text-muted-foreground">-</span>}
+                      </TableCell>
                     </TableRow>
                   ))}
                   {sortedDialogProperties.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center text-muted-foreground py-12">
+                      <TableCell colSpan={14} className="text-center text-muted-foreground py-12">
                         Nenhum imóvel encontrado
                       </TableCell>
                     </TableRow>
