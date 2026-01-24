@@ -434,8 +434,9 @@ const PropertyDetails = () => {
                   className="gap-2"
                   onClick={() => {
                     // Busca no Bing restrita ao ZAP Imóveis com o endereço completo + número
+                    const tipoImovel = property.tipo_imovel || 'imovel';
                     const endereco = `${property.rua} ${property.numero || ''} ${property.bairro} ${property.cidade}`.trim();
-                    const searchQuery = encodeURIComponent(`site:zapimoveis.com.br ${endereco} apartamento venda`);
+                    const searchQuery = encodeURIComponent(`site:zapimoveis.com.br ${endereco} ${tipoImovel} venda`);
                     const bingUrl = `https://www.bing.com/search?q=${searchQuery}`;
                     window.open(bingUrl, '_blank');
                   }}
@@ -455,8 +456,9 @@ const PropertyDetails = () => {
                   className="gap-2"
                   onClick={() => {
                     // Busca no Bing restrita ao QuintoAndar com o endereço completo + número
+                    const tipoImovel = property.tipo_imovel || 'imovel';
                     const endereco = `${property.rua} ${property.numero || ''} ${property.bairro} ${property.cidade}`.trim();
-                    const searchQuery = encodeURIComponent(`site:quintoandar.com.br ${endereco} apartamento`);
+                    const searchQuery = encodeURIComponent(`site:quintoandar.com.br ${endereco} ${tipoImovel}`);
                     const bingUrl = `https://www.bing.com/search?q=${searchQuery}`;
                     window.open(bingUrl, '_blank');
                   }}
