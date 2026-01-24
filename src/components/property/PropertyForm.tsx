@@ -301,6 +301,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                     <SelectItem value="casa">Casa</SelectItem>
                     <SelectItem value="terreno">Terreno</SelectItem>
                     <SelectItem value="conjunto_comercial">Conjunto Comercial</SelectItem>
+                    <SelectItem value="garagem">Garagem</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
