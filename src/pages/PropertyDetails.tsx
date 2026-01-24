@@ -433,11 +433,11 @@ const PropertyDetails = () => {
                   variant="outline"
                   className="gap-2"
                   onClick={() => {
-                    // Busca no Google restrita ao ZAP Imóveis com o endereço completo + número
+                    // Busca no DuckDuckGo restrita ao ZAP Imóveis com o endereço completo + número
                     const endereco = `${property.rua} ${property.numero || ''} ${property.bairro} ${property.cidade}`.trim();
-                    const searchQuery = encodeURIComponent(`${endereco} apartamento venda`);
-                    const googleUrl = `https://www.google.com/search?q=site:zapimoveis.com.br+${searchQuery}`;
-                    window.open(googleUrl, '_blank');
+                    const searchQuery = encodeURIComponent(`site:zapimoveis.com.br ${endereco} apartamento venda`);
+                    const duckUrl = `https://duckduckgo.com/?q=${searchQuery}`;
+                    window.open(duckUrl, '_blank');
                   }}
                 >
                   <img 
@@ -454,11 +454,11 @@ const PropertyDetails = () => {
                   variant="outline"
                   className="gap-2"
                   onClick={() => {
-                    // Busca no Google restrita ao QuintoAndar com o endereço completo + número
+                    // Busca no DuckDuckGo restrita ao QuintoAndar com o endereço completo + número
                     const endereco = `${property.rua} ${property.numero || ''} ${property.bairro} ${property.cidade}`.trim();
-                    const searchQuery = encodeURIComponent(`${endereco} apartamento`);
-                    const googleUrl = `https://www.google.com/search?q=site:quintoandar.com.br+${searchQuery}`;
-                    window.open(googleUrl, '_blank');
+                    const searchQuery = encodeURIComponent(`site:quintoandar.com.br ${endereco} apartamento`);
+                    const duckUrl = `https://duckduckgo.com/?q=${searchQuery}`;
+                    window.open(duckUrl, '_blank');
                   }}
                 >
                   <img 
