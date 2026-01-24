@@ -286,13 +286,14 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                 </div>
               </div>
 
-              {/* Card: Características */}
+              {/* Card: Características & Metragens (Combined) */}
               <div className="bg-violet-500/5 rounded-lg p-2 sm:p-3 border border-violet-500/10">
                 <div className="flex items-center gap-1.5 mb-1.5 sm:mb-2">
                   <Home className="h-3 sm:h-3.5 w-3 sm:w-3.5 text-primary" />
                   <h4 className="text-[10px] sm:text-xs font-bold text-primary uppercase tracking-wide">Características</h4>
                 </div>
                 <div className="grid grid-cols-2 gap-x-2 sm:gap-x-3 gap-y-0.5 sm:gap-y-1">
+                  {/* Quartos e Suítes */}
                   <div className="flex items-center justify-between py-0.5 sm:py-1 border-b border-border/30">
                     <div className="flex items-center gap-1">
                       <BedDouble className="h-2.5 sm:h-3 w-2.5 sm:w-3 text-muted-foreground" />
@@ -307,40 +308,42 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                     </div>
                     <span className="text-xs sm:text-sm font-medium">{property.suites || '—'}</span>
                   </div>
-                  <div className="flex items-center justify-between py-0.5 sm:py-1">
+                  {/* Banheiros e Garagens */}
+                  <div className="flex items-center justify-between py-0.5 sm:py-1 border-b border-border/30">
                     <div className="flex items-center gap-1">
                       <Bath className="h-2.5 sm:h-3 w-2.5 sm:w-3 text-muted-foreground" />
                       <span className="text-xs sm:text-sm text-muted-foreground">Banheiros</span>
                     </div>
                     <span className="text-xs sm:text-sm font-medium">{property.banheiros || '—'}</span>
                   </div>
-                  <div className="flex items-center justify-between py-0.5 sm:py-1">
+                  <div className="flex items-center justify-between py-0.5 sm:py-1 border-b border-border/30">
                     <div className="flex items-center gap-1">
                       <Car className="h-2.5 sm:h-3 w-2.5 sm:w-3 text-muted-foreground" />
                       <span className="text-xs sm:text-sm text-muted-foreground">Garagens</span>
                     </div>
                     <span className="text-xs sm:text-sm font-medium">{property.garagens || '—'}</span>
                   </div>
-                </div>
-              </div>
-
-              {/* Card: Metragens */}
-              <div className="bg-emerald-500/5 rounded-lg p-2 sm:p-3 border border-emerald-500/10">
-                <div className="flex items-center gap-1.5 mb-1.5 sm:mb-2">
-                  <Ruler className="h-3 sm:h-3.5 w-3 sm:w-3.5 text-primary" />
-                  <h4 className="text-[10px] sm:text-xs font-bold text-primary uppercase tracking-wide">Metragens</h4>
-                </div>
-                <div className="space-y-0.5 sm:space-y-1">
+                  {/* Metragens */}
                   <div className="flex items-center justify-between py-0.5 sm:py-1 border-b border-border/30">
-                    <span className="text-xs sm:text-sm text-muted-foreground">Útil</span>
+                    <div className="flex items-center gap-1">
+                      <Ruler className="h-2.5 sm:h-3 w-2.5 sm:w-3 text-muted-foreground" />
+                      <span className="text-xs sm:text-sm text-muted-foreground">Útil</span>
+                    </div>
                     <span className="text-xs sm:text-sm font-medium">{property.metragem ? `${property.metragem} m²` : '—'}</span>
                   </div>
                   <div className="flex items-center justify-between py-0.5 sm:py-1 border-b border-border/30">
-                    <span className="text-xs sm:text-sm text-muted-foreground">Comum</span>
+                    <div className="flex items-center gap-1">
+                      <Ruler className="h-2.5 sm:h-3 w-2.5 sm:w-3 text-muted-foreground" />
+                      <span className="text-xs sm:text-sm text-muted-foreground">Comum</span>
+                    </div>
                     <span className="text-xs sm:text-sm font-medium">{property.area_comum ? `${property.area_comum} m²` : '—'}</span>
                   </div>
-                  <div className="flex items-center justify-between py-0.5 sm:py-1">
-                    <span className="text-xs sm:text-sm text-muted-foreground">Total</span>
+                  {/* Total (full width) */}
+                  <div className="col-span-2 flex items-center justify-between py-0.5 sm:py-1 bg-primary/5 rounded px-1">
+                    <div className="flex items-center gap-1">
+                      <Ruler className="h-2.5 sm:h-3 w-2.5 sm:w-3 text-primary" />
+                      <span className="text-xs sm:text-sm font-medium text-primary">Área Total</span>
+                    </div>
                     <span className="text-xs sm:text-sm font-semibold text-primary">{property.area_total ? `${property.area_total} m²` : '—'}</span>
                   </div>
                 </div>
