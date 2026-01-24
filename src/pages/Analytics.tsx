@@ -1144,9 +1144,9 @@ const Analytics = () => {
             </div>
           </DialogHeader>
           
-          <div className="flex-1 overflow-hidden px-6 py-4">
-            <div className="rounded-lg border overflow-hidden h-full">
-              <ScrollArea className="h-full w-full" showHorizontal>
+          <div className="flex-1 min-h-0 px-6 py-4">
+            <div className="rounded-lg border h-full">
+              <ScrollArea className="h-full w-full" showHorizontal showVertical>
                 <table className="min-w-[1600px] w-full caption-bottom text-sm">
                   <TableHeader className="sticky top-0 bg-muted/80 backdrop-blur-sm z-10">
                     <TableRow>
