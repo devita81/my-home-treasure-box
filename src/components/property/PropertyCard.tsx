@@ -104,8 +104,8 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
       >
         {/* Main horizontal layout */}
         <div className="flex flex-col sm:flex-row">
-          {/* Image section */}
-          <div className="relative w-full sm:w-[45%] aspect-[4/3] overflow-hidden bg-muted">
+          {/* Image section - reduced width for more info space */}
+          <div className="relative w-full sm:w-[32%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-muted shrink-0">
             {hasRealPhotos ? (
               <>
                 <img
