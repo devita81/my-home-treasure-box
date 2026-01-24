@@ -10,6 +10,8 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { ExportButtons } from '@/components/ui/export-buttons';
+import { useExportData } from '@/hooks/useExportData';
 
 interface GroupedMetragem {
   cidade: string;
@@ -25,6 +27,7 @@ type SortOrder = 'asc' | 'desc';
 
 export function MetragemStats() {
   const { properties } = useProperties();
+  const { exportToExcel, exportToPDF, simpleColumns } = useExportData();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<GroupedMetragem | null>(null);
   const [sortField, setSortField] = useState<SortField>('metragem');
@@ -182,9 +185,15 @@ export function MetragemStats() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              {selectedGroup?.cidade} - {tipoLabels[selectedGroup?.tipo || ''] || selectedGroup?.tipo}
-            </DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle>
+                {selectedGroup?.cidade} - {tipoLabels[selectedGroup?.tipo || ''] || selectedGroup?.tipo}
+              </DialogTitle>
+              <ExportButtons
+                onExportExcel={() => exportToExcel(sortedProperties, `${selectedGroup?.cidade} - ${tipoLabels[selectedGroup?.tipo || ''] || selectedGroup?.tipo}`, simpleColumns)}
+                onExportPDF={() => exportToPDF(sortedProperties, `${selectedGroup?.cidade} - ${tipoLabels[selectedGroup?.tipo || ''] || selectedGroup?.tipo}`, `Total: ${formatMetragem(selectedGroup?.metragem || 0)} | ${formatCurrencyFull(selectedGroup?.marketValue || 0)} em ${selectedGroup?.count} imóveis`, simpleColumns)}
+              />
+            </div>
           </DialogHeader>
           <div className="space-y-2 mt-4">
             <p className="text-sm text-muted-foreground mb-4">

@@ -25,6 +25,8 @@ import {
   ResizableTableHeader,
   ResizableTableRow,
 } from '@/components/ui/resizable-table';
+import { ExportButtons } from '@/components/ui/export-buttons';
+import { useExportData } from '@/hooks/useExportData';
 import { 
   TrendingUp, 
   Home, 
@@ -69,6 +71,7 @@ interface DialogState {
 
 const Analytics = () => {
   const { properties } = useProperties();
+  const { exportToExcel, exportToPDF } = useExportData();
   const [rankingSortOrder, setRankingSortOrder] = useState<'asc' | 'desc'>('desc');
   const [rankingMetric, setRankingMetric] = useState<'declared_value' | 'market_value' | 'valor_aluguel' | 'valor_condominio' | 'iptu_value'>('market_value');
   const [distributionMetric, setDistributionMetric] = useState<'declared_value' | 'market_value' | 'valor_aluguel'>('market_value');
@@ -1115,11 +1118,19 @@ const Analytics = () => {
       <Dialog open={dialogState.isOpen} onOpenChange={(open) => !open && closeDialog()}>
         <DialogContent className="max-w-6xl max-h-[85vh] overflow-hidden flex flex-col p-0">
           <DialogHeader className="px-6 pt-6 pb-4 border-b">
-            <DialogTitle className="flex items-center gap-2 text-lg">
-              <Home className="h-5 w-5" />
-              {dialogState.title}
-            </DialogTitle>
-            <p className="text-sm text-muted-foreground">{dialogState.subtitle}</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle className="flex items-center gap-2 text-lg">
+                  <Home className="h-5 w-5" />
+                  {dialogState.title}
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground mt-1">{dialogState.subtitle}</p>
+              </div>
+              <ExportButtons
+                onExportExcel={() => exportToExcel(sortedDialogProperties, dialogState.title)}
+                onExportPDF={() => exportToPDF(sortedDialogProperties, dialogState.title, dialogState.subtitle)}
+              />
+            </div>
           </DialogHeader>
           
           <div className="flex-1 overflow-auto px-6 py-4">
