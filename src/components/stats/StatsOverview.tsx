@@ -10,6 +10,8 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { ExportButtons } from '@/components/ui/export-buttons';
+import { useExportData } from '@/hooks/useExportData';
 
 type StatType = 'total' | 'market' | 'declared' | 'rented' | 'rent' | 'validated' | 'iptu';
 type SortField = 'address' | 'value';
@@ -24,6 +26,7 @@ interface DialogState {
 
 export function StatsOverview() {
   const { properties } = useProperties();
+  const { exportToExcel, exportToPDF, simpleColumns } = useExportData();
   const [dialog, setDialog] = useState<DialogState>({
     open: false,
     title: '',
@@ -242,7 +245,13 @@ export function StatsOverview() {
       <Dialog open={dialog.open} onOpenChange={(open) => setDialog((prev) => ({ ...prev, open }))}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{dialog.title}</DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle>{dialog.title}</DialogTitle>
+              <ExportButtons
+                onExportExcel={() => exportToExcel(sortedProperties, dialog.title, simpleColumns)}
+                onExportPDF={() => exportToPDF(sortedProperties, dialog.title, `${dialog.properties.length} imóveis`, simpleColumns)}
+              />
+            </div>
           </DialogHeader>
           <div className="space-y-2 mt-4">
             <p className="text-sm text-muted-foreground mb-4">
