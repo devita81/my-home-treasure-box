@@ -27,7 +27,8 @@ import {
   Bath,
   Car,
   Search,
-  Loader2
+  Loader2,
+  ExternalLink
 } from 'lucide-react';
 
 const PropertyDetails = () => {
@@ -411,6 +412,59 @@ const PropertyDetails = () => {
                 )}
                 {isSearching ? 'Analisando mercado...' : 'Estimar Valor com IA'}
               </Button>
+            </CardContent>
+          </Card>
+
+          {/* Pesquisa em Sites Externos */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <ExternalLink className="h-5 w-5 text-primary" />
+                Pesquisar em Sites de Imóveis
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Compare valores de imóveis similares neste endereço em sites de referência do mercado imobiliário.
+              </p>
+              
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => {
+                    const searchQuery = encodeURIComponent(`${property.rua}, ${property.bairro}, ${property.cidade}`);
+                    window.open(`https://www.zapimoveis.com.br/venda/apartamentos/${property.estado.toLowerCase()}-${property.cidade.toLowerCase().replace(/\s+/g, '-')}/?onde=,${property.estado},${property.cidade},${property.bairro},,,,,,&transacao=Venda&endereco=${searchQuery}`, '_blank');
+                  }}
+                >
+                  <img 
+                    src="https://www.zapimoveis.com.br/favicon.ico" 
+                    alt="ZAP" 
+                    className="h-4 w-4"
+                    onError={(e) => e.currentTarget.style.display = 'none'}
+                  />
+                  Buscar no ZAP Imóveis
+                  <ExternalLink className="h-3 w-3" />
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => {
+                    const searchQuery = encodeURIComponent(`${property.rua}, ${property.bairro}`);
+                    window.open(`https://www.quintoandar.com.br/comprar/imovel/${property.cidade.toLowerCase().replace(/\s+/g, '-')}-${property.estado.toLowerCase()}?q=${searchQuery}`, '_blank');
+                  }}
+                >
+                  <img 
+                    src="https://www.quintoandar.com.br/favicon.ico" 
+                    alt="QuintoAndar" 
+                    className="h-4 w-4"
+                    onError={(e) => e.currentTarget.style.display = 'none'}
+                  />
+                  Buscar no QuintoAndar
+                  <ExternalLink className="h-3 w-3" />
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
