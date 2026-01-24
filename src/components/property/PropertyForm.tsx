@@ -33,6 +33,9 @@ const propertySchema = z.object({
   iptu_pago: z.boolean(),
   proprietario_papel: z.string().trim().max(200, 'Nome muito longo').optional().or(z.literal('')),
   proprietario_matricula: z.string().trim().max(200, 'Nome muito longo').optional().or(z.literal('')),
+  proprietario_matricula_ii: z.string().trim().max(200, 'Nome muito longo').optional().or(z.literal('')).nullable(),
+  percentual_proprietario_matricula: z.number().min(0).max(100).nullable().optional(),
+  percentual_proprietario_matricula_ii: z.number().min(0).max(100).nullable().optional(),
   validado: z.boolean(),
   vendido: z.boolean(),
   alugado: z.boolean(),
@@ -82,6 +85,9 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
       iptu_pago: property?.iptu_pago || false,
       proprietario_papel: property?.proprietario_papel || '',
       proprietario_matricula: property?.proprietario_matricula || '',
+      proprietario_matricula_ii: property?.proprietario_matricula_ii || '',
+      percentual_proprietario_matricula: property?.percentual_proprietario_matricula ?? 100,
+      percentual_proprietario_matricula_ii: property?.percentual_proprietario_matricula_ii ?? 0,
       validado: property?.validado || false,
       vendido: property?.vendido || false,
       alugado: property?.alugado || false,
@@ -433,13 +439,48 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="proprietario_matricula">Proprietário (Matrícula)</Label>
-              <Input
-                id="proprietario_matricula"
-                value={formData.proprietario_matricula}
-                onChange={(e) => handleChange('proprietario_matricula', e.target.value)}
-              />
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2 col-span-2">
+                <Label htmlFor="proprietario_matricula">Proprietário (Matrícula)</Label>
+                <Input
+                  id="proprietario_matricula"
+                  value={formData.proprietario_matricula}
+                  onChange={(e) => handleChange('proprietario_matricula', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="percentual_proprietario_matricula">% Propriedade</Label>
+                <Input
+                  id="percentual_proprietario_matricula"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.percentual_proprietario_matricula ?? 100}
+                  onChange={(e) => handleChange('percentual_proprietario_matricula', e.target.value === '' ? 100 : Number(e.target.value))}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2 col-span-2">
+                <Label htmlFor="proprietario_matricula_ii">Proprietário (Matrícula II)</Label>
+                <Input
+                  id="proprietario_matricula_ii"
+                  value={formData.proprietario_matricula_ii || ''}
+                  onChange={(e) => handleChange('proprietario_matricula_ii', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="percentual_proprietario_matricula_ii">% Propriedade</Label>
+                <Input
+                  id="percentual_proprietario_matricula_ii"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.percentual_proprietario_matricula_ii ?? 0}
+                  onChange={(e) => handleChange('percentual_proprietario_matricula_ii', e.target.value === '' ? 0 : Number(e.target.value))}
+                />
+              </div>
             </div>
 
             <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
