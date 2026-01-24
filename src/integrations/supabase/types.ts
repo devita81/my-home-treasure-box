@@ -41,8 +41,11 @@ export type Database = {
           numero_contribuinte: string | null
           numero_matricula: string | null
           observacao: string | null
+          percentual_proprietario_matricula: number | null
+          percentual_proprietario_matricula_ii: number | null
           photos: string[] | null
           proprietario_matricula: string | null
+          proprietario_matricula_ii: string | null
           proprietario_papel: string | null
           quartos: number | null
           rua: string
@@ -82,8 +85,11 @@ export type Database = {
           numero_contribuinte?: string | null
           numero_matricula?: string | null
           observacao?: string | null
+          percentual_proprietario_matricula?: number | null
+          percentual_proprietario_matricula_ii?: number | null
           photos?: string[] | null
           proprietario_matricula?: string | null
+          proprietario_matricula_ii?: string | null
           proprietario_papel?: string | null
           quartos?: number | null
           rua: string
@@ -123,8 +129,11 @@ export type Database = {
           numero_contribuinte?: string | null
           numero_matricula?: string | null
           observacao?: string | null
+          percentual_proprietario_matricula?: number | null
+          percentual_proprietario_matricula_ii?: number | null
           photos?: string[] | null
           proprietario_matricula?: string | null
+          proprietario_matricula_ii?: string | null
           proprietario_papel?: string | null
           quartos?: number | null
           rua?: string
