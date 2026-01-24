@@ -26,6 +26,7 @@ import {
   ResizableTableRow,
 } from '@/components/ui/resizable-table';
 import { ExportButtons } from '@/components/ui/export-buttons';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useExportData } from '@/hooks/useExportData';
 import { 
   TrendingUp, 
@@ -1143,97 +1144,99 @@ const Analytics = () => {
             </div>
           </DialogHeader>
           
-          <div className="flex-1 overflow-auto px-6 py-4">
-            <div className="rounded-lg border overflow-x-auto">
-              <Table className="min-w-[1600px]">
-                <TableHeader className="sticky top-0 bg-muted/80 backdrop-blur-sm z-10">
-                  <TableRow>
-                    <SortableHeader field="rua" label="Endereço ↕" />
-                    <SortableHeader field="tipo_imovel" label="Tipo ↕" />
-                    <SortableHeader field="cidade" label="Cidade ↕" />
-                    <SortableHeader field="numero_matricula" label="Matrícula ↕" />
-                    <SortableHeader field="numero_contribuinte" label="Nº Contrib. ↕" />
-                    <SortableHeader field="proprietario_papel" label="Prop. Papel ↕" />
-                    <SortableHeader field="proprietario_matricula" label="Prop. Matr. I ↕" />
-                    <SortableHeader field="proprietario_matricula_ii" label="Prop. Matr. II ↕" />
-                    <SortableHeader field="declared_value" label="Declarado ↕" />
-                    <SortableHeader field="market_value" label="Mercado ↕" />
-                    <SortableHeader field="valor_condominio" label="Condom. ↕" />
-                    <SortableHeader field="iptu_value" label="IPTU ↕" />
-                    <SortableHeader field="valor_aluguel" label="Aluguel ↕" />
-                    <SortableHeader field="alugado" label="Status ↕" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sortedDialogProperties.map((property, index) => (
-                    <TableRow 
-                      key={property.id} 
-                      className={`hover:bg-muted/50 transition-colors ${index % 2 === 0 ? 'bg-background' : 'bg-muted/20'}`}
-                    >
-                      <TableCell className="font-medium py-4 max-w-[180px]">
-                        <Link 
-                          to={`/property/${property.id}`}
-                          className="hover:text-primary hover:underline block truncate"
-                          onClick={closeDialog}
-                          title={getPropertyAddress(property)}
-                        >
-                          {getPropertyAddress(property)}
-                        </Link>
-                      </TableCell>
-                      <TableCell className="py-4">
-                        <Badge variant="outline" className="font-normal">{getTipoLabel(property.tipo_imovel)}</Badge>
-                      </TableCell>
-                      <TableCell className="py-4 whitespace-nowrap">{property.cidade} - {property.estado}</TableCell>
-                      <TableCell className="py-4 whitespace-nowrap">
-                        {property.numero_matricula ? (
-                          <span className="font-mono text-xs">{property.numero_matricula}</span>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="py-4 whitespace-nowrap">
-                        {property.numero_contribuinte ? (
-                          <span className="font-mono text-xs">{property.numero_contribuinte}</span>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="py-4 max-w-[160px] truncate" title={property.proprietario_papel || ''}>
-                        {property.proprietario_papel || <span className="text-muted-foreground">-</span>}
-                      </TableCell>
-                      <TableCell className="py-4 max-w-[220px] truncate" title={property.proprietario_matricula || ''}>
-                        {property.proprietario_matricula || <span className="text-muted-foreground">-</span>}
-                      </TableCell>
-                      <TableCell className="py-4 max-w-[220px] truncate" title={property.proprietario_matricula_ii || ''}>
-                        {property.proprietario_matricula_ii || <span className="text-muted-foreground">-</span>}
-                      </TableCell>
-                      <TableCell className="text-right py-4 font-medium whitespace-nowrap">{formatCurrency(property.declared_value)}</TableCell>
-                      <TableCell className="text-right py-4 font-medium whitespace-nowrap">{formatCurrency(property.market_value || 0)}</TableCell>
-                      <TableCell className="text-right py-4 whitespace-nowrap">{formatCurrency(property.valor_condominio || 0)}</TableCell>
-                      <TableCell className="text-right py-4 whitespace-nowrap">{formatCurrency(property.iptu_value || 0)}</TableCell>
-                      <TableCell className="text-right py-4 whitespace-nowrap">{formatCurrency(property.valor_aluguel || 0)}</TableCell>
-                      <TableCell className="text-center py-4">
-                        {property.alugado ? (
-                          <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-normal">
-                            Alugado
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 font-normal">
-                            Vago
-                          </Badge>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {sortedDialogProperties.length === 0 && (
+          <div className="flex-1 overflow-hidden px-6 py-4">
+            <div className="rounded-lg border overflow-hidden h-full">
+              <ScrollArea className="h-full w-full" showHorizontal>
+                <table className="min-w-[1600px] w-full caption-bottom text-sm">
+                  <TableHeader className="sticky top-0 bg-muted/80 backdrop-blur-sm z-10">
                     <TableRow>
-                      <TableCell colSpan={14} className="text-center text-muted-foreground py-12">
-                        Nenhum imóvel encontrado
-                      </TableCell>
+                      <SortableHeader field="rua" label="Endereço ↕" />
+                      <SortableHeader field="tipo_imovel" label="Tipo ↕" />
+                      <SortableHeader field="cidade" label="Cidade ↕" />
+                      <SortableHeader field="numero_matricula" label="Matrícula ↕" />
+                      <SortableHeader field="numero_contribuinte" label="Nº Contrib. ↕" />
+                      <SortableHeader field="proprietario_papel" label="Prop. Papel ↕" />
+                      <SortableHeader field="proprietario_matricula" label="Prop. Matr. I ↕" />
+                      <SortableHeader field="proprietario_matricula_ii" label="Prop. Matr. II ↕" />
+                      <SortableHeader field="declared_value" label="Declarado ↕" />
+                      <SortableHeader field="market_value" label="Mercado ↕" />
+                      <SortableHeader field="valor_condominio" label="Condom. ↕" />
+                      <SortableHeader field="iptu_value" label="IPTU ↕" />
+                      <SortableHeader field="valor_aluguel" label="Aluguel ↕" />
+                      <SortableHeader field="alugado" label="Status ↕" />
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {sortedDialogProperties.map((property, index) => (
+                      <TableRow 
+                        key={property.id} 
+                        className={`hover:bg-muted/50 transition-colors ${index % 2 === 0 ? 'bg-background' : 'bg-muted/20'}`}
+                      >
+                        <TableCell className="font-medium py-4 max-w-[180px]">
+                          <Link 
+                            to={`/property/${property.id}`}
+                            className="hover:text-primary hover:underline block truncate"
+                            onClick={closeDialog}
+                            title={getPropertyAddress(property)}
+                          >
+                            {getPropertyAddress(property)}
+                          </Link>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <Badge variant="outline" className="font-normal">{getTipoLabel(property.tipo_imovel)}</Badge>
+                        </TableCell>
+                        <TableCell className="py-4 whitespace-nowrap">{property.cidade} - {property.estado}</TableCell>
+                        <TableCell className="py-4 whitespace-nowrap">
+                          {property.numero_matricula ? (
+                            <span className="font-mono text-xs">{property.numero_matricula}</span>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="py-4 whitespace-nowrap">
+                          {property.numero_contribuinte ? (
+                            <span className="font-mono text-xs">{property.numero_contribuinte}</span>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="py-4 max-w-[160px] truncate" title={property.proprietario_papel || ''}>
+                          {property.proprietario_papel || <span className="text-muted-foreground">-</span>}
+                        </TableCell>
+                        <TableCell className="py-4 max-w-[220px] truncate" title={property.proprietario_matricula || ''}>
+                          {property.proprietario_matricula || <span className="text-muted-foreground">-</span>}
+                        </TableCell>
+                        <TableCell className="py-4 max-w-[220px] truncate" title={property.proprietario_matricula_ii || ''}>
+                          {property.proprietario_matricula_ii || <span className="text-muted-foreground">-</span>}
+                        </TableCell>
+                        <TableCell className="text-right py-4 font-medium whitespace-nowrap">{formatCurrency(property.declared_value)}</TableCell>
+                        <TableCell className="text-right py-4 font-medium whitespace-nowrap">{formatCurrency(property.market_value || 0)}</TableCell>
+                        <TableCell className="text-right py-4 whitespace-nowrap">{formatCurrency(property.valor_condominio || 0)}</TableCell>
+                        <TableCell className="text-right py-4 whitespace-nowrap">{formatCurrency(property.iptu_value || 0)}</TableCell>
+                        <TableCell className="text-right py-4 whitespace-nowrap">{formatCurrency(property.valor_aluguel || 0)}</TableCell>
+                        <TableCell className="text-center py-4">
+                          {property.alugado ? (
+                            <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-normal">
+                              Alugado
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 font-normal">
+                              Vago
+                            </Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {sortedDialogProperties.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={14} className="text-center text-muted-foreground py-12">
+                          Nenhum imóvel encontrado
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </table>
+              </ScrollArea>
             </div>
           </div>
         </DialogContent>
