@@ -263,16 +263,16 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
                     </div>
                     <div className="flex items-center justify-between py-0.5 sm:py-1 border-b border-border/30 gap-2">
                       <span className="text-xs sm:text-sm text-muted-foreground shrink-0">Prop. Matrícula</span>
-                      <div className="flex items-center gap-1 truncate">
-                        <span className="text-xs sm:text-sm font-medium truncate text-right" title={property.proprietario_matricula || '—'}>{abbreviateOwnerName(property.proprietario_matricula)}</span>
-                        <Badge variant="outline" className="text-[8px] px-1 py-0 shrink-0 bg-primary/10">{property.percentual_proprietario_matricula ?? 100}%</Badge>
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className="text-[10px] sm:text-xs font-medium truncate text-right" title={property.proprietario_matricula || '—'}>{abbreviateOwnerName(property.proprietario_matricula)}</span>
+                        <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0 shrink-0 bg-primary/10 font-semibold">{property.percentual_proprietario_matricula ?? 100}%</Badge>
                       </div>
                     </div>
                     <div className="flex items-center justify-between py-0.5 sm:py-1 border-b border-border/30 gap-2">
                       <span className="text-xs sm:text-sm text-muted-foreground shrink-0">Prop. Matrícula II</span>
-                      <div className="flex items-center gap-1 truncate">
-                        <span className="text-xs sm:text-sm font-medium truncate text-right" title={property.proprietario_matricula_ii || '—'}>{abbreviateOwnerName(property.proprietario_matricula_ii)}</span>
-                        <Badge variant="outline" className="text-[8px] px-1 py-0 shrink-0 bg-primary/10">{property.percentual_proprietario_matricula_ii ?? 0}%</Badge>
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className="text-[10px] sm:text-xs font-medium truncate text-right" title={property.proprietario_matricula_ii || '—'}>{abbreviateOwnerName(property.proprietario_matricula_ii)}</span>
+                        <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0 shrink-0 bg-primary/10 font-semibold">{property.percentual_proprietario_matricula_ii ?? 0}%</Badge>
                       </div>
                     </div>
                   </div>
