@@ -1151,17 +1151,17 @@ const Analytics = () => {
                     <SortableHeader field="rua" label="Endereço ↕" />
                     <SortableHeader field="tipo_imovel" label="Tipo ↕" />
                     <SortableHeader field="cidade" label="Cidade ↕" />
+                    <SortableHeader field="numero_matricula" label="Matrícula ↕" />
+                    <SortableHeader field="numero_contribuinte" label="Nº Contrib. ↕" />
+                    <SortableHeader field="proprietario_papel" label="Prop. Papel ↕" />
+                    <SortableHeader field="proprietario_matricula" label="Prop. Matr. I ↕" />
+                    <SortableHeader field="proprietario_matricula_ii" label="Prop. Matr. II ↕" />
                     <SortableHeader field="declared_value" label="Declarado ↕" />
                     <SortableHeader field="market_value" label="Mercado ↕" />
                     <SortableHeader field="valor_condominio" label="Condom. ↕" />
                     <SortableHeader field="iptu_value" label="IPTU ↕" />
                     <SortableHeader field="valor_aluguel" label="Aluguel ↕" />
                     <SortableHeader field="alugado" label="Status ↕" />
-                    <SortableHeader field="numero_matricula" label="Matrícula ↕" />
-                    <SortableHeader field="numero_contribuinte" label="Nº Contrib. ↕" />
-                    <SortableHeader field="proprietario_papel" label="Prop. Papel ↕" />
-                    <SortableHeader field="proprietario_matricula" label="Prop. Matr. I ↕" />
-                    <SortableHeader field="proprietario_matricula_ii" label="Prop. Matr. II ↕" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1184,6 +1184,29 @@ const Analytics = () => {
                         <Badge variant="outline" className="font-normal">{getTipoLabel(property.tipo_imovel)}</Badge>
                       </TableCell>
                       <TableCell className="py-4 whitespace-nowrap">{property.cidade} - {property.estado}</TableCell>
+                      <TableCell className="py-4 whitespace-nowrap">
+                        {property.numero_matricula ? (
+                          <span className="font-mono text-xs">{property.numero_matricula}</span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="py-4 whitespace-nowrap">
+                        {property.numero_contribuinte ? (
+                          <span className="font-mono text-xs">{property.numero_contribuinte}</span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="py-4 max-w-[160px] truncate" title={property.proprietario_papel || ''}>
+                        {property.proprietario_papel || <span className="text-muted-foreground">-</span>}
+                      </TableCell>
+                      <TableCell className="py-4 max-w-[220px] truncate" title={property.proprietario_matricula || ''}>
+                        {property.proprietario_matricula || <span className="text-muted-foreground">-</span>}
+                      </TableCell>
+                      <TableCell className="py-4 max-w-[220px] truncate" title={property.proprietario_matricula_ii || ''}>
+                        {property.proprietario_matricula_ii || <span className="text-muted-foreground">-</span>}
+                      </TableCell>
                       <TableCell className="text-right py-4 font-medium whitespace-nowrap">{formatCurrency(property.declared_value)}</TableCell>
                       <TableCell className="text-right py-4 font-medium whitespace-nowrap">{formatCurrency(property.market_value || 0)}</TableCell>
                       <TableCell className="text-right py-4 whitespace-nowrap">{formatCurrency(property.valor_condominio || 0)}</TableCell>
@@ -1199,29 +1222,6 @@ const Analytics = () => {
                             Vago
                           </Badge>
                         )}
-                      </TableCell>
-                      <TableCell className="py-4">
-                        {property.numero_matricula ? (
-                          <span className="font-mono text-sm">{property.numero_matricula}</span>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="py-4">
-                        {property.numero_contribuinte ? (
-                          <span className="font-mono text-sm">{property.numero_contribuinte}</span>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="py-4">
-                        {property.proprietario_papel || <span className="text-muted-foreground">-</span>}
-                      </TableCell>
-                      <TableCell className="py-4">
-                        {property.proprietario_matricula || <span className="text-muted-foreground">-</span>}
-                      </TableCell>
-                      <TableCell className="py-4">
-                        {property.proprietario_matricula_ii || <span className="text-muted-foreground">-</span>}
                       </TableCell>
                     </TableRow>
                   ))}
