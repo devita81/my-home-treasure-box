@@ -235,8 +235,8 @@ export function StatsOverview() {
             <div className={`inline-flex p-1 sm:p-1.5 rounded-lg ${stat.color} mb-1.5 sm:mb-2`}>
               <stat.icon className="h-3 sm:h-3.5 w-3 sm:w-3.5" />
             </div>
-            <p className="text-base sm:text-lg lg:text-xl font-bold font-display truncate">{stat.value}</p>
-            <p className="text-[9px] sm:text-[10px] lg:text-xs text-muted-foreground mt-0.5 truncate">{stat.label}</p>
+            <p className="text-sm sm:text-base font-semibold font-display truncate">{stat.value}</p>
+            <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 truncate">{stat.label}</p>
           </div>
         ))}
       </div>
