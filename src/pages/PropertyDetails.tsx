@@ -206,40 +206,40 @@ const PropertyDetails = () => {
           </div>
 
           {/* Content Grid - Row 1 */}
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="grid gap-4 lg:grid-cols-3">
             {/* Valores */}
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-1.5 text-[10px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
                   <DollarSign className="h-3.5 w-3.5 text-primary" />
                   Valores
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg">
+              <CardContent className="space-y-1.5">
+                <div className="flex justify-between items-center px-2.5 py-1.5 bg-primary/10 rounded-md">
                   <span className="text-[11px] text-muted-foreground">Mercado</span>
-                  <span className="font-medium text-[13px] text-primary">{formatCurrency(property.market_value) || '—'}</span>
+                  <span className="font-normal text-[11px] text-primary">{formatCurrency(property.market_value) || '—'}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-secondary rounded-lg">
+                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
                   <span className="text-[11px] text-muted-foreground">Valor Declarado</span>
-                  <span className="font-medium text-[13px]">{formatCurrency(property.declared_value) || '—'}</span>
+                  <span className="font-normal text-[11px]">{formatCurrency(property.declared_value) || '—'}</span>
                 </div>
               </CardContent>
             </Card>
 
             {/* Custos */}
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-1.5 text-[10px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
                   <FileText className="h-3.5 w-3.5 text-primary" />
                   Custos
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-secondary rounded-lg">
+              <CardContent className="space-y-1.5">
+                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
                   <span className="text-[11px] text-muted-foreground">IPTU (anual)</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-[13px]">{formatCurrency(property.iptu_value) || '—'}</span>
+                    <span className="font-normal text-[11px]">{formatCurrency(property.iptu_value) || '—'}</span>
                     {property.iptu_pago ? (
                       <Badge variant="outline" className="border-success text-success text-[10px] font-medium">Pago</Badge>
                     ) : (
@@ -247,38 +247,38 @@ const PropertyDetails = () => {
                     )}
                   </div>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-secondary rounded-lg">
+                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
                   <span className="text-[11px] text-muted-foreground">Condomínio</span>
-                  <span className="font-medium text-[13px]">{property.valor_condominio ? `${formatCurrency(property.valor_condominio)}/mês` : '—'}</span>
+                  <span className="font-normal text-[11px]">{property.valor_condominio ? `${formatCurrency(property.valor_condominio)}/mês` : '—'}</span>
                 </div>
               </CardContent>
             </Card>
 
             {/* Rentabilidade */}
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-1.5 text-[10px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
                   <Key className="h-3.5 w-3.5 text-primary" />
                   Renda
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-secondary rounded-lg">
+              <CardContent className="space-y-1.5">
+                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
                   <span className="text-[11px] text-muted-foreground">Status</span>
-                  <span className={`font-medium text-[13px] ${property.alugado ? 'text-info' : ''}`}>
+                  <span className={`font-normal text-[11px] ${property.alugado ? 'text-info' : ''}`}>
                     {property.alugado ? 'Alugado' : 'Não alugado'}
                   </span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-secondary rounded-lg">
+                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
                   <span className="text-[11px] text-muted-foreground">Aluguel</span>
-                  <span className={`font-medium text-[13px] ${property.alugado && property.valor_aluguel ? 'text-info' : ''}`}>
+                  <span className={`font-normal text-[11px] ${property.alugado && property.valor_aluguel ? 'text-info' : ''}`}>
                     {property.valor_aluguel ? `${formatCurrency(property.valor_aluguel)}/mês` : '—'}
                   </span>
                 </div>
                 {property.alugado && property.inquilino && (
-                  <div className="flex justify-between items-center p-3 bg-info/10 rounded-lg">
+                  <div className="flex justify-between items-center px-2.5 py-1.5 bg-info/10 rounded-md">
                     <span className="text-[11px] text-muted-foreground">Inquilino</span>
-                    <span className="font-medium text-[13px]">{property.inquilino}</span>
+                    <span className="font-normal text-[11px]">{property.inquilino}</span>
                   </div>
                 )}
               </CardContent>
@@ -286,27 +286,27 @@ const PropertyDetails = () => {
           </div>
 
           {/* Content Grid - Row 2 */}
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="grid gap-4 lg:grid-cols-3">
             {/* Propriedade */}
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-1.5 text-[10px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
                   <Building className="h-3.5 w-3.5 text-primary" />
                   Propriedade
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-secondary rounded-lg">
+              <CardContent className="space-y-1.5">
+                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
                   <span className="text-[11px] text-muted-foreground">Tipo</span>
-                  <span className="font-medium text-[13px] capitalize">{property.tipo_imovel || 'Apartamento'}</span>
+                  <span className="font-normal text-[11px] capitalize">{property.tipo_imovel || 'Apartamento'}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-secondary rounded-lg">
+                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
                   <span className="text-[11px] text-muted-foreground">Proprietário (Papel)</span>
-                  <span className="font-medium text-[13px]">{abbreviateOwnerName(property.proprietario_papel)}</span>
+                  <span className="font-normal text-[11px]">{abbreviateOwnerName(property.proprietario_papel)}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-secondary rounded-lg">
+                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
                   <span className="text-[11px] text-muted-foreground">Proprietário (Matrícula)</span>
-                  <span className="font-medium text-[13px]">
+                  <span className="font-normal text-[11px]">
                     {abbreviateOwnerName(property.proprietario_matricula)}
                     {property.percentual_proprietario_matricula != null && property.percentual_proprietario_matricula !== 100 && (
                       <span className="text-muted-foreground ml-1">({property.percentual_proprietario_matricula}%)</span>
@@ -314,9 +314,9 @@ const PropertyDetails = () => {
                   </span>
                 </div>
                 {property.proprietario_matricula_ii && (
-                  <div className="flex justify-between items-center p-3 bg-secondary rounded-lg">
+                  <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
                     <span className="text-[11px] text-muted-foreground">Proprietário 2 (Matrícula)</span>
-                    <span className="font-medium text-[13px]">
+                    <span className="font-normal text-[11px]">
                       {abbreviateOwnerName(property.proprietario_matricula_ii)}
                       {property.percentual_proprietario_matricula_ii != null && property.percentual_proprietario_matricula_ii > 0 && (
                         <span className="text-muted-foreground ml-1">({property.percentual_proprietario_matricula_ii}%)</span>
@@ -324,54 +324,54 @@ const PropertyDetails = () => {
                     </span>
                   </div>
                 )}
-                <div className="flex justify-between items-center p-3 bg-secondary rounded-lg">
+                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
                   <span className="text-[11px] text-muted-foreground">Nº Matrícula</span>
-                  <span className="font-mono font-medium text-[13px]">{property.numero_matricula || '—'}</span>
+                  <span className="font-mono font-normal text-[11px]">{property.numero_matricula || '—'}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-secondary rounded-lg">
+                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
                   <span className="text-[11px] text-muted-foreground">Nº Contribuinte</span>
-                  <span className="font-mono font-medium text-[13px]">{property.numero_contribuinte || '—'}</span>
+                  <span className="font-mono font-normal text-[11px]">{property.numero_contribuinte || '—'}</span>
                 </div>
               </CardContent>
             </Card>
 
             {/* Características */}
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-1.5 text-[10px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
                   <Home className="h-3.5 w-3.5 text-primary" />
                   Características
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
+              <CardContent className="space-y-1.5">
+                <div className="grid grid-cols-2 gap-1.5">
                   <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
                     <div className="flex items-center gap-2">
-                      <BedDouble className="h-4 w-4 text-muted-foreground" />
+                      <BedDouble className="h-3 w-3 text-muted-foreground" />
                       <span className="text-[11px] text-muted-foreground">Quartos</span>
                     </div>
-                    <span className="font-medium text-[13px]">{property.quartos || '—'}</span>
+                    <span className="font-normal text-[11px]">{property.quartos || '—'}</span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
                     <div className="flex items-center gap-2">
-                      <BedDouble className="h-4 w-4 text-muted-foreground" />
+                      <BedDouble className="h-3 w-3 text-muted-foreground" />
                       <span className="text-[11px] text-muted-foreground">Suítes</span>
                     </div>
-                    <span className="font-medium text-[13px]">{property.suites || '—'}</span>
+                    <span className="font-normal text-[11px]">{property.suites || '—'}</span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
                     <div className="flex items-center gap-2">
-                      <Bath className="h-4 w-4 text-muted-foreground" />
+                      <Bath className="h-3 w-3 text-muted-foreground" />
                       <span className="text-[11px] text-muted-foreground">Banheiros</span>
                     </div>
-                    <span className="font-medium text-[13px]">{property.banheiros || '—'}</span>
+                    <span className="font-normal text-[11px]">{property.banheiros || '—'}</span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
                     <div className="flex items-center gap-2">
-                      <Car className="h-4 w-4 text-muted-foreground" />
+                      <Car className="h-3 w-3 text-muted-foreground" />
                       <span className="text-[11px] text-muted-foreground">Garagens</span>
                     </div>
-                    <span className="font-medium text-[13px]">{property.garagens || '—'}</span>
+                    <span className="font-normal text-[11px]">{property.garagens || '—'}</span>
                   </div>
                 </div>
               </CardContent>
@@ -379,24 +379,24 @@ const PropertyDetails = () => {
 
             {/* Metragens */}
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-1.5 text-[10px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
                   <Ruler className="h-3.5 w-3.5 text-primary" />
                   Metragens
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-secondary rounded-lg">
+              <CardContent className="space-y-1.5">
+                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
                   <span className="text-[11px] text-muted-foreground">Área Útil</span>
-                  <span className="font-medium text-[13px]">{property.metragem ? `${property.metragem} m²` : '—'}</span>
+                  <span className="font-normal text-[11px]">{property.metragem ? `${property.metragem} m²` : '—'}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-secondary rounded-lg">
+                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
                   <span className="text-[11px] text-muted-foreground">Área Comum</span>
-                  <span className="font-medium text-[13px]">{property.area_comum ? `${property.area_comum} m²` : '—'}</span>
+                  <span className="font-normal text-[11px]">{property.area_comum ? `${property.area_comum} m²` : '—'}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg">
+                <div className="flex justify-between items-center px-2.5 py-1.5 bg-primary/10 rounded-md">
                   <span className="text-[11px] text-muted-foreground">Área Total</span>
-                  <span className="font-medium text-[13px] text-primary">{property.area_total ? `${property.area_total} m²` : '—'}</span>
+                  <span className="font-normal text-[11px] text-primary">{property.area_total ? `${property.area_total} m²` : '—'}</span>
                 </div>
               </CardContent>
             </Card>
@@ -404,7 +404,7 @@ const PropertyDetails = () => {
 
           {/* Estimativa de Valor - Disponível para todos os imóveis */}
           <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
-            <CardHeader>
+            <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <DollarSign className="h-5 w-5 text-primary" />
                 Estimativa de Valor por IA
@@ -433,7 +433,7 @@ const PropertyDetails = () => {
 
           {/* Pesquisa em Sites Externos */}
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <ExternalLink className="h-5 w-5 text-primary" />
                 Pesquisar em Sites de Imóveis
