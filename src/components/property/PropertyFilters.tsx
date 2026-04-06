@@ -109,13 +109,13 @@ export function PropertyFilters() {
       </div>
 
       {/* All filters in a compact grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+      <div className="flex flex-wrap gap-2">
         {/* Tipo */}
         <Select
           value={filters.tipoImovel || 'all'}
           onValueChange={(value) => setFilters({ ...filters, tipoImovel: value === 'all' ? '' : value })}
         >
-          <SelectTrigger className="h-9 text-xs">
+           <SelectTrigger className="h-8 text-[11px] w-auto min-w-[7rem]">
             <SelectValue placeholder="Tipo" />
           </SelectTrigger>
           <SelectContent>
@@ -134,7 +134,7 @@ export function PropertyFilters() {
             value={filters.proprietarioPapel || 'all'}
             onValueChange={(value) => setFilters({ ...filters, proprietarioPapel: value === 'all' ? '' : value })}
           >
-            <SelectTrigger className="h-9 text-xs">
+             <SelectTrigger className="h-8 text-[11px] w-auto min-w-[8rem]">
               <SelectValue placeholder="Proprietário" />
             </SelectTrigger>
             <SelectContent>
@@ -156,7 +156,7 @@ export function PropertyFilters() {
           value={filters.estado || 'all'}
           onValueChange={(value) => setFilters({ ...filters, estado: value === 'all' ? '' : value })}
         >
-          <SelectTrigger className="h-9 text-xs">
+           <SelectTrigger className="h-8 text-[11px] w-auto min-w-[7rem]">
             <SelectValue placeholder="Estado" />
           </SelectTrigger>
           <SelectContent>
@@ -174,7 +174,7 @@ export function PropertyFilters() {
           value={filters.cidade || 'all'}
           onValueChange={(value) => setFilters({ ...filters, cidade: value === 'all' ? '' : value })}
         >
-          <SelectTrigger className="h-9 text-xs">
+           <SelectTrigger className="h-8 text-[11px] w-auto min-w-[7rem]">
             <SelectValue placeholder="Cidade" />
           </SelectTrigger>
           <SelectContent>
@@ -192,7 +192,7 @@ export function PropertyFilters() {
           value={filters.bairro || 'all'}
           onValueChange={(value) => setFilters({ ...filters, bairro: value === 'all' ? '' : value })}
         >
-          <SelectTrigger className="h-9 text-xs">
+           <SelectTrigger className="h-8 text-[11px] w-auto min-w-[7rem]">
             <SelectValue placeholder="Bairro" />
           </SelectTrigger>
           <SelectContent>
@@ -210,7 +210,7 @@ export function PropertyFilters() {
           value={filters.status}
           onValueChange={(value) => setFilters({ ...filters, status: value as any })}
         >
-          <SelectTrigger className="h-9 text-xs">
+           <SelectTrigger className="h-8 text-[11px] w-auto min-w-[6rem]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -226,7 +226,7 @@ export function PropertyFilters() {
           value={filters.validado}
           onValueChange={(value) => setFilters({ ...filters, validado: value as any })}
         >
-          <SelectTrigger className="h-9 text-xs">
+           <SelectTrigger className="h-8 text-[11px] w-auto min-w-[5.5rem]">
             <SelectValue placeholder="Validação" />
           </SelectTrigger>
           <SelectContent>
@@ -241,7 +241,7 @@ export function PropertyFilters() {
           value={filters.sortField}
           onValueChange={(value) => setFilters({ ...filters, sortField: value as SortField })}
         >
-          <SelectTrigger className="h-9 text-xs">
+          <SelectTrigger className="h-8 text-[11px] w-auto min-w-[8rem]">
             <ArrowUpDown className="h-3 w-3 mr-1 text-muted-foreground" />
             <SelectValue placeholder="Ordenar" />
           </SelectTrigger>
@@ -255,10 +255,10 @@ export function PropertyFilters() {
         </Select>
 
         {/* Ordem */}
-        <Button
+         <Button
           variant="outline"
           onClick={toggleSortOrder}
-          className="h-9 text-xs px-2"
+          className="h-8 text-[11px] px-2"
         >
           {filters.sortOrder === 'asc' ? (
             <>
