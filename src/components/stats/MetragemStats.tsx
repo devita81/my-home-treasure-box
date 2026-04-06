@@ -168,11 +168,11 @@ export function MetragemStats() {
             style={{ animationDelay: `${index * 50}ms` }}
             onClick={() => handleCardClick(group)}
           >
-            <p className="text-xs sm:text-sm font-semibold text-foreground truncate">{group.cidade}</p>
-            <p className="text-base sm:text-lg lg:text-xl font-bold font-display mt-0.5 sm:mt-1">{formatMetragem(group.metragem)}</p>
+            <p className="text-[11px] sm:text-xs font-semibold text-foreground truncate">{group.cidade}</p>
+            <p className="text-sm sm:text-base font-semibold font-display mt-0.5 sm:mt-1">{formatMetragem(group.metragem)}</p>
             <div className="flex items-center gap-0.5 sm:gap-1 mt-0.5 sm:mt-1">
               <DollarSign className="h-2.5 sm:h-3 w-2.5 sm:w-3 text-success" />
-              <p className="text-xs sm:text-sm font-semibold text-success truncate">{formatCurrency(group.marketValue)}</p>
+              <p className="text-[11px] sm:text-xs font-medium text-success truncate">{formatCurrency(group.marketValue)}</p>
             </div>
             <p className="text-[9px] sm:text-[10px] lg:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">
               {group.count} {tipoLabels[group.tipo] || group.tipo}
