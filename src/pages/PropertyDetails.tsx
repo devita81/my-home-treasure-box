@@ -195,7 +195,7 @@ const PropertyDetails = () => {
                   </Badge>
                 )}
               </div>
-              <h1 className="font-display text-3xl md:text-4xl font-bold text-card mb-2">
+              <h1 className="font-display text-xl md:text-2xl font-semibold text-card mb-2">
                 {getAddressDisplay()}
               </h1>
               <div className="flex items-center gap-1 text-card/80">
@@ -210,15 +210,15 @@ const PropertyDetails = () => {
             {/* Valores */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <DollarSign className="h-5 w-5 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-sm font-semibold tracking-wide uppercase text-muted-foreground">
+                  <DollarSign className="h-4 w-4 text-primary" />
                   Valores
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg">
                   <span className="text-sm text-muted-foreground">Valor de Mercado</span>
-                  <span className="font-bold text-primary">{formatCurrency(property.market_value) || '—'}</span>
+                  <span className="font-semibold text-sm text-primary">{formatCurrency(property.market_value) || '—'}</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-secondary rounded-lg">
                   <span className="text-sm text-muted-foreground">Valor Declarado</span>
@@ -230,8 +230,8 @@ const PropertyDetails = () => {
             {/* Custos */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <FileText className="h-5 w-5 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-sm font-semibold tracking-wide uppercase text-muted-foreground">
+                  <FileText className="h-4 w-4 text-primary" />
                   Custos
                 </CardTitle>
               </CardHeader>
@@ -257,9 +257,9 @@ const PropertyDetails = () => {
             {/* Rentabilidade */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Key className="h-5 w-5 text-primary" />
-                  Rentabilidade
+                <CardTitle className="flex items-center gap-2 text-sm font-semibold tracking-wide uppercase text-muted-foreground">
+                  <Key className="h-4 w-4 text-primary" />
+                  Renda
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -290,8 +290,8 @@ const PropertyDetails = () => {
             {/* Propriedade */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Building className="h-5 w-5 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-sm font-semibold tracking-wide uppercase text-muted-foreground">
+                  <Building className="h-4 w-4 text-primary" />
                   Propriedade
                 </CardTitle>
               </CardHeader>
@@ -338,8 +338,8 @@ const PropertyDetails = () => {
             {/* Características */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Home className="h-5 w-5 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-sm font-semibold tracking-wide uppercase text-muted-foreground">
+                  <Home className="h-4 w-4 text-primary" />
                   Características
                 </CardTitle>
               </CardHeader>
@@ -380,8 +380,8 @@ const PropertyDetails = () => {
             {/* Metragens */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Ruler className="h-5 w-5 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-sm font-semibold tracking-wide uppercase text-muted-foreground">
+                  <Ruler className="h-4 w-4 text-primary" />
                   Metragens
                 </CardTitle>
               </CardHeader>
@@ -396,7 +396,7 @@ const PropertyDetails = () => {
                 </div>
                 <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg">
                   <span className="text-sm text-muted-foreground">Área Total</span>
-                  <span className="font-bold text-primary">{property.area_total ? `${property.area_total} m²` : '—'}</span>
+                  <span className="font-semibold text-sm text-primary">{property.area_total ? `${property.area_total} m²` : '—'}</span>
                 </div>
               </CardContent>
             </Card>
