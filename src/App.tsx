@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { PropertyProvider } from "@/contexts/PropertyContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import Index from "./pages/Index";
 import AddProperty from "./pages/AddProperty";
 import EditProperty from "./pages/EditProperty";
@@ -16,26 +17,33 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+function SessionTimeoutWrapper({ children }: { children: React.ReactNode }) {
+  useSessionTimeout();
+  return <>{children}</>;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <PropertyProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route path="/add" element={<ProtectedRoute><AddProperty /></ProtectedRoute>} />
-              <Route path="/edit/:id" element={<ProtectedRoute><EditProperty /></ProtectedRoute>} />
-              <Route path="/property/:id" element={<ProtectedRoute><PropertyDetails /></ProtectedRoute>} />
-              <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </PropertyProvider>
+        <SessionTimeoutWrapper>
+          <PropertyProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                <Route path="/add" element={<ProtectedRoute><AddProperty /></ProtectedRoute>} />
+                <Route path="/edit/:id" element={<ProtectedRoute><EditProperty /></ProtectedRoute>} />
+                <Route path="/property/:id" element={<ProtectedRoute><PropertyDetails /></ProtectedRoute>} />
+                <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </PropertyProvider>
+        </SessionTimeoutWrapper>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
