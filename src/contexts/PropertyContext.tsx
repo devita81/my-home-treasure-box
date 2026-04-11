@@ -3,6 +3,7 @@ import { Property, PropertyFormData, PropertyFilters } from '@/types/property';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { logger } from '@/lib/logger';
 
 interface PropertyContextType {
   properties: Property[];
@@ -58,7 +59,7 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
       
       setProperties(data as Property[]);
     } catch (error: any) {
-      console.error('Error fetching properties:', error);
+      logger.error('Error fetching properties:', error);
       toast.error('Erro ao carregar imóveis');
     } finally {
       setLoading(false);
@@ -85,7 +86,7 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
 
       setProperties((prev) => [data as Property, ...prev]);
     } catch (error: any) {
-      console.error('Error adding property:', error);
+      logger.error('Error adding property:', error);
       throw error;
     }
   }, [user]);
@@ -108,7 +109,7 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
         return [updated, ...filtered];
       });
     } catch (error: any) {
-      console.error('Error updating property:', error);
+      logger.error('Error updating property:', error);
       throw error;
     }
   }, []);
@@ -124,7 +125,7 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
 
       setProperties((prev) => prev.filter((prop) => prop.id !== id));
     } catch (error: any) {
-      console.error('Error deleting property:', error);
+      logger.error('Error deleting property:', error);
       throw error;
     }
   }, []);
@@ -164,7 +165,7 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
       toast.success('Imóvel duplicado com sucesso!');
       return data.id;
     } catch (error: any) {
-      console.error('Error duplicating property:', error);
+      logger.error('Error duplicating property:', error);
       toast.error('Erro ao duplicar imóvel');
       return null;
     }

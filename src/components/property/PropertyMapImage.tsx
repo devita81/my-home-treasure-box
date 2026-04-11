@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useState } from 'react';
 import { MapPin, ChevronLeft, ChevronRight, RefreshCw, RotateCcw } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 interface PropertyMapImageProps {
   rua: string;
@@ -42,7 +43,7 @@ const saveHeadingToDb = async (propertyId: string, heading: number) => {
       .update({ street_view_heading: heading })
       .eq('id', propertyId);
   } catch (error) {
-    console.error('Failed to save heading to database:', error);
+    logger.error('Failed to save heading to database:', error);
   }
 };
 
