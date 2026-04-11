@@ -81,7 +81,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
     try {
       const timestamp = Date.now();
       const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const filePath = `${propertyId}/${timestamp}-${sanitizedFileName}`;
+      const filePath = `${user.id}/${propertyId}/${timestamp}-${sanitizedFileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('property-documents')
