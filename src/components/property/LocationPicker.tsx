@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 import { InteractiveMap } from './InteractiveMap';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyBSbKS3g4EggVq_jqMCzQRQQFmTRSfMEHw';
@@ -94,7 +95,7 @@ export function LocationPicker({
         toast.error('Endereço não encontrado');
       }
     } catch (error) {
-      console.error('Erro ao geocodificar:', error);
+      logger.error('Erro ao geocodificar:', error);
       toast.error('Erro ao buscar localização');
     } finally {
       setIsGeocoding(false);
@@ -124,7 +125,7 @@ export function LocationPicker({
         toast.success('Localização salva no banco de dados!');
         onLocationSaved?.();
       } catch (error) {
-        console.error('Erro ao salvar localização:', error);
+        logger.error('Erro ao salvar localização:', error);
         toast.error('Erro ao salvar localização');
       } finally {
         setIsSavingLocation(false);

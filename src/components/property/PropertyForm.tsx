@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 import { Save, ArrowLeft, MapPin, DollarSign, FileText, User, Home, MessageSquare, Maximize2, Minimize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
@@ -182,7 +183,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
 
       navigate('/');
     } catch (error: any) {
-      console.error('Error saving property:', error);
+      logger.error('Error saving property:', error);
       toast.error('Erro ao salvar. Tente novamente.');
     }
   };

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 import { FileText, Upload, Trash2, Eye, Loader2, Download, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -50,7 +51,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
       if (error) throw error;
       setDocuments(data || []);
     } catch (error) {
-      console.error('Error fetching documents:', error);
+      logger.error('Error fetching documents:', error);
       toast.error('Erro ao carregar documentos');
     } finally {
       setIsLoading(false);
@@ -117,7 +118,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
 
       toast.success('Documento enviado com sucesso!');
     } catch (error: any) {
-      console.error('Error uploading document:', error);
+      logger.error('Error uploading document:', error);
       toast.error(error?.message || 'Erro ao enviar documento');
     } finally {
       setIsUploading(false);
@@ -158,7 +159,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
       const url = URL.createObjectURL(pdfBlob);
       setPdfBlobUrl(url);
     } catch (error) {
-      console.error('Error viewing document:', error);
+      logger.error('Error viewing document:', error);
       toast.error('Erro ao abrir documento');
       closePdfViewer();
     } finally {
@@ -195,7 +196,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error downloading document:', error);
+      logger.error('Error downloading document:', error);
       toast.error('Erro ao baixar documento');
     }
   };
@@ -243,7 +244,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
       toast.success('Documento excluído com sucesso!');
       fetchDocuments();
     } catch (error) {
-      console.error('Error deleting document:', error);
+      logger.error('Error deleting document:', error);
       toast.error('Erro ao excluir documento');
     }
   };
