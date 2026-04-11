@@ -1,6 +1,7 @@
 import { Property } from '@/types/property';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
+import { logger } from '@/lib/logger';
 
 interface ExportColumn {
   key: string;
@@ -112,7 +113,7 @@ export function useExportData() {
       
       toast.success(`Exportado ${properties.length} imóveis para Excel`);
     } catch (error) {
-      console.error('Export error:', error);
+      logger.error('Export error:', error);
       toast.error('Erro ao exportar para Excel');
     }
   };
@@ -197,7 +198,7 @@ export function useExportData() {
       
       toast.success('PDF preparado para impressão');
     } catch (error) {
-      console.error('PDF export error:', error);
+      logger.error('PDF export error:', error);
       toast.error('Erro ao exportar para PDF');
     }
   };

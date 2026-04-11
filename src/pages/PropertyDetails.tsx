@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 import { 
   MapPin, 
   Edit, 
@@ -66,7 +67,7 @@ const PropertyDetails = () => {
       });
 
       if (error) {
-        console.error('Error estimating property value:', error);
+        logger.error('Error estimating property value:', error);
         toast.error('Erro ao estimar valor do imóvel');
         return;
       }
@@ -76,7 +77,7 @@ const PropertyDetails = () => {
         setDialogOpen(true);
       }
     } catch (error) {
-      console.error('Error:', error);
+      logger.error('Error:', error);
       toast.error('Erro ao estimar valor do imóvel');
     } finally {
       setIsSearching(false);
