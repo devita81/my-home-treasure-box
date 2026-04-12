@@ -308,27 +308,6 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
               </div>
             </div>
 
-            {/* Location Picker */}
-            <LocationPicker
-              rua={formData.rua}
-              numero={formData.numero}
-              bairro={formData.bairro}
-              cidade={formData.cidade}
-              estado={formData.estado}
-              latitude={formData.latitude}
-              longitude={formData.longitude}
-              propertyId={mode === 'edit' ? property?.id : undefined}
-              onLocationChange={(lat, lng) => {
-                handleChange('latitude', lat);
-                handleChange('longitude', lng);
-              }}
-              onLocationSaved={() => {
-                // Refresh properties context when location is saved directly
-                if (mode === 'edit') {
-                  refreshProperties();
-                }
-              }}
-            />
           </CardContent>
         </Card>
 
