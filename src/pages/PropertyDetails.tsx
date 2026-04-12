@@ -531,10 +531,10 @@ const PropertyDetails = () => {
           <DialogHeader className="px-6 pt-6 pb-4 border-b">
             <DialogTitle className="flex items-center gap-2 text-lg">
               <DollarSign className="h-5 w-5 text-primary" />
-              Estimativa de Valor do Imóvel
+              Análise de Mercado — ChatGPT
             </DialogTitle>
             <p className="text-[11px] text-muted-foreground">
-              Análise baseada em dados de mercado do QuintoAndar e Loft
+              Relatório profissional de avaliação imobiliária
             </p>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto px-6 py-4">
