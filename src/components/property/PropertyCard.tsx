@@ -84,18 +84,12 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
         <div className="flex flex-col sm:flex-row">
           {/* Map section */}
           <div className="relative w-full sm:w-[30%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-muted shrink-0">
-            {embedUrl ? (
-              <iframe
-                src={embedUrl}
-                className="h-full w-full border-0"
-                loading="lazy"
-                title={getAddressDisplay()}
-              />
-            ) : (
-              <div className="h-full w-full flex items-center justify-center bg-muted">
-                <MapPin className="h-8 w-8 text-muted-foreground/40" />
-              </div>
-            )}
+            <iframe
+              src={embedUrl}
+              className="h-full w-full border-0"
+              loading="lazy"
+              title={getAddressDisplay()}
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
             {/* Status badges */}
