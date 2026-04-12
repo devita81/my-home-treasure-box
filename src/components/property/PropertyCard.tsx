@@ -64,24 +64,37 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
     return addr;
   };
 
-  // Build map image URL - use static map (always reliable)
+  // Build OSM embed URL
   const hasCoords = property.latitude != null && property.longitude != null;
-  const locationParam = hasCoords
-    ? `${property.latitude},${property.longitude}`
-    : encodeURIComponent(`${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`);
-  const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${locationParam}&zoom=17&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${locationParam}&key=${GOOGLE_MAPS_API_KEY}`;
+  const getEmbedUrl = () => {
+    if (hasCoords) {
+      const lat = property.latitude!;
+      const lng = property.longitude!;
+      const bbox = `${lng - 0.003},${lat - 0.002},${lng + 0.003},${lat + 0.002}`;
+      return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
+    }
+    return null;
+  };
+  const embedUrl = getEmbedUrl();
 
   return (
     <>
       <div className="bg-card rounded-xl border border-border/60 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
         <div className="flex flex-col sm:flex-row">
-          {/* Image section */}
+          {/* Map section */}
           <div className="relative w-full sm:w-[30%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-muted shrink-0">
-            <img
-              src={imageUrl}
-              alt={getAddressDisplay()}
-              className="h-full w-full object-cover"
-            />
+            {embedUrl ? (
+              <iframe
+                src={embedUrl}
+                className="h-full w-full border-0"
+                loading="lazy"
+                title={getAddressDisplay()}
+              />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center bg-muted">
+                <MapPin className="h-8 w-8 text-muted-foreground/40" />
+              </div>
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
             {/* Status badges */}
