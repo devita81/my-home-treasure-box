@@ -14,7 +14,7 @@ import { Save, ArrowLeft, MapPin, DollarSign, FileText, User, Home, MessageSquar
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { z } from 'zod';
-import { LocationPicker } from './LocationPicker';
+
 import { DocumentUpload } from './DocumentUpload';
 
 // Validation schema for property form
