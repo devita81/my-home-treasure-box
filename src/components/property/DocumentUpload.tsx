@@ -419,6 +419,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
                   </Button>
                 )}
               </div>
+            </DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-hidden bg-muted relative">
             {isLoadingPdf ? (
