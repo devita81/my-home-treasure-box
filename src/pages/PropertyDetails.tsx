@@ -574,6 +574,13 @@ const PropertyDetails = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Chat Livre com IA */}
+      <AIChatDialog
+        open={chatOpen}
+        onOpenChange={setChatOpen}
+        propertyContext={`Endereço: ${property.rua}${property.numero ? `, ${property.numero}` : ''}, ${property.bairro}, ${property.cidade} - ${property.estado}\nTipo: ${property.tipo_imovel || 'Apartamento'}\nÁrea: ${property.metragem ? `${property.metragem} m²` : 'N/I'}\nQuartos: ${property.quartos || 0} (${property.suites || 0} suítes)\nBanheiros: ${property.banheiros || 0}\nGaragens: ${property.garagens || 0}\nAno: ${property.ano_construcao || 'N/I'}`}
+      />
     </div>
   );
 };
