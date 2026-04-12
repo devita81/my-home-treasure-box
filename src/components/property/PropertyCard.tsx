@@ -90,7 +90,6 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
               loading="lazy"
               title={getAddressDisplay()}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
             {/* Status badges */}
             <div className="absolute top-3 left-3 right-12 flex flex-wrap gap-1.5 z-10">
@@ -123,14 +122,14 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
               <MapPin className="h-3.5 w-3.5" />
             </button>
 
-            {/* Address on image */}
-            <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
-              <p className="text-white font-semibold text-sm truncate drop-shadow-md">
+            {/* Address bar */}
+            <div className="absolute bottom-0 left-0 right-0 z-10 bg-foreground/85 backdrop-blur-sm px-3 py-2.5">
+              <p className="text-card font-semibold text-sm truncate">
                 {getAddressDisplay()}
               </p>
-              <div className="flex items-center gap-1 text-white/90 text-[11px] mt-0.5">
-                <MapPin className="h-3 w-3" />
-                <span>{property.bairro}, {property.cidade} - {property.estado}</span>
+              <div className="flex items-center gap-1 text-card/70 text-[11px] mt-0.5">
+                <MapPin className="h-3 w-3 shrink-0" />
+                <span className="truncate">{property.bairro}, {property.cidade} - {property.estado}</span>
               </div>
             </div>
           </div>
