@@ -1,6 +1,7 @@
 import { useParams, Navigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
+import { AIChatDialog } from '@/components/property/AIChatDialog';
 import { useProperties } from '@/contexts/PropertyContext';
 import { PropertyMapImage } from '@/components/property/PropertyMapImage';
 import { DocumentUpload } from '@/components/property/DocumentUpload';
@@ -29,7 +30,8 @@ import {
   Car,
   Search,
   Loader2,
-  ExternalLink
+  ExternalLink,
+  MessageSquare
 } from 'lucide-react';
 
 const PropertyDetails = () => {
@@ -39,6 +41,7 @@ const PropertyDetails = () => {
   const [searchResult, setSearchResult] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   
   const property = id ? getPropertyById(id) : undefined;
 
@@ -403,32 +406,44 @@ const PropertyDetails = () => {
             </Card>
           </div>
 
-          {/* Estimativa de Valor - Disponível para todos os imóveis */}
+          {/* Ferramentas de IA */}
           <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <DollarSign className="h-5 w-5 text-primary" />
-                Estimativa de Valor por IA
+                Inteligência Artificial — ChatGPT
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-[11px] text-muted-foreground">
-                Use inteligência artificial para estimar o valor de venda e aluguel deste imóvel baseado nas suas características, localização e comparativos de mercado (QuintoAndar e Loft).
+                Use o ChatGPT para análise de mercado automatizada ou chat livre sobre este imóvel.
               </p>
               
-              <Button
-                onClick={estimatePropertyValue}
-                disabled={isSearching}
-                className="gap-2"
-                size="lg"
-              >
-                {isSearching ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Search className="h-4 w-4" />
-                )}
-                {isSearching ? 'Analisando mercado...' : 'Estimar Valor com IA'}
-              </Button>
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  onClick={estimatePropertyValue}
+                  disabled={isSearching}
+                  className="gap-2"
+                  size="lg"
+                >
+                  {isSearching ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Search className="h-4 w-4" />
+                  )}
+                  {isSearching ? 'Analisando mercado...' : 'Análise de Mercado'}
+                </Button>
+
+                <Button
+                  onClick={() => setChatOpen(true)}
+                  variant="outline"
+                  className="gap-2"
+                  size="lg"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Chat Livre com IA
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -516,10 +531,10 @@ const PropertyDetails = () => {
           <DialogHeader className="px-6 pt-6 pb-4 border-b">
             <DialogTitle className="flex items-center gap-2 text-lg">
               <DollarSign className="h-5 w-5 text-primary" />
-              Estimativa de Valor do Imóvel
+              Análise de Mercado — ChatGPT
             </DialogTitle>
             <p className="text-[11px] text-muted-foreground">
-              Análise baseada em dados de mercado do QuintoAndar e Loft
+              Relatório profissional de avaliação imobiliária
             </p>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto px-6 py-4">
@@ -559,6 +574,13 @@ const PropertyDetails = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Chat Livre com IA */}
+      <AIChatDialog
+        open={chatOpen}
+        onOpenChange={setChatOpen}
+        propertyContext={`Endereço: ${property.rua}${property.numero ? `, ${property.numero}` : ''}, ${property.bairro}, ${property.cidade} - ${property.estado}\nTipo: ${property.tipo_imovel || 'Apartamento'}\nÁrea: ${property.metragem ? `${property.metragem} m²` : 'N/I'}\nQuartos: ${property.quartos || 0} (${property.suites || 0} suítes)\nBanheiros: ${property.banheiros || 0}\nGaragens: ${property.garagens || 0}\nAno: ${property.ano_construcao || 'N/I'}`}
+      />
     </div>
   );
 };
