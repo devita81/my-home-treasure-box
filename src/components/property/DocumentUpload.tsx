@@ -404,6 +404,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
                 <FileText className="h-5 w-5 text-primary shrink-0" />
                 <span className="truncate">{viewingFileName}</span>
               </div>
+              <div className="flex items-center gap-2">
                 {viewingDoc && (
                   <Button
                     type="button"
@@ -418,7 +419,6 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
                   </Button>
                 )}
               </div>
-            </DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-hidden bg-muted relative">
             {isLoadingPdf ? (
