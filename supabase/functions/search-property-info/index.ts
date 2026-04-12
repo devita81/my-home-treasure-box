@@ -73,7 +73,21 @@ serve(async (req) => {
     }
 
     const address = `${rua}${numero ? `, ${numero}` : ''}, ${bairro}, ${cidade} - ${estado}`;
+    const searchAddress = `${rua} ${bairro} ${cidade} ${estado}`;
+    const tipoForSearch = tipo_imovel || 'apartamento';
     
+    // Build pre-made search URLs
+    const zapVenda = `https://www.bing.com/search?q=site:zapimoveis.com.br+${encodeURIComponent(searchAddress)}+${encodeURIComponent(tipoForSearch)}+venda`;
+    const zapAluguel = `https://www.bing.com/search?q=site:zapimoveis.com.br+${encodeURIComponent(searchAddress)}+${encodeURIComponent(tipoForSearch)}+aluguel`;
+    const vivaRealVenda = `https://www.bing.com/search?q=site:vivareal.com.br+${encodeURIComponent(searchAddress)}+${encodeURIComponent(tipoForSearch)}+venda`;
+    const vivaRealAluguel = `https://www.bing.com/search?q=site:vivareal.com.br+${encodeURIComponent(searchAddress)}+${encodeURIComponent(tipoForSearch)}+aluguel`;
+    const olxVenda = `https://www.bing.com/search?q=site:olx.com.br+${encodeURIComponent(searchAddress)}+${encodeURIComponent(tipoForSearch)}+venda`;
+    const olxAluguel = `https://www.bing.com/search?q=site:olx.com.br+${encodeURIComponent(searchAddress)}+${encodeURIComponent(tipoForSearch)}+aluguel`;
+    const quintoAndarVenda = `https://www.bing.com/search?q=site:quintoandar.com.br+${encodeURIComponent(searchAddress)}+${encodeURIComponent(tipoForSearch)}+venda`;
+    const quintoAndarAluguel = `https://www.bing.com/search?q=site:quintoandar.com.br+${encodeURIComponent(searchAddress)}+${encodeURIComponent(tipoForSearch)}+aluguel`;
+    const imovelwebVenda = `https://www.bing.com/search?q=site:imovelweb.com.br+${encodeURIComponent(searchAddress)}+${encodeURIComponent(tipoForSearch)}+venda`;
+    const imovelwebAluguel = `https://www.bing.com/search?q=site:imovelweb.com.br+${encodeURIComponent(searchAddress)}+${encodeURIComponent(tipoForSearch)}+aluguel`;
+
     const prompt = `Analise o imóvel localizado em **${address}**.
 
 **DADOS DO IMÓVEL:**
@@ -151,7 +165,25 @@ REGRAS:
 - Ajuste o preço com base em liquidez, idade do imóvel e diferenciais competitivos
 - Linguagem de relatório profissional para investidor
 - Sem enrolação, denso em conteúdo, estruturado
-- Use tabelas quando relevante`;
+- Use tabelas quando relevante
+
+IMPORTANTE: No final do relatório, inclua OBRIGATORIAMENTE a seção abaixo com os links EXATOS fornecidos (não modifique os links):
+
+## 🔗 Anúncios de Imóveis Similares
+
+### 🏠 Venda
+- [ZAP Imóveis](${zapVenda})
+- [Viva Real](${vivaRealVenda})
+- [OLX](${olxVenda})
+- [QuintoAndar](${quintoAndarVenda})
+- [Imovelweb](${imovelwebVenda})
+
+### 🔑 Aluguel
+- [ZAP Imóveis](${zapAluguel})
+- [Viva Real](${vivaRealAluguel})
+- [OLX](${olxAluguel})
+- [QuintoAndar](${quintoAndarAluguel})
+- [Imovelweb](${imovelwebAluguel})`;
 
     console.log('Estimating property value for:', address);
 
