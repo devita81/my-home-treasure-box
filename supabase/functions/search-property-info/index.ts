@@ -165,7 +165,25 @@ REGRAS:
 - Ajuste o preço com base em liquidez, idade do imóvel e diferenciais competitivos
 - Linguagem de relatório profissional para investidor
 - Sem enrolação, denso em conteúdo, estruturado
-- Use tabelas quando relevante`;
+- Use tabelas quando relevante
+
+IMPORTANTE: No final do relatório, inclua OBRIGATORIAMENTE a seção abaixo com os links EXATOS fornecidos (não modifique os links):
+
+## 🔗 Anúncios de Imóveis Similares
+
+### 🏠 Venda
+- [ZAP Imóveis](${zapVenda})
+- [Viva Real](${vivaRealVenda})
+- [OLX](${olxVenda})
+- [QuintoAndar](${quintoAndarVenda})
+- [Imovelweb](${imovelwebVenda})
+
+### 🔑 Aluguel
+- [ZAP Imóveis](${zapAluguel})
+- [Viva Real](${vivaRealAluguel})
+- [OLX](${olxAluguel})
+- [QuintoAndar](${quintoAndarAluguel})
+- [Imovelweb](${imovelwebAluguel})`;
 
     console.log('Estimating property value for:', address);
 
