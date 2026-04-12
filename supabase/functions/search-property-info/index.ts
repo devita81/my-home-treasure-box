@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -67,10 +67,10 @@ serve(async (req) => {
       );
     }
 
-    if (!LOVABLE_API_KEY) {
-      console.error('LOVABLE_API_KEY is not configured');
+    if (!OPENAI_API_KEY) {
+      console.error('OPENAI_API_KEY is not configured');
       return new Response(
-        JSON.stringify({ error: 'Lovable API key não configurada' }),
+        JSON.stringify({ error: 'OpenAI API key não configurada' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -141,14 +141,14 @@ Considere os preços praticados no **QuintoAndar** e **Loft** para imóveis simi
     
     console.log('Estimating property value for:', address);
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+        model: 'gpt-4o',
         messages: [
           { 
             role: 'system', 
@@ -161,7 +161,7 @@ Considere os preços praticados no **QuintoAndar** e **Loft** para imóveis simi
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Lovable AI error:', response.status, errorText);
+      console.error('OpenAI API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
