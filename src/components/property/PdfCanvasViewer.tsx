@@ -80,6 +80,7 @@ export function PdfCanvasViewer({ fileData, fileName }: PdfCanvasViewerProps) {
             : [outputScale, 0, 0, outputScale, 0, 0] as [number, number, number, number, number, number];
 
           await page.render({
+            canvas,
             canvasContext: context,
             viewport,
             transform,
