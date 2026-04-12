@@ -33,7 +33,6 @@ interface PropertyCardProps {
 
 export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardProps) {
   const [showMapDialog, setShowMapDialog] = useState(false);
-  const [imgError, setImgError] = useState(false);
 
   const address = `${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`;
 
