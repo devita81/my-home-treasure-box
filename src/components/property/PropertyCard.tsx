@@ -10,6 +10,11 @@ import {
   Trash2, 
   CheckCircle, 
   XCircle,
+  DollarSign,
+  Key,
+  Building,
+  FileText,
+  Home,
   BedDouble,
   Bath,
   Car,
@@ -46,158 +51,310 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
     return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
   };
 
+  const abbreviateOwnerName = (name: string | null | undefined) => {
+    if (!name) return '—';
+    if (name.toUpperCase().includes('DV')) return 'DV';
+    return name;
+  };
+
   const getAddressDisplay = () => {
     let addr = toSentenceCase(property.rua);
     if (property.numero) addr += `, ${property.numero}`;
     if (property.apartamento) addr += ` - Ap ${property.apartamento}`;
+    if (property.complemento) addr += ` (${toSentenceCase(property.complemento)})`;
     return addr;
   };
 
-  // Build Street View image URL
+  // Build Street View / Map image URLs
   const locationParam = property.latitude && property.longitude
     ? `${property.latitude},${property.longitude}`
     : `${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}`;
   const heading = property.street_view_heading ?? 235;
-  const streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=800x400&location=${encodeURIComponent(locationParam)}&fov=90&heading=${heading}&pitch=5&key=${GOOGLE_MAPS_API_KEY}`;
-
-  // Fallback: static map
-  const mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(locationParam)}&zoom=16&size=800x400&scale=2&markers=color:red|${encodeURIComponent(locationParam)}&key=${GOOGLE_MAPS_API_KEY}`;
-
+  const streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${encodeURIComponent(locationParam)}&fov=90&heading=${heading}&pitch=5&key=${GOOGLE_MAPS_API_KEY}`;
+  const mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(locationParam)}&zoom=16&size=600x400&scale=2&markers=color:red|${encodeURIComponent(locationParam)}&key=${GOOGLE_MAPS_API_KEY}`;
   const imageUrl = imgError ? mapUrl : streetViewUrl;
 
   return (
     <>
-      <div className="bg-card rounded-lg border border-border overflow-hidden hover:shadow-lg transition-shadow duration-200">
-        {/* Image */}
-        <div className="relative w-full aspect-[2/1] bg-muted overflow-hidden">
-          <img
-            src={imageUrl}
-            alt={getAddressDisplay()}
-            className="w-full h-full object-cover"
-            onError={() => !imgError && setImgError(true)}
-          />
-          
-          {/* Status badges */}
-          <div className="absolute top-2.5 left-2.5 flex gap-1.5">
-            {property.vendido ? (
-              <Badge className="bg-destructive/90 text-destructive-foreground text-[10px] font-medium shadow-sm">Vendido</Badge>
-            ) : property.alugado ? (
-              <Badge className="bg-info/90 text-info-foreground text-[10px] font-medium shadow-sm">Alugado</Badge>
-            ) : (
-              <Badge className="bg-success/90 text-success-foreground text-[10px] font-medium shadow-sm">Disponível</Badge>
-            )}
-            {property.validado ? (
-              <Badge className="bg-card/90 text-success text-[10px] font-medium shadow-sm border-0">
-                <CheckCircle className="h-2.5 w-2.5 mr-0.5" />
-                Validado
-              </Badge>
-            ) : (
-              <Badge className="bg-card/90 text-warning text-[10px] font-medium shadow-sm border-0">
-                <XCircle className="h-2.5 w-2.5 mr-0.5" />
-                Pendente
-              </Badge>
-            )}
-          </div>
+      <div className="bg-card rounded-xl border border-border/60 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+        <div className="flex flex-col sm:flex-row">
+          {/* Image section */}
+          <div className="relative w-full sm:w-[30%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-muted shrink-0">
+            <img
+              src={imageUrl}
+              alt={getAddressDisplay()}
+              className="h-full w-full object-cover"
+              onError={() => !imgError && setImgError(true)}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
-          {/* Map pin button */}
-          <button
-            onClick={(e) => { e.stopPropagation(); setShowMapDialog(true); }}
-            className="absolute top-2.5 right-2.5 flex h-7 w-7 items-center justify-center rounded-full bg-card/90 text-primary hover:bg-card transition-all shadow-sm"
-            title="Ver no mapa"
-          >
-            <MapPin className="h-3.5 w-3.5" />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-4 space-y-3">
-          {/* Address & Price */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h3 className="text-sm font-semibold text-foreground truncate">{getAddressDisplay()}</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">{property.bairro}, {property.cidade} - {property.estado}</p>
-            </div>
-            <div className="text-right shrink-0">
-              <p className="text-sm font-bold text-foreground">{formatCurrency(property.market_value) || '—'}</p>
-              {property.valor_aluguel && property.valor_aluguel > 0 && (
-                <p className="text-[10px] text-info font-medium">{formatCurrency(property.valor_aluguel)}/mês</p>
+            {/* Status badges */}
+            <div className="absolute top-3 left-3 right-12 flex flex-wrap gap-1.5 z-10">
+              {property.vendido ? (
+                <Badge className="bg-destructive text-destructive-foreground text-[10px]">Vendido</Badge>
+              ) : property.alugado ? (
+                <Badge className="bg-info text-info-foreground text-[10px]">Alugado</Badge>
+              ) : (
+                <Badge className="bg-success text-success-foreground text-[10px]">Disponível</Badge>
+              )}
+              {property.validado ? (
+                <Badge variant="outline" className="bg-card/90 border-success text-success text-[10px]">
+                  <CheckCircle className="h-2.5 w-2.5 mr-0.5" />
+                  Validado
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="bg-card/90 border-warning text-warning text-[10px]">
+                  <XCircle className="h-2.5 w-2.5 mr-0.5" />
+                  Pendente
+                </Badge>
               )}
             </div>
+
+            {/* Map pin */}
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowMapDialog(true); }}
+              className="absolute top-3 right-3 flex h-7 w-7 items-center justify-center rounded-full bg-card/90 text-primary hover:bg-card transition-all shadow-sm z-10"
+              title="Ver no mapa"
+            >
+              <MapPin className="h-3.5 w-3.5" />
+            </button>
+
+            {/* Address on image */}
+            <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
+              <p className="text-white font-semibold text-sm truncate drop-shadow-md">
+                {getAddressDisplay()}
+              </p>
+              <div className="flex items-center gap-1 text-white/90 text-[11px] mt-0.5">
+                <MapPin className="h-3 w-3" />
+                <span>{property.bairro}, {property.cidade} - {property.estado}</span>
+              </div>
+            </div>
           </div>
 
-          {/* Key specs row */}
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            {property.quartos != null && (
-              <span className="flex items-center gap-1">
-                <BedDouble className="h-3 w-3" />
-                {property.quartos} qts
-              </span>
-            )}
-            {property.suites != null && property.suites > 0 && (
-              <span className="flex items-center gap-1">
-                <BedDouble className="h-3 w-3" />
-                {property.suites} suítes
-              </span>
-            )}
-            {property.banheiros != null && (
-              <span className="flex items-center gap-1">
-                <Bath className="h-3 w-3" />
-                {property.banheiros}
-              </span>
-            )}
-            {property.garagens != null && (
-              <span className="flex items-center gap-1">
-                <Car className="h-3 w-3" />
-                {property.garagens}
-              </span>
-            )}
-            {property.area_total && (
-              <span className="flex items-center gap-1">
-                <Ruler className="h-3 w-3" />
-                {property.area_total} m²
-              </span>
-            )}
-            <span className="capitalize text-[10px] text-muted-foreground/70">{property.tipo_imovel || 'Apartamento'}</span>
-          </div>
+          {/* Info section */}
+          <div className="flex-1 p-3 flex flex-col">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 flex-1">
 
-          {/* Divider */}
-          <div className="border-t border-border" />
+              {/* Valores */}
+              <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <DollarSign className="h-3 w-3 text-primary" />
+                  <h4 className="text-[10px] font-semibold text-primary uppercase tracking-wider">Valores</h4>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between py-0.5 border-b border-border/20">
+                    <span className="text-[11px] text-muted-foreground">Mercado</span>
+                    <span className="text-[11px] font-semibold">{formatCurrency(property.market_value) || '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-0.5">
+                    <span className="text-[11px] text-muted-foreground">Declarado</span>
+                    <span className="text-[11px] font-medium">{formatCurrency(property.declared_value) || '—'}</span>
+                  </div>
+                </div>
+              </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-1.5">
-            <Link to={`/property/${property.id}`} className="flex-1" onClick={(e) => e.stopPropagation()}>
-              <Button variant="default" size="sm" className="w-full h-8 text-xs">
-                <Eye className="h-3 w-3 mr-1" />
-                Ver detalhes
-              </Button>
-            </Link>
-            <Link to={`/edit/${property.id}`} onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <Edit className="h-3.5 w-3.5" />
-              </Button>
-            </Link>
-            {onDuplicate && (
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={(e) => { e.stopPropagation(); onDuplicate(property.id); }}
-                className="h-8 w-8 p-0"
-                title="Duplicar"
-              >
-                <Copy className="h-3.5 w-3.5" />
-              </Button>
-            )}
-            {onDelete && (
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={(e) => { e.stopPropagation(); onDelete(property.id); }}
-                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                title="Excluir"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-            )}
+              {/* Custos */}
+              <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <FileText className="h-3 w-3 text-primary" />
+                  <h4 className="text-[10px] font-semibold text-primary uppercase tracking-wider">Custos</h4>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between py-0.5 border-b border-border/20">
+                    <span className="text-[11px] text-muted-foreground">IPTU</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[11px] font-medium">{property.iptu_value ? formatCurrency(property.iptu_value) : '—'}</span>
+                      {property.iptu_pago ? (
+                        <Badge className="bg-success/10 text-success border-0 text-[8px] px-1 py-0">Pago</Badge>
+                      ) : property.iptu_value ? (
+                        <Badge className="bg-warning/10 text-warning border-0 text-[8px] px-1 py-0">Pend.</Badge>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between py-0.5">
+                    <span className="text-[11px] text-muted-foreground">Condomínio</span>
+                    <span className="text-[11px] font-medium">{property.valor_condominio ? `${formatCurrency(property.valor_condominio)}/mês` : '—'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Renda */}
+              <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Key className="h-3 w-3 text-primary" />
+                  <h4 className="text-[10px] font-semibold text-primary uppercase tracking-wider">Renda</h4>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between py-0.5 border-b border-border/20">
+                    <span className="text-[11px] text-muted-foreground">Status</span>
+                    <span className={`text-[11px] font-medium ${property.alugado ? 'text-info' : ''}`}>
+                      {property.alugado ? 'Alugado' : 'Disponível'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between py-0.5">
+                    <span className="text-[11px] text-muted-foreground">Aluguel</span>
+                    <span className={`text-[11px] font-medium ${property.alugado && property.valor_aluguel ? 'text-info' : ''}`}>
+                      {property.valor_aluguel ? `${formatCurrency(property.valor_aluguel)}/mês` : '—'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Propriedade - Double width */}
+              <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30 lg:col-span-2">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Building className="h-3 w-3 text-primary" />
+                  <h4 className="text-[10px] font-semibold text-primary uppercase tracking-wider">Propriedade</h4>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-0.5">
+                  {/* Left column */}
+                  <div className="space-y-0.5">
+                    <div className="flex items-center justify-between py-0.5 border-b border-border/20">
+                      <span className="text-[11px] text-muted-foreground">Tipo</span>
+                      <span className="text-[11px] font-medium capitalize">{property.tipo_imovel || 'Apartamento'}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-0.5 border-b border-border/20 gap-2">
+                      <span className="text-[11px] text-muted-foreground shrink-0">Prop. Papel</span>
+                      <span className="text-[11px] font-medium truncate text-right" title={property.proprietario_papel || '—'}>{abbreviateOwnerName(property.proprietario_papel)}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-0.5 border-b border-border/20 gap-2">
+                      <span className="text-[11px] text-muted-foreground shrink-0">Prop. Matrícula</span>
+                      <div className="flex items-center gap-1 truncate">
+                        <span className="text-[10px] font-medium truncate text-right" title={property.proprietario_matricula || '—'}>{abbreviateOwnerName(property.proprietario_matricula)}</span>
+                        <Badge variant="outline" className="text-[9px] px-1 py-0 shrink-0 font-semibold">{property.percentual_proprietario_matricula ?? 100}%</Badge>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between py-0.5 gap-2">
+                      <span className="text-[11px] text-muted-foreground shrink-0">Prop. Matrícula II</span>
+                      <div className="flex items-center gap-1 truncate">
+                        <span className="text-[10px] font-medium truncate text-right" title={property.proprietario_matricula_ii || '—'}>{abbreviateOwnerName(property.proprietario_matricula_ii)}</span>
+                        <Badge variant="outline" className="text-[9px] px-1 py-0 shrink-0 font-semibold">{property.percentual_proprietario_matricula_ii ?? 0}%</Badge>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Right column */}
+                  <div className="space-y-0.5">
+                    <div className="flex items-center justify-between py-0.5 border-b border-border/20">
+                      <span className="text-[11px] text-muted-foreground">Matrícula</span>
+                      <span className="text-[11px] font-medium">{property.numero_matricula || '—'}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-0.5 border-b border-border/20">
+                      <span className="text-[11px] text-muted-foreground">Contribuinte</span>
+                      <span className="text-[11px] font-medium font-mono">{property.numero_contribuinte || '—'}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-0.5">
+                      <span className="text-[11px] text-muted-foreground">Validado</span>
+                      {property.validado ? (
+                        <Badge className="bg-success/10 text-success border-0 text-[9px] px-1.5 py-0">
+                          <CheckCircle className="h-2.5 w-2.5 mr-0.5" />
+                          Sim
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-warning/10 text-warning border-0 text-[9px] px-1.5 py-0">
+                          <XCircle className="h-2.5 w-2.5 mr-0.5" />
+                          Não
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Características & Metragens */}
+              <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Home className="h-3 w-3 text-primary" />
+                  <h4 className="text-[10px] font-semibold text-primary uppercase tracking-wider">Características</h4>
+                </div>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
+                  <div className="flex items-center justify-between py-0.5 border-b border-border/20">
+                    <div className="flex items-center gap-1">
+                      <BedDouble className="h-2.5 w-2.5 text-muted-foreground" />
+                      <span className="text-[11px] text-muted-foreground">Quartos</span>
+                    </div>
+                    <span className="text-[11px] font-medium">{property.quartos || '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-0.5 border-b border-border/20">
+                    <div className="flex items-center gap-1">
+                      <BedDouble className="h-2.5 w-2.5 text-muted-foreground" />
+                      <span className="text-[11px] text-muted-foreground">Suítes</span>
+                    </div>
+                    <span className="text-[11px] font-medium">{property.suites || '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-0.5 border-b border-border/20">
+                    <div className="flex items-center gap-1">
+                      <Bath className="h-2.5 w-2.5 text-muted-foreground" />
+                      <span className="text-[11px] text-muted-foreground">Banheiros</span>
+                    </div>
+                    <span className="text-[11px] font-medium">{property.banheiros || '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-0.5 border-b border-border/20">
+                    <div className="flex items-center gap-1">
+                      <Car className="h-2.5 w-2.5 text-muted-foreground" />
+                      <span className="text-[11px] text-muted-foreground">Garagens</span>
+                    </div>
+                    <span className="text-[11px] font-medium">{property.garagens || '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-0.5 border-b border-border/20">
+                    <div className="flex items-center gap-1">
+                      <Ruler className="h-2.5 w-2.5 text-muted-foreground" />
+                      <span className="text-[11px] text-muted-foreground">Útil</span>
+                    </div>
+                    <span className="text-[11px] font-medium">{property.metragem ? `${property.metragem} m²` : '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-0.5 border-b border-border/20">
+                    <div className="flex items-center gap-1">
+                      <Ruler className="h-2.5 w-2.5 text-muted-foreground" />
+                      <span className="text-[11px] text-muted-foreground">Comum</span>
+                    </div>
+                    <span className="text-[11px] font-medium">{property.area_comum ? `${property.area_comum} m²` : '—'}</span>
+                  </div>
+                  <div className="col-span-2 flex items-center justify-between py-0.5 bg-primary/5 rounded px-1">
+                    <div className="flex items-center gap-1">
+                      <Ruler className="h-2.5 w-2.5 text-primary" />
+                      <span className="text-[11px] font-medium text-primary">Área Total</span>
+                    </div>
+                    <span className="text-[11px] font-semibold text-primary">{property.area_total ? `${property.area_total} m²` : '—'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex gap-2 pt-3 mt-3 border-t border-border/40">
+              <Link to={`/property/${property.id}`} className="flex-1" onClick={(e) => e.stopPropagation()}>
+                <Button variant="default" size="sm" className="w-full">
+                  <Eye className="h-3.5 w-3.5 mr-1.5" />
+                  Ver detalhes
+                </Button>
+              </Link>
+              <Link to={`/edit/${property.id}`} onClick={(e) => e.stopPropagation()}>
+                <Button variant="outline" size="sm" className="px-3">
+                  <Edit className="h-3.5 w-3.5" />
+                </Button>
+              </Link>
+              {onDuplicate && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={(e) => { e.stopPropagation(); onDuplicate(property.id); }}
+                  className="px-3"
+                  title="Duplicar imóvel"
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+              )}
+              {onDelete && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={(e) => { e.stopPropagation(); onDelete(property.id); }}
+                  className="px-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
