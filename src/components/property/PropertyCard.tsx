@@ -81,7 +81,6 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
               src={imageUrl}
               alt={getAddressDisplay()}
               className="h-full w-full object-cover"
-              />
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
