@@ -641,10 +641,12 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
                         Editar
                       </Button>
                     </Link>
-                    <Button variant="outline" className="w-full h-11" onClick={() => setShowMapDialog(true)}>
+                    <div className="flex-1">
+                      <Button variant="outline" className="w-full h-11" onClick={() => setShowMapDialog(true)}>
                         <MapPin className="h-4 w-4 mr-2" />
                         Mapa
-                    </Button>
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -652,6 +654,14 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
           </div>
         </DialogContent>
       </Dialog>
+
+      <MapDialog
+        open={showMapDialog}
+        onOpenChange={setShowMapDialog}
+        latitude={property.latitude}
+        longitude={property.longitude}
+        address={address}
+      />
     </>
   );
 }

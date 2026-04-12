@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { InteractiveMap } from './InteractiveMap';
+import { MapDialog } from './MapDialog';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyBSbKS3g4EggVq_jqMCzQRQQFmTRSfMEHw';
 
@@ -37,6 +38,7 @@ export function LocationPicker({
 }: LocationPickerProps) {
   const [isAdjusting, setIsAdjusting] = useState(false);
   const [showInteractiveMap, setShowInteractiveMap] = useState(false);
+  const [showMapDialog, setShowMapDialog] = useState(false);
   const [tempLat, setTempLat] = useState<string>(latitude?.toString() || '');
   const [tempLng, setTempLng] = useState<string>(longitude?.toString() || '');
   const [mapUrl, setMapUrl] = useState('');
@@ -152,14 +154,8 @@ export function LocationPicker({
     setTempLng(lng.toFixed(6));
   };
 
-  const openGoogleMaps = () => {
-    let url: string;
-    if (latitude && longitude) {
-      url = `https://www.google.com/maps?q=${latitude},${longitude}`;
-    } else {
-      url = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-    }
-    window.open(url, '_blank');
+  const openMap = () => {
+    setShowMapDialog(true);
   };
 
   return (
@@ -171,10 +167,10 @@ export function LocationPicker({
             type="button"
             variant="outline"
             size="sm"
-            onClick={openGoogleMaps}
+            onClick={openMap}
           >
             <MapPin className="h-4 w-4 mr-1" />
-            Ver no Maps
+            Ver no Mapa
           </Button>
           <Button
             type="button"
