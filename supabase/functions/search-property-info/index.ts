@@ -161,7 +161,7 @@ Considere os preços praticados no **QuintoAndar** e **Loft** para imóveis simi
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Lovable AI error:', response.status, errorText);
+      console.error('OpenAI API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
