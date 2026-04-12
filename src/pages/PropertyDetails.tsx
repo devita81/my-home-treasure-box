@@ -1,6 +1,7 @@
 import { useParams, Navigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
+import { AIChatDialog } from '@/components/property/AIChatDialog';
 import { useProperties } from '@/contexts/PropertyContext';
 import { PropertyMapImage } from '@/components/property/PropertyMapImage';
 import { DocumentUpload } from '@/components/property/DocumentUpload';
