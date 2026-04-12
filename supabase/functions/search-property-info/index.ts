@@ -14,7 +14,6 @@ serve(async (req) => {
   }
 
   try {
-    // Verify authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(
@@ -23,7 +22,6 @@ serve(async (req) => {
       );
     }
 
-    // Verify token with Supabase
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -41,7 +39,6 @@ serve(async (req) => {
 
     const { cidade, rua, numero, bairro, estado, tipo_imovel, quartos, suites, banheiros, garagens, metragem, area_total, ano_construcao } = await req.json();
 
-    // Input validation
     if (!cidade || typeof cidade !== 'string' || cidade.length > 100) {
       return new Response(
         JSON.stringify({ error: 'Cidade is required and must be a valid string (max 100 chars)' }),
@@ -77,68 +74,85 @@ serve(async (req) => {
 
     const address = `${rua}${numero ? `, ${numero}` : ''}, ${bairro}, ${cidade} - ${estado}`;
     
-    const prompt = `Você é um corretor e avaliador imobiliário com foco no mercado de luxo e alto padrão de ${cidade} - ${estado}.
-
-Analise as características do imóvel localizado na **${rua}${numero ? `, ${numero}` : ''}**, no ${bairro}.
+    const prompt = `Analise o imóvel localizado em **${address}**.
 
 **DADOS DO IMÓVEL:**
 - Endereço completo: ${address}
 - Bairro: ${bairro}
 - Tipo: ${tipo_imovel || 'Apartamento'}
-- Ano de Construção: ${ano_construcao ? ano_construcao : 'Não informado'}
+- Ano de Construção: ${ano_construcao || 'Não informado'}
 - Área Útil: ${metragem ? `${metragem} m²` : 'Não informada'}
 - Área Total: ${area_total ? `${area_total} m²` : 'Não informada'}
 - Quartos: ${quartos || 0} (${suites || 0} suítes)
 - Banheiros: ${banheiros || 0}
-- Vagas de Garagem: ${garagens || 0}
+- Vagas de Garagem: ${garagens || 0}`;
 
-**FONTES OBRIGATÓRIAS:**
-Considere os preços praticados no **QuintoAndar** e **Loft** para imóveis similares na região.
+    const systemPrompt = `Você é um analista sênior do mercado imobiliário brasileiro, especializado em avaliação de imóveis, inteligência de mercado e análise estatística de preços por m².
 
-**FORMATO DA RESPOSTA - SIGA EXATAMENTE ESTA ESTRUTURA:**
+Seu objetivo é gerar uma estimativa precisa e tecnicamente fundamentada para um imóvel específico, com base no endereço fornecido.
 
----
+Você deve se comportar como um valuator profissional + data analyst, utilizando múltiplas fontes (como Zap Imóveis, Viva Real, OLX, QuintoAndar, Imovelweb e dados de mercado como FIPEZAP), mesmo que de forma simulada.
 
-## 📊 ESTIMATIVA DE VALORES
+FORMATO DE RESPOSTA OBRIGATÓRIO:
 
-| Tipo | Valor Mínimo | Valor Máximo |
-|------|--------------|--------------|
-| 💰 **Valor de VENDA** | R$ [valor] | R$ [valor] |
-| 📍 **Preço por m²** | R$ [valor]/m² | R$ [valor]/m² |
-| 🏠 **Aluguel MENSAL** | R$ [valor] | R$ [valor] (Pacote sem taxas, pode variar conforme estado de reforma) |
+## 📍 Análise da Localização
+- Perfil do bairro (alto padrão, emergente, comercial, etc.)
+- Infraestrutura (transporte, comércio, serviços)
+- Tendência de valorização/desvalorização
+- Liquidez do mercado local
 
----
+## 💰 Preço por m² (Venda e Locação)
+- Faixa de preço por m² (mínimo, médio, máximo)
+- Comparáveis implícitos (sem citar links, mas descrevendo o perfil)
+- Distinção entre imóveis novos vs usados e alto padrão vs médio padrão
 
-## 📋 JUSTIFICATIVA
+## 📊 Estimativa de Valor do Imóvel
 
-### ✅ Fatores Positivos
-- [Liste 3-5 fatores que valorizam o imóvel]
-- Considere localização, infraestrutura, layout, vagas, etc.
+| Tipo | Valor Mínimo | Valor Máximo | Valor Central |
+|------|-------------|-------------|---------------|
+| Valor de Venda | R$ ... | R$ ... | R$ ... |
+| Aluguel Mensal | R$ ... | R$ ... | R$ ... |
+| Preço por m² | R$ .../m² | R$ .../m² | R$ .../m² |
 
-### ⚠️ Fatores Negativos
-- [Liste 2-3 fatores que podem impactar negativamente]
-- Considere idade do imóvel, necessidade de reformas, etc.
+- Yield estimado (aluguel / valor do imóvel)
 
----
+## 📈 Dinâmica de Mercado
+- Oferta: alta / média / baixa
+- Demanda: alta / média / baixa
+- Tempo médio de venda
+- Tempo médio de locação
+- Nível de vacância estimado
 
-## 🔍 REFERÊNCIAS DE MERCADO
+## 🧠 Análise Crítica (INSIGHT PROFISSIONAL)
+- O imóvel está caro, justo ou barato?
+- Pressões de preço (juros, estoque, renda, etc.)
+- Risco de desvalorização
+- Potencial de valorização
 
-- **Loft:** Imóveis similares na mesma zona (cite ruas ou condomínios próximos)
-- **QuintoAndar:** Valores praticados para aluguel na região
-- Compare com imóveis de características semelhantes
+## 📉 Cenários
 
----
+| Cenário | Preço de Venda | Aluguel | Justificativa |
+|---------|---------------|---------|---------------|
+| Conservador | R$ ... | R$ ... | ... |
+| Base | R$ ... | R$ ... | ... |
+| Otimista | R$ ... | R$ ... | ... |
 
-## 💡 OBSERVAÇÕES
+## 🧮 Metodologia Utilizada
+- Como inferiu o preço por m²
+- Como ajustou comparáveis
+- Fatores considerados (andar, vaga, padrão, localização dentro do bairro, etc.)
 
-- [Considerações sobre o mercado da região em 2024/2025]
-- [Tendências de valorização ou desvalorização]
-- [Recomendações para o proprietário]
+REGRAS:
+- Não invente dados aleatórios — use inferência baseada em padrões reais de mercado
+- Seja técnico, objetivo e analítico (nível laudo profissional)
+- Evite linguagem genérica — sempre justifique
+- Use números sempre que possível
+- Considere micro-localização (rua, proximidade de pontos relevantes)
+- Ajuste o preço com base em liquidez, idade do imóvel e diferenciais competitivos
+- Linguagem de relatório profissional para investidor
+- Sem enrolação, denso em conteúdo, estruturado
+- Use tabelas quando relevante`;
 
----
-
-**IMPORTANTE:** Forneça valores realistas baseados no mercado atual. Seja preciso e objetivo.`;
-    
     console.log('Estimating property value for:', address);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -150,10 +164,7 @@ Considere os preços praticados no **QuintoAndar** e **Loft** para imóveis simi
       body: JSON.stringify({
         model: 'gpt-4o',
         messages: [
-          { 
-            role: 'system', 
-            content: 'Você é um corretor e avaliador de imóveis experiente no Brasil. Forneça estimativas de valor baseadas em dados de mercado reais. Seja preciso nos valores e justifique suas estimativas.' 
-          },
+          { role: 'system', content: systemPrompt },
           { role: 'user', content: prompt }
         ],
       }),
@@ -171,7 +182,7 @@ Considere os preços praticados no **QuintoAndar** e **Loft** para imóveis simi
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: 'Créditos insuficientes. Adicione créditos na sua conta Lovable.' }),
+          JSON.stringify({ error: 'Créditos insuficientes.' }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
