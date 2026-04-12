@@ -30,7 +30,8 @@ import {
   Car,
   Search,
   Loader2,
-  ExternalLink
+  ExternalLink,
+  MessageSquare
 } from 'lucide-react';
 
 const PropertyDetails = () => {
