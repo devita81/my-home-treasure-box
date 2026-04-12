@@ -335,6 +335,13 @@ export function LocationPicker({
           )}
         </div>
       )}
+      <MapDialog
+        open={showMapDialog}
+        onOpenChange={setShowMapDialog}
+        latitude={latitude}
+        longitude={longitude}
+        address={address}
+      />
     </div>
   );
 }
