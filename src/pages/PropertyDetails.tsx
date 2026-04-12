@@ -1,5 +1,5 @@
 import { useParams, Navigate, Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from '@/components/layout/Header';
 import { AIChatDialog } from '@/components/property/AIChatDialog';
 import { useProperties } from '@/contexts/PropertyContext';
@@ -31,8 +31,76 @@ import {
   Search,
   Loader2,
   ExternalLink,
-  MessageSquare
+  MessageSquare,
+  TrendingUp
 } from 'lucide-react';
+
+interface MarketEstimates {
+  vendaMin: string | null;
+  vendaMed: string | null;
+  vendaMax: string | null;
+  aluguelMin: string | null;
+  aluguelMed: string | null;
+  aluguelMax: string | null;
+}
+
+const parseEstimatesFromResult = (result: string): MarketEstimates => {
+  const estimates: MarketEstimates = {
+    vendaMin: null, vendaMed: null, vendaMax: null,
+    aluguelMin: null, aluguelMed: null, aluguelMax: null,
+  };
+
+  // Look for the table rows with "Valor de Venda" and "Aluguel Mensal"
+  const lines = result.split('\n');
+  for (const line of lines) {
+    if (!line.includes('|')) continue;
+    const cells = line.split('|').map(c => c.trim()).filter(Boolean);
+    if (cells.length < 4) continue;
+
+    const label = cells[0].toLowerCase();
+    if (label.includes('venda') && !label.includes('m²') && !label.includes('preço')) {
+      estimates.vendaMin = cells[1] || null;
+      estimates.vendaMax = cells[2] || null;
+      estimates.vendaMed = cells[3] || null;
+    }
+    if (label.includes('aluguel')) {
+      estimates.aluguelMin = cells[1] || null;
+      estimates.aluguelMax = cells[2] || null;
+      estimates.aluguelMed = cells[3] || null;
+    }
+  }
+
+  return estimates;
+};
+
+const convertMarkdownToHtml = (markdown: string): string => {
+  return markdown
+    // Convert markdown links [text](url)
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary underline hover:text-primary/80 inline-flex items-center gap-1">$1 ↗</a>')
+    // Convert markdown headers
+    .replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold text-primary border-b pb-2 mb-3 mt-6 first:mt-0">$1</h2>')
+    .replace(/^### (.*$)/gim, '<h3 class="text-base font-semibold text-foreground mt-4 mb-2">$1</h3>')
+    // Convert markdown bold
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+    // Convert markdown tables
+    .replace(/\|(.+)\|/g, (match) => {
+      const cells = match.split('|').filter(cell => cell.trim());
+      const isHeader = match.includes('---');
+      if (isHeader) return '';
+      return `<div class="grid grid-cols-3 gap-2 py-2 border-b border-border/50">${cells.map((cell, i) => 
+        `<span class="${i === 0 ? 'font-medium' : 'text-right'}">${cell.trim()}</span>`
+      ).join('')}</div>`;
+    })
+    // Convert markdown lists
+    .replace(/^- (.*$)/gim, '<li class="ml-4 text-muted-foreground">$1</li>')
+    // Convert horizontal rules
+    .replace(/^---$/gim, '<hr class="my-4 border-border/50" />')
+    // Wrap consecutive li elements in ul
+    .replace(/(<li.*<\/li>\n?)+/g, '<ul class="space-y-1 my-2">$&</ul>')
+    // Convert newlines
+    .replace(/\n\n/g, '<br/>')
+    .replace(/\n/g, ' ');
+};
 
 const PropertyDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -42,8 +110,24 @@ const PropertyDetails = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [estimates, setEstimates] = useState<MarketEstimates>({
+    vendaMin: null, vendaMed: null, vendaMax: null,
+    aluguelMin: null, aluguelMed: null, aluguelMax: null,
+  });
   
   const property = id ? getPropertyById(id) : undefined;
+
+  // Load saved estimates from localStorage
+  useEffect(() => {
+    if (id) {
+      const saved = localStorage.getItem(`market-estimates-${id}`);
+      if (saved) {
+        try {
+          setEstimates(JSON.parse(saved));
+        } catch { /* ignore */ }
+      }
+    }
+  }, [id]);
 
   // Função para estimar valor do imóvel via IA
   const estimatePropertyValue = async () => {
@@ -78,6 +162,13 @@ const PropertyDetails = () => {
       if (data?.result) {
         setSearchResult(data.result);
         setDialogOpen(true);
+
+        // Parse and save estimates
+        const parsed = parseEstimatesFromResult(data.result);
+        setEstimates(parsed);
+        if (id) {
+          localStorage.setItem(`market-estimates-${id}`, JSON.stringify(parsed));
+        }
       }
     } catch (error) {
       logger.error('Error:', error);
@@ -138,6 +229,7 @@ const PropertyDetails = () => {
   };
 
   const hasRealPhotos = property.photos && property.photos.length > 0 && property.photos[0];
+  const hasEstimates = estimates.vendaMin || estimates.aluguelMin;
 
   return (
     <div className="min-h-screen bg-background">
@@ -210,7 +302,7 @@ const PropertyDetails = () => {
           </div>
 
           {/* Content Grid - Row 1 */}
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="grid gap-4 lg:grid-cols-4">
             {/* Valores */}
             <Card>
               <CardHeader className="pb-2">
@@ -228,6 +320,63 @@ const PropertyDetails = () => {
                   <span className="text-[11px] text-muted-foreground">Valor Declarado</span>
                   <span className="font-normal text-[11px]">{formatCurrency(property.declared_value) || '—'}</span>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Estimativas de Mercado (IA) */}
+            <Card className="border-primary/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-1.5 text-[10px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
+                  <TrendingUp className="h-3.5 w-3.5 text-primary" />
+                  Estimativas IA
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {hasEstimates ? (
+                  <>
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-medium tracking-wider uppercase text-muted-foreground">Venda</span>
+                      <div className="grid grid-cols-3 gap-1">
+                        <div className="text-center p-1.5 bg-secondary rounded">
+                          <div className="text-[8px] text-muted-foreground">Mín</div>
+                          <div className="text-[10px] font-medium truncate">{estimates.vendaMin || '—'}</div>
+                        </div>
+                        <div className="text-center p-1.5 bg-primary/10 rounded">
+                          <div className="text-[8px] text-muted-foreground">Médio</div>
+                          <div className="text-[10px] font-medium text-primary truncate">{estimates.vendaMed || '—'}</div>
+                        </div>
+                        <div className="text-center p-1.5 bg-secondary rounded">
+                          <div className="text-[8px] text-muted-foreground">Máx</div>
+                          <div className="text-[10px] font-medium truncate">{estimates.vendaMax || '—'}</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-medium tracking-wider uppercase text-muted-foreground">Aluguel</span>
+                      <div className="grid grid-cols-3 gap-1">
+                        <div className="text-center p-1.5 bg-secondary rounded">
+                          <div className="text-[8px] text-muted-foreground">Mín</div>
+                          <div className="text-[10px] font-medium truncate">{estimates.aluguelMin || '—'}</div>
+                        </div>
+                        <div className="text-center p-1.5 bg-info/10 rounded">
+                          <div className="text-[8px] text-muted-foreground">Médio</div>
+                          <div className="text-[10px] font-medium text-info truncate">{estimates.aluguelMed || '—'}</div>
+                        </div>
+                        <div className="text-center p-1.5 bg-secondary rounded">
+                          <div className="text-[8px] text-muted-foreground">Máx</div>
+                          <div className="text-[10px] font-medium truncate">{estimates.aluguelMax || '—'}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-4 text-center">
+                    <TrendingUp className="h-6 w-6 text-muted-foreground/30 mb-2" />
+                    <span className="text-[10px] text-muted-foreground">
+                      Clique em "Análise de Mercado" para gerar estimativas
+                    </span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -465,7 +614,6 @@ const PropertyDetails = () => {
                   variant="outline"
                   className="gap-2"
                   onClick={() => {
-                    // Busca no Bing restrita ao ZAP Imóveis com o endereço completo + número
                     const tipoImovel = property.tipo_imovel || 'imovel';
                     const endereco = `${property.rua} ${property.numero || ''} ${property.bairro} ${property.cidade}`.trim();
                     const searchQuery = encodeURIComponent(`site:zapimoveis.com.br ${endereco} ${tipoImovel} venda`);
@@ -487,7 +635,6 @@ const PropertyDetails = () => {
                   variant="outline"
                   className="gap-2"
                   onClick={() => {
-                    // Busca no Bing restrita ao QuintoAndar com o endereço completo + número
                     const tipoImovel = property.tipo_imovel || 'imovel';
                     const endereco = `${property.rua} ${property.numero || ''} ${property.bairro} ${property.cidade}`.trim();
                     const searchQuery = encodeURIComponent(`site:quintoandar.com.br ${endereco} ${tipoImovel}`);
@@ -543,30 +690,7 @@ const PropertyDetails = () => {
                 <div 
                   className="space-y-4"
                   dangerouslySetInnerHTML={{ 
-                    __html: searchResult
-                      // Convert markdown headers
-                      .replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold text-primary border-b pb-2 mb-3 mt-6 first:mt-0">$1</h2>')
-                      .replace(/^### (.*$)/gim, '<h3 class="text-base font-semibold text-foreground mt-4 mb-2">$1</h3>')
-                      // Convert markdown bold
-                      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
-                      // Convert markdown tables
-                      .replace(/\|(.+)\|/g, (match) => {
-                        const cells = match.split('|').filter(cell => cell.trim());
-                        const isHeader = match.includes('---');
-                        if (isHeader) return '';
-                        return `<div class="grid grid-cols-3 gap-2 py-2 border-b border-border/50">${cells.map((cell, i) => 
-                          `<span class="${i === 0 ? 'font-medium' : 'text-right'}">${cell.trim()}</span>`
-                        ).join('')}</div>`;
-                      })
-                      // Convert markdown lists
-                      .replace(/^- (.*$)/gim, '<li class="ml-4 text-muted-foreground">$1</li>')
-                      // Convert horizontal rules
-                      .replace(/^---$/gim, '<hr class="my-4 border-border/50" />')
-                      // Wrap consecutive li elements in ul
-                      .replace(/(<li.*<\/li>\n?)+/g, '<ul class="space-y-1 my-2">$&</ul>')
-                      // Convert newlines to breaks for readability
-                      .replace(/\n\n/g, '<br/>')
-                      .replace(/\n/g, ' ')
+                    __html: convertMarkdownToHtml(searchResult)
                   }}
                 />
               </div>
