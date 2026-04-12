@@ -186,7 +186,7 @@ export function InteractiveMap({
   }
 
   return (
-    <div className="relative w-full h-64 rounded-lg overflow-hidden border">
+    <div className="relative w-full h-full min-h-[256px] rounded-lg overflow-hidden border">
       {isLoading && (
         <div className="absolute inset-0 bg-muted flex items-center justify-center z-10">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
