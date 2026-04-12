@@ -41,6 +41,7 @@ const PropertyDetails = () => {
   const [searchResult, setSearchResult] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   
   const property = id ? getPropertyById(id) : undefined;
 
