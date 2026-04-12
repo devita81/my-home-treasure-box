@@ -33,7 +33,6 @@ interface PropertyCardProps {
 
 export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardProps) {
   const [showMapDialog, setShowMapDialog] = useState(false);
-  const [imgError, setImgError] = useState(false);
 
   const address = `${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`;
 
@@ -65,15 +64,12 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
     return addr;
   };
 
-  // Build Street View / Map image URLs - match PropertyMapImage logic
+  // Build map image URL - use static map (always reliable)
   const hasCoords = property.latitude != null && property.longitude != null;
   const locationParam = hasCoords
     ? `${property.latitude},${property.longitude}`
     : encodeURIComponent(`${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`);
-  const heading = property.street_view_heading ?? 235;
-  const streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${locationParam}&fov=90&heading=${heading}&pitch=10&key=${GOOGLE_MAPS_API_KEY}`;
-  const mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${locationParam}&zoom=17&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${locationParam}&key=${GOOGLE_MAPS_API_KEY}`;
-  const imageUrl = imgError ? mapUrl : streetViewUrl;
+  const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${locationParam}&zoom=17&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${locationParam}&key=${GOOGLE_MAPS_API_KEY}`;
 
   return (
     <>
@@ -85,7 +81,6 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
               src={imageUrl}
               alt={getAddressDisplay()}
               className="h-full w-full object-cover"
-              onError={() => !imgError && setImgError(true)}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
