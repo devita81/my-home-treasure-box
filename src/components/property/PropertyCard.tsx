@@ -64,16 +64,17 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
     return addr;
   };
 
-  // Build OSM embed URL
-  const hasCoords = property.latitude != null && property.longitude != null;
+  // Build OSM embed URL - works with or without coordinates
   const getEmbedUrl = () => {
-    if (hasCoords) {
-      const lat = property.latitude!;
-      const lng = property.longitude!;
+    if (property.latitude != null && property.longitude != null) {
+      const lat = property.latitude;
+      const lng = property.longitude;
       const bbox = `${lng - 0.003},${lat - 0.002},${lng + 0.003},${lat + 0.002}`;
       return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
     }
-    return null;
+    // Fallback: use address search via Nominatim embed
+    const query = encodeURIComponent(`${property.rua} ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`);
+    return `https://www.openstreetmap.org/export/embed.html?bbox=-47.2,-23.7,-47.0,-23.5&layer=mapnik&marker=&query=${query}`;
   };
   const embedUrl = getEmbedUrl();
 
