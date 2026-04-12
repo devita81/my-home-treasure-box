@@ -3,6 +3,7 @@ import { Property } from '@/types/property';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PropertyMapImage } from './PropertyMapImage';
+import { MapDialog } from './MapDialog';
 import { 
   Dialog,
   DialogContent,
@@ -43,6 +44,9 @@ interface PropertyCardProps {
 export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [showMapDialog, setShowMapDialog] = useState(false);
+
+  const address = `${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`;
 
   const formatCurrency = (value: number | null | undefined) => {
     if (value === null || value === undefined) return null;
@@ -116,16 +120,13 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
                   className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowMapDialog(true); }}
                   className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-primary hover:bg-white hover:scale-110 transition-all shadow-md z-10"
-                  title="Ver no Google Maps"
-                  onClick={(e) => e.stopPropagation()}
+                  title="Ver no mapa interativo"
                 >
                   <MapPin className="h-4 w-4" />
-                </a>
+                </button>
               </>
             ) : (
               <PropertyMapImage
@@ -640,17 +641,12 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
                         Editar
                       </Button>
                     </Link>
-                    <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1"
-                    >
-                      <Button variant="outline" className="w-full h-11">
+                    <div className="flex-1">
+                      <Button variant="outline" className="w-full h-11" onClick={() => setShowMapDialog(true)}>
                         <MapPin className="h-4 w-4 mr-2" />
                         Mapa
                       </Button>
-                    </a>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -658,6 +654,14 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
           </div>
         </DialogContent>
       </Dialog>
+
+      <MapDialog
+        open={showMapDialog}
+        onOpenChange={setShowMapDialog}
+        latitude={property.latitude}
+        longitude={property.longitude}
+        address={address}
+      />
     </>
   );
 }

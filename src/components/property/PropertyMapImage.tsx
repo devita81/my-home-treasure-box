@@ -3,6 +3,7 @@ import { MapPin, ChevronLeft, ChevronRight, RefreshCw, RotateCcw } from 'lucide-
 import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
+import { MapDialog } from './MapDialog';
 
 interface PropertyMapImageProps {
   rua: string;
@@ -82,6 +83,7 @@ export function PropertyMapImage({
       : DEFAULT_HEADING
   );
   const [showHeadingControl, setShowHeadingControl] = useState(false);
+  const [showMapDialog, setShowMapDialog] = useState(false);
 
   // Use coordinates if available, otherwise use address
   const hasCustomLocation = latitude !== null && latitude !== undefined && longitude !== null && longitude !== undefined;
@@ -169,21 +171,10 @@ export function PropertyMapImage({
     ? `https://www.google.com/maps?q=${latitude},${longitude}` 
     : `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
 
-  const handleOpenGoogleMaps = (e: React.MouseEvent) => {
+  const handleOpenMap = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    // Use window.open with specific parameters to avoid iframe blocking
-    const newWindow = window.open(googleMapsUrl, '_blank', 'noopener,noreferrer');
-    if (!newWindow) {
-      // Fallback: create a temporary link and click it
-      const link = document.createElement('a');
-      link.href = googleMapsUrl;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+    setShowMapDialog(true);
   };
 
   const images = [
@@ -338,14 +329,22 @@ export function PropertyMapImage({
         </>
       )}
       
-      {/* Google Maps link */}
+      {/* Map dialog button */}
       <button
-        onClick={handleOpenGoogleMaps}
+        onClick={handleOpenMap}
         className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-card/90 backdrop-blur-sm text-primary hover:bg-card hover:scale-110 transition-all shadow-md z-10"
-        title="Abrir no Google Maps"
+        title="Ver no mapa interativo"
       >
         <MapPin className="h-4 w-4" />
       </button>
+
+      <MapDialog
+        open={showMapDialog}
+        onOpenChange={setShowMapDialog}
+        latitude={latitude}
+        longitude={longitude}
+        address={address}
+      />
     </div>
   );
 }
