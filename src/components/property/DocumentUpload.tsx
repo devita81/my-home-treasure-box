@@ -408,19 +408,6 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
                 {viewingDoc && (
                   <Button
                     type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleOpenInNewTab}
-                    className="gap-2"
-                    title="Abrir em nova aba"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    <span className="hidden sm:inline">Nova aba</span>
-                  </Button>
-                )}
-                {viewingDoc && (
-                  <Button
-                    type="button"
                     variant="default"
                     size="sm"
                     onClick={() => handleDownload(viewingDoc)}
