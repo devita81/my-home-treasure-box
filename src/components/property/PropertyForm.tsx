@@ -14,7 +14,7 @@ import { Save, ArrowLeft, MapPin, DollarSign, FileText, User, Home, MessageSquar
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { z } from 'zod';
-import { LocationPicker } from './LocationPicker';
+
 import { DocumentUpload } from './DocumentUpload';
 
 // Validation schema for property form
@@ -308,27 +308,6 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
               </div>
             </div>
 
-            {/* Location Picker */}
-            <LocationPicker
-              rua={formData.rua}
-              numero={formData.numero}
-              bairro={formData.bairro}
-              cidade={formData.cidade}
-              estado={formData.estado}
-              latitude={formData.latitude}
-              longitude={formData.longitude}
-              propertyId={mode === 'edit' ? property?.id : undefined}
-              onLocationChange={(lat, lng) => {
-                handleChange('latitude', lat);
-                handleChange('longitude', lng);
-              }}
-              onLocationSaved={() => {
-                // Refresh properties context when location is saved directly
-                if (mode === 'edit') {
-                  refreshProperties();
-                }
-              }}
-            />
           </CardContent>
         </Card>
 
