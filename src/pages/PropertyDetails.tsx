@@ -254,25 +254,24 @@ const PropertyDetails = () => {
           </div>
 
           {/* Hero Image */}
-          <div className="relative aspect-[21/9] rounded-2xl overflow-hidden">
+          <div className="relative aspect-[21/9] max-h-[320px] rounded-2xl overflow-hidden">
             {hasRealPhotos ? (
               <img
                 src={property.photos[0]}
                 alt={`${property.rua}, ${property.numero}`}
                 className="h-full w-full object-cover"
               />
-            ) : (
-              <PropertyMapImage
-                rua={property.rua}
-                numero={property.numero}
-                bairro={property.bairro}
-                cidade={property.cidade}
-                estado={property.estado}
-                propertyId={property.id}
-                latitude={property.latitude}
-                longitude={property.longitude}
-                initialHeading={property.street_view_heading}
+            ) : property.latitude != null && property.longitude != null ? (
+              <iframe
+                src={`https://www.openstreetmap.org/export/embed.html?bbox=${property.longitude! - 0.003},${property.latitude! - 0.002},${property.longitude! + 0.003},${property.latitude! + 0.002}&layer=mapnik&marker=${property.latitude},${property.longitude}`}
+                className="h-full w-full border-0"
+                loading="lazy"
+                title={`${property.rua}, ${property.numero}`}
               />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center bg-muted">
+                <MapPin className="h-12 w-12 text-muted-foreground/30" />
+              </div>
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
             
