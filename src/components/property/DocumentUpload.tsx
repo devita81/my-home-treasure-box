@@ -404,20 +404,6 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
                 <FileText className="h-5 w-5 text-primary shrink-0" />
                 <span className="truncate">{viewingFileName}</span>
               </div>
-              <div className="flex items-center gap-2">
-                {viewingDoc && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleOpenInNewTab}
-                    className="gap-2"
-                    title="Abrir em nova aba"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    <span className="hidden sm:inline">Nova aba</span>
-                  </Button>
-                )}
                 {viewingDoc && (
                   <Button
                     type="button"
