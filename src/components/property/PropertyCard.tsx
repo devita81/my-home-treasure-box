@@ -64,16 +64,17 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
     return addr;
   };
 
-  // Build OSM embed URL
-  const hasCoords = property.latitude != null && property.longitude != null;
+  // Build OSM embed URL - works with or without coordinates
   const getEmbedUrl = () => {
-    if (hasCoords) {
-      const lat = property.latitude!;
-      const lng = property.longitude!;
+    if (property.latitude != null && property.longitude != null) {
+      const lat = property.latitude;
+      const lng = property.longitude;
       const bbox = `${lng - 0.003},${lat - 0.002},${lng + 0.003},${lat + 0.002}`;
       return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
     }
-    return null;
+    // Fallback: use address search via Nominatim embed
+    const query = encodeURIComponent(`${property.rua} ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`);
+    return `https://www.openstreetmap.org/export/embed.html?bbox=-47.2,-23.7,-47.0,-23.5&layer=mapnik&marker=&query=${query}`;
   };
   const embedUrl = getEmbedUrl();
 
@@ -83,18 +84,12 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
         <div className="flex flex-col sm:flex-row">
           {/* Map section */}
           <div className="relative w-full sm:w-[30%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-muted shrink-0">
-            {embedUrl ? (
-              <iframe
-                src={embedUrl}
-                className="h-full w-full border-0"
-                loading="lazy"
-                title={getAddressDisplay()}
-              />
-            ) : (
-              <div className="h-full w-full flex items-center justify-center bg-muted">
-                <MapPin className="h-8 w-8 text-muted-foreground/40" />
-              </div>
-            )}
+            <iframe
+              src={embedUrl}
+              className="h-full w-full border-0"
+              loading="lazy"
+              title={getAddressDisplay()}
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
             {/* Status badges */}
