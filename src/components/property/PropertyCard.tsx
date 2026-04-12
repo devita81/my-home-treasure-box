@@ -65,13 +65,14 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
     return addr;
   };
 
-  // Build Street View / Map image URLs
-  const locationParam = property.latitude && property.longitude
+  // Build Street View / Map image URLs - match PropertyMapImage logic
+  const hasCoords = property.latitude != null && property.longitude != null;
+  const locationParam = hasCoords
     ? `${property.latitude},${property.longitude}`
-    : `${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}`;
+    : encodeURIComponent(`${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`);
   const heading = property.street_view_heading ?? 235;
-  const streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${encodeURIComponent(locationParam)}&fov=90&heading=${heading}&pitch=5&key=${GOOGLE_MAPS_API_KEY}`;
-  const mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(locationParam)}&zoom=16&size=600x400&scale=2&markers=color:red|${encodeURIComponent(locationParam)}&key=${GOOGLE_MAPS_API_KEY}`;
+  const streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${locationParam}&fov=90&heading=${heading}&pitch=10&key=${GOOGLE_MAPS_API_KEY}`;
+  const mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${locationParam}&zoom=17&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${locationParam}&key=${GOOGLE_MAPS_API_KEY}`;
   const imageUrl = imgError ? mapUrl : streetViewUrl;
 
   return (
