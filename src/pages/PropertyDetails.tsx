@@ -74,29 +74,79 @@ const parseEstimatesFromResult = (result: string): MarketEstimates => {
 };
 
 const convertMarkdownToHtml = (markdown: string): string => {
-  return markdown
-    // Convert markdown links [text](url)
+  // First, handle tables as a block
+  const lines = markdown.split('\n');
+  const result: string[] = [];
+  let inTable = false;
+  let tableRows: string[][] = [];
+  let headerRow: string[] = [];
+
+  const flushTable = () => {
+    if (tableRows.length === 0) return;
+    const colCount = headerRow.length || tableRows[0]?.length || 3;
+    let html = '<div class="rounded-lg border bg-card overflow-hidden my-4"><table class="w-full text-sm">';
+    if (headerRow.length > 0) {
+      html += '<thead><tr class="border-b bg-muted/50">';
+      headerRow.forEach((cell, i) => {
+        html += `<th class="px-3 py-2 text-xs font-semibold text-muted-foreground ${i === 0 ? 'text-left' : 'text-right'}">${cell}</th>`;
+      });
+      html += '</tr></thead>';
+    }
+    html += '<tbody>';
+    tableRows.forEach((row) => {
+      html += '<tr class="border-b last:border-b-0">';
+      row.forEach((cell, i) => {
+        const isValue = i > 0;
+        html += `<td class="px-3 py-2.5 ${isValue ? 'text-right font-medium whitespace-nowrap' : 'font-semibold text-foreground'}">${cell}</td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    result.push(html);
+    tableRows = [];
+    headerRow = [];
+  };
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+      const cells = trimmed.split('|').map(c => c.trim()).filter(Boolean);
+      // Check if separator row
+      if (cells.every(c => /^[-:]+$/.test(c))) {
+        inTable = true;
+        continue;
+      }
+      if (!inTable) {
+        // This is the header row
+        headerRow = cells;
+        inTable = true;
+      } else {
+        tableRows.push(cells);
+      }
+    } else {
+      if (inTable) {
+        flushTable();
+        inTable = false;
+      }
+      result.push(line);
+    }
+  }
+  if (inTable) flushTable();
+
+  return result.join('\n')
+    // Convert markdown links
     .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary underline hover:text-primary/80 inline-flex items-center gap-1">$1 ↗</a>')
     // Convert markdown headers
-    .replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold text-primary border-b pb-2 mb-3 mt-6 first:mt-0">$1</h2>')
-    .replace(/^### (.*$)/gim, '<h3 class="text-base font-semibold text-foreground mt-4 mb-2">$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2 class="text-base font-bold text-primary border-b border-border/50 pb-2 mb-3 mt-6 first:mt-0">$1</h2>')
+    .replace(/^### (.*$)/gim, '<h3 class="text-sm font-semibold text-foreground mt-4 mb-2">$1</h3>')
     // Convert markdown bold
     .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
-    // Convert markdown tables
-    .replace(/\|(.+)\|/g, (match) => {
-      const cells = match.split('|').filter(cell => cell.trim());
-      const isHeader = match.includes('---');
-      if (isHeader) return '';
-      return `<div class="grid grid-cols-3 gap-2 py-2 border-b border-border/50">${cells.map((cell, i) => 
-        `<span class="${i === 0 ? 'font-medium' : 'text-right'}">${cell.trim()}</span>`
-      ).join('')}</div>`;
-    })
     // Convert markdown lists
-    .replace(/^- (.*$)/gim, '<li class="ml-4 text-muted-foreground">$1</li>')
+    .replace(/^- (.*$)/gim, '<li class="ml-4 text-sm text-muted-foreground">$1</li>')
     // Convert horizontal rules
     .replace(/^---$/gim, '<hr class="my-4 border-border/50" />')
     // Wrap consecutive li elements in ul
-    .replace(/(<li.*<\/li>\n?)+/g, '<ul class="space-y-1 my-2">$&</ul>')
+    .replace(/(<li.*<\/li>\n?)+/g, '<ul class="space-y-1 my-2 list-disc">$&</ul>')
     // Convert newlines
     .replace(/\n\n/g, '<br/>')
     .replace(/\n/g, ' ');
