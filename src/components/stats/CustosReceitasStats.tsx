@@ -1,11 +1,71 @@
 import { useMemo, useState } from 'react';
 import { useProperties } from '@/contexts/PropertyContext';
 import { Property } from '@/types/property';
-import { DollarSign, Home, TrendingUp, TrendingDown } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ExportButtons } from '@/components/ui/export-buttons';
 import { useExportData } from '@/hooks/useExportData';
+
+interface GroupRow {
+  cidade: string;
+  tipo: string;
+  count: number;
+  aluguel: number;
+  condominio: number;
+  iptuMes: number;
+  taxaAdm: number;
+  liquido: number;
+  properties: Property[];
+}
+
+interface CidadeGroup {
+  cidade: string;
+  items: GroupRow[];
+}
+
+const tipoLabels: Record<string, string> = {
+  apartamento: 'Apartamentos',
+  casa: 'Casas',
+  terreno: 'Terrenos',
+  comercial: 'Comercial',
+  rural: 'Rural',
+  industrial: 'Industrial',
+  conjunto_comercial: 'Conj. Comercial',
+};
+
+function buildGroups(list: Property[]): CidadeGroup[] {
+  const map = new Map<string, GroupRow>();
+  list.forEach((p) => {
+    const cidade = p.cidade || 'Não informado';
+    const tipo = p.tipo_imovel || 'Não informado';
+    const key = `${cidade}-${tipo}`;
+    if (!map.has(key)) {
+      map.set(key, { cidade, tipo, count: 0, aluguel: 0, condominio: 0, iptuMes: 0, taxaAdm: 0, liquido: 0, properties: [] });
+    }
+    const g = map.get(key)!;
+    g.count += 1;
+    g.aluguel += p.valor_aluguel ?? 0;
+    g.condominio += p.valor_condominio ?? 0;
+    g.iptuMes += (p.iptu_value ?? 0) / 12;
+    g.taxaAdm += p.taxa_administracao ?? 0;
+    g.liquido = g.aluguel - g.condominio - g.iptuMes - g.taxaAdm;
+    g.properties.push(p);
+  });
+
+  const cidadeMap = new Map<string, GroupRow[]>();
+  Array.from(map.values()).forEach((g) => {
+    if (!cidadeMap.has(g.cidade)) cidadeMap.set(g.cidade, []);
+    cidadeMap.get(g.cidade)!.push(g);
+  });
+
+  return Array.from(cidadeMap.entries())
+    .sort(([a], [b]) => a.localeCompare(b, 'pt-BR'))
+    .map(([cidade, items]) => ({
+      cidade,
+      items: items.sort((a, b) => b.count - a.count),
+    }));
+}
 
 export function CustosReceitasStats() {
   const { properties } = useProperties();
@@ -17,18 +77,8 @@ export function CustosReceitasStats() {
   const alugados = useMemo(() => properties.filter((p) => p.alugado), [properties]);
   const naoAlugados = useMemo(() => properties.filter((p) => !p.alugado), [properties]);
 
-  const calc = (list: Property[]) => {
-    const count = list.length;
-    const aluguel = list.reduce((s, p) => s + (p.valor_aluguel ?? 0), 0);
-    const condominio = list.reduce((s, p) => s + (p.valor_condominio ?? 0), 0);
-    const iptuMes = list.reduce((s, p) => s + (p.iptu_value ?? 0) / 12, 0);
-    const taxaAdm = list.reduce((s, p) => s + (p.taxa_administracao ?? 0), 0);
-    const liquido = aluguel - condominio - iptuMes - taxaAdm;
-    return { count, aluguel, condominio, iptuMes, taxaAdm, liquido };
-  };
-
-  const statsAlugados = useMemo(() => calc(alugados), [alugados]);
-  const statsNaoAlugados = useMemo(() => calc(naoAlugados), [naoAlugados]);
+  const groupsAlugados = useMemo(() => buildGroups(alugados), [alugados]);
+  const groupsNaoAlugados = useMemo(() => buildGroups(naoAlugados), [naoAlugados]);
 
   const fmt = (v: number) =>
     v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -43,56 +93,75 @@ export function CustosReceitasStats() {
     setDialog({ open: true, title, properties: list });
   };
 
+  const CostTable = ({ label, icon: Icon, iconColor, groups }: {
+    label: string;
+    icon: typeof TrendingUp;
+    iconColor: string;
+    groups: CidadeGroup[];
+  }) => (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <Icon className={`h-4 w-4 ${iconColor}`} />
+        <h4 className="text-sm font-semibold">{label}</h4>
+      </div>
+      <div className="rounded-lg border bg-card overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b bg-muted/50">
+              <th className="text-left px-3 py-2 text-xs font-semibold text-muted-foreground">Cidade</th>
+              <th className="text-left px-3 py-2 text-xs font-semibold text-muted-foreground">Tipo</th>
+              <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Qtd</th>
+              <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Aluguel/mês</th>
+              <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Condomínio/mês</th>
+              <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">IPTU/mês</th>
+              <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Taxa Adm/mês</th>
+              <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Líquido/mês</th>
+            </tr>
+          </thead>
+          <tbody>
+            {groups.length === 0 ? (
+              <tr><td colSpan={8} className="px-3 py-4 text-center text-muted-foreground text-xs">Nenhum imóvel</td></tr>
+            ) : (
+              groups.map(({ cidade, items }) =>
+                items.map((g, idx) => (
+                  <tr
+                    key={`${g.cidade}-${g.tipo}`}
+                    className="border-b last:border-b-0 hover:bg-muted/30 cursor-pointer transition-colors"
+                    onClick={() => openDrillDown(`${label} - ${cidade} - ${tipoLabels[g.tipo] || g.tipo}`, g.properties)}
+                  >
+                    {idx === 0 && (
+                      <td className="px-3 py-2 font-semibold text-foreground" rowSpan={items.length}>
+                        {cidade}
+                      </td>
+                    )}
+                    <td className="px-3 py-2 text-muted-foreground capitalize">{tipoLabels[g.tipo] || g.tipo}</td>
+                    <td className="px-3 py-2 text-right font-medium">{g.count}</td>
+                    <td className="px-3 py-2 text-right font-medium">{fmt(g.aluguel)}</td>
+                    <td className="px-3 py-2 text-right font-medium">{fmt(g.condominio)}</td>
+                    <td className="px-3 py-2 text-right font-medium">{fmt(g.iptuMes)}</td>
+                    <td className="px-3 py-2 text-right font-medium">{fmt(g.taxaAdm)}</td>
+                    <td className={`px-3 py-2 text-right font-bold ${g.liquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {fmt(g.liquido)}
+                    </td>
+                  </tr>
+                ))
+              )
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
   return (
     <>
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex items-center gap-2">
           <DollarSign className="h-5 w-5 text-primary" />
           <h3 className="font-display text-lg font-semibold">Custos e Receitas</h3>
         </div>
-
-        <div className="rounded-lg border bg-card overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-muted/50">
-                <th className="text-left px-3 py-2 text-xs font-semibold text-muted-foreground">Categoria</th>
-                <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Qtd</th>
-                <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Aluguel/mês</th>
-                <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Condomínio/mês</th>
-                <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">IPTU/mês</th>
-                <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Taxa Adm/mês</th>
-                <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Líquido/mês</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                { label: 'Imóveis Alugados', icon: TrendingUp, iconColor: 'text-green-600', data: statsAlugados, list: alugados },
-                { label: 'Imóveis Não Alugados', icon: TrendingDown, iconColor: 'text-muted-foreground', data: statsNaoAlugados, list: naoAlugados },
-              ].map((row) => (
-                <tr
-                  key={row.label}
-                  className="border-b last:border-b-0 hover:bg-muted/30 cursor-pointer transition-colors"
-                  onClick={() => openDrillDown(row.label, row.list)}
-                >
-                  <td className="px-3 py-2.5">
-                    <div className="flex items-center gap-2">
-                      <row.icon className={`h-4 w-4 ${row.iconColor}`} />
-                      <span className="font-semibold">{row.label}</span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2.5 text-right font-medium">{row.data.count}</td>
-                  <td className="px-3 py-2.5 text-right font-medium">{fmt(row.data.aluguel)}</td>
-                  <td className="px-3 py-2.5 text-right font-medium">{fmt(row.data.condominio)}</td>
-                  <td className="px-3 py-2.5 text-right font-medium">{fmt(row.data.iptuMes)}</td>
-                  <td className="px-3 py-2.5 text-right font-medium">{fmt(row.data.taxaAdm)}</td>
-                  <td className={`px-3 py-2.5 text-right font-bold ${row.data.liquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {fmt(row.data.liquido)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <CostTable label="Imóveis Alugados" icon={TrendingUp} iconColor="text-green-600" groups={groupsAlugados} />
+        <CostTable label="Imóveis Não Alugados" icon={TrendingDown} iconColor="text-muted-foreground" groups={groupsNaoAlugados} />
       </div>
 
       <Dialog open={dialog.open} onOpenChange={(open) => setDialog((prev) => ({ ...prev, open }))}>
