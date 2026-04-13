@@ -51,6 +51,7 @@ export type Database = {
           rua: string
           street_view_heading: number | null
           suites: number | null
+          taxa_administracao: number | null
           tipo_imovel: string | null
           updated_at: string
           user_id: string | null
@@ -95,6 +96,7 @@ export type Database = {
           rua: string
           street_view_heading?: number | null
           suites?: number | null
+          taxa_administracao?: number | null
           tipo_imovel?: string | null
           updated_at?: string
           user_id?: string | null
@@ -139,6 +141,7 @@ export type Database = {
           rua?: string
           street_view_heading?: number | null
           suites?: number | null
+          taxa_administracao?: number | null
           tipo_imovel?: string | null
           updated_at?: string
           user_id?: string | null
