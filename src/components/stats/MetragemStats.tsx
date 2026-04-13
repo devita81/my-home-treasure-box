@@ -67,7 +67,7 @@ export function MetragemStats() {
     industrial: 'industrial',
   };
 
-  const groupedData = useMemo(() => {
+  const groupedByCidade = useMemo(() => {
     const groups = new Map<string, GroupedMetragem>();
 
     properties.forEach((p) => {
@@ -93,12 +93,23 @@ export function MetragemStats() {
       group.properties.push(p);
     });
 
-    // Sort by cidade first, then by metragem
-    return Array.from(groups.values()).sort((a, b) => {
-      const cidadeCompare = a.cidade.localeCompare(b.cidade, 'pt-BR');
-      if (cidadeCompare !== 0) return cidadeCompare;
-      return b.metragem - a.metragem;
+    const allGroups = Array.from(groups.values());
+
+    // Group by cidade, sorted alphabetically; within each city sort by metragem desc
+    const cidadeMap = new Map<string, GroupedMetragem[]>();
+    allGroups.forEach((g) => {
+      if (!cidadeMap.has(g.cidade)) cidadeMap.set(g.cidade, []);
+      cidadeMap.get(g.cidade)!.push(g);
     });
+
+    const sorted = Array.from(cidadeMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b, 'pt-BR'))
+      .map(([cidade, items]) => ({
+        cidade,
+        items: items.sort((a, b) => b.metragem - a.metragem),
+      }));
+
+    return sorted;
   }, [properties]);
 
   const handleCardClick = (group: GroupedMetragem) => {
@@ -159,24 +170,30 @@ export function MetragemStats() {
         <h3 className="text-xs sm:text-sm font-semibold text-foreground">Visão de Metragem</h3>
       </div>
 
-      {/* Cards Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-3">
-        {groupedData.map((group, index) => (
-          <div
-            key={`${group.cidade}-${group.tipo}`}
-            className="stat-card animate-slide-up cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all p-2 sm:p-3"
-            style={{ animationDelay: `${index * 50}ms` }}
-            onClick={() => handleCardClick(group)}
-          >
-            <p className="text-[11px] sm:text-xs font-semibold text-foreground truncate">{group.cidade}</p>
-            <p className="text-sm sm:text-base font-semibold font-display mt-0.5 sm:mt-1">{formatMetragem(group.metragem)}</p>
-            <div className="flex items-center gap-0.5 sm:gap-1 mt-0.5 sm:mt-1">
-              <DollarSign className="h-2.5 sm:h-3 w-2.5 sm:w-3 text-success" />
-              <p className="text-[11px] sm:text-xs font-medium text-success truncate">{formatCurrency(group.marketValue)}</p>
+      {/* Cards grouped by city */}
+      <div className="space-y-4">
+        {groupedByCidade.map(({ cidade, items }) => (
+          <div key={cidade}>
+            <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">{cidade}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-3">
+              {items.map((group, index) => (
+                <div
+                  key={`${group.cidade}-${group.tipo}`}
+                  className="stat-card animate-slide-up cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all p-2 sm:p-3"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                  onClick={() => handleCardClick(group)}
+                >
+                  <p className="text-sm sm:text-base font-semibold font-display">{formatMetragem(group.metragem)}</p>
+                  <div className="flex items-center gap-0.5 sm:gap-1 mt-0.5 sm:mt-1">
+                    <DollarSign className="h-2.5 sm:h-3 w-2.5 sm:w-3 text-success" />
+                    <p className="text-[11px] sm:text-xs font-medium text-success truncate">{formatCurrency(group.marketValue)}</p>
+                  </div>
+                  <p className="text-[9px] sm:text-[10px] lg:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">
+                    {group.count} {tipoLabels[group.tipo] || group.tipo}
+                  </p>
+                </div>
+              ))}
             </div>
-            <p className="text-[9px] sm:text-[10px] lg:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">
-              {group.count} {tipoLabels[group.tipo] || group.tipo}
-            </p>
           </div>
         ))}
       </div>
