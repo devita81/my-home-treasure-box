@@ -155,25 +155,11 @@ export function StatsOverview() {
       type: 'rented' as StatType,
     },
     {
-      label: 'Renda Mensal',
-      value: formatCurrency(monthlyRent),
-      icon: DollarSign,
-      color: 'bg-accent/10 text-accent',
-      type: 'rent' as StatType,
-    },
-    {
       label: 'Validados',
       value: `${validatedProperties.length} / ${totalProperties}`,
       icon: CheckCircle,
       color: 'bg-success/10 text-success',
       type: 'validated' as StatType,
-    },
-    {
-      label: 'IPTU Pendente',
-      value: pendingIptuProperties.length,
-      icon: AlertTriangle,
-      color: 'bg-warning/10 text-warning',
-      type: 'iptu' as StatType,
     },
   ];
 
@@ -224,7 +210,7 @@ export function StatsOverview() {
 
   return (
     <>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
         {stats.map((stat, index) => (
           <div
             key={stat.label}
