@@ -73,83 +73,143 @@ const parseEstimatesFromResult = (result: string): MarketEstimates => {
   return estimates;
 };
 
-const convertMarkdownToHtml = (markdown: string): string => {
-  // First, handle tables as a block
-  const lines = markdown.split('\n');
-  const result: string[] = [];
-  let inTable = false;
-  let tableRows: string[][] = [];
-  let headerRow: string[] = [];
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 
-  const flushTable = () => {
-    if (tableRows.length === 0) return;
-    const colCount = headerRow.length || tableRows[0]?.length || 3;
-    let html = '<div class="rounded-lg border bg-card overflow-hidden my-4"><table class="w-full text-sm">';
-    if (headerRow.length > 0) {
-      html += '<thead><tr class="border-b bg-muted/50">';
-      headerRow.forEach((cell, i) => {
-        html += `<th class="px-3 py-2 text-xs font-semibold text-muted-foreground ${i === 0 ? 'text-left' : 'text-right'}">${cell}</th>`;
-      });
-      html += '</tr></thead>';
-    }
-    html += '<tbody>';
-    tableRows.forEach((row) => {
-      html += '<tr class="border-b last:border-b-0">';
-      row.forEach((cell, i) => {
-        const isValue = i > 0;
-        html += `<td class="px-3 py-2.5 ${isValue ? 'text-right font-medium whitespace-nowrap' : 'font-semibold text-foreground'}">${cell}</td>`;
-      });
-      html += '</tr>';
-    });
-    html += '</tbody></table></div>';
-    result.push(html);
-    tableRows = [];
-    headerRow = [];
-  };
+const formatInlineMarkdown = (text: string) =>
+  escapeHtml(text)
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary underline underline-offset-4 hover:text-primary/80 inline-flex items-center gap-1">$1 ↗</a>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>')
+    .replace(/`([^`]+)`/g, '<code class="rounded bg-muted px-1.5 py-0.5 text-[11px] text-foreground">$1</code>');
 
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
-      const cells = trimmed.split('|').map(c => c.trim()).filter(Boolean);
-      // Check if separator row
-      if (cells.every(c => /^[-:]+$/.test(c))) {
-        inTable = true;
-        continue;
-      }
-      if (!inTable) {
-        // This is the header row
-        headerRow = cells;
-        inTable = true;
-      } else {
-        tableRows.push(cells);
-      }
-    } else {
-      if (inTable) {
-        flushTable();
-        inTable = false;
-      }
-      result.push(line);
-    }
+const isCompactMetricCell = (text: string) => {
+  const value = text.trim();
+  return /^(R\$\s?[\d\.]+(?:,\d+)?(?:\/m²|\/m2)?)$/.test(value) || /^(\d+[\d\.,]*\s?(?:m²|m2|%|anos?)?)$/.test(value);
+};
+
+const renderMarkdownTable = (tableLines: string[]) => {
+  const getCells = (line: string) => line.split('|').slice(1, -1).map((cell) => formatInlineMarkdown(cell.trim()));
+  const headers = getCells(tableLines[0]);
+  const rows = tableLines.slice(2).map(getCells).filter((row) => row.some(Boolean));
+  const hasNarrativeLastColumn = rows.some((row) => {
+    const lastCell = row[row.length - 1]?.replace(/<[^>]+>/g, '').trim() || '';
+    return lastCell.length > 28 && !isCompactMetricCell(lastCell);
+  });
+
+  let html = '<div class="my-5 overflow-hidden rounded-xl border border-border bg-card/80 shadow-sm"><div class="overflow-x-auto"><table class="w-full border-collapse text-sm';
+  html += hasNarrativeLastColumn ? ' table-fixed' : '';
+  html += '">';
+
+  if (hasNarrativeLastColumn && headers.length === 4) {
+    html += '<colgroup><col style="width: 17%" /><col style="width: 15%" /><col style="width: 15%" /><col style="width: 53%" /></colgroup>';
   }
-  if (inTable) flushTable();
 
-  return result.join('\n')
-    // Convert markdown links
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary underline hover:text-primary/80 inline-flex items-center gap-1">$1 ↗</a>')
-    // Convert markdown headers
-    .replace(/^## (.*$)/gim, '<h2 class="text-base font-bold text-primary border-b border-border/50 pb-2 mb-3 mt-6 first:mt-0">$1</h2>')
-    .replace(/^### (.*$)/gim, '<h3 class="text-sm font-semibold text-foreground mt-4 mb-2">$1</h3>')
-    // Convert markdown bold
-    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
-    // Convert markdown lists
-    .replace(/^- (.*$)/gim, '<li class="ml-4 text-sm text-muted-foreground">$1</li>')
-    // Convert horizontal rules
-    .replace(/^---$/gim, '<hr class="my-4 border-border/50" />')
-    // Wrap consecutive li elements in ul
-    .replace(/(<li.*<\/li>\n?)+/g, '<ul class="space-y-1 my-2 list-disc">$&</ul>')
-    // Convert newlines
-    .replace(/\n\n/g, '<br/>')
-    .replace(/\n/g, ' ');
+  html += '<thead><tr class="border-b border-border/70 bg-muted/50">';
+  headers.forEach((header, index) => {
+    const alignClass = index === 0 || (hasNarrativeLastColumn && index === headers.length - 1) ? 'text-left' : 'text-right';
+    html += `<th class="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground ${alignClass}">${header}</th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  rows.forEach((row) => {
+    html += '<tr class="border-b border-border/50 last:border-b-0">';
+    row.forEach((cell, index) => {
+      const plainText = cell.replace(/<[^>]+>/g, '').trim();
+      const isNarrativeCell = hasNarrativeLastColumn && index === row.length - 1;
+      const alignClass = index === 0 || isNarrativeCell ? 'text-left' : isCompactMetricCell(plainText) ? 'text-right whitespace-nowrap tabular-nums' : 'text-left';
+      const toneClass = isNarrativeCell ? 'text-muted-foreground leading-6 break-words' : index === 0 ? 'font-semibold text-foreground' : 'font-medium text-foreground';
+      html += `<td class="px-4 py-3 align-top ${alignClass} ${toneClass}">${cell || '—'}</td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div></div>';
+  return html;
+};
+
+const convertMarkdownToHtml = (markdown: string): string => {
+  const lines = markdown.split('\n');
+  const blocks: string[] = [];
+  let index = 0;
+
+  while (index < lines.length) {
+    const line = lines[index].trim();
+
+    if (!line) {
+      index += 1;
+      continue;
+    }
+
+    const nextLine = lines[index + 1]?.trim() || '';
+    const isTableStart = line.startsWith('|') && line.endsWith('|') && /^\|?\s*[:\-\| ]+\|?$/.test(nextLine);
+
+    if (isTableStart) {
+      const tableLines = [line, nextLine];
+      index += 2;
+      while (index < lines.length) {
+        const current = lines[index].trim();
+        if (!(current.startsWith('|') && current.endsWith('|'))) break;
+        tableLines.push(current);
+        index += 1;
+      }
+      blocks.push(renderMarkdownTable(tableLines));
+      continue;
+    }
+
+    if (line.startsWith('## ')) {
+      blocks.push(`<h2 class="mt-8 mb-3 border-b border-border/60 pb-2 text-base font-semibold tracking-[0.04em] text-primary first:mt-0">${formatInlineMarkdown(line.slice(3))}</h2>`);
+      index += 1;
+      continue;
+    }
+
+    if (line.startsWith('### ')) {
+      blocks.push(`<h3 class="mt-5 mb-2 text-sm font-semibold uppercase tracking-[0.14em] text-foreground/90">${formatInlineMarkdown(line.slice(4))}</h3>`);
+      index += 1;
+      continue;
+    }
+
+    if (line === '---') {
+      blocks.push('<hr class="my-5 border-border/60" />');
+      index += 1;
+      continue;
+    }
+
+    if (line.startsWith('- ')) {
+      const items: string[] = [];
+      while (index < lines.length && lines[index].trim().startsWith('- ')) {
+        items.push(lines[index].trim().slice(2));
+        index += 1;
+      }
+      blocks.push(`<ul class="my-3 space-y-2">${items.map((item) => `<li class="ml-5 list-disc text-sm leading-6 text-muted-foreground">${formatInlineMarkdown(item)}</li>`).join('')}</ul>`);
+      continue;
+    }
+
+    const paragraphLines: string[] = [];
+    while (index < lines.length) {
+      const current = lines[index].trim();
+      const upcoming = lines[index + 1]?.trim() || '';
+      const isUpcomingTable = current.startsWith('|') && current.endsWith('|') && /^\|?\s*[:\-\| ]+\|?$/.test(upcoming);
+      if (!current || current.startsWith('## ') || current.startsWith('### ') || current === '---' || current.startsWith('- ') || isUpcomingTable) {
+        break;
+      }
+      paragraphLines.push(current);
+      index += 1;
+    }
+
+    if (paragraphLines.length > 0) {
+      blocks.push(`<p class="text-sm leading-7 text-foreground/85">${paragraphLines.map(formatInlineMarkdown).join('<br />')}</p>`);
+      continue;
+    }
+
+    index += 1;
+  }
+
+  return blocks.join('');
 };
 
 const PropertyDetails = () => {
@@ -723,22 +783,22 @@ const PropertyDetails = () => {
 
       {/* Dialog para resultado da estimativa */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col p-0">
-          <DialogHeader className="px-6 pt-6 pb-4 border-b">
-            <DialogTitle className="flex items-center gap-2 text-lg">
-              <DollarSign className="h-5 w-5 text-primary" />
+        <DialogContent className="w-[min(96vw,1100px)] max-w-5xl max-h-[88vh] overflow-hidden flex flex-col p-0">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b bg-card">
+            <DialogTitle className="flex items-center gap-2 text-base font-semibold pr-8">
+              <DollarSign className="h-4 w-4 text-primary" />
               Análise de Mercado — ChatGPT
             </DialogTitle>
-            <p className="text-[11px] text-muted-foreground">
-              Relatório profissional de avaliação imobiliária
+            <p className="text-[11px] leading-5 text-muted-foreground">
+              Relatório estruturado com estimativas, cenários e leitura de mercado.
             </p>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto px-6 py-4">
+          <div className="flex-1 overflow-y-auto bg-muted/20 px-6 py-5">
             {searchResult && (
-              <div className="prose prose-sm dark:prose-invert max-w-none">
-                <div 
-                  className="space-y-4"
-                  dangerouslySetInnerHTML={{ 
+              <div className="mx-auto max-w-none rounded-2xl border border-border/60 bg-background p-5 shadow-sm">
+                <div
+                  className="space-y-4 text-sm"
+                  dangerouslySetInnerHTML={{
                     __html: convertMarkdownToHtml(searchResult)
                   }}
                 />
