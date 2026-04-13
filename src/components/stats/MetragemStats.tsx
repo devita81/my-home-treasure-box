@@ -67,7 +67,7 @@ export function MetragemStats() {
     industrial: 'industrial',
   };
 
-  const groupedData = useMemo(() => {
+  const groupedByCidade = useMemo(() => {
     const groups = new Map<string, GroupedMetragem>();
 
     properties.forEach((p) => {
@@ -93,12 +93,23 @@ export function MetragemStats() {
       group.properties.push(p);
     });
 
-    // Sort by cidade first, then by metragem
-    return Array.from(groups.values()).sort((a, b) => {
-      const cidadeCompare = a.cidade.localeCompare(b.cidade, 'pt-BR');
-      if (cidadeCompare !== 0) return cidadeCompare;
-      return b.metragem - a.metragem;
+    const allGroups = Array.from(groups.values());
+
+    // Group by cidade, sorted alphabetically; within each city sort by metragem desc
+    const cidadeMap = new Map<string, GroupedMetragem[]>();
+    allGroups.forEach((g) => {
+      if (!cidadeMap.has(g.cidade)) cidadeMap.set(g.cidade, []);
+      cidadeMap.get(g.cidade)!.push(g);
     });
+
+    const sorted = Array.from(cidadeMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b, 'pt-BR'))
+      .map(([cidade, items]) => ({
+        cidade,
+        items: items.sort((a, b) => b.metragem - a.metragem),
+      }));
+
+    return sorted;
   }, [properties]);
 
   const handleCardClick = (group: GroupedMetragem) => {
