@@ -40,6 +40,9 @@ const Index = () => {
         {/* Metragem Stats */}
         <MetragemStats />
 
+        {/* Custos e Receitas */}
+        <CustosReceitasStats />
+
         {/* Filters */}
         <PropertyFilters />
 
