@@ -98,60 +98,85 @@ export function CustosReceitasStats() {
     icon: typeof TrendingUp;
     iconColor: string;
     groups: CidadeGroup[];
-  }) => (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <Icon className={`h-4 w-4 ${iconColor}`} />
-        <h4 className="text-sm font-semibold">{label}</h4>
-      </div>
-      <div className="rounded-lg border bg-card overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b bg-muted/50">
-              <th className="text-left px-3 py-2 text-xs font-semibold text-muted-foreground">Cidade</th>
-              <th className="text-left px-3 py-2 text-xs font-semibold text-muted-foreground">Tipo</th>
-              <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Qtd</th>
-              <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Aluguel/mês</th>
-              <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Condomínio/mês</th>
-              <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">IPTU/mês</th>
-              <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Taxa Adm/mês</th>
-              <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Líquido/mês</th>
-            </tr>
-          </thead>
-          <tbody>
-            {groups.length === 0 ? (
-              <tr><td colSpan={8} className="px-3 py-4 text-center text-muted-foreground text-xs">Nenhum imóvel</td></tr>
-            ) : (
-              groups.map(({ cidade, items }) =>
-                items.map((g, idx) => (
-                  <tr
-                    key={`${g.cidade}-${g.tipo}`}
-                    className="border-b last:border-b-0 hover:bg-muted/30 cursor-pointer transition-colors"
-                    onClick={() => openDrillDown(`${label} - ${cidade} - ${tipoLabels[g.tipo] || g.tipo}`, g.properties)}
-                  >
-                    {idx === 0 && (
-                      <td className="px-3 py-2 font-semibold text-foreground" rowSpan={items.length}>
-                        {cidade}
-                      </td>
-                    )}
-                    <td className="px-3 py-2 text-muted-foreground capitalize">{tipoLabels[g.tipo] || g.tipo}</td>
-                    <td className="px-3 py-2 text-right font-medium">{g.count}</td>
-                    <td className="px-3 py-2 text-right font-medium">{fmt(g.aluguel)}</td>
-                    <td className="px-3 py-2 text-right font-medium">{fmt(g.condominio)}</td>
-                    <td className="px-3 py-2 text-right font-medium">{fmt(g.iptuMes)}</td>
-                    <td className="px-3 py-2 text-right font-medium">{fmt(g.taxaAdm)}</td>
-                    <td className={`px-3 py-2 text-right font-bold ${g.liquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {fmt(g.liquido)}
+  }) => {
+    const allItems = groups.flatMap((g) => g.items);
+    const totals = {
+      count: allItems.reduce((s, g) => s + g.count, 0),
+      aluguel: allItems.reduce((s, g) => s + g.aluguel, 0),
+      condominio: allItems.reduce((s, g) => s + g.condominio, 0),
+      iptuMes: allItems.reduce((s, g) => s + g.iptuMes, 0),
+      taxaAdm: allItems.reduce((s, g) => s + g.taxaAdm, 0),
+      liquido: allItems.reduce((s, g) => s + g.liquido, 0),
+    };
+
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Icon className={`h-4 w-4 ${iconColor}`} />
+          <h4 className="text-sm font-semibold">{label}</h4>
+        </div>
+        <div className="rounded-lg border bg-card overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-muted/50">
+                <th className="text-left px-3 py-2 text-xs font-semibold text-muted-foreground">Cidade</th>
+                <th className="text-left px-3 py-2 text-xs font-semibold text-muted-foreground">Tipo</th>
+                <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Qtd</th>
+                <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Aluguel/mês</th>
+                <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Condomínio/mês</th>
+                <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">IPTU/mês</th>
+                <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Taxa Adm/mês</th>
+                <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Líquido/mês</th>
+              </tr>
+            </thead>
+            <tbody>
+              {groups.length === 0 ? (
+                <tr><td colSpan={8} className="px-3 py-4 text-center text-muted-foreground text-xs">Nenhum imóvel</td></tr>
+              ) : (
+                <>
+                  {groups.map(({ cidade, items }) =>
+                    items.map((g, idx) => (
+                      <tr
+                        key={`${g.cidade}-${g.tipo}`}
+                        className="border-b hover:bg-muted/30 cursor-pointer transition-colors"
+                        onClick={() => openDrillDown(`${label} - ${cidade} - ${tipoLabels[g.tipo] || g.tipo}`, g.properties)}
+                      >
+                        {idx === 0 && (
+                          <td className="px-3 py-2 font-semibold text-foreground" rowSpan={items.length}>
+                            {cidade}
+                          </td>
+                        )}
+                        <td className="px-3 py-2 text-muted-foreground capitalize">{tipoLabels[g.tipo] || g.tipo}</td>
+                        <td className="px-3 py-2 text-right font-medium">{g.count}</td>
+                        <td className="px-3 py-2 text-right font-medium">{fmt(g.aluguel)}</td>
+                        <td className="px-3 py-2 text-right font-medium">{fmt(g.condominio)}</td>
+                        <td className="px-3 py-2 text-right font-medium">{fmt(g.iptuMes)}</td>
+                        <td className="px-3 py-2 text-right font-medium">{fmt(g.taxaAdm)}</td>
+                        <td className={`px-3 py-2 text-right font-bold ${g.liquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {fmt(g.liquido)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                  <tr className="bg-muted/50 font-bold border-t-2">
+                    <td className="px-3 py-2" colSpan={2}>Subtotal</td>
+                    <td className="px-3 py-2 text-right">{totals.count}</td>
+                    <td className="px-3 py-2 text-right">{fmt(totals.aluguel)}</td>
+                    <td className="px-3 py-2 text-right">{fmt(totals.condominio)}</td>
+                    <td className="px-3 py-2 text-right">{fmt(totals.iptuMes)}</td>
+                    <td className="px-3 py-2 text-right">{fmt(totals.taxaAdm)}</td>
+                    <td className={`px-3 py-2 text-right ${totals.liquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {fmt(totals.liquido)}
                     </td>
                   </tr>
-                ))
-              )
-            )}
-          </tbody>
-        </table>
+                </>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <>
