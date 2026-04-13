@@ -36,6 +36,13 @@ export function CustosReceitasStats() {
   const fmtFull = (v: number) =>
     v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
 
+  const getAddress = (p: Property) =>
+    `${p.rua}${p.numero ? ', ' + p.numero : ''}${p.apartamento ? ' - Ap ' + p.apartamento : ''} - ${p.bairro}, ${p.cidade}`;
+
+  const openDrillDown = (title: string, list: Property[]) => {
+    setDialog({ open: true, title, properties: list });
+  };
+
   return (
     <>
       <div className="space-y-3">
