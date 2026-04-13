@@ -170,32 +170,42 @@ export function MetragemStats() {
         <h3 className="text-xs sm:text-sm font-semibold text-foreground">Visão de Metragem</h3>
       </div>
 
-      {/* Cards grouped by city */}
-      <div className="space-y-4">
-        {groupedByCidade.map(({ cidade, items }) => (
-          <div key={cidade}>
-            <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">{cidade}</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-3">
-              {items.map((group, index) => (
-                <div
+      {/* Table layout by city */}
+      <div className="rounded-lg border bg-card overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b bg-muted/50">
+              <th className="text-left px-3 py-2 text-xs font-semibold text-muted-foreground">Cidade</th>
+              <th className="text-left px-3 py-2 text-xs font-semibold text-muted-foreground">Tipo</th>
+              <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Qtd</th>
+              <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Metragem</th>
+              <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Valor de Mercado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {groupedByCidade.map(({ cidade, items }) => (
+              items.map((group, idx) => (
+                <tr
                   key={`${group.cidade}-${group.tipo}`}
-                  className="stat-card animate-slide-up cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all p-2 sm:p-3"
-                  style={{ animationDelay: `${index * 50}ms` }}
+                  className="border-b last:border-b-0 hover:bg-muted/30 cursor-pointer transition-colors"
                   onClick={() => handleCardClick(group)}
                 >
-                  <p className="text-sm sm:text-base font-semibold font-display">{formatMetragem(group.metragem)}</p>
-                  <div className="flex items-center gap-0.5 sm:gap-1 mt-0.5 sm:mt-1">
-                    <DollarSign className="h-2.5 sm:h-3 w-2.5 sm:w-3 text-success" />
-                    <p className="text-[11px] sm:text-xs font-medium text-success truncate">{formatCurrency(group.marketValue)}</p>
-                  </div>
-                  <p className="text-[9px] sm:text-[10px] lg:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">
-                    {group.count} {tipoLabels[group.tipo] || group.tipo}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
+                  {idx === 0 ? (
+                    <td className="px-3 py-2 font-semibold text-foreground" rowSpan={items.length}>
+                      {cidade}
+                    </td>
+                  ) : null}
+                  <td className="px-3 py-2 text-muted-foreground capitalize">
+                    {tipoLabels[group.tipo] || group.tipo}
+                  </td>
+                  <td className="px-3 py-2 text-right font-medium">{group.count}</td>
+                  <td className="px-3 py-2 text-right font-semibold">{formatMetragem(group.metragem)}</td>
+                  <td className="px-3 py-2 text-right font-medium text-success">{formatCurrency(group.marketValue)}</td>
+                </tr>
+              ))
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {/* Drill-down Dialog */}
