@@ -212,16 +212,16 @@ export function MetragemStats() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <div className="flex items-center justify-between gap-4">
-              <DialogTitle className="text-base font-semibold">
-                {selectedGroup?.cidade} – {tipoLabels[selectedGroup?.tipo || ''] || selectedGroup?.tipo}
-              </DialogTitle>
-              <ExportButtons
-                onExportExcel={() => exportToExcel(sortedProperties, `${selectedGroup?.cidade} - ${tipoLabels[selectedGroup?.tipo || ''] || selectedGroup?.tipo}`, simpleColumns)}
-                onExportPDF={() => exportToPDF(sortedProperties, `${selectedGroup?.cidade} - ${tipoLabels[selectedGroup?.tipo || ''] || selectedGroup?.tipo}`, `Total: ${formatMetragem(selectedGroup?.metragem || 0)} | ${formatCurrencyFull(selectedGroup?.marketValue || 0)} em ${selectedGroup?.count} imóveis`, simpleColumns)}
-              />
-            </div>
+            <DialogTitle className="text-base font-semibold pr-8">
+              {selectedGroup?.cidade} – {tipoLabels[selectedGroup?.tipo || ''] || selectedGroup?.tipo}
+            </DialogTitle>
           </DialogHeader>
+          <div className="flex items-center justify-end -mt-2">
+            <ExportButtons
+              onExportExcel={() => exportToExcel(sortedProperties, `${selectedGroup?.cidade} - ${tipoLabels[selectedGroup?.tipo || ''] || selectedGroup?.tipo}`, simpleColumns)}
+              onExportPDF={() => exportToPDF(sortedProperties, `${selectedGroup?.cidade} - ${tipoLabels[selectedGroup?.tipo || ''] || selectedGroup?.tipo}`, `Total: ${formatMetragem(selectedGroup?.metragem || 0)} | ${formatCurrencyFull(selectedGroup?.marketValue || 0)} em ${selectedGroup?.count} imóveis`, simpleColumns)}
+            />
+          </div>
 
           <p className="text-sm text-muted-foreground">
             Total: {formatMetragem(selectedGroup?.metragem || 0)} | {formatCurrencyFull(selectedGroup?.marketValue || 0)} em {selectedGroup?.count} imóveis

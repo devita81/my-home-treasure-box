@@ -192,14 +192,14 @@ export function CustosReceitasStats() {
       <Dialog open={dialog.open} onOpenChange={(open) => setDialog((prev) => ({ ...prev, open }))}>
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <div className="flex items-center justify-between gap-4">
-              <DialogTitle className="text-base font-semibold">{dialog.title}</DialogTitle>
-              <ExportButtons
-                onExportExcel={() => exportToExcel(dialog.properties, dialog.title, simpleColumns)}
-                onExportPDF={() => exportToPDF(dialog.properties, dialog.title, undefined, simpleColumns)}
-              />
-            </div>
+            <DialogTitle className="text-base font-semibold pr-8">{dialog.title}</DialogTitle>
           </DialogHeader>
+          <div className="flex items-center justify-end -mt-2">
+            <ExportButtons
+              onExportExcel={() => exportToExcel(dialog.properties, dialog.title, simpleColumns)}
+              onExportPDF={() => exportToPDF(dialog.properties, dialog.title, undefined, simpleColumns)}
+            />
+          </div>
 
           <div className="rounded-lg border bg-card overflow-hidden">
             <table className="w-full text-sm">
