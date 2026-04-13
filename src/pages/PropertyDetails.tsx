@@ -162,13 +162,13 @@ const convertMarkdownToHtml = (markdown: string): string => {
     }
 
     if (line.startsWith('## ')) {
-      blocks.push(`<h2 class="mt-8 mb-3 border-b border-border/60 pb-2 text-base font-semibold tracking-[0.04em] text-primary first:mt-0">${formatInlineMarkdown(line.slice(3))}</h2>`);
+      blocks.push(`<h2 class="mt-8 mb-3 border-b border-primary/30 pb-2 text-base font-bold text-foreground first:mt-0">${formatInlineMarkdown(line.slice(3))}</h2>`);
       index += 1;
       continue;
     }
 
     if (line.startsWith('### ')) {
-      blocks.push(`<h3 class="mt-5 mb-2 text-sm font-semibold uppercase tracking-[0.14em] text-foreground/90">${formatInlineMarkdown(line.slice(4))}</h3>`);
+      blocks.push(`<h3 class="mt-5 mb-2 text-sm font-semibold text-foreground">${formatInlineMarkdown(line.slice(4))}</h3>`);
       index += 1;
       continue;
     }
@@ -185,7 +185,7 @@ const convertMarkdownToHtml = (markdown: string): string => {
         items.push(lines[index].trim().slice(2));
         index += 1;
       }
-      blocks.push(`<ul class="my-3 space-y-2">${items.map((item) => `<li class="ml-5 list-disc text-sm leading-6 text-muted-foreground">${formatInlineMarkdown(item)}</li>`).join('')}</ul>`);
+      blocks.push(`<ul class="my-3 space-y-2.5">${items.map((item) => `<li class="ml-5 list-disc text-sm leading-6 text-foreground">${formatInlineMarkdown(item)}</li>`).join('')}</ul>`);
       continue;
     }
 
@@ -202,7 +202,7 @@ const convertMarkdownToHtml = (markdown: string): string => {
     }
 
     if (paragraphLines.length > 0) {
-      blocks.push(`<p class="text-sm leading-7 text-foreground/85">${paragraphLines.map(formatInlineMarkdown).join('<br />')}</p>`);
+      blocks.push(`<p class="text-sm leading-7 text-foreground">${paragraphLines.map(formatInlineMarkdown).join('<br />')}</p>`);
       continue;
     }
 
