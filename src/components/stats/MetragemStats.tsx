@@ -210,11 +210,11 @@ export function MetragemStats() {
 
       {/* Drill-down Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle>
-                {selectedGroup?.cidade} - {tipoLabels[selectedGroup?.tipo || ''] || selectedGroup?.tipo}
+            <div className="flex items-center justify-between gap-4">
+              <DialogTitle className="text-base font-semibold">
+                {selectedGroup?.cidade} – {tipoLabels[selectedGroup?.tipo || ''] || selectedGroup?.tipo}
               </DialogTitle>
               <ExportButtons
                 onExportExcel={() => exportToExcel(sortedProperties, `${selectedGroup?.cidade} - ${tipoLabels[selectedGroup?.tipo || ''] || selectedGroup?.tipo}`, simpleColumns)}
@@ -222,49 +222,52 @@ export function MetragemStats() {
               />
             </div>
           </DialogHeader>
-          <div className="space-y-2 mt-4">
-            <p className="text-sm text-muted-foreground mb-4">
-              Total: {formatMetragem(selectedGroup?.metragem || 0)} | {formatCurrencyFull(selectedGroup?.marketValue || 0)} em {selectedGroup?.count} imóveis
-            </p>
-            
-            {/* Sort Headers */}
-            <div className="flex items-center justify-between border-b pb-2 mb-2">
-              <SortButton field="address" label="Endereço" />
-              <div className="flex gap-2">
-                <SortButton field="metragem" label="Metragem" />
-                <SortButton field="market_value" label="Valor" />
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              {sortedProperties.map((property) => (
-                <Link
-                  key={property.id}
-                  to={`/property/${property.id}`}
-                  className="block p-3 rounded-lg border hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-sm">
-                        {property.rua}, {property.numero}
-                        {property.apartamento && ` - Apto ${property.apartamento}`}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {property.bairro}, {property.cidade}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-sm">
-                        {formatMetragem(property.metragem || 0)}
-                      </p>
-                      <p className="text-xs text-success">
-                        {formatCurrencyFull(property.market_value || 0)}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+          <p className="text-sm text-muted-foreground">
+            Total: {formatMetragem(selectedGroup?.metragem || 0)} | {formatCurrencyFull(selectedGroup?.marketValue || 0)} em {selectedGroup?.count} imóveis
+          </p>
+
+          <div className="rounded-lg border bg-card overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/50">
+                  <th className="text-left px-3 py-2">
+                    <SortButton field="address" label="Endereço" />
+                  </th>
+                  <th className="text-right px-3 py-2">
+                    <SortButton field="metragem" label="Metragem" />
+                  </th>
+                  <th className="text-right px-3 py-2">
+                    <SortButton field="market_value" label="Valor de Mercado" />
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedProperties.map((property) => (
+                  <tr
+                    key={property.id}
+                    className="border-b last:border-b-0 hover:bg-muted/30 transition-colors cursor-pointer"
+                    onClick={() => window.location.href = `/property/${property.id}`}
+                  >
+                    <td className="px-3 py-2.5">
+                      <Link to={`/property/${property.id}`} className="hover:text-primary transition-colors">
+                        <p className="font-medium text-sm text-foreground">
+                          {property.rua}{property.numero ? `, ${property.numero}` : ''}
+                          {property.apartamento ? ` – Apto ${property.apartamento}` : ''}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{property.bairro}, {property.cidade}</p>
+                      </Link>
+                    </td>
+                    <td className="px-3 py-2.5 text-right font-semibold text-foreground whitespace-nowrap">
+                      {formatMetragem(property.metragem || 0)}
+                    </td>
+                    <td className="px-3 py-2.5 text-right font-medium text-success whitespace-nowrap">
+                      {formatCurrencyFull(property.market_value || 0)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </DialogContent>
       </Dialog>

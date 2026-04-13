@@ -190,10 +190,10 @@ export function CustosReceitasStats() {
       </div>
 
       <Dialog open={dialog.open} onOpenChange={(open) => setDialog((prev) => ({ ...prev, open }))}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle>{dialog.title}</DialogTitle>
+            <div className="flex items-center justify-between gap-4">
+              <DialogTitle className="text-base font-semibold">{dialog.title}</DialogTitle>
               <ExportButtons
                 onExportExcel={() => exportToExcel(dialog.properties, dialog.title, simpleColumns)}
                 onExportPDF={() => exportToPDF(dialog.properties, dialog.title, undefined, simpleColumns)}
@@ -201,44 +201,65 @@ export function CustosReceitasStats() {
             </div>
           </DialogHeader>
 
-          <div className="space-y-2 mt-2">
-            {dialog.properties.map((p) => {
-              const iptuMes = (p.iptu_value ?? 0) / 12;
-              const liquido = (p.valor_aluguel ?? 0) - (p.valor_condominio ?? 0) - iptuMes - (p.taxa_administracao ?? 0);
-              return (
-                <Link
-                  key={p.id}
-                  to={`/property/${p.id}`}
-                  className="block rounded-lg border p-3 hover:border-primary/50 hover:bg-accent/30 transition-colors"
-                >
-                  <p className="text-sm font-semibold mb-1">{getAddress(p)}</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 text-xs">
-                    <div>
-                      <span className="text-muted-foreground">Aluguel: </span>
-                      <span className="font-medium">{fmtFull(p.valor_aluguel ?? 0)}</span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Condomínio: </span>
-                      <span className="font-medium">{fmtFull(p.valor_condominio ?? 0)}</span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">IPTU/mês: </span>
-                      <span className="font-medium">{fmtFull(iptuMes)}</span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Taxa Adm: </span>
-                      <span className="font-medium">{fmtFull(p.taxa_administracao ?? 0)}</span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Líquido: </span>
-                      <span className={`font-bold ${liquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <div className="rounded-lg border bg-card overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/50">
+                  <th className="text-left px-3 py-2 text-xs font-semibold text-muted-foreground">Endereço</th>
+                  <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Aluguel</th>
+                  <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Condomínio</th>
+                  <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">IPTU/mês</th>
+                  <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Taxa Adm</th>
+                  <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Líquido</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dialog.properties.map((p) => {
+                  const iptuMes = (p.iptu_value ?? 0) / 12;
+                  const liquido = (p.valor_aluguel ?? 0) - (p.valor_condominio ?? 0) - iptuMes - (p.taxa_administracao ?? 0);
+                  return (
+                    <tr
+                      key={p.id}
+                      className="border-b last:border-b-0 hover:bg-muted/30 transition-colors cursor-pointer"
+                      onClick={() => window.location.href = `/property/${p.id}`}
+                    >
+                      <td className="px-3 py-2.5">
+                        <Link to={`/property/${p.id}`} className="hover:text-primary transition-colors">
+                          <p className="font-medium text-sm text-foreground">
+                            {p.rua}{p.numero ? `, ${p.numero}` : ''}{p.apartamento ? ` – Ap ${p.apartamento}` : ''}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{p.bairro}, {p.cidade}</p>
+                        </Link>
+                      </td>
+                      <td className="px-3 py-2.5 text-right font-medium whitespace-nowrap">{fmtFull(p.valor_aluguel ?? 0)}</td>
+                      <td className="px-3 py-2.5 text-right font-medium whitespace-nowrap">{fmtFull(p.valor_condominio ?? 0)}</td>
+                      <td className="px-3 py-2.5 text-right font-medium whitespace-nowrap">{fmtFull(iptuMes)}</td>
+                      <td className="px-3 py-2.5 text-right font-medium whitespace-nowrap">{fmtFull(p.taxa_administracao ?? 0)}</td>
+                      <td className={`px-3 py-2.5 text-right font-bold whitespace-nowrap ${liquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {fmtFull(liquido)}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+                      </td>
+                    </tr>
+                  );
+                })}
+                {dialog.properties.length > 1 && (() => {
+                  const totAluguel = dialog.properties.reduce((s, p) => s + (p.valor_aluguel ?? 0), 0);
+                  const totCond = dialog.properties.reduce((s, p) => s + (p.valor_condominio ?? 0), 0);
+                  const totIptu = dialog.properties.reduce((s, p) => s + ((p.iptu_value ?? 0) / 12), 0);
+                  const totAdm = dialog.properties.reduce((s, p) => s + (p.taxa_administracao ?? 0), 0);
+                  const totLiq = totAluguel - totCond - totIptu - totAdm;
+                  return (
+                    <tr className="bg-muted/50 font-bold border-t-2">
+                      <td className="px-3 py-2">Total ({dialog.properties.length} imóveis)</td>
+                      <td className="px-3 py-2 text-right whitespace-nowrap">{fmtFull(totAluguel)}</td>
+                      <td className="px-3 py-2 text-right whitespace-nowrap">{fmtFull(totCond)}</td>
+                      <td className="px-3 py-2 text-right whitespace-nowrap">{fmtFull(totIptu)}</td>
+                      <td className="px-3 py-2 text-right whitespace-nowrap">{fmtFull(totAdm)}</td>
+                      <td className={`px-3 py-2 text-right whitespace-nowrap ${totLiq >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmtFull(totLiq)}</td>
+                    </tr>
+                  );
+                })()}
+              </tbody>
+            </table>
           </div>
         </DialogContent>
       </Dialog>
