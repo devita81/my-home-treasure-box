@@ -43,51 +43,6 @@ export function CustosReceitasStats() {
     setDialog({ open: true, title, properties: list });
   };
 
-  const Row = ({ label, icon: Icon, data, iconColor, propsList }: {
-    label: string;
-    icon: typeof Home;
-    data: ReturnType<typeof calc>;
-    iconColor: string;
-    propsList: Property[];
-  }) => (
-    <div
-      className="rounded-lg border bg-card p-4 cursor-pointer hover:border-primary/50 hover:shadow-sm transition-all"
-      onClick={() => openDrillDown(label, propsList)}
-    >
-      <div className="flex items-center gap-2 mb-3">
-        <Icon className={`h-5 w-5 ${iconColor}`} />
-        <h4 className="font-semibold text-sm">{label}</h4>
-        <span className="ml-auto text-xs bg-muted px-2 py-0.5 rounded-full font-medium">
-          {data.count} {data.count === 1 ? 'imóvel' : 'imóveis'}
-        </span>
-      </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-        <div>
-          <p className="text-xs text-muted-foreground">Aluguel/mês</p>
-          <p className="text-sm font-semibold text-foreground">{fmt(data.aluguel)}</p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Condomínio/mês</p>
-          <p className="text-sm font-semibold text-foreground">{fmt(data.condominio)}</p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground">IPTU/mês</p>
-          <p className="text-sm font-semibold text-foreground">{fmt(data.iptuMes)}</p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Taxa Adm/mês</p>
-          <p className="text-sm font-semibold text-foreground">{fmt(data.taxaAdm)}</p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Líquido/mês</p>
-          <p className={`text-sm font-bold ${data.liquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {fmt(data.liquido)}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <>
       <div className="space-y-3">
@@ -95,8 +50,49 @@ export function CustosReceitasStats() {
           <DollarSign className="h-5 w-5 text-primary" />
           <h3 className="font-display text-lg font-semibold">Custos e Receitas</h3>
         </div>
-        <Row label="Imóveis Alugados" icon={TrendingUp} data={statsAlugados} iconColor="text-green-600" propsList={alugados} />
-        <Row label="Imóveis Não Alugados" icon={TrendingDown} data={statsNaoAlugados} iconColor="text-muted-foreground" propsList={naoAlugados} />
+
+        <div className="rounded-lg border bg-card overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-muted/50">
+                <th className="text-left px-3 py-2 text-xs font-semibold text-muted-foreground">Categoria</th>
+                <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Qtd</th>
+                <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Aluguel/mês</th>
+                <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Condomínio/mês</th>
+                <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">IPTU/mês</th>
+                <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Taxa Adm/mês</th>
+                <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Líquido/mês</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { label: 'Imóveis Alugados', icon: TrendingUp, iconColor: 'text-green-600', data: statsAlugados, list: alugados },
+                { label: 'Imóveis Não Alugados', icon: TrendingDown, iconColor: 'text-muted-foreground', data: statsNaoAlugados, list: naoAlugados },
+              ].map((row) => (
+                <tr
+                  key={row.label}
+                  className="border-b last:border-b-0 hover:bg-muted/30 cursor-pointer transition-colors"
+                  onClick={() => openDrillDown(row.label, row.list)}
+                >
+                  <td className="px-3 py-2.5">
+                    <div className="flex items-center gap-2">
+                      <row.icon className={`h-4 w-4 ${row.iconColor}`} />
+                      <span className="font-semibold">{row.label}</span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2.5 text-right font-medium">{row.data.count}</td>
+                  <td className="px-3 py-2.5 text-right font-medium">{fmt(row.data.aluguel)}</td>
+                  <td className="px-3 py-2.5 text-right font-medium">{fmt(row.data.condominio)}</td>
+                  <td className="px-3 py-2.5 text-right font-medium">{fmt(row.data.iptuMes)}</td>
+                  <td className="px-3 py-2.5 text-right font-medium">{fmt(row.data.taxaAdm)}</td>
+                  <td className={`px-3 py-2.5 text-right font-bold ${row.data.liquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {fmt(row.data.liquido)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <Dialog open={dialog.open} onOpenChange={(open) => setDialog((prev) => ({ ...prev, open }))}>
