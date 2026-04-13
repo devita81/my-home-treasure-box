@@ -56,6 +56,7 @@ const propertySchema = z.object({
   longitude: z.number().nullable().optional(),
   ano_construcao: z.number().min(1800).max(new Date().getFullYear()).nullable().optional(),
   observacao: z.string().nullable().optional(),
+  taxa_administracao: z.number().min(0, 'Valor não pode ser negativo').max(1000000, 'Valor muito alto').nullable().optional(),
 });
 
 const estados = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
@@ -108,6 +109,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
       longitude: property?.longitude || null,
       ano_construcao: property?.ano_construcao || null,
       observacao: property?.observacao || '',
+      taxa_administracao: property?.taxa_administracao ?? null,
     }),
     [property]
   );
@@ -377,6 +379,15 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                   type="number"
                   value={formData.valor_condominio || ''}
                   onChange={(e) => handleChange('valor_condominio', e.target.value === '' ? 0 : Number(e.target.value))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="taxa_administracao">Taxa de Administração</Label>
+                <Input
+                  id="taxa_administracao"
+                  type="number"
+                  value={formData.taxa_administracao ?? ''}
+                  onChange={(e) => handleChange('taxa_administracao', e.target.value === '' ? null : Number(e.target.value))}
                 />
               </div>
             </div>
