@@ -380,6 +380,11 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
         longitude={property.longitude}
         address={address}
       />
+      <PropertyReportDialog
+        open={showReport}
+        onOpenChange={setShowReport}
+        property={property}
+      />
     </>
   );
 }
