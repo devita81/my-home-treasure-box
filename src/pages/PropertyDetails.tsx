@@ -4,6 +4,7 @@ import { Header } from '@/components/layout/Header';
 import { AIChatDialog } from '@/components/property/AIChatDialog';
 import { useProperties } from '@/contexts/PropertyContext';
 import { PropertyMapImage } from '@/components/property/PropertyMapImage';
+import { PropertyReportDialog } from '@/components/property/PropertyReportDialog';
 import { DocumentUpload } from '@/components/property/DocumentUpload';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
