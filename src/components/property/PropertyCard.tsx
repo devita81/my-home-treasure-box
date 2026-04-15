@@ -3,6 +3,7 @@ import { Property } from '@/types/property';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MapDialog } from './MapDialog';
+import { PropertyReportDialog } from './PropertyReportDialog';
 import { 
   MapPin, 
   Eye, 
@@ -33,6 +34,7 @@ interface PropertyCardProps {
 
 export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardProps) {
   const [showMapDialog, setShowMapDialog] = useState(false);
+  const [showReport, setShowReport] = useState(false);
 
   const address = `${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`;
 
@@ -347,6 +349,15 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
               )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => { e.stopPropagation(); setShowReport(true); }}
+                className="px-3 bg-background border-red-700/40 hover:bg-red-50 hover:border-red-700/60"
+                title="Relatório PDF"
+              >
+                <FileText className="h-3.5 w-3.5 text-red-700" />
+              </Button>
               {onDelete && (
                 <Button 
                   variant="outline" 
@@ -368,6 +379,11 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
         latitude={property.latitude}
         longitude={property.longitude}
         address={address}
+      />
+      <PropertyReportDialog
+        open={showReport}
+        onOpenChange={setShowReport}
+        property={property}
       />
     </>
   );
