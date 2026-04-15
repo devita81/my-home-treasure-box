@@ -285,7 +285,7 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
 
     setSending(true);
     try {
-      const doc = generatePropertyPDF(property);
+      const doc = await generatePropertyPDF(property);
       const pdfBlob = doc.output('blob');
       const fileName = `Relatorio_${property.id}.pdf`;
       const filePath = `reports/${crypto.randomUUID()}_${fileName}`;
