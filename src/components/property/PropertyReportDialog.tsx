@@ -60,7 +60,7 @@ async function generatePropertyPDF(property: Property): Promise<jsPDF> {
     margin, 20
   );
 
-  let yPos = 52;
+  let yPos = 38;
 
   // --- PROPERTY TITLE ---
   doc.setTextColor(30, 58, 45);
@@ -153,7 +153,6 @@ async function generatePropertyPDF(property: Property): Promise<jsPDF> {
   // --- FINANCIAL TABLE (IPTU + Condomínio only) ---
   const finData: string[][] = [];
   if (property.iptu_value) finData.push(['IPTU Anual', formatCurrency(property.iptu_value)]);
-  finData.push(['IPTU Pago', property.iptu_pago ? 'Sim' : 'Não']);
   if (property.valor_condominio) finData.push(['Condomínio Mensal', formatCurrency(property.valor_condominio)]);
   if (property.valor_aluguel) finData.push(['Aluguel Mensal', formatCurrency(property.valor_aluguel)]);
   if (property.taxa_administracao) finData.push(['Taxa de Administração', formatCurrency(property.taxa_administracao)]);
@@ -198,8 +197,6 @@ async function generatePropertyPDF(property: Property): Promise<jsPDF> {
       ownerData.push(['Proprietário Matrícula', `${property.proprietario_matricula} (${property.percentual_proprietario_matricula ?? 100}%)`]);
     if (property.proprietario_matricula_ii)
       ownerData.push(['Proprietário Matrícula II', `${property.proprietario_matricula_ii} (${property.percentual_proprietario_matricula_ii ?? 0}%)`]);
-    if (property.proprietario_papel)
-      ownerData.push(['Proprietário Papel', property.proprietario_papel]);
     if (property.numero_matricula)
       ownerData.push(['Nº Matrícula', property.numero_matricula]);
     if (property.numero_contribuinte)
@@ -221,35 +218,8 @@ async function generatePropertyPDF(property: Property): Promise<jsPDF> {
     yPos = (doc as any).lastAutoTable.finalY + 8;
   }
 
-  // --- OBSERVATIONS ---
-  if (property.observacao) {
-    if (yPos > 240) { doc.addPage(); yPos = 18; }
-    doc.setFillColor(240, 244, 240);
-    doc.roundedRect(margin, yPos, contentWidth, 8, 1, 1, 'F');
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(30, 58, 45);
-    doc.text('OBSERVAÇÕES', margin + 3, yPos + 5.5);
-    yPos += 12;
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(30, 30, 30);
-    const obsLines = doc.splitTextToSize(property.observacao, contentWidth);
-    doc.text(obsLines, margin, yPos);
-  }
 
-  // --- FOOTER ---
-  const totalPages = doc.getNumberOfPages();
-  for (let i = 1; i <= totalPages; i++) {
-    doc.setPage(i);
-    const pageH = doc.internal.pageSize.getHeight();
-    doc.setFontSize(7);
-    doc.setTextColor(150, 150, 150);
-    doc.text(
-      `My Home Collection — Página ${i} de ${totalPages}  |  Criado: ${new Date(property.created_at).toLocaleDateString('pt-BR')}  |  Atualizado: ${new Date(property.updated_at).toLocaleDateString('pt-BR')}`,
-      pageWidth / 2, pageH - 6, { align: 'center' }
-    );
-  }
+  return doc;
 
   return doc;
 }
