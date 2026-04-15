@@ -113,6 +113,12 @@ const Index = () => {
           )}
         </div>
       </main>
+
+      <PropertyReportDialog
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        properties={filteredProperties}
+      />
     </div>
   );
 };
