@@ -31,19 +31,19 @@ export function ExportButtons({ onExportExcel, onExportPDF, className = '' }: Ex
         variant="outline"
         size="sm"
         onClick={onExportExcel}
-        className="gap-1.5"
+        className="gap-1.5 bg-background border-green-700/40 hover:bg-green-50 hover:border-green-700/60 shadow-sm"
       >
         <ExcelIcon className="h-4 w-4" />
-        <span className="hidden sm:inline">Excel</span>
+        <span className="hidden sm:inline font-medium text-green-800">Excel</span>
       </Button>
       <Button
         variant="outline"
         size="sm"
         onClick={onExportPDF}
-        className="gap-1.5"
+        className="gap-1.5 bg-background border-red-700/40 hover:bg-red-50 hover:border-red-700/60 shadow-sm"
       >
         <PdfIcon className="h-4 w-4" />
-        <span className="hidden sm:inline">PDF</span>
+        <span className="hidden sm:inline font-medium text-red-800">PDF</span>
       </Button>
     </div>
   );
