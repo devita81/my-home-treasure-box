@@ -350,7 +350,7 @@ const PropertyDetails = () => {
           {/* Header Actions */}
           <div className="flex items-center justify-between">
             <Link to="/">
-              <Button variant="ghost">
+              <Button variant="outline" className="border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 font-semibold shadow-sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Voltar
               </Button>
