@@ -15,6 +15,8 @@ import { PropertyReportDialog } from '@/components/property/PropertyReportDialog
 const Index = () => {
   const { getFilteredProperties, deleteProperty, duplicateProperty, loading } = useProperties();
   const filteredProperties = getFilteredProperties();
+  const [reportOpen, setReportOpen] = useState(false);
+  const filteredProperties = getFilteredProperties();
 
   const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir este imóvel?')) {
