@@ -4,6 +4,7 @@ import { Header } from '@/components/layout/Header';
 import { AIChatDialog } from '@/components/property/AIChatDialog';
 import { useProperties } from '@/contexts/PropertyContext';
 import { PropertyMapImage } from '@/components/property/PropertyMapImage';
+import { PropertyReportDialog } from '@/components/property/PropertyReportDialog';
 import { DocumentUpload } from '@/components/property/DocumentUpload';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -220,6 +221,7 @@ const PropertyDetails = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [estimates, setEstimates] = useState<MarketEstimates>({
     vendaMin: null, vendaMed: null, vendaMax: null,
     aluguelMin: null, aluguelMed: null, aluguelMax: null,
@@ -355,12 +357,22 @@ const PropertyDetails = () => {
                 Voltar
               </Button>
             </Link>
-            <Link to={`/edit/${property.id}`}>
-              <Button>
-                <Edit className="h-4 w-4 mr-2" />
-                Editar
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setReportOpen(true)}
+                className="gap-1.5 bg-background border-red-700/40 hover:bg-red-50 hover:border-red-700/60 shadow-sm"
+              >
+                <FileText className="h-4 w-4 text-red-700" />
+                <span className="font-medium text-red-800">Relatório PDF</span>
               </Button>
-            </Link>
+              <Link to={`/edit/${property.id}`}>
+                <Button>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar
+                </Button>
+              </Link>
+            </div>
           </div>
 
           {/* Hero Image */}
@@ -813,6 +825,12 @@ const PropertyDetails = () => {
         open={chatOpen}
         onOpenChange={setChatOpen}
         propertyContext={`Endereço: ${property.rua}${property.numero ? `, ${property.numero}` : ''}, ${property.bairro}, ${property.cidade} - ${property.estado}\nTipo: ${property.tipo_imovel || 'Apartamento'}\nÁrea: ${property.metragem ? `${property.metragem} m²` : 'N/I'}\nQuartos: ${property.quartos || 0} (${property.suites || 0} suítes)\nBanheiros: ${property.banheiros || 0}\nGaragens: ${property.garagens || 0}\nAno: ${property.ano_construcao || 'N/I'}`}
+      />
+
+      <PropertyReportDialog
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        property={property}
       />
     </div>
   );
