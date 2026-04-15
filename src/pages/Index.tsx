@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useProperties } from '@/contexts/PropertyContext';
 import { PropertyCard } from '@/components/property/PropertyCard';
 import { PropertyFilters } from '@/components/property/PropertyFilters';
@@ -5,10 +6,11 @@ import { StatsOverview } from '@/components/stats/StatsOverview';
 import { MetragemStats } from '@/components/stats/MetragemStats';
 import { CustosReceitasStats } from '@/components/stats/CustosReceitasStats';
 import { Header } from '@/components/layout/Header';
-import { Home, PlusCircle } from 'lucide-react';
+import { Home, PlusCircle, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { PropertyReportDialog } from '@/components/property/PropertyReportDialog';
 
 const Index = () => {
   const { getFilteredProperties, deleteProperty, duplicateProperty, loading } = useProperties();
