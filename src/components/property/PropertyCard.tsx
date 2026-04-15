@@ -349,6 +349,15 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
               )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => { e.stopPropagation(); setShowReport(true); }}
+                className="px-3 bg-background border-red-700/40 hover:bg-red-50 hover:border-red-700/60"
+                title="Relatório PDF"
+              >
+                <FileText className="h-3.5 w-3.5 text-red-700" />
+              </Button>
               {onDelete && (
                 <Button 
                   variant="outline" 
