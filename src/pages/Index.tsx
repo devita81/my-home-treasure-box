@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useProperties } from '@/contexts/PropertyContext';
 import { PropertyCard } from '@/components/property/PropertyCard';
 import { PropertyFilters } from '@/components/property/PropertyFilters';
@@ -5,14 +6,16 @@ import { StatsOverview } from '@/components/stats/StatsOverview';
 import { MetragemStats } from '@/components/stats/MetragemStats';
 import { CustosReceitasStats } from '@/components/stats/CustosReceitasStats';
 import { Header } from '@/components/layout/Header';
-import { Home, PlusCircle } from 'lucide-react';
+import { Home, PlusCircle, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { PropertyReportDialog } from '@/components/property/PropertyReportDialog';
 
 const Index = () => {
   const { getFilteredProperties, deleteProperty, duplicateProperty, loading } = useProperties();
   const filteredProperties = getFilteredProperties();
+  const [reportOpen, setReportOpen] = useState(false);
 
   const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir este imóvel?')) {
@@ -58,12 +61,23 @@ const Index = () => {
                 ({filteredProperties.length} encontrados)
               </span>
             </div>
-            <Link to="/add">
-              <Button>
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Adicionar Imóvel
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setReportOpen(true)}
+                disabled={filteredProperties.length === 0}
+                className="gap-1.5 bg-background border-red-700/40 hover:bg-red-50 hover:border-red-700/60 shadow-sm"
+              >
+                <FileText className="h-4 w-4 text-red-700" />
+                <span className="hidden sm:inline font-medium text-red-800">Relatório PDF</span>
               </Button>
-            </Link>
+              <Link to="/add">
+                <Button>
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  Adicionar Imóvel
+                </Button>
+              </Link>
+            </div>
           </div>
 
           {filteredProperties.length === 0 ? (
@@ -99,6 +113,12 @@ const Index = () => {
           )}
         </div>
       </main>
+
+      <PropertyReportDialog
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        properties={filteredProperties}
+      />
     </div>
   );
 };
