@@ -1,6 +1,4 @@
-import { Header } from '@/components/layout/Header';
 import { useProperties } from '@/contexts/PropertyContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
@@ -28,6 +26,13 @@ import {
 import { ExportButtons } from '@/components/ui/export-buttons';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useExportData } from '@/hooks/useExportData';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { 
   TrendingUp, 
   Home, 
@@ -40,15 +45,20 @@ import {
   ChevronUp,
   ChevronDown,
   ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
   Receipt,
   Key,
   Wallet,
   AlertTriangle,
-  ClipboardList
+  BarChart3,
+  Download,
+  ArrowLeft,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { Property } from '@/types/property';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import * as XLSX from 'xlsx';
 
 interface GroupedData {
   name: string;
@@ -60,7 +70,6 @@ interface GroupedData {
 type SortField = 'rua' | 'tipo_imovel' | 'cidade' | 'declared_value' | 'market_value' | 'iptu_value' | 'iptu_pago' | 'valor_aluguel' | 'valor_condominio' | 'alugado' | 'numero_matricula' | 'numero_contribuinte' | 'proprietario_matricula' | 'proprietario_matricula_ii' | 'proprietario_papel' | 'validado';
 type SortOrder = 'asc' | 'desc';
 
-// Pendentes sort state
 type PendentesSortField = 'endereco' | 'tipo_imovel' | 'cidade' | 'numero_matricula' | 'proprietario_matricula' | 'proprietario_papel' | 'validado' | 'declared_value' | 'market_value';
 
 interface DialogState {
@@ -72,12 +81,13 @@ interface DialogState {
 
 const Analytics = () => {
   const { properties } = useProperties();
+  const navigate = useNavigate();
   const { exportToExcel, exportToPDF } = useExportData();
   const [rankingSortOrder, setRankingSortOrder] = useState<'asc' | 'desc'>('desc');
   const [rankingMetric, setRankingMetric] = useState<'declared_value' | 'market_value' | 'valor_aluguel' | 'valor_condominio' | 'iptu_value'>('market_value');
+  const [rankingLimit, setRankingLimit] = useState<number>(20);
   const [distributionMetric, setDistributionMetric] = useState<'declared_value' | 'market_value' | 'valor_aluguel'>('market_value');
   
-  // Dialog state
   const [dialogState, setDialogState] = useState<DialogState>({
     isOpen: false,
     title: '',
@@ -87,7 +97,6 @@ const Analytics = () => {
   const [dialogSortField, setDialogSortField] = useState<SortField>('declared_value');
   const [dialogSortOrder, setDialogSortOrder] = useState<SortOrder>('desc');
   
-  // Pendentes table sort state
   const [pendentesSortField, setPendentesSortField] = useState<PendentesSortField>('endereco');
   const [pendentesSortOrder, setPendentesSortOrder] = useState<SortOrder>('asc');
 
@@ -184,8 +193,6 @@ const Analytics = () => {
   const naoAlugadosProperties = properties.filter(p => !p.alugado);
   const totalAluguelRecebido = alugadosProperties.reduce((acc, p) => acc + (p.valor_aluguel || 0), 0);
   const totalCondominio = properties.reduce((acc, p) => acc + (p.valor_condominio || 0), 0);
-  const condominioAlugados = alugadosProperties.reduce((acc, p) => acc + (p.valor_condominio || 0), 0);
-  const condominioNaoAlugados = naoAlugadosProperties.reduce((acc, p) => acc + (p.valor_condominio || 0), 0);
   const alugadosCount = alugadosProperties.length;
   const alugadosPercentage = properties.length > 0 
     ? Math.round((alugadosCount / properties.length) * 100) 
@@ -220,9 +227,7 @@ const Analytics = () => {
         'terreno': 'Terreno',
         'conjunto_comercial': 'Conjunto Comercial',
       }[tipo] || tipo;
-      if (!grouped[label]) {
-        grouped[label] = { count: 0, value: 0, properties: [] };
-      }
+      if (!grouped[label]) grouped[label] = { count: 0, value: 0, properties: [] };
       grouped[label].count += 1;
       grouped[label].value += getPropertyValueByMetric(p, distributionMetric);
       grouped[label].properties.push(p);
@@ -236,9 +241,7 @@ const Analytics = () => {
     const grouped: Record<string, { count: number; value: number; properties: Property[] }> = {};
     properties.forEach(p => {
       const city = `${p.cidade} - ${p.estado}`;
-      if (!grouped[city]) {
-        grouped[city] = { count: 0, value: 0, properties: [] };
-      }
+      if (!grouped[city]) grouped[city] = { count: 0, value: 0, properties: [] };
       grouped[city].count += 1;
       grouped[city].value += getPropertyValueByMetric(p, distributionMetric);
       grouped[city].properties.push(p);
@@ -252,9 +255,7 @@ const Analytics = () => {
     const grouped: Record<string, { count: number; value: number; properties: Property[] }> = {};
     properties.forEach(p => {
       const owner = p.proprietario_papel || 'Não informado';
-      if (!grouped[owner]) {
-        grouped[owner] = { count: 0, value: 0, properties: [] };
-      }
+      if (!grouped[owner]) grouped[owner] = { count: 0, value: 0, properties: [] };
       grouped[owner].count += 1;
       grouped[owner].value += getPropertyValueByMetric(p, distributionMetric);
       grouped[owner].properties.push(p);
@@ -268,9 +269,7 @@ const Analytics = () => {
     const grouped: Record<string, { count: number; value: number; properties: Property[] }> = {};
     properties.forEach(p => {
       const owner = p.proprietario_matricula || 'Não informado';
-      if (!grouped[owner]) {
-        grouped[owner] = { count: 0, value: 0, properties: [] };
-      }
+      if (!grouped[owner]) grouped[owner] = { count: 0, value: 0, properties: [] };
       grouped[owner].count += 1;
       grouped[owner].value += getPropertyValueByMetric(p, distributionMetric);
       grouped[owner].properties.push(p);
@@ -280,7 +279,7 @@ const Analytics = () => {
       .sort((a, b) => b.count - a.count);
   }, [properties, distributionMetric]);
 
-  // ==================== IMÓVEIS NÃO VALIDADOS ====================
+  // ==================== PENDENTES ====================
   const togglePendentesSort = (field: PendentesSortField) => {
     if (pendentesSortField === field) {
       setPendentesSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
@@ -331,39 +330,23 @@ const Analytics = () => {
   // ==================== RANKING ====================
   const rankedProperties = useMemo(() => {
     return [...properties].sort((a, b) => {
-      let valueA = 0;
-      let valueB = 0;
+      let valueA = 0, valueB = 0;
       switch (rankingMetric) {
-        case 'market_value':
-          valueA = a.market_value || 0;
-          valueB = b.market_value || 0;
-          break;
-        case 'declared_value':
-          valueA = a.declared_value || 0;
-          valueB = b.declared_value || 0;
-          break;
-        case 'valor_aluguel':
-          valueA = a.valor_aluguel || 0;
-          valueB = b.valor_aluguel || 0;
-          break;
-        case 'valor_condominio':
-          valueA = a.valor_condominio || 0;
-          valueB = b.valor_condominio || 0;
-          break;
-        case 'iptu_value':
-          valueA = a.iptu_value || 0;
-          valueB = b.iptu_value || 0;
-          break;
+        case 'market_value': valueA = a.market_value || 0; valueB = b.market_value || 0; break;
+        case 'declared_value': valueA = a.declared_value || 0; valueB = b.declared_value || 0; break;
+        case 'valor_aluguel': valueA = a.valor_aluguel || 0; valueB = b.valor_aluguel || 0; break;
+        case 'valor_condominio': valueA = a.valor_condominio || 0; valueB = b.valor_condominio || 0; break;
+        case 'iptu_value': valueA = a.iptu_value || 0; valueB = b.iptu_value || 0; break;
       }
       return rankingSortOrder === 'desc' ? valueB - valueA : valueA - valueB;
-    });
-  }, [properties, rankingSortOrder, rankingMetric]);
+    }).slice(0, rankingLimit);
+  }, [properties, rankingSortOrder, rankingMetric, rankingLimit]);
 
   const getRankingMetricLabel = () => {
     switch (rankingMetric) {
       case 'market_value': return 'Valor Mercado';
       case 'declared_value': return 'Valor Declarado';
-      case 'valor_aluguel': return 'Aluguel Recebido';
+      case 'valor_aluguel': return 'Aluguel';
       case 'valor_condominio': return 'Condomínio';
       case 'iptu_value': return 'IPTU';
       default: return 'Valor';
@@ -387,755 +370,445 @@ const Analytics = () => {
     return labels[tipo || ''] || tipo || '-';
   };
 
+  const getPropertyValue = (p: Property) => {
+    switch (rankingMetric) {
+      case 'market_value': return p.market_value || 0;
+      case 'declared_value': return p.declared_value || 0;
+      case 'valor_aluguel': return p.valor_aluguel || 0;
+      case 'valor_condominio': return p.valor_condominio || 0;
+      case 'iptu_value': return p.iptu_value || 0;
+    }
+  };
+
+  const getSortIcon = (field: PendentesSortField) => {
+    if (pendentesSortField !== field) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-50" />;
+    return pendentesSortOrder === 'asc' 
+      ? <ArrowUp className="h-3 w-3 ml-1" /> 
+      : <ArrowDown className="h-3 w-3 ml-1" />;
+  };
+
   const SortableHeader = ({ field, label }: { field: SortField; label: string }) => (
     <TableHead 
-      className="cursor-pointer hover:bg-muted/50 select-none"
+      className="cursor-pointer hover:bg-slate-700/50 select-none text-slate-400 text-[10px] uppercase tracking-wider"
       onClick={() => toggleDialogSort(field)}
     >
       <div className="flex items-center gap-1">
         {label}
         {dialogSortField === field ? (
-          dialogSortOrder === 'desc' ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronUp className="h-4 w-4" />
-          )
+          dialogSortOrder === 'desc' ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />
         ) : (
-          <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
+          <ArrowUpDown className="h-3 w-3 opacity-50" />
         )}
       </div>
     </TableHead>
   );
 
-  // Sortable header for Pendentes table
-  const PendentesSortableHeader = ({ field, label, className }: { field: PendentesSortField; label: string; className?: string }) => (
-    <ResizableTableHead 
-      columnId={field}
-      className={`cursor-pointer hover:bg-muted/50 select-none ${className || ''}`}
-      onClick={() => togglePendentesSort(field)}
-    >
-      <div className="flex items-center gap-1">
-        {label}
-        {pendentesSortField === field ? (
-          pendentesSortOrder === 'desc' ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronUp className="h-4 w-4" />
-          )
-        ) : (
-          <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
-        )}
-      </div>
-    </ResizableTableHead>
-  );
-
-  // ==================== GROUP ITEM COMPONENT ====================
-  const GroupItem = ({ item, onClick }: { item: GroupedData; onClick: () => void }) => (
-    <div 
-      className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg cursor-pointer hover:bg-secondary transition-colors"
-      onClick={onClick}
-    >
-      <span className="font-medium">{item.name}</span>
-      <div className="flex items-center gap-3">
-        <Badge variant="secondary">{item.count} imóveis</Badge>
-        <span className="text-sm text-muted-foreground">{formatCurrency(item.value)}</span>
-      </div>
-    </div>
-  );
+  const handleExportExcel = () => {
+    const data = properties.map(p => ({
+      'Endereço': getPropertyAddress(p),
+      'Tipo': getTipoLabel(p.tipo_imovel),
+      'Cidade': `${p.cidade} - ${p.estado}`,
+      'Valor Declarado': p.declared_value || 0,
+      'Valor Mercado': p.market_value || 0,
+      'IPTU': p.iptu_value || 0,
+      'IPTU Pago': p.iptu_pago ? 'Sim' : 'Não',
+      'Condomínio': p.valor_condominio || 0,
+      'Aluguel': p.valor_aluguel || 0,
+      'Alugado': p.alugado ? 'Sim' : 'Não',
+      'Proprietário Papel': p.proprietario_papel || '',
+      'Proprietário Matrícula': p.proprietario_matricula || '',
+      'Validado': p.validado ? 'Sim' : 'Não',
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Imóveis');
+    ws['!cols'] = Object.keys(data[0] || {}).map(k => ({ wch: Math.max(k.length, 15) }));
+    XLSX.writeFile(wb, `imoveis_analytics_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-8">
-        {/* Page Header */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="flex h-8 sm:h-10 w-8 sm:w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <TrendingUp className="h-4 sm:h-5 w-4 sm:w-5" />
+    <div className="min-h-screen bg-slate-800">
+      {/* Header */}
+      <header className="sticky top-0 z-50 w-full bg-slate-900/95 backdrop-blur-md border-b border-white/5">
+        <div className="container flex h-11 items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="text-slate-400 hover:text-white hover:bg-white/5 h-7 w-7 p-0">
+              <ArrowLeft className="h-3.5 w-3.5" />
+            </Button>
+            <div className="h-px w-4 bg-slate-700" />
+            <h1 className="text-xs font-medium text-slate-300 tracking-widest uppercase">Analytics</h1>
+            <span className="text-[10px] text-slate-300 font-mono ml-1">{properties.length} imóveis</span>
           </div>
-          <div>
-            <h1 className="font-display text-xl sm:text-3xl font-bold">Analytics</h1>
-            <p className="text-xs sm:text-base text-muted-foreground">Visão geral do seu patrimônio imobiliário</p>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="sm" onClick={handleExportExcel} className="text-slate-400 hover:text-slate-200 hover:bg-white/5 gap-1.5 h-7 text-[10px] uppercase tracking-wider">
+              <Download className="h-3 w-3" />
+              <span className="hidden sm:inline">Exportar</span>
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="text-slate-400 hover:text-slate-200 hover:bg-white/5 h-7 w-7 p-0">
+              <Home className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="container py-5 space-y-4">
+        {/* ─── Value Summary ─── */}
+        <div className="grid gap-px grid-cols-2 lg:grid-cols-4 bg-slate-700/30 rounded-lg overflow-hidden border border-slate-700/50">
+          <div onClick={() => openDialog('Valor de Mercado', `${properties.length} imóveis • Total: ${formatCurrency(totalMarketValue)}`, properties)} className="bg-slate-700/40 p-4 cursor-pointer hover:bg-slate-700/50 transition-colors">
+            <p className="text-[10px] font-medium text-slate-300 uppercase tracking-widest mb-1.5">Valor Mercado</p>
+            <p className="text-base font-semibold text-slate-100 tabular-nums tracking-tight">{formatCurrency(totalMarketValue)}</p>
+            <p className="text-[10px] text-slate-300 mt-1 font-mono">{properties.length} imóveis</p>
+          </div>
+          <div onClick={() => openDialog('Valor Declarado', `${properties.length} imóveis • Total: ${formatCurrency(totalDeclaredValue)}`, properties)} className="bg-slate-700/40 p-4 cursor-pointer hover:bg-slate-700/50 transition-colors">
+            <p className="text-[10px] font-medium text-slate-300 uppercase tracking-widest mb-1.5">Valor Declarado</p>
+            <p className="text-base font-semibold text-slate-100 tabular-nums tracking-tight">{formatCurrency(totalDeclaredValue)}</p>
+            <p className="text-[10px] text-slate-300 mt-1 font-mono">{properties.length} imóveis</p>
+          </div>
+          <div onClick={() => openDialog('Total IPTU', `${properties.length} imóveis • Total: ${formatCurrency(totalIptu)}`, properties)} className="bg-slate-700/40 p-4 cursor-pointer hover:bg-slate-700/50 transition-colors">
+            <p className="text-[10px] font-medium text-slate-300 uppercase tracking-widest mb-1.5">Total IPTU</p>
+            <p className="text-base font-semibold text-slate-100 tabular-nums tracking-tight">{formatCurrency(totalIptu)}</p>
+            <p className="text-[10px] text-slate-300 mt-1 font-mono">{properties.length} imóveis</p>
+          </div>
+          <div onClick={() => openDialog('Valorização', `${properties.length} imóveis • +${valorizationPercentage}%`, properties)} className="bg-slate-700/40 p-4 cursor-pointer hover:bg-slate-700/50 transition-colors">
+            <p className="text-[10px] font-medium text-slate-300 uppercase tracking-widest mb-1.5">Valorização</p>
+            <p className="text-base font-semibold text-slate-100 tabular-nums tracking-tight">{formatCurrency(valorization)}</p>
+            <p className="text-[10px] text-slate-300 mt-1 font-mono">+{valorizationPercentage}%</p>
           </div>
         </div>
 
-        {/* ==================== TOP SUMMARY CARDS (CLICKABLE) ==================== */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
-          <Card 
-            className="border-l-4 border-l-blue-500 cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => openDialog(
-              'Total Valor Mercado',
-              `${properties.length} imóveis • Total: ${formatCurrency(totalMarketValue)}`,
-              properties
-            )}
-          >
-            <CardContent className="pt-3 sm:pt-6 pb-3 sm:pb-4">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="flex h-8 sm:h-12 w-8 sm:w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 shrink-0">
-                  <DollarSign className="h-4 sm:h-6 w-4 sm:w-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">Valor Mercado</p>
-                  <p className="text-lg sm:text-2xl font-bold truncate">{formatCurrency(totalMarketValue)}</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">{properties.length} imóveis</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="border-l-4 border-l-green-500 cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => openDialog(
-              'Total Valor Declarado',
-              `${properties.length} imóveis • Total: ${formatCurrency(totalDeclaredValue)}`,
-              properties
-            )}
-          >
-            <CardContent className="pt-3 sm:pt-6 pb-3 sm:pb-4">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="flex h-8 sm:h-12 w-8 sm:w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 shrink-0">
-                  <FileCheck className="h-4 sm:h-6 w-4 sm:w-6 text-green-600 dark:text-green-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">Valor Declarado</p>
-                  <p className="text-lg sm:text-2xl font-bold truncate">{formatCurrency(totalDeclaredValue)}</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">{properties.length} imóveis</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="border-l-4 border-l-orange-500 cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => openDialog(
-              'Total IPTU',
-              `${properties.length} imóveis • Total: ${formatCurrency(totalIptu)}`,
-              properties
-            )}
-          >
-            <CardContent className="pt-3 sm:pt-6 pb-3 sm:pb-4">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="flex h-8 sm:h-12 w-8 sm:w-12 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30 shrink-0">
-                  <Receipt className="h-4 sm:h-6 w-4 sm:w-6 text-orange-600 dark:text-orange-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">Total IPTU</p>
-                  <p className="text-lg sm:text-2xl font-bold truncate">{formatCurrency(totalIptu)}</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">{properties.length} imóveis</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="border-l-4 border-l-purple-500 cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => openDialog(
-              'Total Valorização',
-              `${properties.length} imóveis • Valorização: +${valorizationPercentage}%`,
-              properties
-            )}
-          >
-            <CardContent className="pt-3 sm:pt-6 pb-3 sm:pb-4">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="flex h-8 sm:h-12 w-8 sm:w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/30 shrink-0">
-                  <TrendingUp className="h-4 sm:h-6 w-4 sm:w-6 text-purple-600 dark:text-purple-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">Valorização</p>
-                  <p className="text-lg sm:text-2xl font-bold truncate">{formatCurrency(valorization)}</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">+{valorizationPercentage}%</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* ─── IPTU ─── */}
+        <div className="rounded-lg border border-slate-700/50 bg-slate-700/30 overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-700/40 flex items-center gap-2">
+            <Receipt className="h-3.5 w-3.5 text-slate-400" />
+            <h2 className="text-[11px] font-medium text-slate-300 uppercase tracking-widest">Resumo de IPTU</h2>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-slate-700/20">
+            <div onClick={() => openDialog('IPTU Pago', `${iptuPagoCount} imóveis • Total: ${formatCurrency(iptuPagoValue)}`, iptuPagoProperties)} className="bg-slate-700/40 p-3.5 cursor-pointer hover:bg-slate-700/50 transition-colors border-l-2 border-emerald-500/60">
+              <p className="text-[10px] text-slate-300 uppercase tracking-wider mb-1">IPTU Pago</p>
+              <p className="text-sm font-semibold text-slate-100 tabular-nums">{formatCurrency(iptuPagoValue)}</p>
+              <p className="text-[10px] text-slate-300 font-mono mt-0.5">{iptuPagoCount} imóveis</p>
+            </div>
+            <div onClick={() => openDialog('IPTU Pendente', `${iptuPendenteCount} imóveis • Total: ${formatCurrency(iptuPendenteValue)}`, iptuPendenteProperties)} className="bg-slate-700/40 p-3.5 cursor-pointer hover:bg-slate-700/50 transition-colors border-l-2 border-amber-500/60">
+              <p className="text-[10px] text-slate-300 uppercase tracking-wider mb-1">IPTU Pendente</p>
+              <p className="text-sm font-semibold text-slate-100 tabular-nums">{formatCurrency(iptuPendenteValue)}</p>
+              <p className="text-[10px] text-slate-300 font-mono mt-0.5">{iptuPendenteCount} imóveis</p>
+            </div>
+            <div onClick={() => openDialog('Todos os Imóveis', `${properties.length} imóveis cadastrados`, properties)} className="bg-slate-700/40 p-3.5 cursor-pointer hover:bg-slate-700/50 transition-colors border-l-2 border-sky-500/40">
+              <p className="text-[10px] text-slate-300 uppercase tracking-wider mb-1">Imóveis</p>
+              <p className="text-sm font-semibold text-slate-100 tabular-nums">{properties.length}</p>
+              <p className="text-[10px] text-slate-300 font-mono mt-0.5">total cadastrado</p>
+            </div>
+            <div onClick={() => openDialog('IPTU Pago', `${iptuPagoCount} de ${properties.length} imóveis`, iptuPagoProperties)} className="bg-slate-700/40 p-3.5 cursor-pointer hover:bg-slate-700/50 transition-colors border-l-2 border-slate-500/40">
+              <p className="text-[10px] text-slate-300 uppercase tracking-wider mb-1">Pagaram</p>
+              <p className="text-sm font-semibold text-slate-100 tabular-nums">{iptuPagoPercentage}%</p>
+              <p className="text-[10px] text-slate-300 font-mono mt-0.5">{iptuPagoCount} de {properties.length}</p>
+            </div>
+          </div>
         </div>
 
-        {/* ==================== IPTU SECTION (CLICKABLE CARDS) ==================== */}
-        <Card>
-          <CardHeader className="pb-2 sm:pb-4">
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <Receipt className="h-4 sm:h-5 w-4 sm:w-5 text-primary" />
-              Resumo de IPTU
-            </CardTitle>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Clique nos cards para ver detalhes
-            </p>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
-              <div 
-                className="p-2 sm:p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => openDialog(
-                  'IPTU Pago',
-                  `${iptuPagoCount} imóveis • Total: ${formatCurrency(iptuPagoValue)}`,
-                  iptuPagoProperties
-                )}
-              >
-                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
-                  <CheckCircle2 className="h-4 sm:h-5 w-4 sm:w-5 text-green-600" />
-                  <span className="text-xs sm:text-sm font-medium text-green-700 dark:text-green-400">IPTU Pago</span>
-                </div>
-                <p className="text-lg sm:text-2xl font-bold text-green-700 dark:text-green-300">{formatCurrency(iptuPagoValue)}</p>
-                <p className="text-[10px] sm:text-xs text-green-600 dark:text-green-400">{iptuPagoCount} imóveis</p>
-              </div>
-
-              <div 
-                className="p-2 sm:p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => openDialog(
-                  'IPTU Pendente',
-                  `${iptuPendenteCount} imóveis • Total: ${formatCurrency(iptuPendenteValue)}`,
-                  iptuPendenteProperties
-                )}
-              >
-                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
-                  <XCircle className="h-4 sm:h-5 w-4 sm:w-5 text-red-600" />
-                  <span className="text-xs sm:text-sm font-medium text-red-700 dark:text-red-400">IPTU Pendente</span>
-                </div>
-                <p className="text-lg sm:text-2xl font-bold text-red-700 dark:text-red-300">{formatCurrency(iptuPendenteValue)}</p>
-                <p className="text-[10px] sm:text-xs text-red-600 dark:text-red-400">{iptuPendenteCount} imóveis</p>
-              </div>
-
-              <div 
-                className="p-2 sm:p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => openDialog(
-                  'Todos os Imóveis',
-                  `${properties.length} imóveis cadastrados`,
-                  properties
-                )}
-              >
-                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
-                  <Home className="h-4 sm:h-5 w-4 sm:w-5 text-blue-600" />
-                  <span className="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-400">Imóveis</span>
-                </div>
-                <p className="text-lg sm:text-2xl font-bold text-blue-700 dark:text-blue-300">{properties.length}</p>
-                <p className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-400">total cadastrado</p>
-              </div>
-
-              <div 
-                className="p-2 sm:p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => openDialog(
-                  'Imóveis com IPTU Pago',
-                  `${iptuPagoCount} de ${properties.length} imóveis`,
-                  iptuPagoProperties
-                )}
-              >
-                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
-                  <TrendingUp className="h-4 sm:h-5 w-4 sm:w-5 text-amber-600" />
-                  <span className="text-xs sm:text-sm font-medium text-amber-700 dark:text-amber-400">Pagaram</span>
-                </div>
-                <p className="text-lg sm:text-2xl font-bold text-amber-700 dark:text-amber-300">{iptuPagoPercentage}%</p>
-                <p className="text-[10px] sm:text-xs text-amber-600 dark:text-amber-400">{iptuPagoCount} de {properties.length}</p>
-              </div>
+        {/* ─── Aluguel & Condomínio ─── */}
+        <div className="rounded-lg border border-slate-700/50 bg-slate-700/30 overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-700/40 flex items-center gap-2">
+            <Key className="h-3.5 w-3.5 text-slate-400" />
+            <h2 className="text-[11px] font-medium text-slate-300 uppercase tracking-widest">Aluguel & Condomínio</h2>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-slate-700/20">
+            <div onClick={() => openDialog('Aluguel Recebido', `${alugadosCount} imóveis • ${formatCurrency(totalAluguelRecebido)}/mês`, alugadosProperties)} className="bg-slate-700/40 p-3.5 cursor-pointer hover:bg-slate-700/50 transition-colors border-l-2 border-emerald-500/60">
+              <p className="text-[10px] text-slate-300 uppercase tracking-wider mb-1">Aluguel</p>
+              <p className="text-sm font-semibold text-slate-100 tabular-nums">{formatCurrency(totalAluguelRecebido)}</p>
+              <p className="text-[10px] text-slate-300 font-mono mt-0.5">{alugadosCount} imóveis/mês</p>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* ==================== ALUGUEL E CONDOMINIO SECTION (CLICKABLE CARDS) ==================== */}
-        <Card>
-          <CardHeader className="pb-2 sm:pb-4">
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <Key className="h-4 sm:h-5 w-4 sm:w-5 text-primary" />
-              Aluguel e Condomínio
-            </CardTitle>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Clique nos cards para ver detalhes
-            </p>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
-              <div 
-                className="p-2 sm:p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => openDialog(
-                  'Aluguel Recebido',
-                  `${alugadosCount} imóveis alugados • Total: ${formatCurrency(totalAluguelRecebido)}/mês`,
-                  alugadosProperties
-                )}
-              >
-                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
-                  <DollarSign className="h-4 sm:h-5 w-4 sm:w-5 text-green-600" />
-                  <span className="text-xs sm:text-sm font-medium text-green-700 dark:text-green-400">Aluguel</span>
-                </div>
-                <p className="text-lg sm:text-2xl font-bold text-green-700 dark:text-green-300">{formatCurrency(totalAluguelRecebido)}</p>
-                <p className="text-[10px] sm:text-xs text-green-600 dark:text-green-400">{alugadosCount} imóveis/mês</p>
-              </div>
-
-              <div 
-                className="p-2 sm:p-4 rounded-xl bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => openDialog(
-                  'Total Condomínio',
-                  `${properties.length} imóveis • Total: ${formatCurrency(totalCondominio)}/mês`,
-                  properties
-                )}
-              >
-                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
-                  <Wallet className="h-4 sm:h-5 w-4 sm:w-5 text-orange-600" />
-                  <span className="text-xs sm:text-sm font-medium text-orange-700 dark:text-orange-400">Condomínio</span>
-                </div>
-                <p className="text-lg sm:text-2xl font-bold text-orange-700 dark:text-orange-300">{formatCurrency(totalCondominio)}</p>
-                <p className="text-[10px] sm:text-xs text-orange-600 dark:text-orange-400">{properties.length} imóveis/mês</p>
-              </div>
-
-              <div 
-                className="p-2 sm:p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => openDialog(
-                  'Imóveis Alugados',
-                  `${alugadosCount} imóveis alugados`,
-                  alugadosProperties
-                )}
-              >
-                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
-                  <Key className="h-4 sm:h-5 w-4 sm:w-5 text-blue-600" />
-                  <span className="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-400">Alugados</span>
-                </div>
-                <p className="text-lg sm:text-2xl font-bold text-blue-700 dark:text-blue-300">{alugadosCount}</p>
-                <p className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-400">de {properties.length}</p>
-              </div>
-
-              <div 
-                className="p-2 sm:p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => openDialog(
-                  'Taxa de Ocupação',
-                  `${alugadosCount} de ${properties.length} imóveis alugados`,
-                  alugadosProperties
-                )}
-              >
-                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
-                  <TrendingUp className="h-4 sm:h-5 w-4 sm:w-5 text-purple-600" />
-                  <span className="text-xs sm:text-sm font-medium text-purple-700 dark:text-purple-400">Ocupação</span>
-                </div>
-                <p className="text-lg sm:text-2xl font-bold text-purple-700 dark:text-purple-300">{alugadosPercentage}%</p>
-                <p className="text-[10px] sm:text-xs text-purple-600 dark:text-purple-400">{alugadosCount} de {properties.length}</p>
-              </div>
+            <div onClick={() => openDialog('Total Condomínio', `${properties.length} imóveis • ${formatCurrency(totalCondominio)}/mês`, properties)} className="bg-slate-700/40 p-3.5 cursor-pointer hover:bg-slate-700/50 transition-colors border-l-2 border-amber-500/60">
+              <p className="text-[10px] text-slate-300 uppercase tracking-wider mb-1">Condomínio</p>
+              <p className="text-sm font-semibold text-slate-100 tabular-nums">{formatCurrency(totalCondominio)}</p>
+              <p className="text-[10px] text-slate-300 font-mono mt-0.5">{properties.length} imóveis/mês</p>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* ==================== DISTRIBUTION (CLICKABLE GROUPS) ==================== */}
-        <Card>
-          <CardHeader className="pb-2 sm:pb-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
-              <div>
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <Users className="h-4 sm:h-5 w-4 sm:w-5 text-primary" />
-                  Distribuição
-                </CardTitle>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Clique para ver detalhes
-                </p>
-              </div>
-              <div className="flex gap-1 sm:gap-2 flex-wrap">
-                <Button
-                  variant={distributionMetric === 'market_value' ? 'default' : 'outline'}
-                  size="sm"
-                  className="text-xs px-2 sm:px-3 h-7 sm:h-9"
-                  onClick={() => setDistributionMetric('market_value')}
-                >
-                  Mercado
-                </Button>
-                <Button
-                  variant={distributionMetric === 'declared_value' ? 'default' : 'outline'}
-                  size="sm"
-                  className="text-xs px-2 sm:px-3 h-7 sm:h-9"
-                  onClick={() => setDistributionMetric('declared_value')}
-                >
-                  Declarado
-                </Button>
-                <Button
-                  variant={distributionMetric === 'valor_aluguel' ? 'default' : 'outline'}
-                  size="sm"
-                  className="text-xs px-2 sm:px-3 h-7 sm:h-9"
-                  onClick={() => setDistributionMetric('valor_aluguel')}
-                >
-                  Aluguel
-                </Button>
-              </div>
+            <div onClick={() => openDialog('Imóveis Alugados', `${alugadosCount} imóveis alugados`, alugadosProperties)} className="bg-slate-700/40 p-3.5 cursor-pointer hover:bg-slate-700/50 transition-colors border-l-2 border-sky-500/40">
+              <p className="text-[10px] text-slate-300 uppercase tracking-wider mb-1">Alugados</p>
+              <p className="text-sm font-semibold text-slate-100 tabular-nums">{alugadosCount}</p>
+              <p className="text-[10px] text-slate-300 font-mono mt-0.5">de {properties.length}</p>
             </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* By Type */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 mb-4">
-                  <Building2 className="h-4 w-4 text-muted-foreground" />
-                  <h4 className="font-medium text-sm">Por Tipo de Imóvel</h4>
+            <div onClick={() => openDialog('Taxa de Ocupação', `${alugadosCount} de ${properties.length} alugados`, alugadosProperties)} className="bg-slate-700/40 p-3.5 cursor-pointer hover:bg-slate-700/50 transition-colors border-l-2 border-slate-500/40">
+              <p className="text-[10px] text-slate-300 uppercase tracking-wider mb-1">Ocupação</p>
+              <p className="text-sm font-semibold text-slate-100 tabular-nums">{alugadosPercentage}%</p>
+              <p className="text-[10px] text-slate-300 font-mono mt-0.5">{alugadosCount} de {properties.length}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* ─── Distribuição ─── */}
+        <div className="rounded-lg border border-slate-700/50 bg-slate-700/30 overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-700/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Users className="h-3.5 w-3.5 text-slate-400" />
+              <h2 className="text-[11px] font-medium text-slate-300 uppercase tracking-widest">Distribuição</h2>
+            </div>
+            <div className="flex gap-1">
+              {(['market_value', 'declared_value', 'valor_aluguel'] as const).map(m => (
+                <button
+                  key={m}
+                  onClick={() => setDistributionMetric(m)}
+                  className={`px-2.5 py-1 rounded text-[10px] uppercase tracking-wider transition-colors ${
+                    distributionMetric === m
+                      ? 'bg-slate-600 text-slate-100'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
+                  }`}
+                >
+                  {m === 'market_value' ? 'Mercado' : m === 'declared_value' ? 'Declarado' : 'Aluguel'}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="p-4 space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              {/* Por Tipo */}
+              <div className="rounded-md border border-slate-700/40 bg-slate-700/20">
+                <div className="px-3 py-2 border-b border-slate-700/30 flex items-center gap-2">
+                  <Building2 className="h-3 w-3 text-slate-400" />
+                  <span className="text-[10px] font-medium text-slate-300 uppercase tracking-wider">Por Tipo</span>
                 </div>
-                <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                  {propertiesByType.map((item, index) => (
-                    <GroupItem 
-                      key={index} 
-                      item={item} 
-                      onClick={() => openDialog(
-                        `Tipo: ${item.name}`,
-                        `${item.count} imóveis • Total: ${formatCurrency(item.value)}`,
-                        item.properties
-                      )}
-                    />
+                <div className="max-h-48 overflow-y-auto">
+                  {propertiesByType.map((item, idx) => (
+                    <div key={idx} onClick={() => openDialog(`Tipo: ${item.name}`, `${item.count} imóveis • ${formatCurrency(item.value)}`, item.properties)}
+                      className="flex items-center justify-between py-2 px-3 cursor-pointer hover:bg-slate-700/30 transition-colors border-b border-slate-700/40 last:border-0">
+                      <span className="text-[11px] text-slate-300 truncate flex-1 mr-3">{item.name}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-mono text-slate-400">{item.count}</span>
+                        <span className="text-[11px] font-semibold text-slate-200 tabular-nums font-mono">{formatCurrency(item.value)}</span>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
-
-              {/* By City */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 mb-4">
-                  <Home className="h-4 w-4 text-muted-foreground" />
-                  <h4 className="font-medium text-sm">Por Cidade</h4>
+              {/* Por Cidade */}
+              <div className="rounded-md border border-slate-700/40 bg-slate-700/20">
+                <div className="px-3 py-2 border-b border-slate-700/30 flex items-center gap-2">
+                  <Home className="h-3 w-3 text-slate-400" />
+                  <span className="text-[10px] font-medium text-slate-300 uppercase tracking-wider">Por Cidade</span>
                 </div>
-                <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                  {propertiesByCity.map((item, index) => (
-                    <GroupItem 
-                      key={index} 
-                      item={item} 
-                      onClick={() => openDialog(
-                        `Cidade: ${item.name}`,
-                        `${item.count} imóveis • Total: ${formatCurrency(item.value)}`,
-                        item.properties
-                      )}
-                    />
+                <div className="max-h-48 overflow-y-auto">
+                  {propertiesByCity.map((item, idx) => (
+                    <div key={idx} onClick={() => openDialog(`Cidade: ${item.name}`, `${item.count} imóveis • ${formatCurrency(item.value)}`, item.properties)}
+                      className="flex items-center justify-between py-2 px-3 cursor-pointer hover:bg-slate-700/30 transition-colors border-b border-slate-700/40 last:border-0">
+                      <span className="text-[11px] text-slate-300 truncate flex-1 mr-3">{item.name}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-mono text-slate-400">{item.count}</span>
+                        <span className="text-[11px] font-semibold text-slate-200 tabular-nums font-mono">{formatCurrency(item.value)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Por Proprietário Papel */}
+              <div className="rounded-md border border-slate-700/40 bg-slate-700/20">
+                <div className="px-3 py-2 border-b border-slate-700/30 flex items-center gap-2">
+                  <FileCheck className="h-3 w-3 text-slate-400" />
+                  <span className="text-[10px] font-medium text-slate-300 uppercase tracking-wider">Por Proprietário (Papel)</span>
+                </div>
+                <div className="max-h-48 overflow-y-auto">
+                  {proprietariosPapel.map((item, idx) => (
+                    <div key={idx} onClick={() => openDialog(`Proprietário (Papel): ${item.name}`, `${item.count} imóveis • ${formatCurrency(item.value)}`, item.properties)}
+                      className="flex items-center justify-between py-2 px-3 cursor-pointer hover:bg-slate-700/30 transition-colors border-b border-slate-700/40 last:border-0">
+                      <span className="text-[11px] text-slate-300 truncate flex-1 mr-3">{item.name}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-mono text-slate-400">{item.count}</span>
+                        <span className="text-[11px] font-semibold text-slate-200 tabular-nums font-mono">{formatCurrency(item.value)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Por Proprietário Matrícula */}
+              <div className="rounded-md border border-slate-700/40 bg-slate-700/20">
+                <div className="px-3 py-2 border-b border-slate-700/30 flex items-center gap-2">
+                  <Users className="h-3 w-3 text-slate-400" />
+                  <span className="text-[10px] font-medium text-slate-300 uppercase tracking-wider">Por Proprietário (Matrícula)</span>
+                </div>
+                <div className="max-h-48 overflow-y-auto">
+                  {proprietariosMatricula.map((item, idx) => (
+                    <div key={idx} onClick={() => openDialog(`Proprietário (Matrícula): ${item.name}`, `${item.count} imóveis • ${formatCurrency(item.value)}`, item.properties)}
+                      className="flex items-center justify-between py-2 px-3 cursor-pointer hover:bg-slate-700/30 transition-colors border-b border-slate-700/40 last:border-0">
+                      <span className="text-[11px] text-slate-300 truncate flex-1 mr-3">{item.name}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-mono text-slate-400">{item.count}</span>
+                        <span className="text-[11px] font-semibold text-slate-200 tabular-nums font-mono">{formatCurrency(item.value)}</span>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
             </div>
+          </div>
+        </div>
 
-            <div className="border-t mt-6 pt-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Por Proprietário no Papel */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 mb-4">
-                    <FileCheck className="h-4 w-4 text-muted-foreground" />
-                    <h4 className="font-medium text-sm">Por Proprietário no Papel</h4>
-                  </div>
-                  <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                    {proprietariosPapel.map((item, index) => (
-                      <GroupItem 
-                        key={index} 
-                        item={item} 
-                        onClick={() => openDialog(
-                          `Proprietário (Papel): ${item.name}`,
-                          `${item.count} imóveis • Total: ${formatCurrency(item.value)}`,
-                          item.properties
-                        )}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Por Proprietário na Matrícula */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <h4 className="font-medium text-sm">Por Proprietário na Matrícula</h4>
-                  </div>
-                  <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                    {proprietariosMatricula.map((item, index) => (
-                      <GroupItem 
-                        key={index} 
-                        item={item} 
-                        onClick={() => openDialog(
-                          `Proprietário (Matrícula): ${item.name}`,
-                          `${item.count} imóveis • Total: ${formatCurrency(item.value)}`,
-                          item.properties
-                        )}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
+        {/* ─── Ranking por Valor ─── */}
+        <div className="rounded-lg border border-slate-700/50 bg-slate-700/30 overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-700/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-3.5 w-3.5 text-slate-400" />
+              <h2 className="text-[11px] font-medium text-slate-300 uppercase tracking-widest">Ranking por Valor</h2>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* ==================== RANKING BY VALUE ==================== */}
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-primary" />
-                  Ranking por Valor (Todos)
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Imóveis ordenados por {getRankingMetricLabel()}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={rankingMetric === 'market_value' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setRankingMetric('market_value')}
-                >
-                  Valor Mercado
-                </Button>
-                <Button
-                  variant={rankingMetric === 'declared_value' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setRankingMetric('declared_value')}
-                >
-                  Valor Declarado
-                </Button>
-                <Button
-                  variant={rankingMetric === 'valor_condominio' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setRankingMetric('valor_condominio')}
-                >
-                  Condomínio
-                </Button>
-                <Button
-                  variant={rankingMetric === 'iptu_value' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setRankingMetric('iptu_value')}
-                >
-                  IPTU
-                </Button>
-                <Button
-                  variant={rankingMetric === 'valor_aluguel' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setRankingMetric('valor_aluguel')}
-                >
-                  Aluguel Recebido
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setRankingSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                >
-                  {rankingSortOrder === 'desc' ? (
-                    <><ChevronDown className="h-4 w-4 mr-1" /> Top</>
-                  ) : (
-                    <><ChevronUp className="h-4 w-4 mr-1" /> Base</>
-                  )}
-                </Button>
-              </div>
+            <div className="flex gap-2">
+              <Select value={rankingMetric} onValueChange={(v) => setRankingMetric(v as typeof rankingMetric)}>
+                <SelectTrigger className="w-[130px] h-7 text-[10px] bg-slate-900/50 border-slate-700/50 text-slate-300">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="market_value" className="text-xs">Valor Mercado</SelectItem>
+                  <SelectItem value="declared_value" className="text-xs">Valor Declarado</SelectItem>
+                  <SelectItem value="valor_condominio" className="text-xs">Condomínio</SelectItem>
+                  <SelectItem value="iptu_value" className="text-xs">IPTU</SelectItem>
+                  <SelectItem value="valor_aluguel" className="text-xs">Aluguel</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={String(rankingLimit)} onValueChange={(v) => setRankingLimit(Number(v))}>
+                <SelectTrigger className="w-[70px] h-7 text-[10px] bg-slate-900/50 border-slate-700/50 text-slate-300">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10" className="text-xs">Top 10</SelectItem>
+                  <SelectItem value="20" className="text-xs">Top 20</SelectItem>
+                  <SelectItem value="50" className="text-xs">Top 50</SelectItem>
+                  <SelectItem value="100" className="text-xs">Todos</SelectItem>
+                </SelectContent>
+              </Select>
+              <button
+                onClick={() => setRankingSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                className="px-2 py-1 rounded text-[10px] text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 transition-colors flex items-center gap-1"
+              >
+                {rankingSortOrder === 'desc' ? <><ArrowDown className="h-3 w-3" /> Top</> : <><ArrowUp className="h-3 w-3" /> Base</>}
+              </button>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-lg border overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="w-[50px]">#</TableHead>
-                    <TableHead>Endereço</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Cidade</TableHead>
-                    <TableHead className="text-right">Valor Declarado</TableHead>
-                    <TableHead className="text-right">Valor Mercado</TableHead>
-                    <TableHead className="text-right">Condomínio</TableHead>
-                    <TableHead className="text-right">IPTU</TableHead>
-                    <TableHead className="text-right">Aluguel</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rankedProperties.map((property, index) => (
-                    <TableRow key={property.id} className="hover:bg-muted/30">
-                      <TableCell className="font-medium text-muted-foreground">
-                        {index + 1}
-                      </TableCell>
-                      <TableCell className="font-medium max-w-[200px]">
-                        <Link 
-                          to={`/property/${property.id}`}
-                          className="hover:text-primary hover:underline truncate block"
-                        >
+          </div>
+          <div className="overflow-x-auto max-h-[700px] overflow-y-auto">
+            <table className="w-full text-xs table-fixed">
+              <thead className="sticky top-0 bg-slate-700/60 z-10">
+                <tr className="border-b border-slate-700/40">
+                  <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 w-8">#</th>
+                  <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 w-[35%]">Endereço</th>
+                  <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 w-16">Tipo</th>
+                  <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 w-28">Cidade</th>
+                  <th className="text-right py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 w-28">{getRankingMetricLabel()}</th>
+                  <th className="text-center py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 w-16">Status</th>
+                  <th className="py-2 px-3 text-[10px] text-slate-400 uppercase tracking-widest" />
+                </tr>
+              </thead>
+              <tbody>
+                {rankedProperties.map((property, idx) => {
+                  const maxValue = rankedProperties[0] ? getPropertyValue(rankedProperties[0]) : 1;
+                  const currentValue = getPropertyValue(property);
+                  const barWidth = maxValue > 0 ? (currentValue / maxValue) * 100 : 0;
+                  return (
+                    <tr key={property.id} className="border-b border-slate-700/40 hover:bg-slate-700/20 transition-colors">
+                      <td className="py-1.5 px-3 text-slate-300 font-mono text-[10px]">{idx + 1}</td>
+                      <td className="py-1.5 px-3">
+                        <Link to={`/property/${property.id}`} className="text-slate-200 text-[11px] hover:text-blue-400 transition-colors truncate block">
                           {getPropertyAddress(property)}
                         </Link>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{getTipoLabel(property.tipo_imovel)}</Badge>
-                      </TableCell>
-                      <TableCell>{property.cidade} - {property.estado}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(property.declared_value)}</TableCell>
-                      <TableCell className="text-right font-medium">{formatCurrency(property.market_value || 0)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(property.valor_condominio || 0)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(property.iptu_value || 0)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(property.valor_aluguel || 0)}</TableCell>
-                      <TableCell className="text-center">
+                      </td>
+                      <td className="py-1.5 px-3 text-[10px] text-slate-400">{getTipoLabel(property.tipo_imovel)}</td>
+                      <td className="py-1.5 px-3 text-[10px] text-slate-400 truncate">{property.cidade}</td>
+                      <td className="text-right py-1.5 px-3 font-medium text-slate-100 tabular-nums font-mono text-[11px]">{formatCurrency(currentValue)}</td>
+                      <td className="py-1.5 px-3 text-center">
                         {property.alugado ? (
-                          <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                            <Key className="h-3 w-3 mr-1" />
-                            Alugado
-                          </Badge>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-medium">Alugado</span>
                         ) : (
-                          <Badge className="bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400">
-                            Vago
-                          </Badge>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-600/50 text-slate-400 font-medium">Vago</span>
                         )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {properties.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
-                        Nenhum imóvel cadastrado
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+                      </td>
+                      <td className="py-1.5 px-3">
+                        <div className="h-1 rounded-full bg-blue-400/60 transition-all duration-500" style={{ width: `${barWidth}%`, minWidth: barWidth > 0 ? '3px' : '0px' }} />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-        {/* ==================== IMÓVEIS PENDENTES DE VALIDAÇÃO ==================== */}
-        <Card>
-          <CardHeader className="pb-2 sm:pb-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-amber-500" />
-                <CardTitle className="text-base sm:text-lg">Imóveis Pendentes de Validação</CardTitle>
-                <Badge variant="secondary" className="text-xs">
-                  {naoValidadosProperties.length} pendentes
-                </Badge>
-              </div>
+        {/* ─── Pendentes de Validação ─── */}
+        <div className="rounded-lg border border-slate-700/50 bg-slate-700/30 overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-700/40 flex items-center gap-2">
+            <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
+            <h2 className="text-[11px] font-medium text-slate-300 uppercase tracking-widest">Pendentes de Validação</h2>
+            <span className="text-[10px] font-mono text-amber-400/80 ml-1">{naoValidadosProperties.length}</span>
+          </div>
+          {naoValidadosProperties.length > 0 ? (
+            <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+              <table className="w-full text-xs">
+                <thead className="sticky top-0 bg-slate-700/60 z-10">
+                  <tr className="border-b border-slate-700/40">
+                    <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 w-8">#</th>
+                    <th onClick={() => togglePendentesSort('endereco')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                      <div className="flex items-center">Endereço{getSortIcon('endereco')}</div>
+                    </th>
+                    <th onClick={() => togglePendentesSort('tipo_imovel')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                      <div className="flex items-center">Tipo{getSortIcon('tipo_imovel')}</div>
+                    </th>
+                    <th onClick={() => togglePendentesSort('cidade')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                      <div className="flex items-center">Cidade{getSortIcon('cidade')}</div>
+                    </th>
+                    <th onClick={() => togglePendentesSort('numero_matricula')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                      <div className="flex items-center">Matrícula{getSortIcon('numero_matricula')}</div>
+                    </th>
+                    <th onClick={() => togglePendentesSort('proprietario_matricula')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                      <div className="flex items-center">Prop. Matrícula{getSortIcon('proprietario_matricula')}</div>
+                    </th>
+                    <th onClick={() => togglePendentesSort('proprietario_papel')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                      <div className="flex items-center">Prop. Papel{getSortIcon('proprietario_papel')}</div>
+                    </th>
+                    <th onClick={() => togglePendentesSort('declared_value')} className="text-right py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                      <div className="flex items-center justify-end">Declarado{getSortIcon('declared_value')}</div>
+                    </th>
+                    <th onClick={() => togglePendentesSort('market_value')} className="text-right py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                      <div className="flex items-center justify-end">Mercado{getSortIcon('market_value')}</div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {naoValidadosProperties.map((property, index) => (
+                    <tr key={property.id} className="border-b border-slate-700/40 hover:bg-slate-700/20 transition-colors">
+                      <td className="py-1.5 px-3 text-slate-400 font-mono text-[10px]">{index + 1}</td>
+                      <td className="py-1.5 px-3">
+                        <Link to={`/property/${property.id}`} className="text-slate-200 text-[11px] hover:text-blue-400 transition-colors truncate block max-w-[200px]">
+                          {getPropertyAddressForSort(property)}
+                        </Link>
+                      </td>
+                      <td className="py-1.5 px-3 text-[10px] text-slate-400">{getTipoLabel(property.tipo_imovel)}</td>
+                      <td className="py-1.5 px-3 text-[10px] text-slate-400">{property.cidade} - {property.estado}</td>
+                      <td className="py-1.5 px-3 text-[10px] text-slate-400 font-mono">{property.numero_matricula || '—'}</td>
+                      <td className="py-1.5 px-3 text-[10px] text-slate-400 truncate max-w-[150px]">{property.proprietario_matricula || '—'}</td>
+                      <td className="py-1.5 px-3 text-[10px] text-slate-400 truncate max-w-[150px]">{property.proprietario_papel || '—'}</td>
+                      <td className="text-right py-1.5 px-3 text-[11px] text-slate-300 font-mono tabular-nums">{formatCurrency(property.declared_value)}</td>
+                      <td className="text-right py-1.5 px-3 text-[11px] text-slate-200 font-mono tabular-nums font-medium">{formatCurrency(property.market_value || 0)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </CardHeader>
-          <CardContent>
-            {naoValidadosProperties.length > 0 ? (
-              <div className="rounded-lg border overflow-hidden">
-                <ResizableTable
-                  columns={[
-                    { id: 'num', label: '#', defaultWidth: 50, minWidth: 40 },
-                    { id: 'endereco', label: 'Endereço', defaultWidth: 200, minWidth: 120 },
-                    { id: 'tipo', label: 'Tipo', defaultWidth: 100, minWidth: 70 },
-                    { id: 'cidade', label: 'Cidade', defaultWidth: 150, minWidth: 100 },
-                    { id: 'matricula', label: 'Matrícula', defaultWidth: 120, minWidth: 80 },
-                    { id: 'nome_matricula', label: 'Nome na Matrícula', defaultWidth: 180, minWidth: 100 },
-                    { id: 'prop_papel', label: 'Proprietário (Papel)', defaultWidth: 180, minWidth: 100 },
-                    { id: 'validado', label: 'Validado', defaultWidth: 100, minWidth: 80, align: 'center' },
-                    { id: 'val_declarado', label: 'Valor Declarado', defaultWidth: 130, minWidth: 100, align: 'right' },
-                    { id: 'val_mercado', label: 'Valor Mercado', defaultWidth: 130, minWidth: 100, align: 'right' },
-                  ]}
-                >
-                  <ResizableTableHeader>
-                    <ResizableTableRow className="bg-muted/50">
-                      <ResizableTableHead columnId="num" resizable={false}>#</ResizableTableHead>
-                      <ResizableTableHead columnId="endereco" className="cursor-pointer hover:bg-muted/50 select-none" onClick={() => togglePendentesSort('endereco')}>
-                        <div className="flex items-center gap-1">
-                          Endereço
-                          {pendentesSortField === 'endereco' ? (pendentesSortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
-                        </div>
-                      </ResizableTableHead>
-                      <ResizableTableHead columnId="tipo" className="cursor-pointer hover:bg-muted/50 select-none" onClick={() => togglePendentesSort('tipo_imovel')}>
-                        <div className="flex items-center gap-1">
-                          Tipo
-                          {pendentesSortField === 'tipo_imovel' ? (pendentesSortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
-                        </div>
-                      </ResizableTableHead>
-                      <ResizableTableHead columnId="cidade" className="cursor-pointer hover:bg-muted/50 select-none" onClick={() => togglePendentesSort('cidade')}>
-                        <div className="flex items-center gap-1">
-                          Cidade
-                          {pendentesSortField === 'cidade' ? (pendentesSortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
-                        </div>
-                      </ResizableTableHead>
-                      <ResizableTableHead columnId="matricula" className="cursor-pointer hover:bg-muted/50 select-none" onClick={() => togglePendentesSort('numero_matricula')}>
-                        <div className="flex items-center gap-1">
-                          Matrícula
-                          {pendentesSortField === 'numero_matricula' ? (pendentesSortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
-                        </div>
-                      </ResizableTableHead>
-                      <ResizableTableHead columnId="nome_matricula" className="cursor-pointer hover:bg-muted/50 select-none" onClick={() => togglePendentesSort('proprietario_matricula')}>
-                        <div className="flex items-center gap-1">
-                          Nome na Matrícula
-                          {pendentesSortField === 'proprietario_matricula' ? (pendentesSortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
-                        </div>
-                      </ResizableTableHead>
-                      <ResizableTableHead columnId="prop_papel" className="cursor-pointer hover:bg-muted/50 select-none" onClick={() => togglePendentesSort('proprietario_papel')}>
-                        <div className="flex items-center gap-1">
-                          Proprietário (Papel)
-                          {pendentesSortField === 'proprietario_papel' ? (pendentesSortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
-                        </div>
-                      </ResizableTableHead>
-                      <ResizableTableHead columnId="validado" className="text-center cursor-pointer hover:bg-muted/50 select-none" onClick={() => togglePendentesSort('validado')}>
-                        <div className="flex items-center justify-center gap-1">
-                          Validado
-                          {pendentesSortField === 'validado' ? (pendentesSortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
-                        </div>
-                      </ResizableTableHead>
-                      <ResizableTableHead columnId="val_declarado" className="text-right cursor-pointer hover:bg-muted/50 select-none" onClick={() => togglePendentesSort('declared_value')}>
-                        <div className="flex items-center justify-end gap-1">
-                          Valor Declarado
-                          {pendentesSortField === 'declared_value' ? (pendentesSortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
-                        </div>
-                      </ResizableTableHead>
-                      <ResizableTableHead columnId="val_mercado" className="text-right cursor-pointer hover:bg-muted/50 select-none" onClick={() => togglePendentesSort('market_value')}>
-                        <div className="flex items-center justify-end gap-1">
-                          Valor Mercado
-                          {pendentesSortField === 'market_value' ? (pendentesSortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
-                        </div>
-                      </ResizableTableHead>
-                    </ResizableTableRow>
-                  </ResizableTableHeader>
-                  <ResizableTableBody>
-                    {naoValidadosProperties.map((property, index) => (
-                      <ResizableTableRow key={property.id} className="hover:bg-muted/30">
-                        <ResizableTableCell className="font-medium text-muted-foreground">
-                          {index + 1}
-                        </ResizableTableCell>
-                        <ResizableTableCell className="font-medium">
-                          <Link 
-                            to={`/property/${property.id}`}
-                            className="hover:text-primary hover:underline truncate block"
-                          >
-                            {getPropertyAddress(property)}
-                          </Link>
-                        </ResizableTableCell>
-                        <ResizableTableCell>
-                          <Badge variant="outline">{getTipoLabel(property.tipo_imovel)}</Badge>
-                        </ResizableTableCell>
-                        <ResizableTableCell>{property.cidade} - {property.estado}</ResizableTableCell>
-                        <ResizableTableCell>
-                          {property.numero_matricula ? (
-                            <span className="font-mono text-sm">{property.numero_matricula}</span>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">-</span>
-                          )}
-                        </ResizableTableCell>
-                        <ResizableTableCell>
-                          {property.proprietario_matricula || <span className="text-muted-foreground">-</span>}
-                        </ResizableTableCell>
-                        <ResizableTableCell>
-                          {property.proprietario_papel || <span className="text-muted-foreground">-</span>}
-                        </ResizableTableCell>
-                        <ResizableTableCell className="text-center">
-                          {property.validado ? (
-                            <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                              <CheckCircle2 className="h-3 w-3 mr-1" />
-                              Sim
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                              <XCircle className="h-3 w-3 mr-1" />
-                              Não
-                            </Badge>
-                          )}
-                        </ResizableTableCell>
-                        <ResizableTableCell className="text-right">{formatCurrency(property.declared_value)}</ResizableTableCell>
-                        <ResizableTableCell className="text-right font-medium">{formatCurrency(property.market_value || 0)}</ResizableTableCell>
-                      </ResizableTableRow>
-                    ))}
-                  </ResizableTableBody>
-                </ResizableTable>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <CheckCircle2 className="h-12 w-12 text-green-500 mb-3" />
-                <p className="text-lg font-medium text-green-600 dark:text-green-400">Todos os imóveis estão validados!</p>
-                <p className="text-sm text-muted-foreground mt-1">Não há pendências de validação no momento.</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <CheckCircle2 className="h-8 w-8 text-emerald-500/60 mb-2" />
+              <p className="text-sm text-emerald-400">Todos os imóveis estão validados</p>
+            </div>
+          )}
+        </div>
+
+        <div className="h-6" />
       </main>
 
       {/* ==================== DRILL-DOWN DIALOG ==================== */}
       <Dialog open={dialogState.isOpen} onOpenChange={(open) => !open && closeDialog()}>
-        <DialogContent className="max-w-6xl h-[85vh] overflow-hidden flex flex-col p-0">
-          <DialogHeader className="px-6 pt-6 pb-4 border-b">
+        <DialogContent className="max-w-6xl h-[85vh] overflow-hidden flex flex-col p-0 bg-slate-800 border-slate-700">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-slate-700/50">
             <div className="flex items-center justify-between">
               <div>
-                <DialogTitle className="flex items-center gap-2 text-lg">
-                  <Home className="h-5 w-5" />
+                <DialogTitle className="flex items-center gap-2 text-base text-slate-100">
+                  <Home className="h-4 w-4 text-slate-400" />
                   {dialogState.title}
                 </DialogTitle>
-                <p className="text-sm text-muted-foreground mt-1">{dialogState.subtitle}</p>
+                <p className="text-[11px] text-slate-400 mt-1 font-mono">{dialogState.subtitle}</p>
               </div>
               <ExportButtons
                 onExportExcel={() => exportToExcel(sortedDialogProperties, dialogState.title)}
@@ -1145,96 +818,72 @@ const Analytics = () => {
           </DialogHeader>
           
           <div className="flex-1 min-h-0 px-6 py-4">
-            <div className="rounded-lg border h-full">
+            <div className="rounded-lg border border-slate-700/50 h-full bg-slate-700/20">
               <ScrollArea className="h-full w-full" showHorizontal showVertical>
-                <table className="min-w-[1600px] w-full caption-bottom text-sm">
-                  <TableHeader className="sticky top-0 bg-muted/80 backdrop-blur-sm z-10">
-                    <TableRow>
-                      <SortableHeader field="rua" label="Endereço ↕" />
-                      <SortableHeader field="tipo_imovel" label="Tipo ↕" />
-                      <SortableHeader field="cidade" label="Cidade ↕" />
-                      <SortableHeader field="numero_matricula" label="Matrícula ↕" />
-                      <SortableHeader field="numero_contribuinte" label="Nº Contrib. ↕" />
-                      <SortableHeader field="proprietario_papel" label="Prop. Papel ↕" />
-                      <SortableHeader field="proprietario_matricula" label="Prop. Matr. I ↕" />
-                      <SortableHeader field="proprietario_matricula_ii" label="Prop. Matr. II ↕" />
-                      <SortableHeader field="declared_value" label="Declarado ↕" />
-                      <SortableHeader field="market_value" label="Mercado ↕" />
-                      <SortableHeader field="valor_condominio" label="Condom. ↕" />
-                      <SortableHeader field="iptu_value" label="IPTU ↕" />
-                      <SortableHeader field="valor_aluguel" label="Aluguel ↕" />
-                      <SortableHeader field="alugado" label="Status ↕" />
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                <table className="min-w-[1600px] w-full caption-bottom text-xs">
+                  <thead className="sticky top-0 bg-slate-700/80 backdrop-blur-sm z-10">
+                    <tr className="border-b border-slate-700/40">
+                      <SortableHeader field="rua" label="Endereço" />
+                      <SortableHeader field="tipo_imovel" label="Tipo" />
+                      <SortableHeader field="cidade" label="Cidade" />
+                      <SortableHeader field="numero_matricula" label="Matrícula" />
+                      <SortableHeader field="numero_contribuinte" label="Nº Contrib." />
+                      <SortableHeader field="proprietario_papel" label="Prop. Papel" />
+                      <SortableHeader field="proprietario_matricula" label="Prop. Matr. I" />
+                      <SortableHeader field="proprietario_matricula_ii" label="Prop. Matr. II" />
+                      <SortableHeader field="declared_value" label="Declarado" />
+                      <SortableHeader field="market_value" label="Mercado" />
+                      <SortableHeader field="valor_condominio" label="Condom." />
+                      <SortableHeader field="iptu_value" label="IPTU" />
+                      <SortableHeader field="valor_aluguel" label="Aluguel" />
+                      <SortableHeader field="alugado" label="Status" />
+                    </tr>
+                  </thead>
+                  <tbody>
                     {sortedDialogProperties.map((property, index) => (
-                      <TableRow 
+                      <tr 
                         key={property.id} 
-                        className={`hover:bg-muted/50 transition-colors ${index % 2 === 0 ? 'bg-background' : 'bg-muted/20'}`}
+                        className={`border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors ${index % 2 === 0 ? 'bg-slate-800/50' : 'bg-slate-700/10'}`}
                       >
-                        <TableCell className="font-medium py-4 max-w-[180px]">
+                        <td className="py-2 px-3 max-w-[180px]">
                           <Link 
                             to={`/property/${property.id}`}
-                            className="hover:text-primary hover:underline block truncate"
+                            className="text-slate-200 hover:text-blue-400 block truncate text-[11px]"
                             onClick={closeDialog}
                             title={getPropertyAddress(property)}
                           >
                             {getPropertyAddress(property)}
                           </Link>
-                        </TableCell>
-                        <TableCell className="py-4">
-                          <Badge variant="outline" className="font-normal">{getTipoLabel(property.tipo_imovel)}</Badge>
-                        </TableCell>
-                        <TableCell className="py-4 whitespace-nowrap">{property.cidade} - {property.estado}</TableCell>
-                        <TableCell className="py-4 whitespace-nowrap">
-                          {property.numero_matricula ? (
-                            <span className="font-mono text-xs">{property.numero_matricula}</span>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="py-4 whitespace-nowrap">
-                          {property.numero_contribuinte ? (
-                            <span className="font-mono text-xs">{property.numero_contribuinte}</span>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="py-4 max-w-[160px] truncate" title={property.proprietario_papel || ''}>
-                          {property.proprietario_papel || <span className="text-muted-foreground">-</span>}
-                        </TableCell>
-                        <TableCell className="py-4 max-w-[220px] truncate" title={property.proprietario_matricula || ''}>
-                          {property.proprietario_matricula || <span className="text-muted-foreground">-</span>}
-                        </TableCell>
-                        <TableCell className="py-4 max-w-[220px] truncate" title={property.proprietario_matricula_ii || ''}>
-                          {property.proprietario_matricula_ii || <span className="text-muted-foreground">-</span>}
-                        </TableCell>
-                        <TableCell className="text-right py-4 font-medium whitespace-nowrap">{formatCurrency(property.declared_value)}</TableCell>
-                        <TableCell className="text-right py-4 font-medium whitespace-nowrap">{formatCurrency(property.market_value || 0)}</TableCell>
-                        <TableCell className="text-right py-4 whitespace-nowrap">{formatCurrency(property.valor_condominio || 0)}</TableCell>
-                        <TableCell className="text-right py-4 whitespace-nowrap">{formatCurrency(property.iptu_value || 0)}</TableCell>
-                        <TableCell className="text-right py-4 whitespace-nowrap">{formatCurrency(property.valor_aluguel || 0)}</TableCell>
-                        <TableCell className="text-center py-4">
+                        </td>
+                        <td className="py-2 px-3 text-[10px] text-slate-400">{getTipoLabel(property.tipo_imovel)}</td>
+                        <td className="py-2 px-3 text-[10px] text-slate-400 whitespace-nowrap">{property.cidade} - {property.estado}</td>
+                        <td className="py-2 px-3 text-[10px] text-slate-400 font-mono whitespace-nowrap">{property.numero_matricula || '—'}</td>
+                        <td className="py-2 px-3 text-[10px] text-slate-400 font-mono whitespace-nowrap">{property.numero_contribuinte || '—'}</td>
+                        <td className="py-2 px-3 text-[10px] text-slate-400 max-w-[160px] truncate">{property.proprietario_papel || '—'}</td>
+                        <td className="py-2 px-3 text-[10px] text-slate-400 max-w-[200px] truncate">{property.proprietario_matricula || '—'}</td>
+                        <td className="py-2 px-3 text-[10px] text-slate-400 max-w-[200px] truncate">{property.proprietario_matricula_ii || '—'}</td>
+                        <td className="text-right py-2 px-3 text-[11px] text-slate-300 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.declared_value)}</td>
+                        <td className="text-right py-2 px-3 text-[11px] text-slate-100 font-mono tabular-nums font-medium whitespace-nowrap">{formatCurrency(property.market_value || 0)}</td>
+                        <td className="text-right py-2 px-3 text-[11px] text-slate-300 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.valor_condominio || 0)}</td>
+                        <td className="text-right py-2 px-3 text-[11px] text-slate-300 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.iptu_value || 0)}</td>
+                        <td className="text-right py-2 px-3 text-[11px] text-slate-300 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.valor_aluguel || 0)}</td>
+                        <td className="text-center py-2 px-3">
                           {property.alugado ? (
-                            <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-normal">
-                              Alugado
-                            </Badge>
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400">Alugado</span>
                           ) : (
-                            <Badge className="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 font-normal">
-                              Vago
-                            </Badge>
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-600/50 text-slate-400">Vago</span>
                           )}
-                        </TableCell>
-                      </TableRow>
+                        </td>
+                      </tr>
                     ))}
                     {sortedDialogProperties.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={14} className="text-center text-muted-foreground py-12">
+                      <tr>
+                        <td colSpan={14} className="text-center text-slate-500 py-12 text-sm">
                           Nenhum imóvel encontrado
-                        </TableCell>
-                      </TableRow>
+                        </td>
+                      </tr>
                     )}
-                  </TableBody>
+                  </tbody>
                 </table>
               </ScrollArea>
             </div>
