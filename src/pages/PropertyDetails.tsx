@@ -357,13 +357,22 @@ const PropertyDetails = () => {
                 Voltar
               </Button>
             </Link>
-            <Link to={`/edit/${property.id}`}>
-              <Button>
-                <Edit className="h-4 w-4 mr-2" />
-                Editar
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setReportOpen(true)}
+                className="gap-1.5 bg-background border-red-700/40 hover:bg-red-50 hover:border-red-700/60 shadow-sm"
+              >
+                <FileText className="h-4 w-4 text-red-700" />
+                <span className="font-medium text-red-800">Relatório PDF</span>
               </Button>
-            </Link>
-          </div>
+              <Link to={`/edit/${property.id}`}>
+                <Button>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar
+                </Button>
+              </Link>
+            </div>
 
           {/* Hero Image */}
           <div className="relative aspect-[21/9] max-h-[320px] rounded-2xl overflow-hidden">
