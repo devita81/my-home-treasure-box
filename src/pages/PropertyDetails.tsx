@@ -221,6 +221,7 @@ const PropertyDetails = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [estimates, setEstimates] = useState<MarketEstimates>({
     vendaMin: null, vendaMed: null, vendaMax: null,
     aluguelMin: null, aluguelMed: null, aluguelMax: null,
