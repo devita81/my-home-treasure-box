@@ -373,6 +373,7 @@ const PropertyDetails = () => {
                 </Button>
               </Link>
             </div>
+          </div>
 
           {/* Hero Image */}
           <div className="relative aspect-[21/9] max-h-[320px] rounded-2xl overflow-hidden">
