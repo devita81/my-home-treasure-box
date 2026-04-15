@@ -49,18 +49,15 @@ async function generatePropertyPDF(property: Property): Promise<jsPDF> {
 
   // Header bar
   doc.setFillColor(30, 58, 45);
-  doc.rect(0, 0, pageWidth, 42, 'F');
+  doc.rect(0, 0, pageWidth, 28, 'F');
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(22);
-  doc.setFont('helvetica', 'bold');
-  doc.text('My Home Collection', margin, 20);
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.text('Relatório Individual de Imóvel', margin, 28);
+  doc.text('Relatório Individual de Imóvel', margin, 12);
   doc.setFontSize(8);
   doc.text(
     `Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
-    margin, 36
+    margin, 20
   );
 
   let yPos = 52;
