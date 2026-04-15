@@ -262,10 +262,10 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
   const [sending, setSending] = useState(false);
   const [generating, setGenerating] = useState(false);
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     setGenerating(true);
     try {
-      const doc = generatePropertyPDF(property);
+      const doc = await generatePropertyPDF(property);
       const fileName = `Relatorio_${(property.tipo_imovel || 'Imovel').replace(/\s/g, '_')}_${property.cidade}_${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(fileName);
       toast.success('Relatório PDF gerado com sucesso!');
