@@ -41,7 +41,7 @@ const getStatus = (p: Property) => {
   return 'Disponível';
 };
 
-function generatePropertyPDF(property: Property): jsPDF {
+async function generatePropertyPDF(property: Property): Promise<jsPDF> {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 14;
@@ -80,6 +80,29 @@ function generatePropertyPDF(property: Property): jsPDF {
   doc.setTextColor(100, 100, 100);
   doc.text(`Status: ${status}  |  Validação: ${validado}`, margin, yPos + 4);
   yPos += 12;
+
+  // --- MAP IMAGE ---
+  if (property.latitude && property.longitude) {
+    try {
+      const mapUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${property.latitude},${property.longitude}&zoom=16&size=600x300&markers=${property.latitude},${property.longitude},red-pushpin`;
+      const response = await fetch(mapUrl);
+      if (response.ok) {
+        const blob = await response.blob();
+        const base64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(blob);
+        });
+        const imgWidth = contentWidth;
+        const imgHeight = imgWidth * 0.5;
+        if (yPos + imgHeight > 270) { doc.addPage(); yPos = 18; }
+        doc.addImage(base64, 'PNG', margin, yPos, imgWidth, imgHeight);
+        yPos += imgHeight + 6;
+      }
+    } catch (e) {
+      logger.error('Map image error:', e);
+    }
+  }
 
   // --- ADDRESS ---
   doc.setFillColor(240, 244, 240);
@@ -130,37 +153,37 @@ function generatePropertyPDF(property: Property): jsPDF {
   });
   yPos = (doc as any).lastAutoTable.finalY + 8;
 
-  // --- FINANCIAL TABLE ---
-  if (yPos > 230) { doc.addPage(); yPos = 18; }
-  doc.setFillColor(240, 244, 240);
-  doc.roundedRect(margin, yPos, contentWidth, 8, 1, 1, 'F');
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(30, 58, 45);
-  doc.text('INFORMAÇÕES FINANCEIRAS', margin + 3, yPos + 5.5);
-  yPos += 12;
-
+  // --- FINANCIAL TABLE (IPTU + Condomínio only) ---
   const finData: string[][] = [];
-  finData.push(['Valor de Mercado', formatCurrency(property.market_value)]);
-  finData.push(['Valor Declarado', formatCurrency(property.declared_value)]);
   if (property.iptu_value) finData.push(['IPTU Anual', formatCurrency(property.iptu_value)]);
   finData.push(['IPTU Pago', property.iptu_pago ? 'Sim' : 'Não']);
   if (property.valor_condominio) finData.push(['Condomínio Mensal', formatCurrency(property.valor_condominio)]);
   if (property.valor_aluguel) finData.push(['Aluguel Mensal', formatCurrency(property.valor_aluguel)]);
   if (property.taxa_administracao) finData.push(['Taxa de Administração', formatCurrency(property.taxa_administracao)]);
 
-  autoTable(doc, {
-    startY: yPos,
-    margin: { left: margin, right: margin },
-    tableWidth: contentWidth,
-    theme: 'striped',
-    headStyles: { fillColor: [30, 58, 45], fontSize: 8, fontStyle: 'bold', cellPadding: 2 },
-    bodyStyles: { fontSize: 8, cellPadding: 2 },
-    columnStyles: { 0: { fontStyle: 'bold', textColor: [80, 80, 80], cellWidth: 55 } },
-    head: [['Item Financeiro', 'Valor']],
-    body: finData,
-  });
-  yPos = (doc as any).lastAutoTable.finalY + 8;
+  if (finData.length > 0) {
+    if (yPos > 230) { doc.addPage(); yPos = 18; }
+    doc.setFillColor(240, 244, 240);
+    doc.roundedRect(margin, yPos, contentWidth, 8, 1, 1, 'F');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 58, 45);
+    doc.text('CUSTOS E RECEITAS', margin + 3, yPos + 5.5);
+    yPos += 12;
+
+    autoTable(doc, {
+      startY: yPos,
+      margin: { left: margin, right: margin },
+      tableWidth: contentWidth,
+      theme: 'striped',
+      headStyles: { fillColor: [30, 58, 45], fontSize: 8, fontStyle: 'bold', cellPadding: 2 },
+      bodyStyles: { fontSize: 8, cellPadding: 2 },
+      columnStyles: { 0: { fontStyle: 'bold', textColor: [80, 80, 80], cellWidth: 55 } },
+      head: [['Item', 'Valor']],
+      body: finData,
+    });
+    yPos = (doc as any).lastAutoTable.finalY + 8;
+  }
 
   // --- OWNERSHIP TABLE ---
   if (property.proprietario_matricula || property.proprietario_papel) {
@@ -218,7 +241,7 @@ function generatePropertyPDF(property: Property): jsPDF {
     doc.text(obsLines, margin, yPos);
   }
 
-  // --- DATES ---
+  // --- FOOTER ---
   const totalPages = doc.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
@@ -239,10 +262,10 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
   const [sending, setSending] = useState(false);
   const [generating, setGenerating] = useState(false);
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     setGenerating(true);
     try {
-      const doc = generatePropertyPDF(property);
+      const doc = await generatePropertyPDF(property);
       const fileName = `Relatorio_${(property.tipo_imovel || 'Imovel').replace(/\s/g, '_')}_${property.cidade}_${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(fileName);
       toast.success('Relatório PDF gerado com sucesso!');
@@ -262,7 +285,7 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
 
     setSending(true);
     try {
-      const doc = generatePropertyPDF(property);
+      const doc = await generatePropertyPDF(property);
       const pdfBlob = doc.output('blob');
       const fileName = `Relatorio_${property.id}.pdf`;
       const filePath = `reports/${crypto.randomUUID()}_${fileName}`;
