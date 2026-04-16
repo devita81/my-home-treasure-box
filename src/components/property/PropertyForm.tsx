@@ -483,9 +483,18 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
           </CardContent>
         </Card>
 
-        {/* Document Upload - Only show in edit mode - SEPARATE CARD */}
+        {/* Document Upload - Only show in edit mode */}
         {mode === 'edit' && property?.id && (
           <DocumentUpload propertyId={property.id} mode="edit" />
+        )}
+
+        {/* Media Upload - Only show in edit mode */}
+        {mode === 'edit' && property?.id && (
+          <PropertyMediaUpload
+            propertyId={property.id}
+            photos={formData.photos || []}
+            onPhotosChange={(photos) => handleChange('photos', photos)}
+          />
         )}
 
         {/* Características */}
