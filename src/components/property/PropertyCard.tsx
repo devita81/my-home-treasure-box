@@ -476,6 +476,57 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
         onOpenChange={setShowReport}
         property={property}
       />
+
+      {/* Lightbox dialog */}
+      <Dialog open={showLightbox} onOpenChange={setShowLightbox}>
+        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 bg-black border-none overflow-hidden">
+          <div className="relative w-full h-[85vh] flex items-center justify-center">
+            {mediaIndex === 0 ? (
+              <iframe
+                src={embedUrl}
+                className="w-full h-full border-0"
+                title={getAddressDisplay()}
+              />
+            ) : isVideoUrl(photos[mediaIndex - 1]) ? (
+              <video
+                src={photos[mediaIndex - 1]}
+                className="max-w-full max-h-full object-contain"
+                controls
+                autoPlay
+              />
+            ) : (
+              <img
+                src={photos[mediaIndex - 1]}
+                alt={`Foto ${mediaIndex}`}
+                className="max-w-full max-h-full object-contain"
+              />
+            )}
+
+            {/* Navigation in lightbox */}
+            {totalSlides > 1 && (
+              <>
+                <button
+                  onClick={goPrev}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-colors"
+                >
+                  <ChevronLeft className="h-5 w-5 text-white" />
+                </button>
+                <button
+                  onClick={goNext}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-colors"
+                >
+                  <ChevronRight className="h-5 w-5 text-white" />
+                </button>
+              </>
+            )}
+
+            {/* Slide counter */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 bg-black/60 px-3 py-1 rounded-full">
+              <span className="text-white text-xs">{mediaIndex === 0 ? 'Mapa' : `Foto ${mediaIndex}`} • {mediaIndex + 1}/{totalSlides}</span>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
