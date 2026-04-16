@@ -17,6 +17,7 @@ import { z } from 'zod';
 import { CurrencyInput } from '@/components/ui/currency-input';
 
 import { DocumentUpload } from './DocumentUpload';
+import { PropertyMediaUpload } from './PropertyMediaUpload';
 
 // Validation schema for property form
 const propertySchema = z.object({
