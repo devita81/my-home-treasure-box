@@ -40,6 +40,7 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
   const [showMapDialog, setShowMapDialog] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [mediaIndex, setMediaIndex] = useState(0);
+  const [showLightbox, setShowLightbox] = useState(false);
 
   // Build slides: map first, then photos
   const photos = property.photos || [];
