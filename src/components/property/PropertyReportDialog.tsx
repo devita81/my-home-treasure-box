@@ -164,13 +164,30 @@ async function generatePropertyPDF(property: Property): Promise<jsPDF> {
       if (base64) {
         const imgWidth = contentWidth;
         const imgHeight = imgWidth * 0.5;
-        if (yPos + imgHeight > 270) { doc.addPage(); yPos = 18; }
+        if (yPos + imgHeight > 270) {
+          doc.addPage();
+          yPos = 18;
+        }
         doc.addImage(base64, 'PNG', margin, yPos, imgWidth, imgHeight);
         yPos += imgHeight + 6;
+      } else {
+        doc.setDrawColor(210, 216, 210);
+        doc.setFillColor(247, 249, 247);
+        doc.roundedRect(margin, yPos, contentWidth, 24, 1, 1, 'FD');
+        doc.setFontSize(9);
+        doc.setTextColor(110, 110, 110);
+        doc.text('Mapa indisponível para este imóvel.', margin + 4, yPos + 14);
+        yPos += 30;
       }
     } catch (e) {
       logger.error('Map image error:', e);
-    }
+      doc.setDrawColor(210, 216, 210);
+      doc.setFillColor(247, 249, 247);
+      doc.roundedRect(margin, yPos, contentWidth, 24, 1, 1, 'FD');
+      doc.setFontSize(9);
+      doc.setTextColor(110, 110, 110);
+      doc.text('Mapa indisponível para este imóvel.', margin + 4, yPos + 14);
+      yPos += 30;
     }
   }
 
