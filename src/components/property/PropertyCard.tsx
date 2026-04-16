@@ -167,15 +167,15 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
               <>
                 <button
                   onClick={goPrev}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center shadow-md transition-colors"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-white hover:bg-white/80 flex items-center justify-center shadow-lg transition-colors"
                 >
-                  <ChevronLeft className="h-4 w-4 text-white" />
+                  <ChevronLeft className="h-4 w-4 text-black" />
                 </button>
                 <button
                   onClick={goNext}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center shadow-md transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-white hover:bg-white/80 flex items-center justify-center shadow-lg transition-colors"
                 >
-                  <ChevronRight className="h-4 w-4 text-white" />
+                  <ChevronRight className="h-4 w-4 text-black" />
                 </button>
                 {/* Dot indicators */}
                 <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex gap-1">
