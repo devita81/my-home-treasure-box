@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Camera, Upload, X, Play, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Camera, Upload, X, Play, Loader2, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 
@@ -14,7 +14,7 @@ interface PropertyMediaUploadProps {
   onPhotosChange: (photos: string[]) => void;
 }
 
-const ACCEPTED_TYPES = {
+const ACCEPTED_TYPES: Record<string, boolean> = {
   'image/jpeg': true,
   'image/png': true,
   'image/webp': true,
@@ -33,7 +33,9 @@ function isVideo(url: string): boolean {
 export function PropertyMediaUpload({ propertyId, photos, onPhotosChange }: PropertyMediaUploadProps) {
   const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
+  const [fileDragOver, setFileDragOver] = useState(false);
+  const [reorderDragIndex, setReorderDragIndex] = useState<number | null>(null);
+  const [reorderOverIndex, setReorderOverIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const uploadFiles = useCallback(async (files: FileList | File[]) => {
@@ -90,7 +92,6 @@ export function PropertyMediaUpload({ propertyId, photos, onPhotosChange }: Prop
   }, [user, propertyId, photos, onPhotosChange]);
 
   const handleRemove = useCallback(async (url: string) => {
-    // Extract path from URL
     const bucketUrl = supabase.storage.from('property-media').getPublicUrl('').data.publicUrl;
     const filePath = url.replace(bucketUrl, '');
 
@@ -110,21 +111,58 @@ export function PropertyMediaUpload({ propertyId, photos, onPhotosChange }: Prop
     toast.success('Arquivo removido');
   }, [photos, onPhotosChange]);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  // File upload drop zone handlers
+  const handleFileDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-    setDragOver(false);
+    setFileDragOver(false);
     if (e.dataTransfer.files.length > 0) {
       uploadFiles(e.dataTransfer.files);
     }
   }, [uploadFiles]);
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  const handleFileDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-    setDragOver(true);
+    setFileDragOver(true);
   }, []);
 
-  const handleDragLeave = useCallback(() => {
-    setDragOver(false);
+  const handleFileDragLeave = useCallback(() => {
+    setFileDragOver(false);
+  }, []);
+
+  // Reorder drag handlers
+  const handleReorderDragStart = useCallback((e: React.DragEvent, index: number) => {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(index));
+    setReorderDragIndex(index);
+  }, []);
+
+  const handleReorderDragOver = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setReorderOverIndex(index);
+  }, []);
+
+  const handleReorderDrop = useCallback((e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const sourceIndex = Number(e.dataTransfer.getData('text/plain'));
+    if (isNaN(sourceIndex) || sourceIndex === targetIndex) {
+      setReorderDragIndex(null);
+      setReorderOverIndex(null);
+      return;
+    }
+
+    const updated = [...photos];
+    const [moved] = updated.splice(sourceIndex, 1);
+    updated.splice(targetIndex, 0, moved);
+    onPhotosChange(updated);
+    setReorderDragIndex(null);
+    setReorderOverIndex(null);
+  }, [photos, onPhotosChange]);
+
+  const handleReorderDragEnd = useCallback(() => {
+    setReorderDragIndex(null);
+    setReorderOverIndex(null);
   }, []);
 
   return (
@@ -136,15 +174,15 @@ export function PropertyMediaUpload({ propertyId, photos, onPhotosChange }: Prop
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Drop zone */}
+        {/* Drop zone for file uploads */}
         <div
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
+          onDrop={handleFileDrop}
+          onDragOver={handleFileDragOver}
+          onDragLeave={handleFileDragLeave}
           onClick={() => fileInputRef.current?.click()}
           className={cn(
             "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
-            dragOver
+            fileDragOver
               ? "border-primary bg-primary/5"
               : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50"
           )}
@@ -177,41 +215,65 @@ export function PropertyMediaUpload({ propertyId, photos, onPhotosChange }: Prop
           }}
         />
 
-        {/* Media grid */}
+        {/* Reorderable media grid */}
         {photos.length > 0 && (
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-            {photos.map((url, index) => (
-              <div key={index} className="relative group aspect-square rounded-lg overflow-hidden bg-muted">
-                {isVideo(url) ? (
-                  <div className="w-full h-full flex items-center justify-center bg-black/80">
-                    <video src={url} className="w-full h-full object-cover" muted preload="metadata" />
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <Play className="h-8 w-8 text-white/80" />
-                    </div>
-                  </div>
-                ) : (
-                  <img
-                    src={url}
-                    alt={`Mídia ${index + 1}`}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                )}
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemove(url);
-                  }}
+          <>
+            <p className="text-xs text-muted-foreground">Arraste para reordenar</p>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {photos.map((url, index) => (
+                <div
+                  key={url}
+                  draggable
+                  onDragStart={(e) => handleReorderDragStart(e, index)}
+                  onDragOver={(e) => handleReorderDragOver(e, index)}
+                  onDrop={(e) => handleReorderDrop(e, index)}
+                  onDragEnd={handleReorderDragEnd}
+                  className={cn(
+                    "relative group aspect-square rounded-lg overflow-hidden bg-muted cursor-grab active:cursor-grabbing transition-all",
+                    reorderDragIndex === index && "opacity-40 scale-95",
+                    reorderOverIndex === index && reorderDragIndex !== index && "ring-2 ring-primary ring-offset-1"
+                  )}
                 >
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-            ))}
-          </div>
+                  {isVideo(url) ? (
+                    <div className="w-full h-full flex items-center justify-center bg-black/80">
+                      <video src={url} className="w-full h-full object-cover" muted preload="metadata" />
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <Play className="h-8 w-8 text-white/80" />
+                      </div>
+                    </div>
+                  ) : (
+                    <img
+                      src={url}
+                      alt={`Mídia ${index + 1}`}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      draggable={false}
+                    />
+                  )}
+                  {/* Grip indicator */}
+                  <div className="absolute top-1 left-1 h-5 w-5 rounded bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <GripVertical className="h-3 w-3 text-white" />
+                  </div>
+                  {/* Position badge */}
+                  <div className="absolute bottom-1 left-1 h-5 min-w-5 px-1 rounded bg-black/50 flex items-center justify-center">
+                    <span className="text-[10px] text-white font-medium">{index + 1}</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemove(url);
+                    }}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         {photos.length > 0 && (
