@@ -297,9 +297,7 @@ function ReportPreview({ property }: { property: Property }) {
   const address = getFullAddress(property);
   const status = getStatus(property);
   const validado = property.validado ? 'Validado' : 'Pendente';
-  const mapUrl = property.latitude && property.longitude
-    ? `https://staticmap.openstreetmap.de/staticmap.php?center=${property.latitude},${property.longitude}&zoom=16&size=600x300&markers=${property.latitude},${property.longitude},red-pushpin`
-    : null;
+  const hasCoords = !!(property.latitude && property.longitude);
 
   const charRows: [string, string][] = [
     ['Tipo de Imóvel', property.tipo_imovel || '-'],
@@ -367,13 +365,13 @@ function ReportPreview({ property }: { property: Property }) {
       </div>
 
       {/* Map */}
-      {mapUrl && (
+      {hasCoords && (
         <div className="px-4 pt-2">
-          <img
-            src={mapUrl}
-            alt="Mapa do imóvel"
-            className="w-full rounded border border-border object-cover"
-            style={{ maxHeight: 160 }}
+          <iframe
+            src={`https://www.openstreetmap.org/export/embed.html?bbox=${property.longitude! - 0.005},${property.latitude! - 0.003},${property.longitude! + 0.005},${property.latitude! + 0.003}&layer=mapnik&marker=${property.latitude},${property.longitude}`}
+            className="w-full rounded border border-border"
+            style={{ height: 160 }}
+            title="Mapa do imóvel"
           />
         </div>
       )}
