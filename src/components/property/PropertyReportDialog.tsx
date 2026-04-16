@@ -42,6 +42,84 @@ const getStatus = (p: Property) => {
   return 'Disponível';
 };
 
+// Generate a static map image using OSM tiles rendered on a canvas
+async function generateMapImage(lat: number, lng: number, width = 600, height = 300, zoom = 16): Promise<string | null> {
+  return new Promise((resolve) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) { resolve(null); return; }
+
+    // Calculate tile coordinates
+    const n = Math.pow(2, zoom);
+    const centerTileX = ((lng + 180) / 360) * n;
+    const centerTileY = (1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * n;
+
+    const tileSize = 256;
+    const tilesX = Math.ceil(width / tileSize) + 1;
+    const tilesY = Math.ceil(height / tileSize) + 1;
+
+    const offsetX = (width / 2) - ((centerTileX % 1) * tileSize);
+    const offsetY = (height / 2) - ((centerTileY % 1) * tileSize);
+
+    const startTileX = Math.floor(centerTileX) - Math.floor(tilesX / 2);
+    const startTileY = Math.floor(centerTileY) - Math.floor(tilesY / 2);
+
+    let loaded = 0;
+    const totalTiles = tilesX * tilesY;
+    let hasResolved = false;
+
+    const tryResolve = () => {
+      if (hasResolved) return;
+      loaded++;
+      if (loaded >= totalTiles) {
+        hasResolved = true;
+        // Draw marker (red circle with white border)
+        const markerX = width / 2;
+        const markerY = height / 2;
+        ctx.beginPath();
+        ctx.arc(markerX, markerY, 10, 0, Math.PI * 2);
+        ctx.fillStyle = '#dc2626';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(markerX, markerY, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+
+        resolve(canvas.toDataURL('image/png'));
+      }
+    };
+
+    // Timeout fallback
+    setTimeout(() => {
+      if (!hasResolved) { hasResolved = true; resolve(loaded > 0 ? canvas.toDataURL('image/png') : null); }
+    }, 8000);
+
+    for (let x = 0; x < tilesX; x++) {
+      for (let y = 0; y < tilesY; y++) {
+        const tileX = startTileX + x;
+        const tileY = startTileY + y;
+        const drawX = offsetX + (x - Math.floor(tilesX / 2)) * tileSize + Math.floor(tilesX / 2) * tileSize - ((centerTileX % 1) * tileSize) + (width / 2) - offsetX;
+
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        const dx = offsetX + (tileX - Math.floor(centerTileX)) * tileSize;
+        const dy = offsetY + (tileY - Math.floor(centerTileY)) * tileSize;
+        img.onload = () => {
+          ctx.drawImage(img, dx, dy, tileSize, tileSize);
+          tryResolve();
+        };
+        img.onerror = () => tryResolve();
+        img.src = `https://tile.openstreetmap.org/${zoom}/${((tileX % n) + n) % n}/${tileY}.png`;
+      }
+    }
+  });
+}
+
 async function generatePropertyPDF(property: Property): Promise<jsPDF> {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
