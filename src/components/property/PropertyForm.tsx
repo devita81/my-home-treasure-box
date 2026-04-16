@@ -18,6 +18,7 @@ import { CurrencyInput } from '@/components/ui/currency-input';
 
 import { DocumentUpload } from './DocumentUpload';
 import { PropertyMediaUpload } from './PropertyMediaUpload';
+import { MapPinPicker } from './MapPinPicker';
 
 // Validation schema for property form
 const propertySchema = z.object({
