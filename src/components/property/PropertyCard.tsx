@@ -1,34 +1,32 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  Bath,
+  BedDouble,
+  Building,
+  Car,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  DollarSign,
+  Edit,
+  Eye,
+  FileText,
+  Home,
+  Key,
+  MapPin,
+  Play,
+  Ruler,
+  Trash2,
+  XCircle,
+} from 'lucide-react';
+
 import { Property } from '@/types/property';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MapDialog } from './MapDialog';
-import { PropertyReportDialog } from './PropertyReportDialog';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { 
-  MapPin, 
-  Eye, 
-  Edit, 
-  Trash2, 
-  CheckCircle, 
-  XCircle,
-  DollarSign,
-  Key,
-  Building,
-  FileText,
-  Home,
-  BedDouble,
-  Bath,
-  Car,
-  Ruler,
-  Copy,
-  ChevronLeft,
-  ChevronRight,
-  Play
-} from 'lucide-react';
-import { Link } from 'react-router-dom';
-
-
+import { PropertyReportDialog } from './PropertyReportDialog';
 
 interface PropertyCardProps {
   property: Property;
@@ -37,14 +35,12 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardProps) {
-  const [showMapDialog, setShowMapDialog] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [mediaIndex, setMediaIndex] = useState(0);
   const [showLightbox, setShowLightbox] = useState(false);
 
-  // Build slides: map first, then photos
   const photos = property.photos || [];
-  const totalSlides = 1 + photos.length; // map + photos
+  const totalSlides = 1 + photos.length;
 
   const goNext = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -55,6 +51,11 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
     e.stopPropagation();
     setMediaIndex((prev) => (prev - 1 + totalSlides) % totalSlides);
   }, [totalSlides]);
+
+  const openMediaViewer = useCallback((index: number) => {
+    setMediaIndex(index);
+    setShowLightbox(true);
+  }, []);
 
   function isVideoUrl(url: string): boolean {
     return /\.(mp4|mov|webm)(\?|$)/i.test(url);
@@ -88,7 +89,6 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
     return addr;
   };
 
-  // Build OSM embed URL - works with or without coordinates
   const getEmbedUrl = () => {
     if (property.latitude != null && property.longitude != null) {
       const lat = property.latitude;
@@ -96,37 +96,25 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
       const bbox = `${lng - 0.003},${lat - 0.002},${lng + 0.003},${lat + 0.002}`;
       return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
     }
-    // Fallback: use Nominatim search URL
+
     const parts = [property.rua, property.numero, property.bairro, property.cidade, property.estado, 'Brasil'].filter(Boolean);
     const query = encodeURIComponent(parts.join(', '));
     return `https://www.openstreetmap.org/export/embed.html?bbox=-47.5,-24.0,-46.0,-23.0&layer=mapnik&marker=&query=${query}`;
   };
-  const embedUrl = getEmbedUrl();
 
-  const getFullMapUrl = () => {
-    if (property.latitude != null && property.longitude != null) {
-      return `https://www.openstreetmap.org/?mlat=${property.latitude}&mlon=${property.longitude}#map=17/${property.latitude}/${property.longitude}`;
-    }
-    const parts = [property.rua, property.numero, property.bairro, property.cidade, property.estado].filter(Boolean);
-    return `https://www.openstreetmap.org/search?query=${encodeURIComponent(parts.join(', '))}`;
-  };
+  const embedUrl = getEmbedUrl();
+  const activePhoto = mediaIndex > 0 ? photos[Math.min(mediaIndex - 1, photos.length - 1)] : null;
 
   return (
     <>
       <div className="bg-card rounded-xl border border-border/60 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
         <div className="flex flex-col sm:flex-row">
-          {/* Media carousel: map (index 0) + photos */}
           <div className="relative w-full sm:w-[30%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-black shrink-0">
-          {/* Current slide - map opens MapDialog, photos/videos open lightbox */}
             <div
               className="w-full h-full cursor-pointer"
               onClick={(e) => {
                 e.stopPropagation();
-                if (mediaIndex === 0) {
-                  setShowMapDialog(true);
-                } else {
-                  setShowLightbox(true);
-                }
+                openMediaViewer(mediaIndex);
               }}
             >
               {mediaIndex === 0 ? (
@@ -137,7 +125,6 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
                     loading="lazy"
                     title={getAddressDisplay()}
                   />
-                  {/* Transparent overlay to guarantee click capture over iframe */}
                   <div className="absolute inset-0 z-[5]" />
                 </>
               ) : isVideoUrl(photos[mediaIndex - 1]) ? (
@@ -162,7 +149,6 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
               )}
             </div>
 
-            {/* Navigation arrows - only if there are photos */}
             {totalSlides > 1 && (
               <>
                 <button
@@ -177,12 +163,14 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
                 >
                   <ChevronRight className="h-4 w-4 text-black" />
                 </button>
-                {/* Dot indicators */}
                 <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex gap-1">
                   {Array.from({ length: Math.min(totalSlides, 10) }).map((_, i) => (
                     <button
                       key={i}
-                      onClick={(e) => { e.stopPropagation(); setMediaIndex(i); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMediaIndex(i);
+                      }}
                       className={`h-1.5 rounded-full transition-all ${
                         i === mediaIndex ? 'w-4 bg-white' : 'w-1.5 bg-white/50'
                       }`}
@@ -195,7 +183,6 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
               </>
             )}
 
-            {/* Status badges */}
             <div className="absolute top-3 left-3 right-12 flex flex-wrap gap-1.5 z-10">
               {property.vendido ? (
                 <Badge className="bg-destructive text-destructive-foreground text-[10px]">Vendido</Badge>
@@ -217,16 +204,17 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
               )}
             </div>
 
-            {/* Map pin */}
             <button
-              onClick={(e) => { e.stopPropagation(); setShowMapDialog(true); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                openMediaViewer(0);
+              }}
               className="absolute top-3 right-3 flex h-7 w-7 items-center justify-center rounded-full bg-card/90 text-primary hover:bg-card transition-all shadow-sm z-10"
-              title="Ver no mapa"
+              title="Ver mapa e fotos"
             >
               <MapPin className="h-3.5 w-3.5" />
             </button>
 
-            {/* Address bar */}
             <div className="absolute bottom-0 left-0 right-0 z-10 bg-foreground/85 backdrop-blur-sm px-3 py-2.5">
               <p className="text-card font-semibold text-sm truncate">
                 {getAddressDisplay()}
@@ -238,11 +226,8 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
             </div>
           </div>
 
-          {/* Info section */}
           <div className="flex-1 p-3 flex flex-col">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 flex-1">
-
-              {/* Valores */}
               <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30">
                 <div className="flex items-center gap-1.5 mb-2">
                   <DollarSign className="h-3 w-3 text-primary" />
@@ -260,7 +245,6 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
                 </div>
               </div>
 
-              {/* Custos */}
               <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30">
                 <div className="flex items-center gap-1.5 mb-2">
                   <FileText className="h-3 w-3 text-primary" />
@@ -285,7 +269,6 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
                 </div>
               </div>
 
-              {/* Renda */}
               <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30">
                 <div className="flex items-center gap-1.5 mb-2">
                   <Key className="h-3 w-3 text-primary" />
@@ -307,14 +290,12 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
                 </div>
               </div>
 
-              {/* Propriedade - Double width */}
               <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30 lg:col-span-2">
                 <div className="flex items-center gap-1.5 mb-2">
                   <Building className="h-3 w-3 text-primary" />
                   <h4 className="text-[10px] font-semibold text-primary uppercase tracking-wider">Propriedade</h4>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-0.5">
-                  {/* Left column */}
                   <div className="space-y-0.5">
                     <div className="flex items-center justify-between py-0.5 border-b border-border/20">
                       <span className="text-[11px] text-muted-foreground">Tipo</span>
@@ -339,7 +320,6 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
                       </div>
                     </div>
                   </div>
-                  {/* Right column */}
                   <div className="space-y-0.5">
                     <div className="flex items-center justify-between py-0.5 border-b border-border/20">
                       <span className="text-[11px] text-muted-foreground">Matrícula</span>
@@ -367,7 +347,6 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
                 </div>
               </div>
 
-              {/* Características & Metragens */}
               <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30">
                 <div className="flex items-center gap-1.5 mb-2">
                   <Home className="h-3 w-3 text-primary" />
@@ -427,7 +406,6 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
               </div>
             </div>
 
-            {/* Action buttons */}
             <div className="flex gap-2 pt-3 mt-3 border-t border-border/40">
               <Link to={`/property/${property.id}`} className="flex-1" onClick={(e) => e.stopPropagation()}>
                 <Button variant="default" size="sm" className="w-full">
@@ -441,10 +419,13 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
                 </Button>
               </Link>
               {onDuplicate && (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
-                  onClick={(e) => { e.stopPropagation(); onDuplicate(property.id); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDuplicate(property.id);
+                  }}
                   className="px-3"
                   title="Duplicar imóvel"
                 >
@@ -454,17 +435,23 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
               <Button
                 variant="outline"
                 size="sm"
-                onClick={(e) => { e.stopPropagation(); setShowReport(true); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowReport(true);
+                }}
                 className="px-3 bg-background border-red-700/40 hover:bg-red-50 hover:border-red-700/60"
                 title="Relatório PDF"
               >
                 <FileText className="h-3.5 w-3.5 text-red-700" />
               </Button>
               {onDelete && (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
-                  onClick={(e) => { e.stopPropagation(); onDelete(property.id); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(property.id);
+                  }}
                   className="px-3 text-destructive hover:text-destructive hover:bg-destructive/10"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -475,87 +462,66 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
         </div>
       </div>
 
-      <MapDialog
-        open={showMapDialog}
-        onOpenChange={setShowMapDialog}
-        latitude={property.latitude}
-        longitude={property.longitude}
-        address={`${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`}
-      />
       <PropertyReportDialog
         open={showReport}
         onOpenChange={setShowReport}
         property={property}
       />
 
-      {/* Lightbox dialog - photos/videos only (map uses MapDialog) */}
-      {photos.length > 0 && (
-        <Dialog open={showLightbox} onOpenChange={setShowLightbox}>
-          <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black border-none overflow-hidden">
-            <div className="relative w-full h-[90vh] flex items-center justify-center">
-              {(() => {
-                const photoIdx = mediaIndex - 1;
-                const safeIdx = Math.max(0, Math.min(photoIdx, photos.length - 1));
-                const url = photos[safeIdx];
-                if (isVideoUrl(url)) {
-                  return (
-                    <video
-                      src={url}
-                      className="max-w-full max-h-full object-contain"
-                      controls
-                      autoPlay
-                    />
-                  );
-                }
-                return (
+      <Dialog open={showLightbox} onOpenChange={setShowLightbox}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black border-none overflow-hidden">
+          <div className="relative w-full h-[90vh] bg-black">
+            {mediaIndex === 0 ? (
+              <iframe
+                src={embedUrl}
+                title={`Mapa de ${getAddressDisplay()}`}
+                className="h-full w-full border-0"
+                loading="lazy"
+              />
+            ) : activePhoto ? (
+              <div className="flex h-full w-full items-center justify-center bg-black">
+                {isVideoUrl(activePhoto) ? (
+                  <video
+                    src={activePhoto}
+                    className="max-w-full max-h-full object-contain"
+                    controls
+                    autoPlay
+                  />
+                ) : (
                   <img
-                    src={url}
-                    alt={`Foto ${safeIdx + 1}`}
+                    src={activePhoto}
+                    alt={`Foto ${mediaIndex}`}
                     className="max-w-full max-h-full object-contain"
                   />
-                );
-              })()}
-
-              {/* Navigation among photos only */}
-              {photos.length > 1 && (
-                <>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setMediaIndex((prev) => {
-                        const photoIdx = prev - 1;
-                        const newPhotoIdx = (photoIdx - 1 + photos.length) % photos.length;
-                        return newPhotoIdx + 1;
-                      });
-                    }}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-white hover:bg-white/80 flex items-center justify-center shadow-lg transition-colors"
-                  >
-                    <ChevronLeft className="h-5 w-5 text-black" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setMediaIndex((prev) => {
-                        const photoIdx = prev - 1;
-                        const newPhotoIdx = (photoIdx + 1) % photos.length;
-                        return newPhotoIdx + 1;
-                      });
-                    }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-white hover:bg-white/80 flex items-center justify-center shadow-lg transition-colors"
-                  >
-                    <ChevronRight className="h-5 w-5 text-black" />
-                  </button>
-                </>
-              )}
-
-              {/* Slide counter */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 bg-black/60 px-3 py-1 rounded-full">
-                <span className="text-white text-xs">Foto {Math.max(1, Math.min(mediaIndex, photos.length))} / {photos.length}</span>
+                )}
               </div>
+            ) : null}
+
+            {totalSlides > 1 && (
+              <>
+                <button
+                  onClick={goPrev}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-white hover:bg-white/80 flex items-center justify-center shadow-lg transition-colors"
+                >
+                  <ChevronLeft className="h-5 w-5 text-black" />
+                </button>
+                <button
+                  onClick={goNext}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-white hover:bg-white/80 flex items-center justify-center shadow-lg transition-colors"
+                >
+                  <ChevronRight className="h-5 w-5 text-black" />
+                </button>
+              </>
+            )}
+
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 bg-black/60 px-3 py-1 rounded-full">
+              <span className="text-white text-xs">
+                {mediaIndex === 0 ? 'Mapa' : `Foto ${mediaIndex}`} · {mediaIndex + 1} / {totalSlides}
+              </span>
             </div>
-          </DialogContent>
-        </Dialog>
-      )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
