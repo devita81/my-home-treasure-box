@@ -18,6 +18,7 @@ import { CurrencyInput } from '@/components/ui/currency-input';
 
 import { DocumentUpload } from './DocumentUpload';
 import { PropertyMediaUpload } from './PropertyMediaUpload';
+import { MapPinPicker } from './MapPinPicker';
 
 // Validation schema for property form
 const propertySchema = z.object({
@@ -311,6 +312,16 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                 </Select>
               </div>
             </div>
+
+            <MapPinPicker
+              latitude={formData.latitude ?? null}
+              longitude={formData.longitude ?? null}
+              onCoordsChange={(lat, lng) => {
+                handleChange('latitude', lat);
+                handleChange('longitude', lng);
+              }}
+              address={[formData.rua, formData.numero, formData.bairro, formData.cidade, formData.estado].filter(Boolean).join(', ')}
+            />
 
           </CardContent>
         </Card>
