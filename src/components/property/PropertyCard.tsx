@@ -528,9 +528,9 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
                         return newPhotoIdx + 1;
                       });
                     }}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-colors"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-white hover:bg-white/80 flex items-center justify-center shadow-lg transition-colors"
                   >
-                    <ChevronLeft className="h-5 w-5 text-white" />
+                    <ChevronLeft className="h-5 w-5 text-black" />
                   </button>
                   <button
                     onClick={(e) => {
@@ -541,9 +541,9 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
                         return newPhotoIdx + 1;
                       });
                     }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-white hover:bg-white/80 flex items-center justify-center shadow-lg transition-colors"
                   >
-                    <ChevronRight className="h-5 w-5 text-white" />
+                    <ChevronRight className="h-5 w-5 text-black" />
                   </button>
                 </>
               )}
