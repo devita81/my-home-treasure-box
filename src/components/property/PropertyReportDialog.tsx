@@ -487,6 +487,25 @@ function ReportPreview({ property }: { property: Property }) {
             <DataTable rows={ownerRows} />
           </>
         )}
+
+        {/* Photos */}
+        {(property.photos || []).filter(url => !/\.(mp4|mov|webm)(\?|$)/i.test(url)).length > 0 && (
+          <>
+            <SectionHeader title="Fotos do Imóvel" />
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              {(property.photos || [])
+                .filter(url => !/\.(mp4|mov|webm)(\?|$)/i.test(url))
+                .map((url, i) => (
+                  <img
+                    key={i}
+                    src={url}
+                    alt={`Foto ${i + 1}`}
+                    className="w-full aspect-[4/3] object-cover rounded border border-border"
+                  />
+                ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
