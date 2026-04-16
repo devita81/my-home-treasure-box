@@ -217,14 +217,17 @@ async function generatePropertyPDF(property: Property): Promise<jsPDF> {
   yPos += 12;
 
   const charData: string[][] = [];
+  const isTerrenoType = (property.tipo_imovel || '').toLowerCase() === 'terreno';
   charData.push(['Tipo de Imóvel', property.tipo_imovel || '-']);
   if (property.metragem) charData.push(['Metragem Privativa', `${formatNumber(property.metragem)} m²`]);
   if (property.area_comum) charData.push(['Área Comum', `${formatNumber(property.area_comum)} m²`]);
   if (property.area_total) charData.push(['Área Total', `${formatNumber(property.area_total)} m²`]);
-  charData.push(['Quartos', String(property.quartos || 0)]);
-  charData.push(['Suítes', String(property.suites || 0)]);
-  charData.push(['Banheiros', String(property.banheiros || 0)]);
-  charData.push(['Vagas de Garagem', String(property.garagens || 0)]);
+  if (!isTerrenoType) {
+    charData.push(['Quartos', String(property.quartos || 0)]);
+    charData.push(['Suítes', String(property.suites || 0)]);
+    charData.push(['Banheiros', String(property.banheiros || 0)]);
+    charData.push(['Vagas de Garagem', String(property.garagens || 0)]);
+  }
   if (property.ano_construcao) charData.push(['Ano de Construção', String(property.ano_construcao)]);
 
   autoTable(doc, {
@@ -316,16 +319,19 @@ function ReportPreview({ property }: { property: Property }) {
   const validado = property.validado ? 'Validado' : 'Pendente';
   const hasCoords = !!(property.latitude && property.longitude);
 
+  const isTerrenoType = (property.tipo_imovel || '').toLowerCase() === 'terreno';
   const charRows: [string, string][] = [
     ['Tipo de Imóvel', property.tipo_imovel || '-'],
   ];
   if (property.metragem) charRows.push(['Metragem Privativa', `${formatNumber(property.metragem)} m²`]);
   if (property.area_comum) charRows.push(['Área Comum', `${formatNumber(property.area_comum)} m²`]);
   if (property.area_total) charRows.push(['Área Total', `${formatNumber(property.area_total)} m²`]);
-  charRows.push(['Quartos', String(property.quartos || 0)]);
-  charRows.push(['Suítes', String(property.suites || 0)]);
-  charRows.push(['Banheiros', String(property.banheiros || 0)]);
-  charRows.push(['Vagas de Garagem', String(property.garagens || 0)]);
+  if (!isTerrenoType) {
+    charRows.push(['Quartos', String(property.quartos || 0)]);
+    charRows.push(['Suítes', String(property.suites || 0)]);
+    charRows.push(['Banheiros', String(property.banheiros || 0)]);
+    charRows.push(['Vagas de Garagem', String(property.garagens || 0)]);
+  }
   if (property.ano_construcao) charRows.push(['Ano de Construção', String(property.ano_construcao)]);
 
   const finRows: [string, string][] = [];
