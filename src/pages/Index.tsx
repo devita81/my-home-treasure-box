@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useProperties } from '@/contexts/PropertyContext';
 import { PropertyCard } from '@/components/property/PropertyCard';
 import { PropertyFilters } from '@/components/property/PropertyFilters';
@@ -5,23 +6,39 @@ import { StatsOverview } from '@/components/stats/StatsOverview';
 import { MetragemStats } from '@/components/stats/MetragemStats';
 import { CustosReceitasStats } from '@/components/stats/CustosReceitasStats';
 import { Header } from '@/components/layout/Header';
-import { Home, PlusCircle } from 'lucide-react';
+import { Home, PlusCircle, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const Index = () => {
   const { getFilteredProperties, deleteProperty, duplicateProperty, loading } = useProperties();
   const filteredProperties = getFilteredProperties();
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este imóvel?')) {
-      try {
-        await deleteProperty(id);
-        toast.success('Imóvel excluído com sucesso!');
-      } catch {
-        toast.error('Erro ao excluir imóvel');
-      }
+  const handleDelete = (id: string) => {
+    setDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      await deleteProperty(deleteId);
+      toast.success('Imóvel excluído com sucesso!');
+    } catch {
+      toast.error('Erro ao excluir imóvel');
+    } finally {
+      setDeleteId(null);
     }
   };
 
