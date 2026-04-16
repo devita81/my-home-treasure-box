@@ -398,7 +398,7 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
         onOpenChange={setShowMapDialog}
         latitude={property.latitude}
         longitude={property.longitude}
-        address={address}
+        address={`${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`}
       />
       <PropertyReportDialog
         open={showReport}
