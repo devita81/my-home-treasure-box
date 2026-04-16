@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MapDialog } from './MapDialog';
 import { PropertyReportDialog } from './PropertyReportDialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { 
   MapPin, 
   Eye, 
@@ -39,6 +40,7 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
   const [showMapDialog, setShowMapDialog] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [mediaIndex, setMediaIndex] = useState(0);
+  const [showLightbox, setShowLightbox] = useState(false);
 
   // Build slides: map first, then photos
   const photos = property.photos || [];
@@ -94,42 +96,60 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
       const bbox = `${lng - 0.003},${lat - 0.002},${lng + 0.003},${lat + 0.002}`;
       return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
     }
-    // Fallback: use address search via Nominatim embed
-    const query = encodeURIComponent(`${property.rua} ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`);
-    return `https://www.openstreetmap.org/export/embed.html?bbox=-47.2,-23.7,-47.0,-23.5&layer=mapnik&marker=&query=${query}`;
+    // Fallback: use Nominatim search URL
+    const parts = [property.rua, property.numero, property.bairro, property.cidade, property.estado, 'Brasil'].filter(Boolean);
+    const query = encodeURIComponent(parts.join(', '));
+    return `https://www.openstreetmap.org/export/embed.html?bbox=-47.5,-24.0,-46.0,-23.0&layer=mapnik&marker=&query=${query}`;
   };
   const embedUrl = getEmbedUrl();
+
+  const getFullMapUrl = () => {
+    if (property.latitude != null && property.longitude != null) {
+      return `https://www.openstreetmap.org/?mlat=${property.latitude}&mlon=${property.longitude}#map=17/${property.latitude}/${property.longitude}`;
+    }
+    const parts = [property.rua, property.numero, property.bairro, property.cidade, property.estado].filter(Boolean);
+    return `https://www.openstreetmap.org/search?query=${encodeURIComponent(parts.join(', '))}`;
+  };
 
   return (
     <>
       <div className="bg-card rounded-xl border border-border/60 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
         <div className="flex flex-col sm:flex-row">
           {/* Media carousel: map (index 0) + photos */}
-          <div className="relative w-full sm:w-[30%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-muted shrink-0">
-            {/* Current slide */}
-            {mediaIndex === 0 ? (
-              <iframe
-                src={embedUrl}
-                className="h-full w-full border-0"
-                loading="lazy"
-                title={getAddressDisplay()}
-              />
-            ) : isVideoUrl(photos[mediaIndex - 1]) ? (
-              <div className="w-full h-full flex items-center justify-center bg-black">
-                <video
-                  src={photos[mediaIndex - 1]}
-                  className="w-full h-full object-cover"
-                  controls
-                  preload="metadata"
+          <div className="relative w-full sm:w-[30%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-black shrink-0">
+            {/* Current slide - clickable to expand */}
+            <div
+              className="w-full h-full cursor-pointer"
+              onClick={(e) => { e.stopPropagation(); setShowLightbox(true); }}
+            >
+              {mediaIndex === 0 ? (
+                <iframe
+                  src={embedUrl}
+                  className="h-full w-full border-0 pointer-events-none"
+                  loading="lazy"
+                  title={getAddressDisplay()}
                 />
-              </div>
-            ) : (
-              <img
-                src={photos[mediaIndex - 1]}
-                alt={`Foto ${mediaIndex}`}
-                className="w-full h-full object-cover"
-              />
-            )}
+              ) : isVideoUrl(photos[mediaIndex - 1]) ? (
+                <div className="w-full h-full flex items-center justify-center bg-black">
+                  <video
+                    src={photos[mediaIndex - 1]}
+                    className="w-full h-full object-contain"
+                    muted
+                    preload="metadata"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <Play className="h-10 w-10 text-white/80" />
+                  </div>
+                </div>
+              ) : (
+                <img
+                  src={photos[mediaIndex - 1]}
+                  alt={`Foto ${mediaIndex}`}
+                  className="w-full h-full object-contain bg-black"
+                  draggable={false}
+                />
+              )}
+            </div>
 
             {/* Navigation arrows - only if there are photos */}
             {totalSlides > 1 && (
@@ -456,6 +476,57 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
         onOpenChange={setShowReport}
         property={property}
       />
+
+      {/* Lightbox dialog */}
+      <Dialog open={showLightbox} onOpenChange={setShowLightbox}>
+        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 bg-black border-none overflow-hidden">
+          <div className="relative w-full h-[85vh] flex items-center justify-center">
+            {mediaIndex === 0 ? (
+              <iframe
+                src={embedUrl}
+                className="w-full h-full border-0"
+                title={getAddressDisplay()}
+              />
+            ) : isVideoUrl(photos[mediaIndex - 1]) ? (
+              <video
+                src={photos[mediaIndex - 1]}
+                className="max-w-full max-h-full object-contain"
+                controls
+                autoPlay
+              />
+            ) : (
+              <img
+                src={photos[mediaIndex - 1]}
+                alt={`Foto ${mediaIndex}`}
+                className="max-w-full max-h-full object-contain"
+              />
+            )}
+
+            {/* Navigation in lightbox */}
+            {totalSlides > 1 && (
+              <>
+                <button
+                  onClick={goPrev}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-colors"
+                >
+                  <ChevronLeft className="h-5 w-5 text-white" />
+                </button>
+                <button
+                  onClick={goNext}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-colors"
+                >
+                  <ChevronRight className="h-5 w-5 text-white" />
+                </button>
+              </>
+            )}
+
+            {/* Slide counter */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 bg-black/60 px-3 py-1 rounded-full">
+              <span className="text-white text-xs">{mediaIndex === 0 ? 'Mapa' : `Foto ${mediaIndex}`} • {mediaIndex + 1}/{totalSlides}</span>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
