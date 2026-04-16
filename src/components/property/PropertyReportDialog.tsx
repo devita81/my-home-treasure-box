@@ -269,8 +269,37 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
 
       if (urlError || !urlData?.signedUrl) throw urlError || new Error('URL não gerada');
 
-      const { error: sendError } = await supabase.functions.invoke('send-report-email', {
-        body: { to: email, downloadUrl: urlData.signedUrl, propertyCount: 1 },
+      // Build map image URL for the email
+      const mapImageUrl = property.latitude && property.longitude
+        ? `https://staticmap.openstreetmap.de/staticmap.php?center=${property.latitude},${property.longitude}&zoom=15&size=560x300&markers=${property.latitude},${property.longitude},red-pushpin`
+        : '';
+
+      const idempotencyKey = `property-report-${property.id}-${Date.now()}`;
+
+      const { error: sendError } = await supabase.functions.invoke('send-transactional-email', {
+        body: {
+          templateName: 'property-report',
+          recipientEmail: email,
+          idempotencyKey,
+          templateData: {
+            address: getFullAddress(property),
+            neighborhood: property.bairro,
+            city: `${property.cidade}/${property.estado}`,
+            propertyType: property.tipo_imovel || '',
+            status: getStatus(property),
+            area: property.metragem ? formatNumber(property.metragem) : '',
+            rooms: property.quartos ? String(property.quartos) : '',
+            bathrooms: property.banheiros ? String(property.banheiros) : '',
+            garages: property.garagens ? String(property.garagens) : '',
+            iptu: property.iptu_value ? formatCurrency(property.iptu_value) : '',
+            condominium: property.valor_condominio ? formatCurrency(property.valor_condominio) : '',
+            rentValue: property.valor_aluguel ? formatCurrency(property.valor_aluguel) : '',
+            owner: property.proprietario_matricula || '',
+            ownerPercent: property.percentual_proprietario_matricula ? String(property.percentual_proprietario_matricula) : '',
+            mapImageUrl,
+            downloadUrl: urlData.signedUrl,
+          },
+        },
       });
 
       if (sendError) throw sendError;
