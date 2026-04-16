@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Property } from '@/types/property';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,10 @@ import {
   Bath,
   Car,
   Ruler,
-  Copy
+  Copy,
+  ChevronLeft,
+  ChevronRight,
+  Play
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -35,8 +38,25 @@ interface PropertyCardProps {
 export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardProps) {
   const [showMapDialog, setShowMapDialog] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [mediaIndex, setMediaIndex] = useState(0);
 
-  const address = `${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`;
+  // Build slides: map first, then photos
+  const photos = property.photos || [];
+  const totalSlides = 1 + photos.length; // map + photos
+
+  const goNext = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMediaIndex((prev) => (prev + 1) % totalSlides);
+  }, [totalSlides]);
+
+  const goPrev = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMediaIndex((prev) => (prev - 1 + totalSlides) % totalSlides);
+  }, [totalSlides]);
+
+  function isVideoUrl(url: string): boolean {
+    return /\.(mp4|mov|webm)(\?|$)/i.test(url);
+  }
 
   const formatCurrency = (value: number | null | undefined) => {
     if (value === null || value === undefined) return null;
@@ -84,14 +104,65 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
     <>
       <div className="bg-card rounded-xl border border-border/60 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
         <div className="flex flex-col sm:flex-row">
-          {/* Map section */}
+          {/* Media carousel: map (index 0) + photos */}
           <div className="relative w-full sm:w-[30%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-muted shrink-0">
-            <iframe
-              src={embedUrl}
-              className="h-full w-full border-0"
-              loading="lazy"
-              title={getAddressDisplay()}
-            />
+            {/* Current slide */}
+            {mediaIndex === 0 ? (
+              <iframe
+                src={embedUrl}
+                className="h-full w-full border-0"
+                loading="lazy"
+                title={getAddressDisplay()}
+              />
+            ) : isVideoUrl(photos[mediaIndex - 1]) ? (
+              <div className="w-full h-full flex items-center justify-center bg-black">
+                <video
+                  src={photos[mediaIndex - 1]}
+                  className="w-full h-full object-cover"
+                  controls
+                  preload="metadata"
+                />
+              </div>
+            ) : (
+              <img
+                src={photos[mediaIndex - 1]}
+                alt={`Foto ${mediaIndex}`}
+                className="w-full h-full object-cover"
+              />
+            )}
+
+            {/* Navigation arrows - only if there are photos */}
+            {totalSlides > 1 && (
+              <>
+                <button
+                  onClick={goPrev}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-card/80 hover:bg-card flex items-center justify-center shadow-md transition-colors"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={goNext}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-card/80 hover:bg-card flex items-center justify-center shadow-md transition-colors"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+                {/* Dot indicators */}
+                <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex gap-1">
+                  {Array.from({ length: Math.min(totalSlides, 10) }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={(e) => { e.stopPropagation(); setMediaIndex(i); }}
+                      className={`h-1.5 rounded-full transition-all ${
+                        i === mediaIndex ? 'w-4 bg-white' : 'w-1.5 bg-white/50'
+                      }`}
+                    />
+                  ))}
+                  {totalSlides > 10 && (
+                    <span className="text-[9px] text-white/70 ml-1">+{totalSlides - 10}</span>
+                  )}
+                </div>
+              </>
+            )}
 
             {/* Status badges */}
             <div className="absolute top-3 left-3 right-12 flex flex-wrap gap-1.5 z-10">
@@ -378,7 +449,7 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
         onOpenChange={setShowMapDialog}
         latitude={property.latitude}
         longitude={property.longitude}
-        address={address}
+        address={`${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`}
       />
       <PropertyReportDialog
         open={showReport}
