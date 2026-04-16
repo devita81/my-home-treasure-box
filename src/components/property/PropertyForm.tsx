@@ -14,6 +14,7 @@ import { Save, ArrowLeft, MapPin, DollarSign, FileText, User, Home, MessageSquar
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { z } from 'zod';
+import { CurrencyInput } from '@/components/ui/currency-input';
 
 import { DocumentUpload } from './DocumentUpload';
 
