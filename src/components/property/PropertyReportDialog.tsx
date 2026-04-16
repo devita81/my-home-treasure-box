@@ -82,15 +82,8 @@ async function generatePropertyPDF(property: Property): Promise<jsPDF> {
   // --- MAP IMAGE ---
   if (property.latitude && property.longitude) {
     try {
-      const mapUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${property.latitude},${property.longitude}&zoom=16&size=600x300&markers=${property.latitude},${property.longitude},red-pushpin`;
-      const response = await fetch(mapUrl);
-      if (response.ok) {
-        const blob = await response.blob();
-        const base64 = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(blob);
-        });
+      const base64 = await generateMapImage(property.latitude, property.longitude);
+      if (base64) {
         const imgWidth = contentWidth;
         const imgHeight = imgWidth * 0.5;
         if (yPos + imgHeight > 270) { doc.addPage(); yPos = 18; }
@@ -99,6 +92,7 @@ async function generatePropertyPDF(property: Property): Promise<jsPDF> {
       }
     } catch (e) {
       logger.error('Map image error:', e);
+    }
     }
   }
 
