@@ -313,6 +313,16 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
               </div>
             </div>
 
+            <MapPinPicker
+              latitude={formData.latitude ?? null}
+              longitude={formData.longitude ?? null}
+              onCoordsChange={(lat, lng) => {
+                handleChange('latitude', lat);
+                handleChange('longitude', lng);
+              }}
+              address={[formData.rua, formData.numero, formData.bairro, formData.cidade, formData.estado].filter(Boolean).join(', ')}
+            />
+
           </CardContent>
         </Card>
 
