@@ -38,8 +38,25 @@ interface PropertyCardProps {
 export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardProps) {
   const [showMapDialog, setShowMapDialog] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [mediaIndex, setMediaIndex] = useState(0);
 
-  const address = `${property.rua}, ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`;
+  // Build slides: map first, then photos
+  const photos = property.photos || [];
+  const totalSlides = 1 + photos.length; // map + photos
+
+  const goNext = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMediaIndex((prev) => (prev + 1) % totalSlides);
+  }, [totalSlides]);
+
+  const goPrev = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMediaIndex((prev) => (prev - 1 + totalSlides) % totalSlides);
+  }, [totalSlides]);
+
+  function isVideoUrl(url: string): boolean {
+    return /\.(mp4|mov|webm)(\?|$)/i.test(url);
+  }
 
   const formatCurrency = (value: number | null | undefined) => {
     if (value === null || value === undefined) return null;
