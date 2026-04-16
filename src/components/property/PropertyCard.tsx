@@ -117,7 +117,7 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
         <div className="flex flex-col sm:flex-row">
           {/* Media carousel: map (index 0) + photos */}
           <div className="relative w-full sm:w-[30%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-black shrink-0">
-            {/* Current slide - clickable to expand */}
+          {/* Current slide - clickable to expand */}
             <div
               className="w-full h-full cursor-pointer"
               onClick={(e) => { e.stopPropagation(); setShowLightbox(true); }}
@@ -130,10 +130,10 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
                   title={getAddressDisplay()}
                 />
               ) : isVideoUrl(photos[mediaIndex - 1]) ? (
-                <div className="w-full h-full flex items-center justify-center bg-black">
+                <div className="w-full h-full flex items-center justify-center bg-muted">
                   <video
                     src={photos[mediaIndex - 1]}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover"
                     muted
                     preload="metadata"
                   />
@@ -145,7 +145,7 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
                 <img
                   src={photos[mediaIndex - 1]}
                   alt={`Foto ${mediaIndex}`}
-                  className="w-full h-full object-contain bg-black"
+                  className="w-full h-full object-cover"
                   draggable={false}
                 />
               )}
