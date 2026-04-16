@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MapDialog } from './MapDialog';
 import { PropertyReportDialog } from './PropertyReportDialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { 
   MapPin, 
   Eye, 
