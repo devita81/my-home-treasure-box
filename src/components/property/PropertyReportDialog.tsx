@@ -103,7 +103,7 @@ async function generateMapImage(lat: number, lng: number, width = 600, height = 
       for (let y = 0; y < tilesY; y++) {
         const tileX = startTileX + x;
         const tileY = startTileY + y;
-        const drawX = offsetX + (x - Math.floor(tilesX / 2)) * tileSize + Math.floor(tilesX / 2) * tileSize - ((centerTileX % 1) * tileSize) + (width / 2) - offsetX;
+        
 
         const img = new Image();
         img.crossOrigin = 'anonymous';
