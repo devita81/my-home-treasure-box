@@ -802,7 +802,7 @@ const Analytics = () => {
       <Dialog open={dialogState.isOpen} onOpenChange={(open) => !open && closeDialog()}>
         <DialogContent className="max-w-6xl h-[85vh] overflow-hidden flex flex-col p-0 bg-white border-slate-200">
           <DialogHeader className="px-6 pt-6 pb-4 border-b border-slate-200">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between pr-8">
               <div>
                 <DialogTitle className="flex items-center gap-2 text-base text-slate-900">
                   <Home className="h-4 w-4 text-slate-500" />
