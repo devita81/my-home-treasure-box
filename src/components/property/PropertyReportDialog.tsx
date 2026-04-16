@@ -443,7 +443,8 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
     setGenerating(true);
     try {
       const doc = await generatePropertyPDF(property);
-      const fileName = `Relatorio_${(property.tipo_imovel || 'Imovel').replace(/\s/g, '_')}_${property.cidade}_${new Date().toISOString().split('T')[0]}.pdf`;
+      const addressParts = [property.rua, property.numero, property.apartamento ? `Apto ${property.apartamento}` : '', property.bairro, `${property.cidade}/${property.estado}`].filter(Boolean).join(', ');
+      const fileName = `Reporte - ${property.tipo_imovel || 'Imóvel'} - ${addressParts}.pdf`;
       doc.save(fileName);
       toast.success('Relatório PDF gerado com sucesso!');
     } catch (err) {
@@ -464,7 +465,8 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
     try {
       const doc = await generatePropertyPDF(property);
       const pdfBlob = doc.output('blob');
-      const fileName = `Relatorio_${property.id}.pdf`;
+      const addressParts = [property.rua, property.numero, property.apartamento ? `Apto ${property.apartamento}` : '', property.bairro, `${property.cidade}/${property.estado}`].filter(Boolean).join(', ');
+      const fileName = `Reporte - ${property.tipo_imovel || 'Imóvel'} - ${addressParts}.pdf`;
       const filePath = `reports/${crypto.randomUUID()}_${fileName}`;
 
       const { error: uploadError } = await supabase.storage
