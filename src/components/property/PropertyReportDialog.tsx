@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Property } from '@/types/property';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { FileText, Send, Download, Loader2 } from 'lucide-react';
+import { FileText, Send, Download, Loader2, Eye, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -215,19 +216,135 @@ async function generatePropertyPDF(property: Property): Promise<jsPDF> {
       head: [['Campo', 'Informação']],
       body: ownerData,
     });
-    yPos = (doc as any).lastAutoTable.finalY + 8;
   }
 
-
   return doc;
+}
 
-  return doc;
+function ReportPreview({ property }: { property: Property }) {
+  const address = getFullAddress(property);
+  const status = getStatus(property);
+  const validado = property.validado ? 'Validado' : 'Pendente';
+  const mapUrl = property.latitude && property.longitude
+    ? `https://staticmap.openstreetmap.de/staticmap.php?center=${property.latitude},${property.longitude}&zoom=16&size=600x300&markers=${property.latitude},${property.longitude},red-pushpin`
+    : null;
+
+  const charRows: [string, string][] = [
+    ['Tipo de Imóvel', property.tipo_imovel || '-'],
+  ];
+  if (property.metragem) charRows.push(['Metragem Privativa', `${formatNumber(property.metragem)} m²`]);
+  if (property.area_comum) charRows.push(['Área Comum', `${formatNumber(property.area_comum)} m²`]);
+  if (property.area_total) charRows.push(['Área Total', `${formatNumber(property.area_total)} m²`]);
+  charRows.push(['Quartos', String(property.quartos || 0)]);
+  charRows.push(['Suítes', String(property.suites || 0)]);
+  charRows.push(['Banheiros', String(property.banheiros || 0)]);
+  charRows.push(['Vagas de Garagem', String(property.garagens || 0)]);
+  if (property.ano_construcao) charRows.push(['Ano de Construção', String(property.ano_construcao)]);
+
+  const finRows: [string, string][] = [];
+  if (property.iptu_value) finRows.push(['IPTU Anual', formatCurrency(property.iptu_value)]);
+  if (property.valor_condominio) finRows.push(['Condomínio Mensal', formatCurrency(property.valor_condominio)]);
+  if (property.valor_aluguel) finRows.push(['Aluguel Mensal', formatCurrency(property.valor_aluguel)]);
+  if (property.taxa_administracao) finRows.push(['Taxa de Administração', formatCurrency(property.taxa_administracao)]);
+
+  const ownerRows: [string, string][] = [];
+  if (property.proprietario_matricula)
+    ownerRows.push(['Proprietário Matrícula', `${property.proprietario_matricula} (${property.percentual_proprietario_matricula ?? 100}%)`]);
+  if (property.proprietario_matricula_ii)
+    ownerRows.push(['Proprietário Matrícula II', `${property.proprietario_matricula_ii} (${property.percentual_proprietario_matricula_ii ?? 0}%)`]);
+  if (property.numero_matricula)
+    ownerRows.push(['Nº Matrícula', property.numero_matricula]);
+  if (property.numero_contribuinte)
+    ownerRows.push(['Nº Contribuinte', property.numero_contribuinte]);
+  if (property.inquilino)
+    ownerRows.push(['Inquilino', property.inquilino]);
+
+  const SectionHeader = ({ title }: { title: string }) => (
+    <div className="bg-[hsl(145,30%,94%)] rounded px-2 py-1.5 mb-2">
+      <span className="text-[10px] font-bold uppercase tracking-wide text-[hsl(145,30%,25%)]">{title}</span>
+    </div>
+  );
+
+  const DataTable = ({ rows }: { rows: [string, string][] }) => (
+    <div className="border border-border rounded overflow-hidden mb-3">
+      {rows.map(([label, value], i) => (
+        <div key={i} className={`flex text-[10px] px-2 py-1 ${i % 2 === 0 ? 'bg-muted/30' : ''}`}>
+          <span className="font-semibold text-muted-foreground w-[120px] shrink-0">{label}</span>
+          <span className="text-foreground">{value}</span>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
+      {/* Header */}
+      <div className="bg-[hsl(145,30%,18%)] px-4 py-3">
+        <p className="text-[11px] font-medium text-white/90">Relatório Individual de Imóvel</p>
+        <p className="text-[9px] text-white/60">
+          Gerado em {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+        </p>
+      </div>
+
+      {/* Title */}
+      <div className="px-4 pt-3 pb-1">
+        <p className="text-xs font-bold text-[hsl(145,30%,25%)]">
+          {property.tipo_imovel || 'Imóvel'} — {property.cidade}/{property.estado}
+        </p>
+        <p className="text-[9px] text-muted-foreground">Status: {status}  |  Validação: {validado}</p>
+      </div>
+
+      {/* Map */}
+      {mapUrl && (
+        <div className="px-4 pt-2">
+          <img
+            src={mapUrl}
+            alt="Mapa do imóvel"
+            className="w-full rounded border border-border object-cover"
+            style={{ maxHeight: 160 }}
+          />
+        </div>
+      )}
+
+      <div className="px-4 py-3 space-y-2">
+        {/* Address */}
+        <SectionHeader title="Endereço Completo" />
+        <p className="text-[10px] text-foreground mb-3">{address}</p>
+
+        {/* Characteristics */}
+        <SectionHeader title="Características do Imóvel" />
+        <DataTable rows={charRows} />
+
+        {/* Financials */}
+        {finRows.length > 0 && (
+          <>
+            <SectionHeader title="Custos e Receitas" />
+            <DataTable rows={finRows} />
+          </>
+        )}
+
+        {/* Ownership */}
+        {ownerRows.length > 0 && (
+          <>
+            <SectionHeader title="Dados de Propriedade" />
+            <DataTable rows={ownerRows} />
+          </>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export function PropertyReportDialog({ open, onOpenChange, property }: PropertyReportDialogProps) {
   const [email, setEmail] = useState('');
   const [sending, setSending] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+
+  // Reset preview when dialog closes
+  useEffect(() => {
+    if (!open) setShowPreview(false);
+  }, [open]);
 
   const handleDownloadPDF = async () => {
     setGenerating(true);
@@ -269,7 +386,6 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
 
       if (urlError || !urlData?.signedUrl) throw urlError || new Error('URL não gerada');
 
-      // Build map image URL for the email
       const mapImageUrl = property.latitude && property.longitude
         ? `https://staticmap.openstreetmap.de/staticmap.php?center=${property.latitude},${property.longitude}&zoom=15&size=560x300&markers=${property.latitude},${property.longitude},red-pushpin`
         : '';
@@ -319,60 +435,102 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-red-700" />
-            Relatório do Imóvel
-          </DialogTitle>
-          <DialogDescription className="text-xs">
-            {address}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4 py-2">
-          <Button
-            onClick={handleDownloadPDF}
-            disabled={generating}
-            className="w-full gap-2 bg-red-700 hover:bg-red-800"
-          >
-            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            Baixar Relatório PDF
-          </Button>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">ou enviar por email</span>
+      <DialogContent className={showPreview ? 'sm:max-w-lg max-h-[90vh] p-0 gap-0' : 'sm:max-w-md'}>
+        {showPreview ? (
+          <>
+            {/* Preview Mode */}
+            <div className="flex items-center gap-2 px-4 py-3 border-b">
+              <Button variant="ghost" size="sm" onClick={() => setShowPreview(false)} className="h-7 px-2 gap-1">
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span className="text-xs">Voltar</span>
+              </Button>
+              <span className="text-xs font-medium text-muted-foreground flex-1">Pré-visualização do Relatório</span>
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="report-email">Email de destino</Label>
-            <div className="flex gap-2">
-              <Input
-                id="report-email"
-                type="email"
-                placeholder="exemplo@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendEmail()}
-              />
+            <ScrollArea className="flex-1 max-h-[calc(90vh-120px)]">
+              <div className="p-4">
+                <ReportPreview property={property} />
+              </div>
+            </ScrollArea>
+            <div className="flex gap-2 px-4 py-3 border-t bg-muted/30">
               <Button
-                onClick={handleSendEmail}
-                disabled={sending || !email}
-                variant="outline"
-                className="gap-1.5 border-primary/30 hover:bg-primary/10 shrink-0"
+                onClick={handleDownloadPDF}
+                disabled={generating}
+                className="flex-1 gap-2 bg-[hsl(145,30%,18%)] hover:bg-[hsl(145,30%,14%)] text-white"
+                size="sm"
               >
-                {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                Enviar
+                {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                Baixar PDF
               </Button>
             </div>
-            <p className="text-[10px] text-muted-foreground">
-              O PDF será enviado como link de download válido por 7 dias.
-            </p>
-          </div>
-        </div>
+          </>
+        ) : (
+          <>
+            {/* Actions Mode */}
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-[hsl(145,30%,25%)]" />
+                Relatório do Imóvel
+              </DialogTitle>
+              <DialogDescription className="text-xs">
+                {address}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2">
+              {/* Preview button */}
+              <Button
+                onClick={() => setShowPreview(true)}
+                variant="outline"
+                className="w-full gap-2 border-primary/30"
+              >
+                <Eye className="h-4 w-4" />
+                Pré-visualizar Relatório
+              </Button>
+
+              <Button
+                onClick={handleDownloadPDF}
+                disabled={generating}
+                className="w-full gap-2 bg-[hsl(145,30%,18%)] hover:bg-[hsl(145,30%,14%)] text-white"
+              >
+                {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                Baixar Relatório PDF
+              </Button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">ou enviar por email</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="report-email">Email de destino</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="report-email"
+                    type="email"
+                    placeholder="exemplo@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSendEmail()}
+                  />
+                  <Button
+                    onClick={handleSendEmail}
+                    disabled={sending || !email}
+                    variant="outline"
+                    className="gap-1.5 border-primary/30 hover:bg-primary/10 shrink-0"
+                  >
+                    {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    Enviar
+                  </Button>
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  O PDF será enviado como link de download válido por 7 dias.
+                </p>
+              </div>
+            </div>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
