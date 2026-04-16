@@ -120,6 +120,25 @@ async function generateMapImage(lat: number, lng: number, width = 600, height = 
   });
 }
 
+async function loadImageAsBase64(url: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { resolve(null); return; }
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = () => resolve(null);
+    setTimeout(() => resolve(null), 10000);
+    img.src = url;
+  });
+}
+
 async function generatePropertyPDF(property: Property): Promise<jsPDF> {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -310,6 +329,51 @@ async function generatePropertyPDF(property: Property): Promise<jsPDF> {
     });
   }
 
+  // --- PHOTOS ---
+  const photos = (property.photos || []).filter(url => !/\.(mp4|mov|webm)(\?|$)/i.test(url));
+  if (photos.length > 0) {
+    doc.addPage();
+    yPos = 18;
+
+    doc.setFillColor(240, 244, 240);
+    doc.roundedRect(margin, yPos, contentWidth, 8, 1, 1, 'F');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 58, 45);
+    doc.text('FOTOS DO IMÓVEL', margin + 3, yPos + 5.5);
+    yPos += 12;
+
+    const photoWidth = (contentWidth - 4) / 2; // 2 columns with 4mm gap
+    const photoHeight = photoWidth * 0.75;
+
+    for (let i = 0; i < photos.length; i++) {
+      try {
+        const imgData = await loadImageAsBase64(photos[i]);
+        if (!imgData) continue;
+
+        const col = i % 2;
+        if (col === 0 && i > 0) {
+          // New row
+        }
+
+        const xPos = margin + col * (photoWidth + 4);
+
+        if (col === 0 && yPos + photoHeight > 280) {
+          doc.addPage();
+          yPos = 18;
+        }
+
+        doc.addImage(imgData, 'JPEG', xPos, yPos, photoWidth, photoHeight);
+
+        if (col === 1 || i === photos.length - 1) {
+          yPos += photoHeight + 4;
+        }
+      } catch (e) {
+        logger.error('Photo load error:', e);
+      }
+    }
+  }
+
   return doc;
 }
 
@@ -421,6 +485,25 @@ function ReportPreview({ property }: { property: Property }) {
           <>
             <SectionHeader title="Dados de Propriedade" />
             <DataTable rows={ownerRows} />
+          </>
+        )}
+
+        {/* Photos */}
+        {(property.photos || []).filter(url => !/\.(mp4|mov|webm)(\?|$)/i.test(url)).length > 0 && (
+          <>
+            <SectionHeader title="Fotos do Imóvel" />
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              {(property.photos || [])
+                .filter(url => !/\.(mp4|mov|webm)(\?|$)/i.test(url))
+                .map((url, i) => (
+                  <img
+                    key={i}
+                    src={url}
+                    alt={`Foto ${i + 1}`}
+                    className="w-full aspect-[4/3] object-cover rounded border border-border"
+                  />
+                ))}
+            </div>
           </>
         )}
       </div>
