@@ -389,7 +389,7 @@ const Analytics = () => {
 
   const SortableHeader = ({ field, label }: { field: SortField; label: string }) => (
     <TableHead 
-      className="cursor-pointer hover:bg-slate-700/50 select-none text-slate-400 text-[10px] uppercase tracking-wider"
+      className="cursor-pointer hover:bg-slate-200/60 select-none text-slate-600 text-[10px] uppercase tracking-wider font-semibold"
       onClick={() => toggleDialogSort(field)}
     >
       <div className="flex items-center gap-1">
@@ -800,15 +800,15 @@ const Analytics = () => {
 
       {/* ==================== DRILL-DOWN DIALOG ==================== */}
       <Dialog open={dialogState.isOpen} onOpenChange={(open) => !open && closeDialog()}>
-        <DialogContent className="max-w-6xl h-[85vh] overflow-hidden flex flex-col p-0 bg-slate-800 border-slate-700">
-          <DialogHeader className="px-6 pt-6 pb-4 border-b border-slate-700/50">
+        <DialogContent className="max-w-6xl h-[85vh] overflow-hidden flex flex-col p-0 bg-white border-slate-200">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-slate-200">
             <div className="flex items-center justify-between">
               <div>
-                <DialogTitle className="flex items-center gap-2 text-base text-slate-100">
-                  <Home className="h-4 w-4 text-slate-400" />
+                <DialogTitle className="flex items-center gap-2 text-base text-slate-900">
+                  <Home className="h-4 w-4 text-slate-500" />
                   {dialogState.title}
                 </DialogTitle>
-                <p className="text-[11px] text-slate-400 mt-1 font-mono">{dialogState.subtitle}</p>
+                <p className="text-[11px] text-slate-500 mt-1 font-mono">{dialogState.subtitle}</p>
               </div>
               <ExportButtons
                 onExportExcel={() => exportToExcel(sortedDialogProperties, dialogState.title)}
@@ -818,11 +818,11 @@ const Analytics = () => {
           </DialogHeader>
           
           <div className="flex-1 min-h-0 px-6 py-4">
-            <div className="rounded-lg border border-slate-700/50 h-full bg-slate-700/20">
+            <div className="rounded-lg border border-slate-200 h-full bg-white">
               <ScrollArea className="h-full w-full" showHorizontal showVertical>
                 <table className="min-w-[1600px] w-full caption-bottom text-xs">
-                  <thead className="sticky top-0 bg-slate-700/80 backdrop-blur-sm z-10">
-                    <tr className="border-b border-slate-700/40">
+                  <thead className="sticky top-0 bg-slate-100 backdrop-blur-sm z-10">
+                    <tr className="border-b border-slate-200">
                       <SortableHeader field="rua" label="Endereço" />
                       <SortableHeader field="tipo_imovel" label="Tipo" />
                       <SortableHeader field="cidade" label="Cidade" />
@@ -843,42 +843,42 @@ const Analytics = () => {
                     {sortedDialogProperties.map((property, index) => (
                       <tr 
                         key={property.id} 
-                        className={`border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors ${index % 2 === 0 ? 'bg-slate-800/50' : 'bg-slate-700/10'}`}
+                        className={`border-b border-slate-100 hover:bg-blue-50/50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}`}
                       >
                         <td className="py-2 px-3 max-w-[180px]">
                           <Link 
                             to={`/property/${property.id}`}
-                            className="text-slate-200 hover:text-blue-400 block truncate text-[11px]"
+                            className="text-slate-900 hover:text-blue-600 block truncate text-[11px] font-medium"
                             onClick={closeDialog}
                             title={getPropertyAddress(property)}
                           >
                             {getPropertyAddress(property)}
                           </Link>
                         </td>
-                        <td className="py-2 px-3 text-[10px] text-slate-400">{getTipoLabel(property.tipo_imovel)}</td>
-                        <td className="py-2 px-3 text-[10px] text-slate-400 whitespace-nowrap">{property.cidade} - {property.estado}</td>
-                        <td className="py-2 px-3 text-[10px] text-slate-400 font-mono whitespace-nowrap">{property.numero_matricula || '—'}</td>
-                        <td className="py-2 px-3 text-[10px] text-slate-400 font-mono whitespace-nowrap">{property.numero_contribuinte || '—'}</td>
-                        <td className="py-2 px-3 text-[10px] text-slate-400 max-w-[160px] truncate">{property.proprietario_papel || '—'}</td>
-                        <td className="py-2 px-3 text-[10px] text-slate-400 max-w-[200px] truncate">{property.proprietario_matricula || '—'}</td>
-                        <td className="py-2 px-3 text-[10px] text-slate-400 max-w-[200px] truncate">{property.proprietario_matricula_ii || '—'}</td>
-                        <td className="text-right py-2 px-3 text-[11px] text-slate-300 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.declared_value)}</td>
-                        <td className="text-right py-2 px-3 text-[11px] text-slate-100 font-mono tabular-nums font-medium whitespace-nowrap">{formatCurrency(property.market_value || 0)}</td>
-                        <td className="text-right py-2 px-3 text-[11px] text-slate-300 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.valor_condominio || 0)}</td>
-                        <td className="text-right py-2 px-3 text-[11px] text-slate-300 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.iptu_value || 0)}</td>
-                        <td className="text-right py-2 px-3 text-[11px] text-slate-300 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.valor_aluguel || 0)}</td>
+                        <td className="py-2 px-3 text-[10px] text-slate-600">{getTipoLabel(property.tipo_imovel)}</td>
+                        <td className="py-2 px-3 text-[10px] text-slate-600 whitespace-nowrap">{property.cidade} - {property.estado}</td>
+                        <td className="py-2 px-3 text-[10px] text-slate-700 font-mono whitespace-nowrap">{property.numero_matricula || '—'}</td>
+                        <td className="py-2 px-3 text-[10px] text-slate-700 font-mono whitespace-nowrap">{property.numero_contribuinte || '—'}</td>
+                        <td className="py-2 px-3 text-[10px] text-slate-600 max-w-[160px] truncate">{property.proprietario_papel || '—'}</td>
+                        <td className="py-2 px-3 text-[10px] text-slate-600 max-w-[200px] truncate">{property.proprietario_matricula || '—'}</td>
+                        <td className="py-2 px-3 text-[10px] text-slate-600 max-w-[200px] truncate">{property.proprietario_matricula_ii || '—'}</td>
+                        <td className="text-right py-2 px-3 text-[11px] text-slate-700 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.declared_value)}</td>
+                        <td className="text-right py-2 px-3 text-[11px] text-slate-900 font-mono tabular-nums font-semibold whitespace-nowrap">{formatCurrency(property.market_value || 0)}</td>
+                        <td className="text-right py-2 px-3 text-[11px] text-slate-700 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.valor_condominio || 0)}</td>
+                        <td className="text-right py-2 px-3 text-[11px] text-slate-700 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.iptu_value || 0)}</td>
+                        <td className="text-right py-2 px-3 text-[11px] text-slate-700 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.valor_aluguel || 0)}</td>
                         <td className="text-center py-2 px-3">
                           {property.alugado ? (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400">Alugado</span>
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
                           ) : (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-600/50 text-slate-400">Vago</span>
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Vago</span>
                           )}
                         </td>
                       </tr>
                     ))}
                     {sortedDialogProperties.length === 0 && (
                       <tr>
-                        <td colSpan={14} className="text-center text-slate-500 py-12 text-sm">
+                        <td colSpan={14} className="text-center text-slate-400 py-12 text-sm">
                           Nenhum imóvel encontrado
                         </td>
                       </tr>
