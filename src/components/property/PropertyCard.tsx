@@ -117,10 +117,17 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
         <div className="flex flex-col sm:flex-row">
           {/* Media carousel: map (index 0) + photos */}
           <div className="relative w-full sm:w-[30%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-black shrink-0">
-          {/* Current slide - clickable to expand */}
+          {/* Current slide - map opens MapDialog, photos/videos open lightbox */}
             <div
               className="w-full h-full cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); setShowLightbox(true); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (mediaIndex === 0) {
+                  setShowMapDialog(true);
+                } else {
+                  setShowLightbox(true);
+                }
+              }}
             >
               {mediaIndex === 0 ? (
                 <iframe
@@ -477,56 +484,74 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
         property={property}
       />
 
-      {/* Lightbox dialog */}
-      <Dialog open={showLightbox} onOpenChange={setShowLightbox}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black border-none overflow-hidden">
-          <div className="relative w-full h-[90vh] flex items-center justify-center">
-            {mediaIndex === 0 ? (
-              <iframe
-                src={embedUrl}
-                className="absolute inset-0 w-full h-full border-0"
-                title={getAddressDisplay()}
-              />
-            ) : isVideoUrl(photos[mediaIndex - 1]) ? (
-              <video
-                src={photos[mediaIndex - 1]}
-                className="max-w-full max-h-full object-contain"
-                controls
-                autoPlay
-              />
-            ) : (
-              <img
-                src={photos[mediaIndex - 1]}
-                alt={`Foto ${mediaIndex}`}
-                className="max-w-full max-h-full object-contain"
-              />
-            )}
+      {/* Lightbox dialog - photos/videos only (map uses MapDialog) */}
+      {photos.length > 0 && (
+        <Dialog open={showLightbox} onOpenChange={setShowLightbox}>
+          <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black border-none overflow-hidden">
+            <div className="relative w-full h-[90vh] flex items-center justify-center">
+              {(() => {
+                const photoIdx = mediaIndex - 1;
+                const safeIdx = Math.max(0, Math.min(photoIdx, photos.length - 1));
+                const url = photos[safeIdx];
+                if (isVideoUrl(url)) {
+                  return (
+                    <video
+                      src={url}
+                      className="max-w-full max-h-full object-contain"
+                      controls
+                      autoPlay
+                    />
+                  );
+                }
+                return (
+                  <img
+                    src={url}
+                    alt={`Foto ${safeIdx + 1}`}
+                    className="max-w-full max-h-full object-contain"
+                  />
+                );
+              })()}
 
-            {/* Navigation in lightbox */}
-            {totalSlides > 1 && (
-              <>
-                <button
-                  onClick={goPrev}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-colors"
-                >
-                  <ChevronLeft className="h-5 w-5 text-white" />
-                </button>
-                <button
-                  onClick={goNext}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-colors"
-                >
-                  <ChevronRight className="h-5 w-5 text-white" />
-                </button>
-              </>
-            )}
+              {/* Navigation among photos only */}
+              {photos.length > 1 && (
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMediaIndex((prev) => {
+                        const photoIdx = prev - 1;
+                        const newPhotoIdx = (photoIdx - 1 + photos.length) % photos.length;
+                        return newPhotoIdx + 1;
+                      });
+                    }}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-colors"
+                  >
+                    <ChevronLeft className="h-5 w-5 text-white" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMediaIndex((prev) => {
+                        const photoIdx = prev - 1;
+                        const newPhotoIdx = (photoIdx + 1) % photos.length;
+                        return newPhotoIdx + 1;
+                      });
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-colors"
+                  >
+                    <ChevronRight className="h-5 w-5 text-white" />
+                  </button>
+                </>
+              )}
 
-            {/* Slide counter */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 bg-black/60 px-3 py-1 rounded-full">
-              <span className="text-white text-xs">{mediaIndex === 0 ? 'Mapa' : `Foto ${mediaIndex}`} • {mediaIndex + 1}/{totalSlides}</span>
+              {/* Slide counter */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 bg-black/60 px-3 py-1 rounded-full">
+                <span className="text-white text-xs">Foto {Math.max(1, Math.min(mediaIndex, photos.length))} / {photos.length}</span>
+              </div>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }
