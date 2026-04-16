@@ -257,7 +257,7 @@ async function generatePropertyPDF(property: Property): Promise<jsPDF> {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(30, 58, 45);
-    doc.text('CUSTOS E RECEITAS', margin + 3, yPos + 5.5);
+    doc.text('CUSTOS', margin + 3, yPos + 5.5);
     yPos += 12;
 
     autoTable(doc, {
@@ -411,7 +411,7 @@ function ReportPreview({ property }: { property: Property }) {
         {/* Financials */}
         {finRows.length > 0 && (
           <>
-            <SectionHeader title="Custos e Receitas" />
+            <SectionHeader title="Custos" />
             <DataTable rows={finRows} />
           </>
         )}
