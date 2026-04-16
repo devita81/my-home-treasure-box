@@ -117,10 +117,17 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
         <div className="flex flex-col sm:flex-row">
           {/* Media carousel: map (index 0) + photos */}
           <div className="relative w-full sm:w-[30%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-black shrink-0">
-          {/* Current slide - clickable to expand */}
+          {/* Current slide - map opens MapDialog, photos/videos open lightbox */}
             <div
               className="w-full h-full cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); setShowLightbox(true); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (mediaIndex === 0) {
+                  setShowMapDialog(true);
+                } else {
+                  setShowLightbox(true);
+                }
+              }}
             >
               {mediaIndex === 0 ? (
                 <iframe
