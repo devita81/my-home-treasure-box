@@ -20,7 +20,10 @@ import {
   Bath,
   Car,
   Ruler,
-  Copy
+  Copy,
+  ChevronLeft,
+  ChevronRight,
+  Play
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
