@@ -479,12 +479,12 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
 
       {/* Lightbox dialog */}
       <Dialog open={showLightbox} onOpenChange={setShowLightbox}>
-        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 bg-black border-none overflow-hidden">
-          <div className="relative w-full h-[85vh] flex items-center justify-center">
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black border-none overflow-hidden">
+          <div className="relative w-full h-[90vh] flex items-center justify-center">
             {mediaIndex === 0 ? (
               <iframe
                 src={embedUrl}
-                className="w-full h-full border-0"
+                className="absolute inset-0 w-full h-full border-0"
                 title={getAddressDisplay()}
               />
             ) : isVideoUrl(photos[mediaIndex - 1]) ? (
