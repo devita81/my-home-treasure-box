@@ -130,12 +130,16 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
               }}
             >
               {mediaIndex === 0 ? (
-                <iframe
-                  src={embedUrl}
-                  className="h-full w-full border-0 pointer-events-none"
-                  loading="lazy"
-                  title={getAddressDisplay()}
-                />
+                <>
+                  <iframe
+                    src={embedUrl}
+                    className="h-full w-full border-0 pointer-events-none"
+                    loading="lazy"
+                    title={getAddressDisplay()}
+                  />
+                  {/* Transparent overlay to guarantee click capture over iframe */}
+                  <div className="absolute inset-0 z-[5]" />
+                </>
               ) : isVideoUrl(photos[mediaIndex - 1]) ? (
                 <div className="w-full h-full flex items-center justify-center bg-muted">
                   <video
