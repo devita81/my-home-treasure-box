@@ -310,6 +310,51 @@ async function generatePropertyPDF(property: Property): Promise<jsPDF> {
     });
   }
 
+  // --- PHOTOS ---
+  const photos = (property.photos || []).filter(url => !/\.(mp4|mov|webm)(\?|$)/i.test(url));
+  if (photos.length > 0) {
+    doc.addPage();
+    yPos = 18;
+
+    doc.setFillColor(240, 244, 240);
+    doc.roundedRect(margin, yPos, contentWidth, 8, 1, 1, 'F');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 58, 45);
+    doc.text('FOTOS DO IMÓVEL', margin + 3, yPos + 5.5);
+    yPos += 12;
+
+    const photoWidth = (contentWidth - 4) / 2; // 2 columns with 4mm gap
+    const photoHeight = photoWidth * 0.75;
+
+    for (let i = 0; i < photos.length; i++) {
+      try {
+        const imgData = await loadImageAsBase64(photos[i]);
+        if (!imgData) continue;
+
+        const col = i % 2;
+        if (col === 0 && i > 0) {
+          // New row
+        }
+
+        const xPos = margin + col * (photoWidth + 4);
+
+        if (col === 0 && yPos + photoHeight > 280) {
+          doc.addPage();
+          yPos = 18;
+        }
+
+        doc.addImage(imgData, 'JPEG', xPos, yPos, photoWidth, photoHeight);
+
+        if (col === 1 || i === photos.length - 1) {
+          yPos += photoHeight + 4;
+        }
+      } catch (e) {
+        logger.error('Photo load error:', e);
+      }
+    }
+  }
+
   return doc;
 }
 
