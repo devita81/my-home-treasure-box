@@ -14,6 +14,7 @@ import { Save, ArrowLeft, MapPin, DollarSign, FileText, User, Home, MessageSquar
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { z } from 'zod';
+import { CurrencyInput } from '@/components/ui/currency-input';
 
 import { DocumentUpload } from './DocumentUpload';
 
@@ -325,31 +326,28 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="declared_value">Valor Declarado</Label>
-                <Input
+                <CurrencyInput
                   id="declared_value"
-                  type="number"
-                  value={formData.declared_value || ''}
-                  onChange={(e) => handleChange('declared_value', e.target.value === '' ? 0 : Number(e.target.value))}
+                  value={formData.declared_value}
+                  onChange={(v) => handleChange('declared_value', v ?? 0)}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="market_value">Valor de Mercado</Label>
-                <Input
+                <CurrencyInput
                   id="market_value"
-                  type="number"
-                  value={formData.market_value || ''}
-                  onChange={(e) => handleChange('market_value', e.target.value === '' ? 0 : Number(e.target.value))}
+                  value={formData.market_value}
+                  onChange={(v) => handleChange('market_value', v ?? 0)}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="iptu_value">Valor IPTU (anual)</Label>
-              <Input
+              <CurrencyInput
                 id="iptu_value"
-                type="number"
-                value={formData.iptu_value || ''}
-                onChange={(e) => handleChange('iptu_value', e.target.value === '' ? 0 : Number(e.target.value))}
+                value={formData.iptu_value}
+                onChange={(v) => handleChange('iptu_value', v ?? 0)}
               />
             </div>
 
@@ -365,29 +363,27 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="valor_aluguel">Valor Aluguel</Label>
-                <Input
+                <CurrencyInput
                   id="valor_aluguel"
-                  type="number"
-                  value={formData.valor_aluguel || ''}
-                  onChange={(e) => handleChange('valor_aluguel', e.target.value === '' ? 0 : Number(e.target.value))}
+                  value={formData.valor_aluguel}
+                  onChange={(v) => handleChange('valor_aluguel', v ?? 0)}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="valor_condominio">Valor Condomínio</Label>
-                <Input
+                <CurrencyInput
                   id="valor_condominio"
-                  type="number"
-                  value={formData.valor_condominio || ''}
-                  onChange={(e) => handleChange('valor_condominio', e.target.value === '' ? 0 : Number(e.target.value))}
+                  value={formData.valor_condominio}
+                  onChange={(v) => handleChange('valor_condominio', v ?? 0)}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="taxa_administracao">Taxa de Administração</Label>
-                <Input
+                <CurrencyInput
                   id="taxa_administracao"
-                  type="number"
-                  value={formData.taxa_administracao ?? ''}
-                  onChange={(e) => handleChange('taxa_administracao', e.target.value === '' ? null : Number(e.target.value))}
+                  value={formData.taxa_administracao}
+                  onChange={(v) => handleChange('taxa_administracao', v)}
+                  allowNull
                 />
               </div>
             </div>
