@@ -96,11 +96,20 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
       const bbox = `${lng - 0.003},${lat - 0.002},${lng + 0.003},${lat + 0.002}`;
       return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
     }
-    // Fallback: use address search via Nominatim embed
-    const query = encodeURIComponent(`${property.rua} ${property.numero || ''}, ${property.bairro}, ${property.cidade}, ${property.estado}, Brasil`);
-    return `https://www.openstreetmap.org/export/embed.html?bbox=-47.2,-23.7,-47.0,-23.5&layer=mapnik&marker=&query=${query}`;
+    // Fallback: use Nominatim search URL
+    const parts = [property.rua, property.numero, property.bairro, property.cidade, property.estado, 'Brasil'].filter(Boolean);
+    const query = encodeURIComponent(parts.join(', '));
+    return `https://www.openstreetmap.org/export/embed.html?bbox=-47.5,-24.0,-46.0,-23.0&layer=mapnik&marker=&query=${query}`;
   };
   const embedUrl = getEmbedUrl();
+
+  const getFullMapUrl = () => {
+    if (property.latitude != null && property.longitude != null) {
+      return `https://www.openstreetmap.org/?mlat=${property.latitude}&mlon=${property.longitude}#map=17/${property.latitude}/${property.longitude}`;
+    }
+    const parts = [property.rua, property.numero, property.bairro, property.cidade, property.estado].filter(Boolean);
+    return `https://www.openstreetmap.org/search?query=${encodeURIComponent(parts.join(', '))}`;
+  };
 
   return (
     <>
