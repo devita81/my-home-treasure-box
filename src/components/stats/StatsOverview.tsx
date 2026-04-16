@@ -231,7 +231,7 @@ export function StatsOverview() {
       <Dialog open={dialog.open} onOpenChange={(open) => setDialog((prev) => ({ ...prev, open }))}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between pr-8">
               <DialogTitle>{dialog.title}</DialogTitle>
               <ExportButtons
                 onExportExcel={() => exportToExcel(sortedProperties, dialog.title, simpleColumns)}
