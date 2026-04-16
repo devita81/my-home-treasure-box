@@ -116,31 +116,40 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
       <div className="bg-card rounded-xl border border-border/60 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
         <div className="flex flex-col sm:flex-row">
           {/* Media carousel: map (index 0) + photos */}
-          <div className="relative w-full sm:w-[30%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-muted shrink-0">
-            {/* Current slide */}
-            {mediaIndex === 0 ? (
-              <iframe
-                src={embedUrl}
-                className="h-full w-full border-0"
-                loading="lazy"
-                title={getAddressDisplay()}
-              />
-            ) : isVideoUrl(photos[mediaIndex - 1]) ? (
-              <div className="w-full h-full flex items-center justify-center bg-black">
-                <video
-                  src={photos[mediaIndex - 1]}
-                  className="w-full h-full object-cover"
-                  controls
-                  preload="metadata"
+          <div className="relative w-full sm:w-[30%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-black shrink-0">
+            {/* Current slide - clickable to expand */}
+            <div
+              className="w-full h-full cursor-pointer"
+              onClick={(e) => { e.stopPropagation(); setShowLightbox(true); }}
+            >
+              {mediaIndex === 0 ? (
+                <iframe
+                  src={embedUrl}
+                  className="h-full w-full border-0 pointer-events-none"
+                  loading="lazy"
+                  title={getAddressDisplay()}
                 />
-              </div>
-            ) : (
-              <img
-                src={photos[mediaIndex - 1]}
-                alt={`Foto ${mediaIndex}`}
-                className="w-full h-full object-cover"
-              />
-            )}
+              ) : isVideoUrl(photos[mediaIndex - 1]) ? (
+                <div className="w-full h-full flex items-center justify-center bg-black">
+                  <video
+                    src={photos[mediaIndex - 1]}
+                    className="w-full h-full object-contain"
+                    muted
+                    preload="metadata"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <Play className="h-10 w-10 text-white/80" />
+                  </div>
+                </div>
+              ) : (
+                <img
+                  src={photos[mediaIndex - 1]}
+                  alt={`Foto ${mediaIndex}`}
+                  className="w-full h-full object-contain bg-black"
+                  draggable={false}
+                />
+              )}
+            </div>
 
             {/* Navigation arrows - only if there are photos */}
             {totalSlides > 1 && (
