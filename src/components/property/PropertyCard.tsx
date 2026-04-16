@@ -469,8 +469,14 @@ export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardPr
       />
 
       <Dialog open={showLightbox} onOpenChange={setShowLightbox}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black border-none overflow-hidden">
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black border-none overflow-hidden [&>button]:hidden">
           <div className="relative w-full h-[90vh] bg-black">
+            <button
+              onClick={() => setShowLightbox(false)}
+              className="absolute top-3 right-3 z-40 h-9 w-9 rounded-full bg-white hover:bg-white/80 flex items-center justify-center shadow-lg transition-colors"
+            >
+              <span className="text-black text-lg font-bold leading-none">✕</span>
+            </button>
             {mediaIndex === 0 ? (
               <iframe
                 src={embedUrl}
