@@ -172,47 +172,49 @@ export function MetragemStats() {
 
       {/* Table layout by city */}
       <div className="rounded-lg border bg-card overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b bg-muted/50">
-              <th className="text-left px-3 py-2 text-xs font-semibold text-muted-foreground">Cidade</th>
-              <th className="text-left px-3 py-2 text-xs font-semibold text-muted-foreground">Tipo</th>
-              <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Qtd</th>
-              <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Metragem</th>
-              <th className="text-right px-3 py-2 text-xs font-semibold text-muted-foreground">Valor de Mercado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {groupedByCidade.map(({ cidade, items }) => (
-              items.map((group, idx) => (
-                <tr
-                  key={`${group.cidade}-${group.tipo}`}
-                  className="border-b last:border-b-0 hover:bg-muted/30 cursor-pointer transition-colors"
-                  onClick={() => handleCardClick(group)}
-                >
-                  {idx === 0 ? (
-                    <td className="px-3 py-2 font-semibold text-foreground" rowSpan={items.length}>
-                      {cidade}
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs sm:text-sm min-w-[520px]">
+            <thead>
+              <tr className="border-b bg-muted/50">
+                <th className="text-left px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Cidade</th>
+                <th className="text-left px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Tipo</th>
+                <th className="text-right px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Qtd</th>
+                <th className="text-right px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Metragem</th>
+                <th className="text-right px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Valor de Mercado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {groupedByCidade.map(({ cidade, items }) => (
+                items.map((group, idx) => (
+                  <tr
+                    key={`${group.cidade}-${group.tipo}`}
+                    className="border-b last:border-b-0 hover:bg-muted/30 cursor-pointer transition-colors"
+                    onClick={() => handleCardClick(group)}
+                  >
+                    {idx === 0 ? (
+                      <td className="px-2 sm:px-3 py-2 font-semibold text-foreground" rowSpan={items.length}>
+                        {cidade}
+                      </td>
+                    ) : null}
+                    <td className="px-2 sm:px-3 py-2 text-muted-foreground capitalize">
+                      {tipoLabels[group.tipo] || group.tipo}
                     </td>
-                  ) : null}
-                  <td className="px-3 py-2 text-muted-foreground capitalize">
-                    {tipoLabels[group.tipo] || group.tipo}
-                  </td>
-                  <td className="px-3 py-2 text-right font-medium">{group.count}</td>
-                  <td className="px-3 py-2 text-right font-semibold">{formatMetragem(group.metragem)}</td>
-                  <td className="px-3 py-2 text-right font-medium text-success">{formatCurrency(group.marketValue)}</td>
-                </tr>
-              ))
-            ))}
-          </tbody>
-        </table>
+                    <td className="px-2 sm:px-3 py-2 text-right font-medium">{group.count}</td>
+                    <td className="px-2 sm:px-3 py-2 text-right font-semibold whitespace-nowrap">{formatMetragem(group.metragem)}</td>
+                    <td className="px-2 sm:px-3 py-2 text-right font-medium text-success whitespace-nowrap">{formatCurrency(group.marketValue)}</td>
+                  </tr>
+                ))
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Drill-down Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-base font-semibold pr-8">
+            <DialogTitle className="text-sm sm:text-base font-semibold pr-8">
               {selectedGroup?.cidade} – {tipoLabels[selectedGroup?.tipo || ''] || selectedGroup?.tipo}
             </DialogTitle>
           </DialogHeader>
@@ -223,51 +225,53 @@ export function MetragemStats() {
             />
           </div>
 
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Total: {formatMetragem(selectedGroup?.metragem || 0)} | {formatCurrencyFull(selectedGroup?.marketValue || 0)} em {selectedGroup?.count} imóveis
           </p>
 
           <div className="rounded-lg border bg-card overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th className="text-left px-3 py-2">
-                    <SortButton field="address" label="Endereço" />
-                  </th>
-                  <th className="text-right px-3 py-2">
-                    <SortButton field="metragem" label="Metragem" />
-                  </th>
-                  <th className="text-right px-3 py-2">
-                    <SortButton field="market_value" label="Valor de Mercado" />
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortedProperties.map((property) => (
-                  <tr
-                    key={property.id}
-                    className="border-b last:border-b-0 hover:bg-muted/30 transition-colors cursor-pointer"
-                    onClick={() => window.location.href = `/property/${property.id}`}
-                  >
-                    <td className="px-3 py-2.5">
-                      <Link to={`/property/${property.id}`} className="hover:text-primary transition-colors">
-                        <p className="font-medium text-sm text-foreground">
-                          {property.rua}{property.numero ? `, ${property.numero}` : ''}
-                          {property.apartamento ? ` – Apto ${property.apartamento}` : ''}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{property.bairro}, {property.cidade}</p>
-                      </Link>
-                    </td>
-                    <td className="px-3 py-2.5 text-right font-semibold text-foreground whitespace-nowrap">
-                      {formatMetragem(property.metragem || 0)}
-                    </td>
-                    <td className="px-3 py-2.5 text-right font-medium text-success whitespace-nowrap">
-                      {formatCurrencyFull(property.market_value || 0)}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs sm:text-sm min-w-[520px]">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    <th className="text-left px-2 sm:px-3 py-2">
+                      <SortButton field="address" label="Endereço" />
+                    </th>
+                    <th className="text-right px-2 sm:px-3 py-2">
+                      <SortButton field="metragem" label="Metragem" />
+                    </th>
+                    <th className="text-right px-2 sm:px-3 py-2">
+                      <SortButton field="market_value" label="Valor de Mercado" />
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {sortedProperties.map((property) => (
+                    <tr
+                      key={property.id}
+                      className="border-b last:border-b-0 hover:bg-muted/30 transition-colors cursor-pointer"
+                      onClick={() => window.location.href = `/property/${property.id}`}
+                    >
+                      <td className="px-2 sm:px-3 py-2 sm:py-2.5">
+                        <Link to={`/property/${property.id}`} className="hover:text-primary transition-colors">
+                          <p className="font-medium text-xs sm:text-sm text-foreground">
+                            {property.rua}{property.numero ? `, ${property.numero}` : ''}
+                            {property.apartamento ? ` – Apto ${property.apartamento}` : ''}
+                          </p>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground">{property.bairro}, {property.cidade}</p>
+                        </Link>
+                      </td>
+                      <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-semibold text-foreground whitespace-nowrap">
+                        {formatMetragem(property.metragem || 0)}
+                      </td>
+                      <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-medium text-success whitespace-nowrap">
+                        {formatCurrencyFull(property.market_value || 0)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
