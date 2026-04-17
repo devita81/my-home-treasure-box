@@ -27,24 +27,27 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 glass-effect border-b border-border">
-        <div className="container mx-auto px-3 sm:px-4">
-          <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
-            <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 shrink">
+      <header
+        className="sticky top-0 z-50 glass-effect border-b border-border"
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      >
+        <div className="container mx-auto px-2 sm:px-4">
+          <div className="flex h-14 sm:h-16 items-center justify-between gap-1 sm:gap-2">
+            <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 shrink-0">
               <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-transform group-hover:scale-105 shrink-0">
                 <Home className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
-              <div className="flex-col min-w-0 hidden md:flex">
+              <div className="flex-col min-w-0 hidden lg:flex">
                 <span className="font-display text-base sm:text-xl font-semibold text-foreground truncate">
                   My Home Collection
                 </span>
-                <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">
+                <span className="text-[10px] sm:text-xs text-muted-foreground">
                   Gestão de Imóveis
                 </span>
               </div>
             </Link>
 
-            <div className="flex items-center gap-1 sm:gap-4 shrink-0">
+            <div className="flex items-center gap-0.5 sm:gap-2 shrink-0">
               <nav className="flex items-center gap-0.5 sm:gap-1">
                 {navItems.map((item) => {
                   const isActive = location.pathname === item.path;
@@ -58,6 +61,7 @@ export function Header() {
                           ? 'bg-primary text-primary-foreground'
                           : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                       )}
+                      title={item.label}
                     >
                       <item.icon className="h-4 w-4" />
                       <span className="hidden sm:inline">{item.label}</span>
@@ -83,6 +87,7 @@ export function Header() {
                   size="sm"
                   onClick={handleLogout}
                   className="text-muted-foreground hover:text-foreground px-2 sm:px-3"
+                  title="Sair"
                 >
                   <LogOut className="h-4 w-4 sm:mr-2" />
                   <span className="hidden sm:inline">Sair</span>
