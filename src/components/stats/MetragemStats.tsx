@@ -245,6 +245,7 @@ export function MetragemStats() {
           </table>
         </div>
       </div>
+      </CollapsibleContent>
 
       {/* Drill-down Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
