@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useProperties } from '@/contexts/PropertyContext';
 import { Property } from '@/types/property';
-import { DollarSign, TrendingUp, TrendingDown, ChevronDown } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, ChevronDown, ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -242,10 +242,15 @@ export function CustosReceitasStats() {
   return (
     <>
       <Collapsible open={expanded} onOpenChange={setExpanded} className="space-y-4">
-        <CollapsibleTrigger className="flex items-center gap-2 w-full group hover:opacity-80 transition-opacity">
-          <DollarSign className="h-5 w-5 text-primary" />
-          <h3 className="font-display text-lg font-semibold">Custos e Receitas</h3>
-          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ml-auto ${expanded ? 'rotate-180' : ''}`} />
+        <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2 rounded-md border bg-card hover:bg-muted/50 transition-colors group">
+          <div className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground tracking-tight">Custos e Receitas</h3>
+          </div>
+          <div className="flex items-center gap-1.5 text-muted-foreground group-hover:text-foreground transition-colors">
+            <span className="text-xs font-medium">{expanded ? 'Recolher' : 'Expandir'}</span>
+            {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </div>
         </CollapsibleTrigger>
         <CollapsibleContent className="space-y-4 data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up overflow-hidden">
           <CostTable label="Imóveis Alugados" icon={TrendingUp} iconColor="text-green-600" groups={groupsAlugados} />

@@ -1,5 +1,5 @@
 import { useProperties } from '@/contexts/PropertyContext';
-import { Ruler, ArrowUpDown, DollarSign, ChevronDown } from 'lucide-react';
+import { Ruler, ArrowUpDown, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Property } from '@/types/property';
@@ -167,10 +167,15 @@ export function MetragemStats() {
   return (
     <Collapsible open={expanded} onOpenChange={setExpanded} className="space-y-3 sm:space-y-4">
       {/* Header */}
-      <CollapsibleTrigger className="flex items-center gap-2 w-full group hover:opacity-80 transition-opacity">
-        <Ruler className="h-3.5 sm:h-4 w-3.5 sm:w-4 text-primary" />
-        <h3 className="text-xs sm:text-sm font-semibold text-foreground">Visão de Metragem</h3>
-        <ChevronDown className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground transition-transform ml-auto ${expanded ? 'rotate-180' : ''}`} />
+      <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2 rounded-md border bg-card hover:bg-muted/50 transition-colors group">
+        <div className="flex items-center gap-2">
+          <Ruler className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold text-foreground tracking-tight">Visão de Metragem</h3>
+        </div>
+        <div className="flex items-center gap-1.5 text-muted-foreground group-hover:text-foreground transition-colors">
+          <span className="text-xs font-medium">{expanded ? 'Recolher' : 'Expandir'}</span>
+          {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </div>
       </CollapsibleTrigger>
 
       <CollapsibleContent className="space-y-3 sm:space-y-4 data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up overflow-hidden">
