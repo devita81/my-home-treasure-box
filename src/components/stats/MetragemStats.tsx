@@ -312,6 +312,6 @@ export function MetragemStats() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </Collapsible>
   );
 }
