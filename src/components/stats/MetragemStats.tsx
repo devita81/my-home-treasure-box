@@ -33,6 +33,7 @@ export function MetragemStats() {
   const [selectedGroup, setSelectedGroup] = useState<GroupedMetragem | null>(null);
   const [sortField, setSortField] = useState<SortField>('metragem');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [expanded, setExpanded] = useState(false);
 
   const formatMetragem = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
