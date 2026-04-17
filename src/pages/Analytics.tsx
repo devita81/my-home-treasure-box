@@ -683,7 +683,37 @@ const Analytics = () => {
               </button>
             </div>
           </div>
-          <div className="overflow-x-auto max-h-[700px] overflow-y-auto">
+          {/* Mobile: Cards */}
+          <div className="sm:hidden divide-y divide-slate-700/40 max-h-[700px] overflow-y-auto">
+            {rankedProperties.map((property, idx) => {
+              const maxValue = rankedProperties[0] ? getPropertyValue(rankedProperties[0]) : 1;
+              const currentValue = getPropertyValue(property);
+              const barWidth = maxValue > 0 ? (currentValue / maxValue) * 100 : 0;
+              return (
+                <Link key={property.id} to={`/property/${property.id}`} className="block px-3 py-2.5 active:bg-slate-700/30">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-[10px] font-mono text-slate-400 shrink-0">#{idx + 1}</span>
+                      <span className="text-[11px] text-slate-100 font-medium truncate">{getPropertyAddress(property)}</span>
+                    </div>
+                    {property.alugado ? (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-medium shrink-0">Alugado</span>
+                    ) : (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-600/50 text-slate-400 font-medium shrink-0">Vago</span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1">
+                    <span>{getTipoLabel(property.tipo_imovel)} • {property.cidade}</span>
+                    <span className="text-slate-100 font-mono tabular-nums font-semibold">{formatCurrency(currentValue)}</span>
+                  </div>
+                  <div className="h-1 rounded-full bg-blue-400/60" style={{ width: `${barWidth}%`, minWidth: barWidth > 0 ? '3px' : '0px' }} />
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Desktop: Tabela */}
+          <div className="hidden sm:block overflow-x-auto max-h-[700px] overflow-y-auto">
             <table className="w-full text-xs table-fixed">
               <thead className="sticky top-0 bg-slate-700/60 z-10">
                 <tr className="border-b border-slate-700/40">
@@ -738,58 +768,90 @@ const Analytics = () => {
             <span className="text-[10px] font-mono text-amber-400/80 ml-1">{naoValidadosProperties.length}</span>
           </div>
           {naoValidadosProperties.length > 0 ? (
-            <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
-              <table className="w-full text-xs">
-                <thead className="sticky top-0 bg-slate-700/60 z-10">
-                  <tr className="border-b border-slate-700/40">
-                    <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 w-8">#</th>
-                    <th onClick={() => togglePendentesSort('endereco')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
-                      <div className="flex items-center">Endereço{getSortIcon('endereco')}</div>
-                    </th>
-                    <th onClick={() => togglePendentesSort('tipo_imovel')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
-                      <div className="flex items-center">Tipo{getSortIcon('tipo_imovel')}</div>
-                    </th>
-                    <th onClick={() => togglePendentesSort('cidade')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
-                      <div className="flex items-center">Cidade{getSortIcon('cidade')}</div>
-                    </th>
-                    <th onClick={() => togglePendentesSort('numero_matricula')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
-                      <div className="flex items-center">Matrícula{getSortIcon('numero_matricula')}</div>
-                    </th>
-                    <th onClick={() => togglePendentesSort('proprietario_matricula')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
-                      <div className="flex items-center">Prop. Matrícula{getSortIcon('proprietario_matricula')}</div>
-                    </th>
-                    <th onClick={() => togglePendentesSort('proprietario_papel')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
-                      <div className="flex items-center">Prop. Papel{getSortIcon('proprietario_papel')}</div>
-                    </th>
-                    <th onClick={() => togglePendentesSort('declared_value')} className="text-right py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
-                      <div className="flex items-center justify-end">Declarado{getSortIcon('declared_value')}</div>
-                    </th>
-                    <th onClick={() => togglePendentesSort('market_value')} className="text-right py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
-                      <div className="flex items-center justify-end">Mercado{getSortIcon('market_value')}</div>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {naoValidadosProperties.map((property, index) => (
-                    <tr key={property.id} className="border-b border-slate-700/40 hover:bg-slate-700/20 transition-colors">
-                      <td className="py-1.5 px-3 text-slate-400 font-mono text-[10px]">{index + 1}</td>
-                      <td className="py-1.5 px-3">
-                        <Link to={`/property/${property.id}`} className="text-slate-200 text-[11px] hover:text-blue-400 transition-colors truncate block max-w-[200px]">
-                          {getPropertyAddressForSort(property)}
-                        </Link>
-                      </td>
-                      <td className="py-1.5 px-3 text-[10px] text-slate-400">{getTipoLabel(property.tipo_imovel)}</td>
-                      <td className="py-1.5 px-3 text-[10px] text-slate-400">{property.cidade} - {property.estado}</td>
-                      <td className="py-1.5 px-3 text-[10px] text-slate-400 font-mono">{property.numero_matricula || '—'}</td>
-                      <td className="py-1.5 px-3 text-[10px] text-slate-400 truncate max-w-[150px]">{property.proprietario_matricula || '—'}</td>
-                      <td className="py-1.5 px-3 text-[10px] text-slate-400 truncate max-w-[150px]">{property.proprietario_papel || '—'}</td>
-                      <td className="text-right py-1.5 px-3 text-[11px] text-slate-300 font-mono tabular-nums">{formatCurrency(property.declared_value)}</td>
-                      <td className="text-right py-1.5 px-3 text-[11px] text-slate-200 font-mono tabular-nums font-medium">{formatCurrency(property.market_value || 0)}</td>
+            <>
+              {/* Mobile: Cards */}
+              <div className="sm:hidden divide-y divide-slate-700/40 max-h-[500px] overflow-y-auto">
+                {naoValidadosProperties.map((property, index) => (
+                  <Link key={property.id} to={`/property/${property.id}`} className="block px-3 py-2.5 active:bg-slate-700/30">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-[10px] font-mono text-slate-400 shrink-0">#{index + 1}</span>
+                        <span className="text-[11px] text-slate-100 font-medium truncate">{getPropertyAddressForSort(property)}</span>
+                      </div>
+                    </div>
+                    <div className="text-[10px] text-slate-400 mb-1.5">
+                      {getTipoLabel(property.tipo_imovel)} • {property.cidade} - {property.estado}
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
+                      <span className="text-slate-500">Matrícula</span>
+                      <span className="text-right font-mono text-slate-300">{property.numero_matricula || '—'}</span>
+                      <span className="text-slate-500">Prop. Matr.</span>
+                      <span className="text-right text-slate-300 truncate">{property.proprietario_matricula || '—'}</span>
+                      <span className="text-slate-500">Prop. Papel</span>
+                      <span className="text-right text-slate-300 truncate">{property.proprietario_papel || '—'}</span>
+                      <span className="text-slate-500">Declarado</span>
+                      <span className="text-right font-mono tabular-nums text-slate-300">{formatCurrency(property.declared_value)}</span>
+                      <span className="text-slate-500">Mercado</span>
+                      <span className="text-right font-mono tabular-nums text-slate-100 font-medium">{formatCurrency(property.market_value || 0)}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              {/* Desktop: Tabela */}
+              <div className="hidden sm:block overflow-x-auto max-h-[500px] overflow-y-auto">
+                <table className="w-full text-xs">
+                  <thead className="sticky top-0 bg-slate-700/60 z-10">
+                    <tr className="border-b border-slate-700/40">
+                      <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 w-8">#</th>
+                      <th onClick={() => togglePendentesSort('endereco')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                        <div className="flex items-center">Endereço{getSortIcon('endereco')}</div>
+                      </th>
+                      <th onClick={() => togglePendentesSort('tipo_imovel')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                        <div className="flex items-center">Tipo{getSortIcon('tipo_imovel')}</div>
+                      </th>
+                      <th onClick={() => togglePendentesSort('cidade')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                        <div className="flex items-center">Cidade{getSortIcon('cidade')}</div>
+                      </th>
+                      <th onClick={() => togglePendentesSort('numero_matricula')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                        <div className="flex items-center">Matrícula{getSortIcon('numero_matricula')}</div>
+                      </th>
+                      <th onClick={() => togglePendentesSort('proprietario_matricula')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                        <div className="flex items-center">Prop. Matrícula{getSortIcon('proprietario_matricula')}</div>
+                      </th>
+                      <th onClick={() => togglePendentesSort('proprietario_papel')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                        <div className="flex items-center">Prop. Papel{getSortIcon('proprietario_papel')}</div>
+                      </th>
+                      <th onClick={() => togglePendentesSort('declared_value')} className="text-right py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                        <div className="flex items-center justify-end">Declarado{getSortIcon('declared_value')}</div>
+                      </th>
+                      <th onClick={() => togglePendentesSort('market_value')} className="text-right py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                        <div className="flex items-center justify-end">Mercado{getSortIcon('market_value')}</div>
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {naoValidadosProperties.map((property, index) => (
+                      <tr key={property.id} className="border-b border-slate-700/40 hover:bg-slate-700/20 transition-colors">
+                        <td className="py-1.5 px-3 text-slate-400 font-mono text-[10px]">{index + 1}</td>
+                        <td className="py-1.5 px-3">
+                          <Link to={`/property/${property.id}`} className="text-slate-200 text-[11px] hover:text-blue-400 transition-colors truncate block max-w-[200px]">
+                            {getPropertyAddressForSort(property)}
+                          </Link>
+                        </td>
+                        <td className="py-1.5 px-3 text-[10px] text-slate-400">{getTipoLabel(property.tipo_imovel)}</td>
+                        <td className="py-1.5 px-3 text-[10px] text-slate-400">{property.cidade} - {property.estado}</td>
+                        <td className="py-1.5 px-3 text-[10px] text-slate-400 font-mono">{property.numero_matricula || '—'}</td>
+                        <td className="py-1.5 px-3 text-[10px] text-slate-400 truncate max-w-[150px]">{property.proprietario_matricula || '—'}</td>
+                        <td className="py-1.5 px-3 text-[10px] text-slate-400 truncate max-w-[150px]">{property.proprietario_papel || '—'}</td>
+                        <td className="text-right py-1.5 px-3 text-[11px] text-slate-300 font-mono tabular-nums">{formatCurrency(property.declared_value)}</td>
+                        <td className="text-right py-1.5 px-3 text-[11px] text-slate-200 font-mono tabular-nums font-medium">{formatCurrency(property.market_value || 0)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <CheckCircle2 className="h-8 w-8 text-emerald-500/60 mb-2" />

@@ -115,7 +115,64 @@ export function CustosReceitasStats() {
           <Icon className={`h-4 w-4 ${iconColor}`} />
           <h4 className="text-sm font-semibold">{label}</h4>
         </div>
-        <div className="rounded-lg border bg-card overflow-hidden scroll-x-fade">
+
+        {/* Mobile: Cards */}
+        <div className="sm:hidden space-y-2">
+          {groups.length === 0 ? (
+            <div className="rounded-lg border bg-card p-4 text-center text-xs text-muted-foreground">Nenhum imóvel</div>
+          ) : (
+            <>
+              {groups.map(({ cidade, items }) => (
+                <div key={cidade} className="rounded-lg border bg-card overflow-hidden">
+                  <div className="px-3 py-1.5 bg-muted/50 border-b">
+                    <p className="text-[11px] font-semibold text-foreground">{cidade}</p>
+                  </div>
+                  {items.map((g) => (
+                    <div
+                      key={`${g.cidade}-${g.tipo}`}
+                      onClick={() => openDrillDown(`${label} - ${cidade} - ${tipoLabels[g.tipo] || g.tipo}`, g.properties)}
+                      className="px-3 py-2 border-b last:border-b-0 cursor-pointer active:bg-muted/30"
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[11px] font-medium capitalize">{tipoLabels[g.tipo] || g.tipo}</span>
+                        <span className="text-[10px] text-muted-foreground font-mono">{g.count} {g.count === 1 ? 'imóvel' : 'imóveis'}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
+                        <span className="text-muted-foreground">Aluguel</span>
+                        <span className="text-right font-medium tabular-nums">{fmt(g.aluguel)}</span>
+                        <span className="text-muted-foreground">Condomínio</span>
+                        <span className="text-right font-medium tabular-nums">{fmt(g.condominio)}</span>
+                        <span className="text-muted-foreground">IPTU/mês</span>
+                        <span className="text-right font-medium tabular-nums">{fmt(g.iptuMes)}</span>
+                        <span className="text-muted-foreground">Taxa Adm</span>
+                        <span className="text-right font-medium tabular-nums">{fmt(g.taxaAdm)}</span>
+                        <span className="text-muted-foreground font-semibold pt-1 border-t mt-1">Líquido</span>
+                        <span className={`text-right font-bold tabular-nums pt-1 border-t mt-1 ${g.liquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(g.liquido)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+              <div className="rounded-lg border-2 bg-muted/40 px-3 py-2">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[11px] font-bold">Subtotal</span>
+                  <span className="text-[10px] font-mono">{totals.count} imóveis</span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
+                  <span>Aluguel</span><span className="text-right font-medium tabular-nums">{fmt(totals.aluguel)}</span>
+                  <span>Condomínio</span><span className="text-right font-medium tabular-nums">{fmt(totals.condominio)}</span>
+                  <span>IPTU/mês</span><span className="text-right font-medium tabular-nums">{fmt(totals.iptuMes)}</span>
+                  <span>Taxa Adm</span><span className="text-right font-medium tabular-nums">{fmt(totals.taxaAdm)}</span>
+                  <span className="font-semibold pt-1 border-t mt-1">Líquido</span>
+                  <span className={`text-right font-bold tabular-nums pt-1 border-t mt-1 ${totals.liquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(totals.liquido)}</span>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Desktop: Tabela */}
+        <div className="hidden sm:block rounded-lg border bg-card overflow-hidden scroll-x-fade">
           <div className="overflow-x-auto scroll-x-visible">
             <table className="w-full text-xs sm:text-sm min-w-[760px]">
               <thead>
