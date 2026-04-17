@@ -108,14 +108,14 @@ export function PropertyFilters() {
         )}
       </div>
 
-      {/* Filtros agrupados por categoria - Grid 2-col mobile, flex-wrap desktop */}
-      <div className="space-y-2.5">
+      {/* Filtros agrupados por categoria - Grid mobile / Inline horizontal desktop */}
+      <div className="space-y-2.5 sm:space-y-0 sm:flex sm:flex-wrap sm:items-end sm:gap-x-4 sm:gap-y-2">
         {/* Bloco 1: Tipo & Proprietário */}
-        <div>
-          <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
+        <div className="sm:flex sm:items-end sm:gap-2">
+          <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 sm:mb-0 sm:self-center flex items-center gap-1 sm:hidden">
             <Home className="h-2.5 w-2.5" /> Categoria
           </p>
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+          <div className="grid grid-cols-2 sm:flex sm:flex-nowrap gap-2">
             <Select
               value={filters.tipoImovel || 'all'}
               onValueChange={(value) => setFilters({ ...filters, tipoImovel: value === 'all' ? '' : value })}
