@@ -562,13 +562,13 @@ const Analytics = () => {
               ))}
             </div>
           </div>
-          <div className="p-4 space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
+          <div className="p-3 sm:p-4 space-y-3 sm:space-y-4 bg-slate-900/40">
+            <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
               {/* Por Tipo */}
-              <div className="rounded-md border border-slate-700/40 bg-slate-700/20">
-                <div className="px-3 py-2 border-b border-slate-700/30 flex items-center gap-2">
-                  <Building2 className="h-3 w-3 text-slate-400" />
-                  <span className="text-[10px] font-medium text-slate-300 uppercase tracking-wider">Por Tipo</span>
+              <div className="rounded-md border border-slate-600/60 bg-slate-800/60 shadow-sm shadow-black/20">
+                <div className="px-3 py-2 border-b-2 border-slate-600/50 bg-slate-700/40 flex items-center gap-2 rounded-t-md">
+                  <Building2 className="h-3 w-3 text-primary" />
+                  <span className="text-[10px] font-semibold text-slate-200 uppercase tracking-wider">Por Tipo</span>
                 </div>
                 <div className="max-h-48 overflow-y-auto">
                   {propertiesByType.map((item, idx) => (
@@ -584,10 +584,10 @@ const Analytics = () => {
                 </div>
               </div>
               {/* Por Cidade */}
-              <div className="rounded-md border border-slate-700/40 bg-slate-700/20">
-                <div className="px-3 py-2 border-b border-slate-700/30 flex items-center gap-2">
-                  <Home className="h-3 w-3 text-slate-400" />
-                  <span className="text-[10px] font-medium text-slate-300 uppercase tracking-wider">Por Cidade</span>
+              <div className="rounded-md border border-slate-600/60 bg-slate-800/60 shadow-sm shadow-black/20">
+                <div className="px-3 py-2 border-b-2 border-slate-600/50 bg-slate-700/40 flex items-center gap-2 rounded-t-md">
+                  <Home className="h-3 w-3 text-primary" />
+                  <span className="text-[10px] font-semibold text-slate-200 uppercase tracking-wider">Por Cidade</span>
                 </div>
                 <div className="max-h-48 overflow-y-auto">
                   {propertiesByCity.map((item, idx) => (
@@ -603,10 +603,10 @@ const Analytics = () => {
                 </div>
               </div>
               {/* Por Proprietário Papel */}
-              <div className="rounded-md border border-slate-700/40 bg-slate-700/20">
-                <div className="px-3 py-2 border-b border-slate-700/30 flex items-center gap-2">
-                  <FileCheck className="h-3 w-3 text-slate-400" />
-                  <span className="text-[10px] font-medium text-slate-300 uppercase tracking-wider">Por Proprietário (Papel)</span>
+              <div className="rounded-md border border-slate-600/60 bg-slate-800/60 shadow-sm shadow-black/20">
+                <div className="px-3 py-2 border-b-2 border-slate-600/50 bg-slate-700/40 flex items-center gap-2 rounded-t-md">
+                  <FileCheck className="h-3 w-3 text-primary" />
+                  <span className="text-[10px] font-semibold text-slate-200 uppercase tracking-wider">Por Proprietário (Papel)</span>
                 </div>
                 <div className="max-h-48 overflow-y-auto">
                   {proprietariosPapel.map((item, idx) => (
@@ -622,10 +622,10 @@ const Analytics = () => {
                 </div>
               </div>
               {/* Por Proprietário Matrícula */}
-              <div className="rounded-md border border-slate-700/40 bg-slate-700/20">
-                <div className="px-3 py-2 border-b border-slate-700/30 flex items-center gap-2">
-                  <Users className="h-3 w-3 text-slate-400" />
-                  <span className="text-[10px] font-medium text-slate-300 uppercase tracking-wider">Por Proprietário (Matrícula)</span>
+              <div className="rounded-md border border-slate-600/60 bg-slate-800/60 shadow-sm shadow-black/20">
+                <div className="px-3 py-2 border-b-2 border-slate-600/50 bg-slate-700/40 flex items-center gap-2 rounded-t-md">
+                  <Users className="h-3 w-3 text-primary" />
+                  <span className="text-[10px] font-semibold text-slate-200 uppercase tracking-wider">Por Proprietário (Matrícula)</span>
                 </div>
                 <div className="max-h-48 overflow-y-auto">
                   {proprietariosMatricula.map((item, idx) => (
