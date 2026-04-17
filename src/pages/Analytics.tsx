@@ -818,9 +818,8 @@ const Analytics = () => {
           </DialogHeader>
           
           <div className="flex-1 min-h-0 px-3 sm:px-6 py-3 sm:py-4">
-            <div className="rounded-lg border border-slate-200 h-full bg-white">
-              <ScrollArea className="h-full w-full" showHorizontal showVertical>
-                <table className="min-w-[1600px] w-full caption-bottom text-xs">
+            <div className="rounded-lg border border-slate-200 h-full bg-white overflow-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <table className="min-w-[1600px] w-full caption-bottom text-xs">
                   <thead className="sticky top-0 bg-slate-100 backdrop-blur-sm z-10">
                     <tr className="border-b border-slate-200">
                       <SortableHeader field="rua" label="Endereço" />
@@ -884,8 +883,7 @@ const Analytics = () => {
                       </tr>
                     )}
                   </tbody>
-                </table>
-              </ScrollArea>
+              </table>
             </div>
           </div>
         </DialogContent>
