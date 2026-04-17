@@ -275,8 +275,10 @@ export function PropertyFilters() {
           </Select>
         </div>
 
-        {/* Ordenação - empurrada para a direita */}
-        <div className="flex items-center gap-1.5 ml-auto">
+        <div className="h-5 w-px bg-border" />
+
+        {/* Ordenação */}
+        <div className="flex items-center gap-1.5">
           <ArrowDownUp className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
           <Select value={filters.sortField} onValueChange={(value) => setFilters({ ...filters, sortField: value as SortField })}>
             <SelectTrigger className="h-8 text-xs w-auto min-w-[9rem]"><SelectValue placeholder="Ordenar" /></SelectTrigger>
