@@ -296,17 +296,17 @@ export function MetragemStats() {
                     >
                       <td className="px-2 sm:px-3 py-2 sm:py-2.5">
                         <Link to={`/property/${property.id}`} className="hover:text-primary transition-colors">
-                          <p className="font-medium text-xs sm:text-sm text-foreground">
+                          <p className="font-medium text-[11px] sm:text-sm text-foreground break-words">
                             {property.rua}{property.numero ? `, ${property.numero}` : ''}
                             {property.apartamento ? ` – Apto ${property.apartamento}` : ''}
                           </p>
-                          <p className="text-[10px] sm:text-xs text-muted-foreground">{property.bairro}, {property.cidade}</p>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground break-words">{property.bairro}, {property.cidade}</p>
                         </Link>
                       </td>
-                      <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-semibold text-foreground whitespace-nowrap">
+                      <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-semibold text-foreground whitespace-nowrap text-[11px] sm:text-sm">
                         {formatMetragem(property.metragem || 0)}
                       </td>
-                      <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-medium text-success whitespace-nowrap">
+                      <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-medium text-success whitespace-nowrap text-[11px] sm:text-sm">
                         {formatCurrencyFull(property.market_value || 0)}
                       </td>
                     </tr>
