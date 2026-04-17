@@ -229,16 +229,33 @@ const PropertyDetails = () => {
   
   const property = id ? getPropertyById(id) : undefined;
 
-  // Load saved estimates from localStorage
+  // Load saved AI estimate from database (with fallback to legacy localStorage)
   useEffect(() => {
-    if (id) {
+    if (!id) return;
+
+    const loadEstimate = async () => {
+      const { data, error } = await (supabase as any)
+        .from('properties')
+        .select('ai_market_estimate')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (!error && data?.ai_market_estimate) {
+        setSearchResult(data.ai_market_estimate);
+        setEstimates(parseEstimatesFromResult(data.ai_market_estimate));
+        return;
+      }
+
+      // Fallback: migrar do localStorage legado se existir
       const saved = localStorage.getItem(`market-estimates-${id}`);
       if (saved) {
         try {
           setEstimates(JSON.parse(saved));
         } catch { /* ignore */ }
       }
-    }
+    };
+
+    loadEstimate();
   }, [id]);
 
   // Função para estimar valor do imóvel via IA
@@ -275,11 +292,26 @@ const PropertyDetails = () => {
         setSearchResult(data.result);
         setDialogOpen(true);
 
-        // Parse and save estimates
+        // Parse estimates and persist full report to DB (overwrite previous)
         const parsed = parseEstimatesFromResult(data.result);
         setEstimates(parsed);
+
         if (id) {
-          localStorage.setItem(`market-estimates-${id}`, JSON.stringify(parsed));
+          const { error: updateError } = await (supabase as any)
+            .from('properties')
+            .update({
+              ai_market_estimate: data.result,
+              ai_market_estimate_updated_at: new Date().toISOString(),
+            })
+            .eq('id', id);
+
+          if (updateError) {
+            logger.error('Error saving AI estimate:', updateError);
+            toast.error('Estimativa gerada, mas falhou ao salvar no banco');
+          } else {
+            toast.success('Estimativa salva');
+            localStorage.removeItem(`market-estimates-${id}`);
+          }
         }
       }
     } catch (error) {
