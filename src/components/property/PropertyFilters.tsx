@@ -199,120 +199,120 @@ export function PropertyFilters() {
         </div>
       </div>
 
-      {/* DESKTOP: linha única horizontal compacta com separadores */}
-      <div className="hidden sm:flex sm:items-center sm:gap-x-3 sm:overflow-x-auto sm:[&::-webkit-scrollbar]:h-1.5 sm:[&::-webkit-scrollbar-thumb]:bg-border sm:[&::-webkit-scrollbar-thumb]:rounded-full">
-        {/* Categoria */}
-        <div className="flex items-center gap-1.5">
-          <Home className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-          <Select value={filters.tipoImovel || 'all'} onValueChange={(value) => setFilters({ ...filters, tipoImovel: value === 'all' ? '' : value })}>
-            <SelectTrigger className="h-8 text-xs w-auto min-w-[9rem] gap-1">
-              <span className="text-muted-foreground font-medium">Tipo:</span>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os Tipos</SelectItem>
-              {tiposImovel.map((tipo) => <SelectItem key={tipo.value} value={tipo.value}>{tipo.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          {(proprietariosPapel.length > 0 || hasEmptyProprietarioPapel) && (
-            <Select value={filters.proprietarioPapel || 'all'} onValueChange={(value) => setFilters({ ...filters, proprietarioPapel: value === 'all' ? '' : value })}>
-              <SelectTrigger className="h-8 text-xs w-auto min-w-[10rem] gap-1">
-                <span className="text-muted-foreground font-medium">Proprietário:</span>
+      {/* DESKTOP: 2 linhas, ocupando todo o espaço, sem scroll */}
+      <div className="hidden sm:flex sm:flex-col sm:gap-2">
+        {/* Linha 1: Categoria + Localização */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-1 min-w-[16rem]">
+            <Home className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <Select value={filters.tipoImovel || 'all'} onValueChange={(value) => setFilters({ ...filters, tipoImovel: value === 'all' ? '' : value })}>
+              <SelectTrigger className="h-8 text-xs flex-1 gap-1">
+                <span className="text-muted-foreground font-medium">Tipo:</span>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Tipos</SelectItem>
+                {tiposImovel.map((tipo) => <SelectItem key={tipo.value} value={tipo.value}>{tipo.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            {(proprietariosPapel.length > 0 || hasEmptyProprietarioPapel) && (
+              <Select value={filters.proprietarioPapel || 'all'} onValueChange={(value) => setFilters({ ...filters, proprietarioPapel: value === 'all' ? '' : value })}>
+                <SelectTrigger className="h-8 text-xs flex-1 gap-1">
+                  <span className="text-muted-foreground font-medium">Proprietário:</span>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {hasEmptyProprietarioPapel && <SelectItem value="__empty__">Não preenchido</SelectItem>}
+                  {proprietariosPapel.map((prop) => <SelectItem key={prop} value={prop}>{prop}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
+          <div className="h-5 w-px bg-border" />
+
+          <div className="flex items-center gap-1.5 flex-[2] min-w-[20rem]">
+            <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <Select value={filters.estado || 'all'} onValueChange={(value) => setFilters({ ...filters, estado: value === 'all' ? '' : value })}>
+              <SelectTrigger className="h-8 text-xs flex-1 gap-1">
+                <span className="text-muted-foreground font-medium">Estado:</span>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                {hasEmptyProprietarioPapel && <SelectItem value="__empty__">Não preenchido</SelectItem>}
-                {proprietariosPapel.map((prop) => <SelectItem key={prop} value={prop}>{prop}</SelectItem>)}
+                {estados.map((uf) => <SelectItem key={uf} value={uf}>{uf}</SelectItem>)}
               </SelectContent>
             </Select>
-          )}
+            <Select value={filters.cidade || 'all'} onValueChange={(value) => setFilters({ ...filters, cidade: value === 'all' ? '' : value })}>
+              <SelectTrigger className="h-8 text-xs flex-1 gap-1">
+                <span className="text-muted-foreground font-medium">Cidade:</span>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
+                {cidades.map((cidade) => <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filters.bairro || 'all'} onValueChange={(value) => setFilters({ ...filters, bairro: value === 'all' ? '' : value })}>
+              <SelectTrigger className="h-8 text-xs flex-1 gap-1">
+                <span className="text-muted-foreground font-medium">Bairro:</span>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                {bairros.map((bairro) => <SelectItem key={bairro} value={bairro}>{bairro}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        <div className="h-5 w-px bg-border" />
+        {/* Linha 2: Status + Ordenação */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-1 min-w-[16rem]">
+            <Key className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value as any })}>
+              <SelectTrigger className="h-8 text-xs flex-1 gap-1">
+                <span className="text-muted-foreground font-medium">Status:</span>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="disponivel">Disponível</SelectItem>
+                <SelectItem value="alugado">Alugado</SelectItem>
+                <SelectItem value="vendido">Vendido</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filters.validado} onValueChange={(value) => setFilters({ ...filters, validado: value as any })}>
+              <SelectTrigger className="h-8 text-xs flex-1 gap-1">
+                <span className="text-muted-foreground font-medium">Validação:</span>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="sim">Validado</SelectItem>
+                <SelectItem value="nao">Pendente</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        {/* Localização */}
-        <div className="flex items-center gap-1.5">
-          <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-          <Select value={filters.estado || 'all'} onValueChange={(value) => setFilters({ ...filters, estado: value === 'all' ? '' : value })}>
-            <SelectTrigger className="h-8 text-xs w-auto min-w-[8rem] gap-1">
-              <span className="text-muted-foreground font-medium">Estado:</span>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              {estados.map((uf) => <SelectItem key={uf} value={uf}>{uf}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={filters.cidade || 'all'} onValueChange={(value) => setFilters({ ...filters, cidade: value === 'all' ? '' : value })}>
-            <SelectTrigger className="h-8 text-xs w-auto min-w-[8rem] gap-1">
-              <span className="text-muted-foreground font-medium">Cidade:</span>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
-              {cidades.map((cidade) => <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={filters.bairro || 'all'} onValueChange={(value) => setFilters({ ...filters, bairro: value === 'all' ? '' : value })}>
-            <SelectTrigger className="h-8 text-xs w-auto min-w-[8rem] gap-1">
-              <span className="text-muted-foreground font-medium">Bairro:</span>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              {bairros.map((bairro) => <SelectItem key={bairro} value={bairro}>{bairro}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
+          <div className="h-5 w-px bg-border" />
 
-        <div className="h-5 w-px bg-border" />
-
-        {/* Status */}
-        <div className="flex items-center gap-1.5">
-          <Key className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-          <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value as any })}>
-            <SelectTrigger className="h-8 text-xs w-auto min-w-[8rem] gap-1">
-              <span className="text-muted-foreground font-medium">Status:</span>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="disponivel">Disponível</SelectItem>
-              <SelectItem value="alugado">Alugado</SelectItem>
-              <SelectItem value="vendido">Vendido</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={filters.validado} onValueChange={(value) => setFilters({ ...filters, validado: value as any })}>
-            <SelectTrigger className="h-8 text-xs w-auto min-w-[8.5rem] gap-1">
-              <span className="text-muted-foreground font-medium">Validação:</span>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="sim">Validado</SelectItem>
-              <SelectItem value="nao">Pendente</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="h-5 w-px bg-border" />
-
-        {/* Ordenação */}
-        <div className="flex items-center gap-1.5">
-          <ArrowDownUp className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-          <Select value={filters.sortField} onValueChange={(value) => setFilters({ ...filters, sortField: value as SortField })}>
-            <SelectTrigger className="h-8 text-xs w-auto min-w-[11rem] gap-1">
-              <span className="text-muted-foreground font-medium">Ordenar por:</span>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {sortOptions.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="sm" onClick={toggleSortOrder} className="h-8 text-xs px-2.5">
-            {filters.sortOrder === 'asc' ? (<><ChevronUp className="h-3 w-3 mr-1" />Cresc.</>) : (<><ChevronDown className="h-3 w-3 mr-1" />Decresc.</>)}
-          </Button>
+          <div className="flex items-center gap-1.5 flex-[2] min-w-[20rem]">
+            <ArrowDownUp className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <Select value={filters.sortField} onValueChange={(value) => setFilters({ ...filters, sortField: value as SortField })}>
+              <SelectTrigger className="h-8 text-xs flex-1 gap-1">
+                <span className="text-muted-foreground font-medium">Ordenar por:</span>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {sortOptions.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button variant="outline" size="sm" onClick={toggleSortOrder} className="h-8 text-xs px-2.5 shrink-0">
+              {filters.sortOrder === 'asc' ? (<><ChevronUp className="h-3 w-3 mr-1" />Cresc.</>) : (<><ChevronDown className="h-3 w-3 mr-1" />Decresc.</>)}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
