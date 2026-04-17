@@ -151,7 +151,7 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl w-[calc(100vw-1rem)] sm:w-full h-[100dvh] sm:h-[80vh] max-h-[100dvh] sm:max-h-[80vh] flex flex-col p-0 gap-0 rounded-none sm:rounded-lg">
+      <DialogContent className="max-w-2xl w-screen sm:w-[calc(100vw-2rem)] h-[100dvh] sm:h-[80vh] max-h-[100dvh] sm:max-h-[80vh] flex flex-col p-0 gap-0 rounded-none sm:rounded-lg border-0 sm:border">
         <DialogHeader className="px-3 sm:px-6 pt-3 sm:pt-6 pb-2 sm:pb-4 border-b shrink-0">
           <DialogTitle className="flex items-center gap-2 text-sm sm:text-base">
             <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shrink-0">
@@ -220,23 +220,23 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
         </div>
 
         <div
-          className="border-t px-3 sm:px-6 py-3 sm:py-4 shrink-0 bg-background"
-          style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+          className="border-t px-2 sm:px-6 py-2 sm:py-4 shrink-0 bg-background"
+          style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
         >
-          <div className="flex gap-2 items-end">
+          <div className="flex gap-1.5 sm:gap-2 items-end w-full">
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Pergunte sobre seus imóveis..."
-              className="resize-none min-h-[44px] max-h-[120px] flex-1 text-sm"
+              className="resize-none min-h-[42px] max-h-[120px] flex-1 min-w-0 text-sm"
               rows={1}
             />
             <Button
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
               size="icon"
-              className="shrink-0 h-11 w-11"
+              className="shrink-0 h-[42px] w-[42px] sm:h-11 sm:w-11"
             >
               <Send className="h-4 w-4" />
             </Button>
