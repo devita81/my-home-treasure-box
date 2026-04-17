@@ -171,8 +171,8 @@ export function MetragemStats() {
       </div>
 
       {/* Table layout by city */}
-      <div className="rounded-lg border bg-card overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="rounded-lg border bg-card overflow-hidden scroll-x-fade">
+        <div className="overflow-x-auto scroll-x-visible">
           <table className="w-full text-xs sm:text-sm min-w-[520px]">
             <thead>
               <tr className="border-b bg-muted/50">
@@ -229,8 +229,8 @@ export function MetragemStats() {
             Total: {formatMetragem(selectedGroup?.metragem || 0)} | {formatCurrencyFull(selectedGroup?.marketValue || 0)} em {selectedGroup?.count} imóveis
           </p>
 
-          <div className="rounded-lg border bg-card overflow-hidden">
-            <div className="overflow-x-auto">
+          <div className="rounded-lg border bg-card overflow-hidden scroll-x-fade">
+            <div className="overflow-x-auto scroll-x-visible">
               <table className="w-full text-xs sm:text-sm min-w-[520px]">
                 <thead>
                   <tr className="border-b bg-muted/50">
