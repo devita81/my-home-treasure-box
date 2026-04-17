@@ -883,8 +883,7 @@ const Analytics = () => {
                       </tr>
                     )}
                   </tbody>
-                </table>
-              </ScrollArea>
+              </table>
             </div>
           </div>
         </DialogContent>
