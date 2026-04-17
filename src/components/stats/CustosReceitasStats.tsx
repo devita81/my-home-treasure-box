@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useProperties } from '@/contexts/PropertyContext';
 import { Property } from '@/types/property';
-import { DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ExportButtons } from '@/components/ui/export-buttons';
 import { useExportData } from '@/hooks/useExportData';
 
