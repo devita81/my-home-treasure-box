@@ -429,7 +429,10 @@ const Analytics = () => {
   return (
     <div className="min-h-screen bg-slate-800">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full bg-slate-900/95 backdrop-blur-md border-b border-white/5">
+      <header
+        className="sticky top-0 z-50 w-full bg-slate-900/95 backdrop-blur-md border-b border-white/5"
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      >
         <div className="container px-3 sm:px-4 flex h-11 items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="text-slate-400 hover:text-white hover:bg-white/5 h-7 w-7 p-0 shrink-0">
