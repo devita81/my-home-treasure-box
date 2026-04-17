@@ -170,8 +170,39 @@ export function MetragemStats() {
         <h3 className="text-xs sm:text-sm font-semibold text-foreground">Visão de Metragem</h3>
       </div>
 
-      {/* Table layout by city */}
-      <div className="rounded-lg border bg-card overflow-hidden scroll-x-fade">
+      {/* Mobile: Cards agrupados por cidade */}
+      <div className="sm:hidden space-y-2">
+        {groupedByCidade.map(({ cidade, items }) => (
+          <div key={cidade} className="rounded-lg border bg-card overflow-hidden">
+            <div className="px-3 py-1.5 bg-muted/50 border-b">
+              <p className="text-[11px] font-semibold text-foreground">{cidade}</p>
+            </div>
+            {items.map((group) => (
+              <div
+                key={`${group.cidade}-${group.tipo}`}
+                onClick={() => handleCardClick(group)}
+                className="px-3 py-2 border-b last:border-b-0 cursor-pointer active:bg-muted/30"
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[11px] font-medium capitalize">{tipoLabels[group.tipo] || group.tipo}</span>
+                  <span className="text-[10px] text-muted-foreground font-mono">{group.count} {group.count === 1 ? 'imóvel' : 'imóveis'}</span>
+                </div>
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-muted-foreground">Metragem</span>
+                  <span className="font-semibold tabular-nums">{formatMetragem(group.metragem)}</span>
+                </div>
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-muted-foreground">Valor de Mercado</span>
+                  <span className="font-medium text-success tabular-nums">{formatCurrency(group.marketValue)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop: Tabela */}
+      <div className="hidden sm:block rounded-lg border bg-card overflow-hidden scroll-x-fade">
         <div className="overflow-x-auto scroll-x-visible">
           <table className="w-full text-xs sm:text-sm min-w-[520px]">
             <thead>
