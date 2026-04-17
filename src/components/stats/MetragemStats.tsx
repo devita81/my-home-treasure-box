@@ -254,7 +254,7 @@ export function MetragemStats() {
 
       {/* Drill-down Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto">
+        <DialogContent className="w-[calc(100vw-1rem)] max-w-3xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto p-3 sm:p-6">
           <DialogHeader>
             <DialogTitle className="text-sm sm:text-base font-semibold pr-8">
               {selectedGroup?.cidade} – {tipoLabels[selectedGroup?.tipo || ''] || selectedGroup?.tipo}
@@ -273,17 +273,17 @@ export function MetragemStats() {
 
           <div className="rounded-lg border bg-card overflow-hidden scroll-x-fade">
             <div className="overflow-x-auto scroll-x-visible">
-              <table className="w-full text-xs sm:text-sm min-w-[520px]">
+              <table className="w-full text-xs sm:text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">
                     <th className="text-left px-2 sm:px-3 py-2">
                       <SortButton field="address" label="Endereço" />
                     </th>
                     <th className="text-right px-2 sm:px-3 py-2">
-                      <SortButton field="metragem" label="Metragem" />
+                      <SortButton field="metragem" label="m²" />
                     </th>
                     <th className="text-right px-2 sm:px-3 py-2">
-                      <SortButton field="market_value" label="Valor de Mercado" />
+                      <SortButton field="market_value" label="Valor" />
                     </th>
                   </tr>
                 </thead>
@@ -296,17 +296,17 @@ export function MetragemStats() {
                     >
                       <td className="px-2 sm:px-3 py-2 sm:py-2.5">
                         <Link to={`/property/${property.id}`} className="hover:text-primary transition-colors">
-                          <p className="font-medium text-xs sm:text-sm text-foreground">
+                          <p className="font-medium text-[11px] sm:text-sm text-foreground break-words">
                             {property.rua}{property.numero ? `, ${property.numero}` : ''}
                             {property.apartamento ? ` – Apto ${property.apartamento}` : ''}
                           </p>
-                          <p className="text-[10px] sm:text-xs text-muted-foreground">{property.bairro}, {property.cidade}</p>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground break-words">{property.bairro}, {property.cidade}</p>
                         </Link>
                       </td>
-                      <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-semibold text-foreground whitespace-nowrap">
+                      <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-semibold text-foreground whitespace-nowrap text-[11px] sm:text-sm">
                         {formatMetragem(property.metragem || 0)}
                       </td>
-                      <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-medium text-success whitespace-nowrap">
+                      <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-medium text-success whitespace-nowrap text-[11px] sm:text-sm">
                         {formatCurrencyFull(property.market_value || 0)}
                       </td>
                     </tr>

@@ -259,7 +259,7 @@ export function CustosReceitasStats() {
       </Collapsible>
 
       <Dialog open={dialog.open} onOpenChange={(open) => setDialog((prev) => ({ ...prev, open }))}>
-        <DialogContent className="max-w-4xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto">
+        <DialogContent className="w-[calc(100vw-1rem)] max-w-4xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto p-3 sm:p-6">
           <DialogHeader>
             <DialogTitle className="text-sm sm:text-base font-semibold pr-8">{dialog.title}</DialogTitle>
           </DialogHeader>
@@ -270,7 +270,60 @@ export function CustosReceitasStats() {
             />
           </div>
 
-          <div className="rounded-lg border bg-card overflow-hidden scroll-x-fade">
+          {/* Mobile: cards empilhados */}
+          <div className="sm:hidden space-y-2">
+            {dialog.properties.map((p) => {
+              const iptuMes = (p.iptu_value ?? 0) / 12;
+              const liquido = (p.valor_aluguel ?? 0) - (p.valor_condominio ?? 0) - iptuMes - (p.taxa_administracao ?? 0);
+              return (
+                <Link
+                  key={p.id}
+                  to={`/property/${p.id}`}
+                  className="block rounded-lg border bg-card p-2.5 active:bg-muted/30"
+                >
+                  <p className="font-medium text-[11px] text-foreground break-words">
+                    {p.rua}{p.numero ? `, ${p.numero}` : ''}{p.apartamento ? ` – Ap ${p.apartamento}` : ''}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground break-words mb-1.5">{p.bairro}, {p.cidade}</p>
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
+                    <div className="flex justify-between"><span className="text-muted-foreground">Aluguel</span><span className="font-medium tabular-nums">{fmtFull(p.valor_aluguel ?? 0)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Cond.</span><span className="font-medium tabular-nums">{fmtFull(p.valor_condominio ?? 0)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">IPTU/mês</span><span className="font-medium tabular-nums">{fmtFull(iptuMes)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Taxa Adm</span><span className="font-medium tabular-nums">{fmtFull(p.taxa_administracao ?? 0)}</span></div>
+                    <div className="col-span-2 flex justify-between border-t pt-1 mt-0.5">
+                      <span className="text-muted-foreground font-semibold">Líquido</span>
+                      <span className={`font-bold tabular-nums ${liquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmtFull(liquido)}</span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+            {dialog.properties.length > 1 && (() => {
+              const totAluguel = dialog.properties.reduce((s, p) => s + (p.valor_aluguel ?? 0), 0);
+              const totCond = dialog.properties.reduce((s, p) => s + (p.valor_condominio ?? 0), 0);
+              const totIptu = dialog.properties.reduce((s, p) => s + ((p.iptu_value ?? 0) / 12), 0);
+              const totAdm = dialog.properties.reduce((s, p) => s + (p.taxa_administracao ?? 0), 0);
+              const totLiq = totAluguel - totCond - totIptu - totAdm;
+              return (
+                <div className="rounded-lg border-2 bg-muted/50 p-2.5">
+                  <p className="text-[11px] font-bold mb-1.5">Total ({dialog.properties.length} imóveis)</p>
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
+                    <div className="flex justify-between"><span className="text-muted-foreground">Aluguel</span><span className="font-bold tabular-nums">{fmtFull(totAluguel)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Cond.</span><span className="font-bold tabular-nums">{fmtFull(totCond)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">IPTU/mês</span><span className="font-bold tabular-nums">{fmtFull(totIptu)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Taxa Adm</span><span className="font-bold tabular-nums">{fmtFull(totAdm)}</span></div>
+                    <div className="col-span-2 flex justify-between border-t pt-1 mt-0.5">
+                      <span className="text-muted-foreground font-semibold">Líquido</span>
+                      <span className={`font-bold tabular-nums ${totLiq >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmtFull(totLiq)}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Desktop: tabela */}
+          <div className="hidden sm:block rounded-lg border bg-card overflow-hidden scroll-x-fade">
             <div className="overflow-x-auto scroll-x-visible">
               <table className="w-full text-xs sm:text-sm min-w-[680px]">
                 <thead>
