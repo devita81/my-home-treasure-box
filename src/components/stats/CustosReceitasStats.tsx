@@ -115,8 +115,8 @@ export function CustosReceitasStats() {
           <Icon className={`h-4 w-4 ${iconColor}`} />
           <h4 className="text-sm font-semibold">{label}</h4>
         </div>
-        <div className="rounded-lg border bg-card overflow-hidden">
-          <div className="overflow-x-auto">
+        <div className="rounded-lg border bg-card overflow-hidden scroll-x-fade">
+          <div className="overflow-x-auto scroll-x-visible">
             <table className="w-full text-xs sm:text-sm min-w-[760px]">
               <thead>
                 <tr className="border-b bg-muted/50">
@@ -203,8 +203,8 @@ export function CustosReceitasStats() {
             />
           </div>
 
-          <div className="rounded-lg border bg-card overflow-hidden">
-            <div className="overflow-x-auto">
+          <div className="rounded-lg border bg-card overflow-hidden scroll-x-fade">
+            <div className="overflow-x-auto scroll-x-visible">
               <table className="w-full text-xs sm:text-sm min-w-[680px]">
                 <thead>
                   <tr className="border-b bg-muted/50">
