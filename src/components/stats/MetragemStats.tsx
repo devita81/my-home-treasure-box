@@ -1,5 +1,5 @@
 import { useProperties } from '@/contexts/PropertyContext';
-import { Ruler, ArrowUpDown, DollarSign, ChevronDown } from 'lucide-react';
+import { Ruler, ArrowUpDown, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Property } from '@/types/property';
