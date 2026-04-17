@@ -165,12 +165,15 @@ export function MetragemStats() {
   );
 
   return (
-    <div className="space-y-3 sm:space-y-4">
+    <Collapsible open={expanded} onOpenChange={setExpanded} className="space-y-3 sm:space-y-4">
       {/* Header */}
-      <div className="flex items-center gap-2">
+      <CollapsibleTrigger className="flex items-center gap-2 w-full group hover:opacity-80 transition-opacity">
         <Ruler className="h-3.5 sm:h-4 w-3.5 sm:w-4 text-primary" />
         <h3 className="text-xs sm:text-sm font-semibold text-foreground">Visão de Metragem</h3>
-      </div>
+        <ChevronDown className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground transition-transform ml-auto ${expanded ? 'rotate-180' : ''}`} />
+      </CollapsibleTrigger>
+
+      <CollapsibleContent className="space-y-3 sm:space-y-4 data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up overflow-hidden">
 
       {/* Mobile: Cards agrupados por cidade */}
       <div className="sm:hidden space-y-2">
