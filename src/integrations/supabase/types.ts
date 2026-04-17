@@ -103,6 +103,8 @@ export type Database = {
       }
       properties: {
         Row: {
+          ai_market_estimate: string | null
+          ai_market_estimate_updated_at: string | null
           alugado: boolean | null
           ano_construcao: number | null
           apartamento: string | null
@@ -148,6 +150,8 @@ export type Database = {
           vendido: boolean | null
         }
         Insert: {
+          ai_market_estimate?: string | null
+          ai_market_estimate_updated_at?: string | null
           alugado?: boolean | null
           ano_construcao?: number | null
           apartamento?: string | null
@@ -193,6 +197,8 @@ export type Database = {
           vendido?: boolean | null
         }
         Update: {
+          ai_market_estimate?: string | null
+          ai_market_estimate_updated_at?: string | null
           alugado?: boolean | null
           ano_construcao?: number | null
           apartamento?: string | null
