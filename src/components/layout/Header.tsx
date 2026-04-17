@@ -28,24 +28,24 @@ export function Header() {
   return (
     <>
       <header className="sticky top-0 z-50 glass-effect border-b border-border">
-        <div className="container mx-auto px-4">
-          <div className="flex h-16 items-center justify-between">
-            <Link to="/" className="flex items-center gap-3 group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-transform group-hover:scale-105">
-                <Home className="h-5 w-5" />
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
+            <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0">
+              <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-transform group-hover:scale-105 shrink-0">
+                <Home className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
-              <div className="flex flex-col">
-                <span className="font-display text-xl font-semibold text-foreground">
+              <div className="flex flex-col min-w-0">
+                <span className="font-display text-base sm:text-xl font-semibold text-foreground truncate">
                   My Home Collection
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">
                   Gestão de Imóveis
                 </span>
               </div>
             </Link>
 
-            <div className="flex items-center gap-4">
-              <nav className="flex items-center gap-1">
+            <div className="flex items-center gap-1 sm:gap-4 shrink-0">
+              <nav className="flex items-center gap-0.5 sm:gap-1">
                 {navItems.map((item) => {
                   const isActive = location.pathname === item.path;
                   return (
@@ -53,7 +53,7 @@ export function Header() {
                       key={item.path}
                       to={item.path}
                       className={cn(
-                        'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
+                        'flex items-center gap-2 px-2 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
                         isActive
                           ? 'bg-primary text-primary-foreground'
                           : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
@@ -70,10 +70,10 @@ export function Header() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setChatOpen(true)}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground px-2 sm:px-3"
                 title="Assistente IA"
               >
-                <MessageSquare className="h-4 w-4 mr-2" />
+                <MessageSquare className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">IA</span>
               </Button>
 
@@ -82,9 +82,9 @@ export function Header() {
                   variant="ghost"
                   size="sm"
                   onClick={handleLogout}
-                  className="text-muted-foreground hover:text-foreground"
+                  className="text-muted-foreground hover:text-foreground px-2 sm:px-3"
                 >
-                  <LogOut className="h-4 w-4 mr-2" />
+                  <LogOut className="h-4 w-4 sm:mr-2" />
                   <span className="hidden sm:inline">Sair</span>
                 </Button>
               )}
