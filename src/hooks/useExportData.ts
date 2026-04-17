@@ -1,6 +1,8 @@
 import { Property } from '@/types/property';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { logger } from '@/lib/logger';
 
 interface ExportColumn {
@@ -130,73 +132,66 @@ export function useExportData() {
     }
 
     try {
-      // Create a printable HTML document
-      const printWindow = window.open('', '_blank');
-      if (!printWindow) {
-        toast.error('Popup bloqueado. Permita popups para exportar PDF.');
-        return;
+      // Generate real PDF using jsPDF (works well on mobile/PWA - just downloads)
+      const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 10;
+
+      // Title
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text(title, margin, 14);
+
+      // Subtitle
+      let yPos = 20;
+      if (subtitle) {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100);
+        doc.text(subtitle, margin, yPos);
+        yPos += 5;
       }
 
-      const tableRows = properties.map(property => {
-        const cells = columns.map(col => {
-          const value = col.key === 'address' 
-            ? '' 
-            : (property as any)[col.key];
-          const formatted = col.format ? col.format(value, property) : String(value || '');
-          return `<td style="padding: 8px; border: 1px solid #ddd; font-size: 11px;">${formatted}</td>`;
-        }).join('');
-        return `<tr>${cells}</tr>`;
-      }).join('');
+      // Meta line
+      doc.setFontSize(8);
+      doc.setTextColor(120);
+      doc.text(
+        `${properties.length} imóveis • Exportado em ${new Date().toLocaleDateString('pt-BR')}`,
+        margin,
+        yPos
+      );
+      doc.setTextColor(0);
 
-      const headerCells = columns.map(col => 
-        `<th style="padding: 8px; border: 1px solid #ddd; background-color: #f5f5f5; font-weight: bold; font-size: 11px; text-align: left;">${col.label}</th>`
-      ).join('');
+      // Build table
+      const head = [columns.map((c) => c.label)];
+      const body = properties.map((property) =>
+        columns.map((col) => {
+          const value = col.key === 'address' ? '' : (property as any)[col.key];
+          return col.format ? col.format(value, property) : String(value || '');
+        })
+      );
 
-      const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="UTF-8">
-          <title>${title}</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            h1 { font-size: 18px; margin-bottom: 5px; }
-            h2 { font-size: 14px; color: #666; margin-bottom: 20px; font-weight: normal; }
-            table { border-collapse: collapse; width: 100%; }
-            @media print {
-              body { margin: 10mm; }
-              table { page-break-inside: auto; }
-              tr { page-break-inside: avoid; }
-            }
-          </style>
-        </head>
-        <body>
-          <h1>${title}</h1>
-          ${subtitle ? `<h2>${subtitle}</h2>` : ''}
-          <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
-            ${properties.length} imóveis • Exportado em ${new Date().toLocaleDateString('pt-BR')}
-          </p>
-          <table>
-            <thead>
-              <tr>${headerCells}</tr>
-            </thead>
-            <tbody>
-              ${tableRows}
-            </tbody>
-          </table>
-        </body>
-        </html>
-      `;
+      autoTable(doc, {
+        head,
+        body,
+        startY: yPos + 4,
+        margin: { left: margin, right: margin },
+        styles: { fontSize: 7, cellPadding: 1.5, overflow: 'linebreak' },
+        headStyles: { fillColor: [240, 240, 240], textColor: 20, fontStyle: 'bold' },
+        tableWidth: pageWidth - margin * 2,
+      });
 
-      printWindow.document.write(html);
-      printWindow.document.close();
-      
-      // Wait for content to load then trigger print
-      printWindow.onload = () => {
-        printWindow.print();
-      };
-      
-      toast.success('PDF preparado para impressão');
+      // Filename
+      const fileName = `${title.replace(/[^a-zA-Z0-9áéíóúâêîôûãõçÁÉÍÓÚÂÊÎÔÛÃÕÇ ]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+      doc.save(fileName);
+
+      toast.success(`Exportado ${properties.length} imóveis para PDF`);
     } catch (error) {
       logger.error('PDF export error:', error);
       toast.error('Erro ao exportar para PDF');

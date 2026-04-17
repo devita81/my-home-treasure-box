@@ -30,11 +30,11 @@ export function Header() {
       <header className="sticky top-0 z-50 glass-effect border-b border-border">
         <div className="container mx-auto px-3 sm:px-4">
           <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
-            <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0">
+            <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 shrink">
               <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-transform group-hover:scale-105 shrink-0">
                 <Home className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex-col min-w-0 hidden md:flex">
                 <span className="font-display text-base sm:text-xl font-semibold text-foreground truncate">
                   My Home Collection
                 </span>
