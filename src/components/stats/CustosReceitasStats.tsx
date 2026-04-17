@@ -74,6 +74,7 @@ export function CustosReceitasStats() {
   const [dialog, setDialog] = useState<{ open: boolean; title: string; properties: Property[] }>({
     open: false, title: '', properties: [],
   });
+  const [expanded, setExpanded] = useState(false);
 
   const alugados = useMemo(() => properties.filter((p) => p.alugado), [properties]);
   const naoAlugados = useMemo(() => properties.filter((p) => !p.alugado), [properties]);
