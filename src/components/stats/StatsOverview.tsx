@@ -229,18 +229,18 @@ export function StatsOverview() {
 
       {/* Drill-down Dialog */}
       <Dialog open={dialog.open} onOpenChange={(open) => setDialog((prev) => ({ ...prev, open }))}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] sm:max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <div className="flex items-center justify-between pr-8">
-              <DialogTitle>{dialog.title}</DialogTitle>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pr-8">
+              <DialogTitle className="text-base sm:text-lg">{dialog.title}</DialogTitle>
               <ExportButtons
                 onExportExcel={() => exportToExcel(sortedProperties, dialog.title, simpleColumns)}
                 onExportPDF={() => exportToPDF(sortedProperties, dialog.title, `${dialog.properties.length} imóveis`, simpleColumns)}
               />
             </div>
           </DialogHeader>
-          <div className="space-y-2 mt-4">
-            <p className="text-sm text-muted-foreground mb-4">
+          <div className="space-y-2 mt-2 sm:mt-4">
+            <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-4">
               {dialog.properties.length} imóveis
               {dialog.valueKey && dialogTotal > 0 && (
                 <> - Total: {formatCurrencyFull(dialogTotal)}</>
@@ -258,21 +258,21 @@ export function StatsOverview() {
                 <Link
                   key={property.id}
                   to={`/property/${property.id}`}
-                  className="block p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                  className="block p-2.5 sm:p-3 rounded-lg border hover:bg-muted/50 transition-colors"
                   onClick={() => setDialog((prev) => ({ ...prev, open: false }))}
                 >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-sm">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-xs sm:text-sm truncate">
                         {property.rua}, {property.numero}
                         {property.apartamento && ` - Apto ${property.apartamento}`}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
                         {property.bairro}, {property.cidade}
                       </p>
                     </div>
                     {dialog.valueKey && (
-                      <p className="font-semibold text-sm">
+                      <p className="font-semibold text-xs sm:text-sm whitespace-nowrap shrink-0">
                         {formatCurrencyFull(Number(property[dialog.valueKey]) || 0)}
                       </p>
                     )}

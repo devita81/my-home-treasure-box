@@ -430,17 +430,17 @@ const Analytics = () => {
     <div className="min-h-screen bg-slate-800">
       {/* Header */}
       <header className="sticky top-0 z-50 w-full bg-slate-900/95 backdrop-blur-md border-b border-white/5">
-        <div className="container flex h-11 items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="text-slate-400 hover:text-white hover:bg-white/5 h-7 w-7 p-0">
+        <div className="container px-3 sm:px-4 flex h-11 items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="text-slate-400 hover:text-white hover:bg-white/5 h-7 w-7 p-0 shrink-0">
               <ArrowLeft className="h-3.5 w-3.5" />
             </Button>
-            <div className="h-px w-4 bg-slate-700" />
-            <h1 className="text-xs font-medium text-slate-300 tracking-widest uppercase">Analytics</h1>
-            <span className="text-[10px] text-slate-300 font-mono ml-1">{properties.length} imóveis</span>
+            <div className="h-px w-4 bg-slate-700 hidden sm:block" />
+            <h1 className="text-xs font-medium text-slate-300 tracking-widest uppercase truncate">Analytics</h1>
+            <span className="text-[10px] text-slate-300 font-mono ml-1 shrink-0">{properties.length} imóveis</span>
           </div>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="sm" onClick={handleExportExcel} className="text-slate-400 hover:text-slate-200 hover:bg-white/5 gap-1.5 h-7 text-[10px] uppercase tracking-wider">
+          <div className="flex items-center gap-1 shrink-0">
+            <Button variant="ghost" size="sm" onClick={handleExportExcel} className="text-slate-400 hover:text-slate-200 hover:bg-white/5 gap-1.5 h-7 px-2 text-[10px] uppercase tracking-wider">
               <Download className="h-3 w-3" />
               <span className="hidden sm:inline">Exportar</span>
             </Button>
@@ -451,7 +451,7 @@ const Analytics = () => {
         </div>
       </header>
 
-      <main className="container py-5 space-y-4">
+      <main className="container px-3 sm:px-4 py-3 sm:py-5 space-y-3 sm:space-y-4">
         {/* ─── Value Summary ─── */}
         <div className="grid gap-px grid-cols-2 lg:grid-cols-4 bg-slate-700/30 rounded-lg overflow-hidden border border-slate-700/50">
           <div onClick={() => openDialog('Valor de Mercado', `${properties.length} imóveis • Total: ${formatCurrency(totalMarketValue)}`, properties)} className="bg-slate-700/40 p-4 cursor-pointer hover:bg-slate-700/50 transition-colors">
@@ -800,15 +800,15 @@ const Analytics = () => {
 
       {/* ==================== DRILL-DOWN DIALOG ==================== */}
       <Dialog open={dialogState.isOpen} onOpenChange={(open) => !open && closeDialog()}>
-        <DialogContent className="max-w-6xl h-[85vh] overflow-hidden flex flex-col p-0 bg-white border-slate-200">
-          <DialogHeader className="px-6 pt-6 pb-4 border-b border-slate-200">
-            <div className="flex items-center justify-between pr-8">
-              <div>
-                <DialogTitle className="flex items-center gap-2 text-base text-slate-900">
-                  <Home className="h-4 w-4 text-slate-500" />
-                  {dialogState.title}
+        <DialogContent className="max-w-6xl h-[92vh] sm:h-[85vh] overflow-hidden flex flex-col p-0 bg-white border-slate-200">
+          <DialogHeader className="px-3 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-slate-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pr-8">
+              <div className="min-w-0">
+                <DialogTitle className="flex items-center gap-2 text-sm sm:text-base text-slate-900 truncate">
+                  <Home className="h-4 w-4 text-slate-500 shrink-0" />
+                  <span className="truncate">{dialogState.title}</span>
                 </DialogTitle>
-                <p className="text-[11px] text-slate-500 mt-1 font-mono">{dialogState.subtitle}</p>
+                <p className="text-[10px] sm:text-[11px] text-slate-500 mt-1 font-mono truncate">{dialogState.subtitle}</p>
               </div>
               <ExportButtons
                 onExportExcel={() => exportToExcel(sortedDialogProperties, dialogState.title)}
@@ -817,7 +817,7 @@ const Analytics = () => {
             </div>
           </DialogHeader>
           
-          <div className="flex-1 min-h-0 px-6 py-4">
+          <div className="flex-1 min-h-0 px-3 sm:px-6 py-3 sm:py-4">
             <div className="rounded-lg border border-slate-200 h-full bg-white">
               <ScrollArea className="h-full w-full" showHorizontal showVertical>
                 <table className="min-w-[1600px] w-full caption-bottom text-xs">
