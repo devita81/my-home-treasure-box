@@ -200,7 +200,7 @@ export function PropertyFilters() {
       </div>
 
       {/* DESKTOP: linha única horizontal compacta com separadores */}
-      <div className="hidden sm:flex sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-2">
+      <div className="hidden sm:flex sm:items-center sm:gap-x-3 sm:overflow-x-auto sm:[&::-webkit-scrollbar]:h-1.5 sm:[&::-webkit-scrollbar-thumb]:bg-border sm:[&::-webkit-scrollbar-thumb]:rounded-full">
         {/* Categoria */}
         <div className="flex items-center gap-1.5">
           <Home className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
