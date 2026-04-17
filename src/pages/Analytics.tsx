@@ -800,15 +800,15 @@ const Analytics = () => {
 
       {/* ==================== DRILL-DOWN DIALOG ==================== */}
       <Dialog open={dialogState.isOpen} onOpenChange={(open) => !open && closeDialog()}>
-        <DialogContent className="max-w-6xl h-[85vh] overflow-hidden flex flex-col p-0 bg-white border-slate-200">
-          <DialogHeader className="px-6 pt-6 pb-4 border-b border-slate-200">
-            <div className="flex items-center justify-between pr-8">
-              <div>
-                <DialogTitle className="flex items-center gap-2 text-base text-slate-900">
-                  <Home className="h-4 w-4 text-slate-500" />
-                  {dialogState.title}
+        <DialogContent className="max-w-6xl h-[92vh] sm:h-[85vh] overflow-hidden flex flex-col p-0 bg-white border-slate-200">
+          <DialogHeader className="px-3 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-slate-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pr-8">
+              <div className="min-w-0">
+                <DialogTitle className="flex items-center gap-2 text-sm sm:text-base text-slate-900 truncate">
+                  <Home className="h-4 w-4 text-slate-500 shrink-0" />
+                  <span className="truncate">{dialogState.title}</span>
                 </DialogTitle>
-                <p className="text-[11px] text-slate-500 mt-1 font-mono">{dialogState.subtitle}</p>
+                <p className="text-[10px] sm:text-[11px] text-slate-500 mt-1 font-mono truncate">{dialogState.subtitle}</p>
               </div>
               <ExportButtons
                 onExportExcel={() => exportToExcel(sortedDialogProperties, dialogState.title)}
@@ -817,7 +817,7 @@ const Analytics = () => {
             </div>
           </DialogHeader>
           
-          <div className="flex-1 min-h-0 px-6 py-4">
+          <div className="flex-1 min-h-0 px-3 sm:px-6 py-3 sm:py-4">
             <div className="rounded-lg border border-slate-200 h-full bg-white">
               <ScrollArea className="h-full w-full" showHorizontal showVertical>
                 <table className="min-w-[1600px] w-full caption-bottom text-xs">
