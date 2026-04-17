@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useProperties } from '@/contexts/PropertyContext';
 import { Property } from '@/types/property';
-import { DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ExportButtons } from '@/components/ui/export-buttons';
 import { useExportData } from '@/hooks/useExportData';
 
@@ -73,6 +74,7 @@ export function CustosReceitasStats() {
   const [dialog, setDialog] = useState<{ open: boolean; title: string; properties: Property[] }>({
     open: false, title: '', properties: [],
   });
+  const [expanded, setExpanded] = useState(false);
 
   const alugados = useMemo(() => properties.filter((p) => p.alugado), [properties]);
   const naoAlugados = useMemo(() => properties.filter((p) => !p.alugado), [properties]);
@@ -239,14 +241,17 @@ export function CustosReceitasStats() {
 
   return (
     <>
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
+      <Collapsible open={expanded} onOpenChange={setExpanded} className="space-y-4">
+        <CollapsibleTrigger className="flex items-center gap-2 w-full group hover:opacity-80 transition-opacity">
           <DollarSign className="h-5 w-5 text-primary" />
           <h3 className="font-display text-lg font-semibold">Custos e Receitas</h3>
-        </div>
-        <CostTable label="Imóveis Alugados" icon={TrendingUp} iconColor="text-green-600" groups={groupsAlugados} />
-        <CostTable label="Imóveis Não Alugados" icon={TrendingDown} iconColor="text-muted-foreground" groups={groupsNaoAlugados} />
-      </div>
+          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ml-auto ${expanded ? 'rotate-180' : ''}`} />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-4 data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up overflow-hidden">
+          <CostTable label="Imóveis Alugados" icon={TrendingUp} iconColor="text-green-600" groups={groupsAlugados} />
+          <CostTable label="Imóveis Não Alugados" icon={TrendingDown} iconColor="text-muted-foreground" groups={groupsNaoAlugados} />
+        </CollapsibleContent>
+      </Collapsible>
 
       <Dialog open={dialog.open} onOpenChange={(open) => setDialog((prev) => ({ ...prev, open }))}>
         <DialogContent className="max-w-4xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto">

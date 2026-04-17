@@ -1,6 +1,7 @@
 import { useProperties } from '@/contexts/PropertyContext';
-import { Ruler, ArrowUpDown, DollarSign } from 'lucide-react';
+import { Ruler, ArrowUpDown, DollarSign, ChevronDown } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Property } from '@/types/property';
 import {
   Dialog,
@@ -32,6 +33,7 @@ export function MetragemStats() {
   const [selectedGroup, setSelectedGroup] = useState<GroupedMetragem | null>(null);
   const [sortField, setSortField] = useState<SortField>('metragem');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [expanded, setExpanded] = useState(false);
 
   const formatMetragem = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -163,12 +165,15 @@ export function MetragemStats() {
   );
 
   return (
-    <div className="space-y-3 sm:space-y-4">
+    <Collapsible open={expanded} onOpenChange={setExpanded} className="space-y-3 sm:space-y-4">
       {/* Header */}
-      <div className="flex items-center gap-2">
+      <CollapsibleTrigger className="flex items-center gap-2 w-full group hover:opacity-80 transition-opacity">
         <Ruler className="h-3.5 sm:h-4 w-3.5 sm:w-4 text-primary" />
         <h3 className="text-xs sm:text-sm font-semibold text-foreground">Visão de Metragem</h3>
-      </div>
+        <ChevronDown className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground transition-transform ml-auto ${expanded ? 'rotate-180' : ''}`} />
+      </CollapsibleTrigger>
+
+      <CollapsibleContent className="space-y-3 sm:space-y-4 data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up overflow-hidden">
 
       {/* Mobile: Cards agrupados por cidade */}
       <div className="sm:hidden space-y-2">
@@ -240,6 +245,7 @@ export function MetragemStats() {
           </table>
         </div>
       </div>
+      </CollapsibleContent>
 
       {/* Drill-down Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -306,6 +312,6 @@ export function MetragemStats() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </Collapsible>
   );
 }
