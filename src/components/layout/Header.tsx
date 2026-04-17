@@ -1,4 +1,4 @@
-import { Home, BarChart3, PlusCircle, LogOut, MessageSquare } from 'lucide-react';
+import { Home, BarChart3, PlusCircle, LogOut, Sparkles } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -76,10 +76,10 @@ export function Header() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setChatOpen(true)}
-                className="text-muted-foreground hover:text-foreground px-2 sm:px-3"
+                className="bg-gradient-to-br from-primary/15 to-primary/5 text-primary hover:from-primary/25 hover:to-primary/10 ring-1 ring-primary/30 px-2 sm:px-3"
                 title="Assistente IA"
               >
-                <MessageSquare className="h-4 w-4 sm:mr-2" />
+                <Sparkles className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">IA</span>
               </Button>
 

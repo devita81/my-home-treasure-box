@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageSquare, Send, Loader2, Bot, User } from 'lucide-react';
+import { Sparkles, Send, Loader2, Bot, User } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '@/integrations/supabase/client';
 import { useProperties } from '@/contexts/PropertyContext';
@@ -151,37 +151,41 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl h-[80vh] flex flex-col p-0">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b">
-          <DialogTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-primary" />
-            Assistente IA — Carteira de Imóveis
+      <DialogContent className="max-w-2xl w-[calc(100vw-1rem)] sm:w-full h-[100dvh] sm:h-[80vh] max-h-[100dvh] sm:max-h-[80vh] flex flex-col p-0 gap-0 rounded-none sm:rounded-lg">
+        <DialogHeader className="px-3 sm:px-6 pt-3 sm:pt-6 pb-2 sm:pb-4 border-b shrink-0">
+          <DialogTitle className="flex items-center gap-2 text-sm sm:text-base">
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shrink-0">
+              <Sparkles className="h-4 w-4 text-primary-foreground" />
+            </div>
+            <span className="truncate">Assistente IA — Imóveis</span>
           </DialogTitle>
-          <p className="text-[11px] text-muted-foreground">
-            Pergunte qualquer coisa sobre seus imóveis, valores, rentabilidade, mercado...
+          <p className="text-[10px] sm:text-[11px] text-muted-foreground">
+            Pergunte sobre seus imóveis, valores, rentabilidade...
           </p>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden" ref={scrollRef}>
-          <ScrollArea className="h-full px-6 py-4">
+        <div className="flex-1 min-h-0 overflow-hidden" ref={scrollRef}>
+          <ScrollArea className="h-full px-3 sm:px-6 py-3 sm:py-4">
             {messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground py-12">
-                <Bot className="h-12 w-12 mb-4 opacity-30" />
-                <p className="text-sm mb-2">Tenho acesso a todos os seus {properties.length} imóveis.</p>
-                <p className="text-xs text-muted-foreground">
-                  Exemplos: "Qual meu imóvel mais rentável?", "Quanto recebo de aluguel líquido?", "Compare os apartamentos em SP"
+              <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground py-8 sm:py-12">
+                <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-3">
+                  <Sparkles className="h-7 w-7 text-primary" />
+                </div>
+                <p className="text-sm mb-2">Tenho acesso aos seus {properties.length} imóveis.</p>
+                <p className="text-[11px] text-muted-foreground px-4">
+                  Ex: "Qual meu imóvel mais rentável?", "Quanto recebo de aluguel líquido?"
                 </p>
               </div>
             )}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {messages.map((msg, i) => (
-                <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+                <div key={i} className={`flex gap-2 sm:gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
                   {msg.role === 'assistant' && (
-                    <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-1">
-                      <Bot className="h-4 w-4 text-primary" />
+                    <div className="h-7 w-7 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shrink-0 mt-1">
+                      <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
                     </div>
                   )}
-                  <div className={`rounded-xl px-4 py-3 max-w-[85%] ${
+                  <div className={`rounded-xl px-3 sm:px-4 py-2 sm:py-3 max-w-[85%] ${
                     msg.role === 'user'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-secondary'
@@ -202,9 +206,9 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
                 </div>
               ))}
               {isLoading && messages[messages.length - 1]?.role === 'user' && (
-                <div className="flex gap-3">
-                  <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <Bot className="h-4 w-4 text-primary" />
+                <div className="flex gap-2 sm:gap-3">
+                  <div className="h-7 w-7 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shrink-0">
+                    <Sparkles className="h-3.5 w-3.5 text-primary-foreground animate-pulse" />
                   </div>
                   <div className="bg-secondary rounded-xl px-4 py-3">
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -215,17 +219,25 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
           </ScrollArea>
         </div>
 
-        <div className="border-t px-6 py-4">
-          <div className="flex gap-2">
+        <div
+          className="border-t px-3 sm:px-6 py-3 sm:py-4 shrink-0 bg-background"
+          style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+        >
+          <div className="flex gap-2 items-end">
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Pergunte sobre seus imóveis..."
-              className="resize-none min-h-[44px] max-h-[120px]"
+              className="resize-none min-h-[44px] max-h-[120px] flex-1 text-sm"
               rows={1}
             />
-            <Button onClick={sendMessage} disabled={!input.trim() || isLoading} size="icon" className="shrink-0">
+            <Button
+              onClick={sendMessage}
+              disabled={!input.trim() || isLoading}
+              size="icon"
+              className="shrink-0 h-11 w-11"
+            >
               <Send className="h-4 w-4" />
             </Button>
           </div>
