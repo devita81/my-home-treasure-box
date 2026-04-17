@@ -273,17 +273,17 @@ export function MetragemStats() {
 
           <div className="rounded-lg border bg-card overflow-hidden scroll-x-fade">
             <div className="overflow-x-auto scroll-x-visible">
-              <table className="w-full text-xs sm:text-sm min-w-[520px]">
+              <table className="w-full text-xs sm:text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">
                     <th className="text-left px-2 sm:px-3 py-2">
                       <SortButton field="address" label="Endereço" />
                     </th>
                     <th className="text-right px-2 sm:px-3 py-2">
-                      <SortButton field="metragem" label="Metragem" />
+                      <SortButton field="metragem" label="m²" />
                     </th>
                     <th className="text-right px-2 sm:px-3 py-2">
-                      <SortButton field="market_value" label="Valor de Mercado" />
+                      <SortButton field="market_value" label="Valor" />
                     </th>
                   </tr>
                 </thead>
