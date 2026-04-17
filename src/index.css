@@ -210,4 +210,45 @@
       transform: scale(1);
     }
   }
+
+  /* Always-visible thin horizontal scrollbar for mobile data tables */
+  .scroll-x-visible {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.4) transparent;
+  }
+  .scroll-x-visible::-webkit-scrollbar {
+    height: 8px;
+    -webkit-appearance: none;
+  }
+  .scroll-x-visible::-webkit-scrollbar-track {
+    background: hsl(var(--muted) / 0.5);
+    border-radius: 4px;
+  }
+  .scroll-x-visible::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.5);
+    border-radius: 4px;
+  }
+  .scroll-x-visible::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.7);
+  }
+
+  /* Right-edge fade to hint horizontal scrollability */
+  .scroll-x-fade {
+    position: relative;
+  }
+  .scroll-x-fade::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 8px;
+    width: 24px;
+    pointer-events: none;
+    background: linear-gradient(to right, transparent, hsl(var(--card)));
+    opacity: 0.9;
+  }
+  @media (min-width: 768px) {
+    .scroll-x-fade::after { display: none; }
+  }
 }
