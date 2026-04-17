@@ -14,7 +14,6 @@ export function Header() {
   const [chatOpen, setChatOpen] = useState(false);
 
   const navItems = [
-    { path: '/', label: 'Coleção', icon: Home },
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
     { path: '/add', label: 'Adicionar', icon: PlusCircle },
   ];
@@ -51,6 +50,7 @@ export function Header() {
               <nav className="flex items-center gap-0.5 sm:gap-1">
                 {navItems.map((item) => {
                   const isActive = location.pathname === item.path;
+                  const isAnalytics = item.path === '/analytics';
                   return (
                     <Link
                       key={item.path}
@@ -59,7 +59,9 @@ export function Header() {
                         'flex items-center gap-2 px-2 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
                         isActive
                           ? 'bg-primary text-primary-foreground'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                          : isAnalytics
+                            ? 'bg-primary/10 text-primary hover:bg-primary/20 ring-1 ring-primary/30'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                       )}
                       title={item.label}
                     >
