@@ -241,14 +241,17 @@ export function CustosReceitasStats() {
 
   return (
     <>
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
+      <Collapsible open={expanded} onOpenChange={setExpanded} className="space-y-4">
+        <CollapsibleTrigger className="flex items-center gap-2 w-full group hover:opacity-80 transition-opacity">
           <DollarSign className="h-5 w-5 text-primary" />
           <h3 className="font-display text-lg font-semibold">Custos e Receitas</h3>
-        </div>
-        <CostTable label="Imóveis Alugados" icon={TrendingUp} iconColor="text-green-600" groups={groupsAlugados} />
-        <CostTable label="Imóveis Não Alugados" icon={TrendingDown} iconColor="text-muted-foreground" groups={groupsNaoAlugados} />
-      </div>
+          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ml-auto ${expanded ? 'rotate-180' : ''}`} />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-4 data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up overflow-hidden">
+          <CostTable label="Imóveis Alugados" icon={TrendingUp} iconColor="text-green-600" groups={groupsAlugados} />
+          <CostTable label="Imóveis Não Alugados" icon={TrendingDown} iconColor="text-muted-foreground" groups={groupsNaoAlugados} />
+        </CollapsibleContent>
+      </Collapsible>
 
       <Dialog open={dialog.open} onOpenChange={(open) => setDialog((prev) => ({ ...prev, open }))}>
         <DialogContent className="max-w-4xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto">
