@@ -15,7 +15,6 @@ export function Header() {
 
   const navItems = [
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
-    { path: '/add', label: 'Adicionar', icon: PlusCircle },
   ];
 
   const handleLogout = async () => {
