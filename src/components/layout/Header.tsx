@@ -28,12 +28,12 @@ export function Header() {
     <>
       <header
         className="sticky top-0 z-50 glass-effect border-b border-border"
-        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+        style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}
       >
-        <div className="container mx-auto px-2 sm:px-4">
-          <div className="flex h-14 sm:h-16 items-center justify-between gap-1 sm:gap-2">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="flex h-12 sm:h-16 items-center justify-between gap-2">
             <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 shrink-0">
-              <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-transform group-hover:scale-105 shrink-0">
+              <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-transform group-hover:scale-105 shrink-0">
                 <Home className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
               <div className="flex-col min-w-0 hidden lg:flex">
@@ -46,8 +46,8 @@ export function Header() {
               </div>
             </Link>
 
-            <div className="flex items-center gap-0.5 sm:gap-2 shrink-0">
-              <nav className="flex items-center gap-0.5 sm:gap-1">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              <nav className="flex items-center gap-1">
                 {navItems.map((item) => {
                   const isActive = location.pathname === item.path;
                   const isAnalytics = item.path === '/analytics';
@@ -56,7 +56,7 @@ export function Header() {
                       key={item.path}
                       to={item.path}
                       className={cn(
-                        'flex items-center gap-2 px-2 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
+                        'flex items-center justify-center h-9 w-9 sm:h-9 sm:w-auto sm:gap-2 sm:px-4 rounded-lg text-sm font-medium transition-all duration-200',
                         isActive
                           ? 'bg-primary text-primary-foreground'
                           : isAnalytics
@@ -64,6 +64,7 @@ export function Header() {
                             : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                       )}
                       title={item.label}
+                      aria-label={item.label}
                     >
                       <item.icon className="h-4 w-4" />
                       <span className="hidden sm:inline">{item.label}</span>
@@ -76,8 +77,9 @@ export function Header() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setChatOpen(true)}
-                className="bg-gradient-to-br from-primary/15 to-primary/5 text-primary hover:from-primary/25 hover:to-primary/10 ring-1 ring-primary/30 px-2 sm:px-3"
+                className="bg-gradient-to-br from-primary/15 to-primary/5 text-primary hover:from-primary/25 hover:to-primary/10 ring-1 ring-primary/30 h-9 w-9 sm:w-auto sm:px-3 p-0 sm:p-2"
                 title="Assistente IA"
+                aria-label="Assistente IA"
               >
                 <Sparkles className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">IA</span>
@@ -88,8 +90,9 @@ export function Header() {
                   variant="ghost"
                   size="sm"
                   onClick={handleLogout}
-                  className="text-muted-foreground hover:text-foreground px-2 sm:px-3"
+                  className="text-muted-foreground hover:text-foreground hover:bg-destructive/10 hover:text-destructive h-9 w-9 sm:w-auto sm:px-3 p-0 sm:p-2"
                   title="Sair"
+                  aria-label="Sair"
                 >
                   <LogOut className="h-4 w-4 sm:mr-2" />
                   <span className="hidden sm:inline">Sair</span>
