@@ -389,6 +389,7 @@ export function CustosReceitasStats() {
               </table>
             </div>
           </div>
+          </div>
         </DialogContent>
       </Dialog>
     </>
