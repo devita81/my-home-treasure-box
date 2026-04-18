@@ -15,7 +15,6 @@ export function Header() {
 
   const navItems = [
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
-    { path: '/add', label: 'Adicionar', icon: PlusCircle },
   ];
 
   const handleLogout = async () => {
@@ -84,6 +83,17 @@ export function Header() {
                 <Sparkles className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">IA</span>
               </Button>
+
+              <Link to="/add" title="Adicionar Imóvel" aria-label="Adicionar Imóvel">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="bg-primary/10 text-primary hover:bg-primary/20 ring-1 ring-primary/30 h-9 w-9 sm:w-auto sm:px-3 p-0 sm:p-2"
+                >
+                  <PlusCircle className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Adicionar</span>
+                </Button>
+              </Link>
 
               {user && (
                 <Button
