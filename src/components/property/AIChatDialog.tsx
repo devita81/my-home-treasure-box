@@ -182,6 +182,7 @@ export const AIChatDialog = ({ open, onOpenChange, propertyContext }: AIChatDial
               onKeyDown={handleKeyDown}
               placeholder="Digite sua pergunta..."
               className="resize-none min-h-[44px] max-h-[120px]"
+              style={{ fontSize: '16px' }}
               rows={1}
             />
             <Button onClick={sendMessage} disabled={!input.trim() || isLoading} size="icon" className="shrink-0">
