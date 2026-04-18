@@ -151,7 +151,7 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[100vw] max-w-[100vw] sm:max-w-2xl sm:w-[calc(100vw-2rem)] h-[100dvh] sm:h-[80vh] max-h-[100dvh] sm:max-h-[80vh] flex flex-col p-0 gap-0 rounded-none sm:rounded-lg border-0 sm:border left-0 right-0 translate-x-0 sm:left-[50%] sm:translate-x-[-50%] top-0 translate-y-0 sm:top-[50%] sm:translate-y-[-50%]">
+      <DialogContent className="!grid-cols-1 w-[100vw] max-w-[100vw] sm:max-w-2xl sm:w-[calc(100vw-2rem)] h-[100dvh] sm:h-[80vh] max-h-[100dvh] sm:max-h-[80vh] flex flex-col p-0 gap-0 rounded-none sm:rounded-lg border-0 sm:border left-0 right-0 translate-x-0 sm:left-[50%] sm:translate-x-[-50%] top-0 translate-y-0 sm:top-[50%] sm:translate-y-[-50%] overflow-hidden">
         <DialogHeader className="px-3 sm:px-6 pt-3 sm:pt-6 pb-2 sm:pb-4 border-b shrink-0">
           <DialogTitle className="flex items-center gap-2 text-sm sm:text-base">
             <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shrink-0">
@@ -220,16 +220,16 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
         </div>
 
         <div
-          className="border-t px-2 sm:px-6 py-2 sm:py-4 shrink-0 bg-background"
+          className="border-t px-2 sm:px-6 py-2 sm:py-4 shrink-0 bg-background w-full max-w-full overflow-hidden"
           style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
         >
-          <div className="flex gap-1.5 sm:gap-2 items-end w-full">
+          <div className="flex gap-1.5 sm:gap-2 items-end w-full max-w-full">
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Pergunte sobre seus imóveis..."
-              className="resize-none min-h-[42px] max-h-[120px] flex-1 min-w-0 text-sm"
+              className="resize-none min-h-[42px] max-h-[120px] flex-1 min-w-0 w-full text-sm"
               rows={1}
             />
             <Button
