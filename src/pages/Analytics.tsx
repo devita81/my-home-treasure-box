@@ -82,7 +82,7 @@ interface DialogState {
 
 const Analytics = () => {
   const { properties } = useProperties();
-  const navigate = useNavigate();
+  
   const { exportToExcel, exportToPDF } = useExportData();
   const [rankingSortOrder, setRankingSortOrder] = useState<'asc' | 'desc'>('desc');
   const [rankingMetric, setRankingMetric] = useState<'declared_value' | 'market_value' | 'valor_aluguel' | 'valor_condominio' | 'iptu_value'>('market_value');
