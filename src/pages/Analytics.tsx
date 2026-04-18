@@ -53,7 +53,7 @@ import {
   AlertTriangle,
   BarChart3,
   Download,
-  ArrowLeft,
+  
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { Property } from '@/types/property';
