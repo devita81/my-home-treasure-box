@@ -246,36 +246,102 @@ export function StatsOverview() {
             <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-4">
               {dialog.properties.length} imóveis
               {dialog.valueKey && dialogTotal > 0 && (
-                <> - Total: {formatCurrencyFull(dialogTotal)}</>
+                <> • Total: {formatCurrencyFull(dialogTotal)}</>
               )}
             </p>
 
-            {/* Sort Headers */}
-            <div className="flex items-center justify-between border-b pb-2 mb-2">
+            {/* Sort Headers - desktop only (mobile uses dense cards) */}
+            <div className="hidden sm:flex items-center justify-between border-b pb-2 mb-2">
               <SortButton field="address" label="Endereço" />
               <SortButton field="value" label="Valor" />
             </div>
 
-            <div className="space-y-2">
+            {/* MOBILE: Dense card list (same pattern as Analytics drill-down) */}
+            <div className="sm:hidden rounded-lg border border-slate-200 bg-white overflow-hidden">
+              {sortedProperties.length === 0 ? (
+                <div className="text-center text-slate-400 py-12 text-sm">Nenhum imóvel encontrado</div>
+              ) : (
+                <ul className="divide-y divide-slate-100">
+                  {sortedProperties.map((property, index) => {
+                    const tipoLabel = (() => {
+                      const labels: Record<string, string> = {
+                        apartamento: 'Apto',
+                        casa: 'Casa',
+                        terreno: 'Terreno',
+                        conjunto_comercial: 'Conj. Com.',
+                      };
+                      return labels[property.tipo_imovel || ''] || property.tipo_imovel || '-';
+                    })();
+                    const addressParts = [property.rua];
+                    if (property.numero) addressParts.push(property.numero);
+                    if (property.apartamento) addressParts.push(`Apto ${property.apartamento}`);
+                    const address = addressParts.join(', ');
+
+                    return (
+                      <li key={property.id} className={`p-3 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}`}>
+                        <Link
+                          to={`/property/${property.id}`}
+                          onClick={() => setDialog((prev) => ({ ...prev, open: false }))}
+                          className="block"
+                        >
+                          <div className="flex items-start justify-between gap-2 mb-1.5">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[12px] font-semibold text-slate-900 truncate" title={address}>
+                                {address}
+                              </p>
+                              <p className="text-[10px] text-slate-500 truncate">
+                                {tipoLabel} • {property.cidade} - {property.estado}
+                              </p>
+                            </div>
+                            {property.alugado ? (
+                              <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
+                            ) : (
+                              <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Vago</span>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] font-mono tabular-nums text-slate-700">
+                            <div className="flex justify-between"><span className="text-slate-500">Mercado</span><span className="font-semibold text-slate-900">{formatCurrency(property.market_value || 0)}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">Declar.</span><span>{formatCurrency(property.declared_value)}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">Aluguel</span><span>{formatCurrency(property.valor_aluguel || 0)}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">IPTU</span><span>{formatCurrency(property.iptu_value || 0)}</span></div>
+                            <div className="flex justify-between col-span-2"><span className="text-slate-500">Condom.</span><span>{formatCurrency(property.valor_condominio || 0)}</span></div>
+                          </div>
+                          {(property.numero_matricula || property.proprietario_matricula) && (
+                            <div className="mt-1.5 pt-1.5 border-t border-slate-100 text-[9px] text-slate-500 truncate">
+                              {property.numero_matricula && <span className="font-mono">Matr. {property.numero_matricula}</span>}
+                              {property.numero_matricula && property.proprietario_matricula && <span> • </span>}
+                              {property.proprietario_matricula && <span className="truncate">{property.proprietario_matricula}</span>}
+                            </div>
+                          )}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+
+            {/* DESKTOP: Original simpler list */}
+            <div className="hidden sm:block space-y-2">
               {sortedProperties.map((property) => (
                 <Link
                   key={property.id}
                   to={`/property/${property.id}`}
-                  className="block p-2.5 sm:p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                  className="block p-3 rounded-lg border hover:bg-muted/50 transition-colors"
                   onClick={() => setDialog((prev) => ({ ...prev, open: false }))}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-xs sm:text-sm truncate">
+                      <p className="font-medium text-sm truncate">
                         {property.rua}, {property.numero}
                         {property.apartamento && ` - Apto ${property.apartamento}`}
                       </p>
-                      <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
+                      <p className="text-xs text-muted-foreground truncate">
                         {property.bairro}, {property.cidade}
                       </p>
                     </div>
                     {dialog.valueKey && (
-                      <p className="font-semibold text-xs sm:text-sm whitespace-nowrap shrink-0">
+                      <p className="font-semibold text-sm whitespace-nowrap shrink-0">
                         {formatCurrencyFull(Number(property[dialog.valueKey]) || 0)}
                       </p>
                     )}
