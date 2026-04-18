@@ -1,5 +1,5 @@
 import { useProperties } from '@/contexts/PropertyContext';
-import { Home, DollarSign, Key, CheckCircle, AlertTriangle, FileText, ArrowUpDown } from 'lucide-react';
+import { Home, DollarSign, Key, CheckCircle, AlertTriangle, FileText, ArrowUpDown, X } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { Property } from '@/types/property';
 import {
@@ -229,13 +229,31 @@ export function StatsOverview() {
 
       {/* Drill-down Dialog */}
       <Dialog open={dialog.open} onOpenChange={(open) => setDialog((prev) => ({ ...prev, open }))}>
-        <DialogContent className="!grid-cols-1 w-[100vw] max-w-[100vw] sm:max-w-2xl sm:w-[calc(100vw-2rem)] h-[100dvh] sm:h-auto sm:max-h-[80vh] overflow-hidden flex flex-col p-0 gap-0 rounded-none sm:rounded-lg border-0 sm:border left-0 right-0 translate-x-0 sm:left-[50%] sm:translate-x-[-50%] top-0 translate-y-0 sm:top-[50%] sm:translate-y-[-50%] [&>button.absolute]:top-[max(1rem,calc(env(safe-area-inset-top)+0.5rem))] [&>button.absolute]:right-3 [&>button.absolute]:z-20 [&>button.absolute]:bg-background/80 [&>button.absolute]:backdrop-blur-sm [&>button.absolute]:rounded-full [&>button.absolute]:p-1.5">
+        <DialogContent className="!grid-cols-1 w-[100vw] max-w-[100vw] sm:max-w-2xl sm:w-[calc(100vw-2rem)] h-[100dvh] sm:h-auto sm:max-h-[80vh] overflow-hidden flex flex-col p-0 gap-0 rounded-none sm:rounded-lg border-0 sm:border left-0 right-0 translate-x-0 sm:left-[50%] sm:translate-x-[-50%] top-0 translate-y-0 sm:top-[50%] sm:translate-y-[-50%] [&>button.absolute]:hidden sm:[&>button.absolute]:flex sm:[&>button.absolute]:top-4 sm:[&>button.absolute]:right-4">
           <DialogHeader
-            className="px-3 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b shrink-0"
-            style={{ paddingTop: 'max(1rem, calc(env(safe-area-inset-top) + 0.5rem))' }}
+            className="px-2 sm:px-6 pt-2 sm:pt-6 pb-2 sm:pb-4 border-b shrink-0 bg-background"
+            style={{ paddingTop: 'max(0.5rem, calc(env(safe-area-inset-top) + 0.25rem))' }}
           >
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pr-10">
-              <DialogTitle className="text-base sm:text-lg">{dialog.title}</DialogTitle>
+            {/* Mobile: app-bar style header */}
+            <div className="flex sm:hidden items-center gap-2">
+              <button
+                onClick={() => setDialog((prev) => ({ ...prev, open: false }))}
+                className="flex items-center justify-center h-10 w-10 rounded-full hover:bg-muted active:bg-muted/80 text-foreground shrink-0"
+                aria-label="Fechar"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              <DialogTitle className="text-base font-semibold flex-1 text-center truncate px-1">{dialog.title}</DialogTitle>
+              <div className="shrink-0">
+                <ExportButtons
+                  onExportExcel={() => exportToExcel(sortedProperties, dialog.title, simpleColumns)}
+                  onExportPDF={() => exportToPDF(sortedProperties, dialog.title, `${dialog.properties.length} imóveis`, simpleColumns)}
+                />
+              </div>
+            </div>
+            {/* Desktop: original layout */}
+            <div className="hidden sm:flex sm:items-center sm:justify-between gap-2 pr-10">
+              <DialogTitle className="text-lg">{dialog.title}</DialogTitle>
               <ExportButtons
                 onExportExcel={() => exportToExcel(sortedProperties, dialog.title, simpleColumns)}
                 onExportPDF={() => exportToPDF(sortedProperties, dialog.title, `${dialog.properties.length} imóveis`, simpleColumns)}
