@@ -274,56 +274,65 @@ export function CustosReceitasStats() {
               />
             </div>
 
-          {/* Mobile: cards empilhados */}
-          <div className="sm:hidden space-y-2">
-            {dialog.properties.map((p) => {
-              const iptuMes = (p.iptu_value ?? 0) / 12;
-              const liquido = (p.valor_aluguel ?? 0) - (p.valor_condominio ?? 0) - iptuMes - (p.taxa_administracao ?? 0);
-              return (
-                <Link
-                  key={p.id}
-                  to={`/property/${p.id}`}
-                  className="block rounded-lg border bg-card p-2.5 active:bg-muted/30"
-                >
-                  <p className="font-medium text-[11px] text-foreground break-words">
-                    {p.rua}{p.numero ? `, ${p.numero}` : ''}{p.apartamento ? ` – Ap ${p.apartamento}` : ''}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground break-words mb-1.5">{p.bairro}, {p.cidade}</p>
-                  <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
-                    <div className="flex justify-between"><span className="text-muted-foreground">Aluguel</span><span className="font-medium tabular-nums">{fmtFull(p.valor_aluguel ?? 0)}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Cond.</span><span className="font-medium tabular-nums">{fmtFull(p.valor_condominio ?? 0)}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">IPTU/mês</span><span className="font-medium tabular-nums">{fmtFull(iptuMes)}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Taxa Adm</span><span className="font-medium tabular-nums">{fmtFull(p.taxa_administracao ?? 0)}</span></div>
-                    <div className="col-span-2 flex justify-between border-t pt-1 mt-0.5">
-                      <span className="text-muted-foreground font-semibold">Líquido</span>
-                      <span className={`font-bold tabular-nums ${liquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmtFull(liquido)}</span>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-            {dialog.properties.length > 1 && (() => {
-              const totAluguel = dialog.properties.reduce((s, p) => s + (p.valor_aluguel ?? 0), 0);
-              const totCond = dialog.properties.reduce((s, p) => s + (p.valor_condominio ?? 0), 0);
-              const totIptu = dialog.properties.reduce((s, p) => s + ((p.iptu_value ?? 0) / 12), 0);
-              const totAdm = dialog.properties.reduce((s, p) => s + (p.taxa_administracao ?? 0), 0);
-              const totLiq = totAluguel - totCond - totIptu - totAdm;
-              return (
-                <div className="rounded-lg border-2 bg-muted/50 p-2.5">
-                  <p className="text-[11px] font-bold mb-1.5">Total ({dialog.properties.length} imóveis)</p>
-                  <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
-                    <div className="flex justify-between"><span className="text-muted-foreground">Aluguel</span><span className="font-bold tabular-nums">{fmtFull(totAluguel)}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Cond.</span><span className="font-bold tabular-nums">{fmtFull(totCond)}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">IPTU/mês</span><span className="font-bold tabular-nums">{fmtFull(totIptu)}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Taxa Adm</span><span className="font-bold tabular-nums">{fmtFull(totAdm)}</span></div>
-                    <div className="col-span-2 flex justify-between border-t pt-1 mt-0.5">
-                      <span className="text-muted-foreground font-semibold">Líquido</span>
-                      <span className={`font-bold tabular-nums ${totLiq >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmtFull(totLiq)}</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
+          {/* Mobile: dense cards (mesmo padrão do drill-down do Analytics) */}
+          <div className="sm:hidden rounded-lg border border-slate-200 bg-white overflow-hidden">
+            {dialog.properties.length === 0 ? (
+              <div className="text-center text-slate-400 py-12 text-sm">Nenhum imóvel encontrado</div>
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {dialog.properties.map((p, index) => {
+                  const tipoLabel = (() => {
+                    const labels: Record<string, string> = {
+                      apartamento: 'Apto',
+                      casa: 'Casa',
+                      terreno: 'Terreno',
+                      conjunto_comercial: 'Conj. Com.',
+                    };
+                    return labels[p.tipo_imovel || ''] || p.tipo_imovel || '-';
+                  })();
+                  const addressParts = [p.rua];
+                  if (p.numero) addressParts.push(p.numero);
+                  if (p.apartamento) addressParts.push(`Apto ${p.apartamento}`);
+                  const address = addressParts.join(', ');
+
+                  return (
+                    <li key={p.id} className={`p-3 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}`}>
+                      <Link to={`/property/${p.id}`} className="block">
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[12px] font-semibold text-slate-900 truncate" title={address}>
+                              {address}
+                            </p>
+                            <p className="text-[10px] text-slate-500 truncate">
+                              {tipoLabel} • {p.cidade} - {p.estado}
+                            </p>
+                          </div>
+                          {p.alugado ? (
+                            <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
+                          ) : (
+                            <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Vago</span>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] font-mono tabular-nums text-slate-700">
+                          <div className="flex justify-between"><span className="text-slate-500">Mercado</span><span className="font-semibold text-slate-900">{fmt(p.market_value || 0)}</span></div>
+                          <div className="flex justify-between"><span className="text-slate-500">Declar.</span><span>{fmt(p.declared_value)}</span></div>
+                          <div className="flex justify-between"><span className="text-slate-500">Aluguel</span><span>{fmt(p.valor_aluguel || 0)}</span></div>
+                          <div className="flex justify-between"><span className="text-slate-500">IPTU</span><span>{fmt(p.iptu_value || 0)}</span></div>
+                          <div className="flex justify-between col-span-2"><span className="text-slate-500">Condom.</span><span>{fmt(p.valor_condominio || 0)}</span></div>
+                        </div>
+                        {(p.numero_matricula || p.proprietario_matricula) && (
+                          <div className="mt-1.5 pt-1.5 border-t border-slate-100 text-[9px] text-slate-500 truncate">
+                            {p.numero_matricula && <span className="font-mono">Matr. {p.numero_matricula}</span>}
+                            {p.numero_matricula && p.proprietario_matricula && <span> • </span>}
+                            {p.proprietario_matricula && <span className="truncate">{p.proprietario_matricula}</span>}
+                          </div>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
 
           {/* Desktop: tabela */}
