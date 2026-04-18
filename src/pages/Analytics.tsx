@@ -865,9 +865,12 @@ const Analytics = () => {
 
       {/* ==================== DRILL-DOWN DIALOG ==================== */}
       <Dialog open={dialogState.isOpen} onOpenChange={(open) => !open && closeDialog()}>
-        <DialogContent className="max-w-6xl h-[92vh] sm:h-[85vh] overflow-hidden flex flex-col p-0 bg-white border-slate-200">
-          <DialogHeader className="px-3 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-slate-200">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pr-8">
+        <DialogContent className="!grid-cols-1 w-[100vw] max-w-[100vw] sm:max-w-6xl sm:w-[calc(100vw-2rem)] h-[100dvh] sm:h-[85vh] max-h-[100dvh] sm:max-h-[85vh] overflow-hidden flex flex-col p-0 gap-0 bg-white border-0 sm:border border-slate-200 rounded-none sm:rounded-lg left-0 right-0 translate-x-0 sm:left-[50%] sm:translate-x-[-50%] top-0 translate-y-0 sm:top-[50%] sm:translate-y-[-50%] [&>button.absolute]:top-[max(1rem,calc(env(safe-area-inset-top)+0.5rem))] [&>button.absolute]:right-3 [&>button.absolute]:z-20 [&>button.absolute]:bg-background/80 [&>button.absolute]:backdrop-blur-sm [&>button.absolute]:rounded-full [&>button.absolute]:p-1.5">
+          <DialogHeader
+            className="px-3 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-slate-200 shrink-0"
+            style={{ paddingTop: 'max(1rem, calc(env(safe-area-inset-top) + 0.5rem))' }}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pr-10">
               <div className="min-w-0">
                 <DialogTitle className="flex items-center gap-2 text-sm sm:text-base text-slate-900 truncate">
                   <Home className="h-4 w-4 text-slate-500 shrink-0" />
@@ -882,72 +885,122 @@ const Analytics = () => {
             </div>
           </DialogHeader>
           
-          <div className="flex-1 min-h-0 px-3 sm:px-6 py-3 sm:py-4">
-            <div className="rounded-lg border border-slate-200 h-full bg-white overflow-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
-              <table className="min-w-[1600px] w-full caption-bottom text-xs">
-                  <thead className="sticky top-0 bg-slate-100 backdrop-blur-sm z-10">
-                    <tr className="border-b border-slate-200">
-                      <SortableHeader field="rua" label="Endereço" />
-                      <SortableHeader field="tipo_imovel" label="Tipo" />
-                      <SortableHeader field="cidade" label="Cidade" />
-                      <SortableHeader field="numero_matricula" label="Matrícula" />
-                      <SortableHeader field="numero_contribuinte" label="Nº Contrib." />
-                      <SortableHeader field="proprietario_papel" label="Prop. Papel" />
-                      <SortableHeader field="proprietario_matricula" label="Prop. Matr. I" />
-                      <SortableHeader field="proprietario_matricula_ii" label="Prop. Matr. II" />
-                      <SortableHeader field="declared_value" label="Declarado" />
-                      <SortableHeader field="market_value" label="Mercado" />
-                      <SortableHeader field="valor_condominio" label="Condom." />
-                      <SortableHeader field="iptu_value" label="IPTU" />
-                      <SortableHeader field="valor_aluguel" label="Aluguel" />
-                      <SortableHeader field="alugado" label="Status" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sortedDialogProperties.map((property, index) => (
-                      <tr 
-                        key={property.id} 
-                        className={`border-b border-slate-100 hover:bg-blue-50/50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}`}
+          <div className="flex-1 min-h-0 px-3 sm:px-6 py-3 sm:py-4 overflow-hidden">
+            {/* MOBILE: Card list (no horizontal scroll) */}
+            <div className="sm:hidden h-full overflow-y-auto rounded-lg border border-slate-200 bg-white" style={{ WebkitOverflowScrolling: 'touch' }}>
+              {sortedDialogProperties.length === 0 ? (
+                <div className="text-center text-slate-400 py-12 text-sm">Nenhum imóvel encontrado</div>
+              ) : (
+                <ul className="divide-y divide-slate-100">
+                  {sortedDialogProperties.map((property, index) => (
+                    <li key={property.id} className={`p-3 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}`}>
+                      <Link
+                        to={`/property/${property.id}`}
+                        onClick={closeDialog}
+                        className="block"
                       >
-                        <td className="py-2 px-3 max-w-[180px]">
-                          <Link 
-                            to={`/property/${property.id}`}
-                            className="text-slate-900 hover:text-blue-600 block truncate text-[11px] font-medium"
-                            onClick={closeDialog}
-                            title={getPropertyAddress(property)}
-                          >
-                            {getPropertyAddress(property)}
-                          </Link>
-                        </td>
-                        <td className="py-2 px-3 text-[10px] text-slate-600">{getTipoLabel(property.tipo_imovel)}</td>
-                        <td className="py-2 px-3 text-[10px] text-slate-600 whitespace-nowrap">{property.cidade} - {property.estado}</td>
-                        <td className="py-2 px-3 text-[10px] text-slate-700 font-mono whitespace-nowrap">{property.numero_matricula || '—'}</td>
-                        <td className="py-2 px-3 text-[10px] text-slate-700 font-mono whitespace-nowrap">{property.numero_contribuinte || '—'}</td>
-                        <td className="py-2 px-3 text-[10px] text-slate-600 max-w-[160px] truncate">{property.proprietario_papel || '—'}</td>
-                        <td className="py-2 px-3 text-[10px] text-slate-600 max-w-[200px] truncate">{property.proprietario_matricula || '—'}</td>
-                        <td className="py-2 px-3 text-[10px] text-slate-600 max-w-[200px] truncate">{property.proprietario_matricula_ii || '—'}</td>
-                        <td className="text-right py-2 px-3 text-[11px] text-slate-700 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.declared_value)}</td>
-                        <td className="text-right py-2 px-3 text-[11px] text-slate-900 font-mono tabular-nums font-semibold whitespace-nowrap">{formatCurrency(property.market_value || 0)}</td>
-                        <td className="text-right py-2 px-3 text-[11px] text-slate-700 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.valor_condominio || 0)}</td>
-                        <td className="text-right py-2 px-3 text-[11px] text-slate-700 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.iptu_value || 0)}</td>
-                        <td className="text-right py-2 px-3 text-[11px] text-slate-700 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.valor_aluguel || 0)}</td>
-                        <td className="text-center py-2 px-3">
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[12px] font-semibold text-slate-900 truncate" title={getPropertyAddress(property)}>
+                              {getPropertyAddress(property)}
+                            </p>
+                            <p className="text-[10px] text-slate-500 truncate">
+                              {getTipoLabel(property.tipo_imovel)} • {property.cidade} - {property.estado}
+                            </p>
+                          </div>
                           {property.alugado ? (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
+                            <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
                           ) : (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Vago</span>
+                            <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Vago</span>
                           )}
-                        </td>
-                      </tr>
-                    ))}
-                    {sortedDialogProperties.length === 0 && (
-                      <tr>
-                        <td colSpan={14} className="text-center text-slate-400 py-12 text-sm">
-                          Nenhum imóvel encontrado
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] font-mono tabular-nums text-slate-700">
+                          <div className="flex justify-between"><span className="text-slate-500">Mercado</span><span className="font-semibold text-slate-900">{formatCurrency(property.market_value || 0)}</span></div>
+                          <div className="flex justify-between"><span className="text-slate-500">Declar.</span><span>{formatCurrency(property.declared_value)}</span></div>
+                          <div className="flex justify-between"><span className="text-slate-500">Aluguel</span><span>{formatCurrency(property.valor_aluguel || 0)}</span></div>
+                          <div className="flex justify-between"><span className="text-slate-500">IPTU</span><span>{formatCurrency(property.iptu_value || 0)}</span></div>
+                          <div className="flex justify-between col-span-2"><span className="text-slate-500">Condom.</span><span>{formatCurrency(property.valor_condominio || 0)}</span></div>
+                        </div>
+                        {(property.numero_matricula || property.proprietario_matricula) && (
+                          <div className="mt-1.5 pt-1.5 border-t border-slate-100 text-[9px] text-slate-500 truncate">
+                            {property.numero_matricula && <span className="font-mono">Matr. {property.numero_matricula}</span>}
+                            {property.numero_matricula && property.proprietario_matricula && <span> • </span>}
+                            {property.proprietario_matricula && <span className="truncate">{property.proprietario_matricula}</span>}
+                          </div>
+                        )}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* DESKTOP: Table with horizontal scroll */}
+            <div className="hidden sm:block rounded-lg border border-slate-200 h-full bg-white overflow-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <table className="min-w-[1600px] w-full caption-bottom text-xs">
+                <thead className="sticky top-0 bg-slate-100 backdrop-blur-sm z-10">
+                  <tr className="border-b border-slate-200">
+                    <SortableHeader field="rua" label="Endereço" />
+                    <SortableHeader field="tipo_imovel" label="Tipo" />
+                    <SortableHeader field="cidade" label="Cidade" />
+                    <SortableHeader field="numero_matricula" label="Matrícula" />
+                    <SortableHeader field="numero_contribuinte" label="Nº Contrib." />
+                    <SortableHeader field="proprietario_papel" label="Prop. Papel" />
+                    <SortableHeader field="proprietario_matricula" label="Prop. Matr. I" />
+                    <SortableHeader field="proprietario_matricula_ii" label="Prop. Matr. II" />
+                    <SortableHeader field="declared_value" label="Declarado" />
+                    <SortableHeader field="market_value" label="Mercado" />
+                    <SortableHeader field="valor_condominio" label="Condom." />
+                    <SortableHeader field="iptu_value" label="IPTU" />
+                    <SortableHeader field="valor_aluguel" label="Aluguel" />
+                    <SortableHeader field="alugado" label="Status" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedDialogProperties.map((property, index) => (
+                    <tr 
+                      key={property.id} 
+                      className={`border-b border-slate-100 hover:bg-blue-50/50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}`}
+                    >
+                      <td className="py-2 px-3 max-w-[180px]">
+                        <Link 
+                          to={`/property/${property.id}`}
+                          className="text-slate-900 hover:text-blue-600 block truncate text-[11px] font-medium"
+                          onClick={closeDialog}
+                          title={getPropertyAddress(property)}
+                        >
+                          {getPropertyAddress(property)}
+                        </Link>
+                      </td>
+                      <td className="py-2 px-3 text-[10px] text-slate-600">{getTipoLabel(property.tipo_imovel)}</td>
+                      <td className="py-2 px-3 text-[10px] text-slate-600 whitespace-nowrap">{property.cidade} - {property.estado}</td>
+                      <td className="py-2 px-3 text-[10px] text-slate-700 font-mono whitespace-nowrap">{property.numero_matricula || '—'}</td>
+                      <td className="py-2 px-3 text-[10px] text-slate-700 font-mono whitespace-nowrap">{property.numero_contribuinte || '—'}</td>
+                      <td className="py-2 px-3 text-[10px] text-slate-600 max-w-[160px] truncate">{property.proprietario_papel || '—'}</td>
+                      <td className="py-2 px-3 text-[10px] text-slate-600 max-w-[200px] truncate">{property.proprietario_matricula || '—'}</td>
+                      <td className="py-2 px-3 text-[10px] text-slate-600 max-w-[200px] truncate">{property.proprietario_matricula_ii || '—'}</td>
+                      <td className="text-right py-2 px-3 text-[11px] text-slate-700 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.declared_value)}</td>
+                      <td className="text-right py-2 px-3 text-[11px] text-slate-900 font-mono tabular-nums font-semibold whitespace-nowrap">{formatCurrency(property.market_value || 0)}</td>
+                      <td className="text-right py-2 px-3 text-[11px] text-slate-700 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.valor_condominio || 0)}</td>
+                      <td className="text-right py-2 px-3 text-[11px] text-slate-700 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.iptu_value || 0)}</td>
+                      <td className="text-right py-2 px-3 text-[11px] text-slate-700 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.valor_aluguel || 0)}</td>
+                      <td className="text-center py-2 px-3">
+                        {property.alugado ? (
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
+                        ) : (
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Vago</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {sortedDialogProperties.length === 0 && (
+                    <tr>
+                      <td colSpan={14} className="text-center text-slate-400 py-12 text-sm">
+                        Nenhum imóvel encontrado
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
               </table>
             </div>
           </div>
