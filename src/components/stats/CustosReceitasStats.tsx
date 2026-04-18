@@ -259,16 +259,20 @@ export function CustosReceitasStats() {
       </Collapsible>
 
       <Dialog open={dialog.open} onOpenChange={(open) => setDialog((prev) => ({ ...prev, open }))}>
-        <DialogContent className="w-[calc(100vw-1rem)] max-w-4xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto p-3 sm:p-6">
-          <DialogHeader>
-            <DialogTitle className="text-sm sm:text-base font-semibold pr-8">{dialog.title}</DialogTitle>
+        <DialogContent className="!grid-cols-1 w-[100vw] max-w-[100vw] sm:max-w-4xl sm:w-[calc(100vw-2rem)] h-[100dvh] sm:h-auto sm:max-h-[85vh] overflow-hidden flex flex-col p-0 gap-0 rounded-none sm:rounded-lg border-0 sm:border left-0 right-0 translate-x-0 sm:left-[50%] sm:translate-x-[-50%] top-0 translate-y-0 sm:top-[50%] sm:translate-y-[-50%] [&>button.absolute]:top-[max(1rem,calc(env(safe-area-inset-top)+0.5rem))] [&>button.absolute]:right-3 [&>button.absolute]:z-20 [&>button.absolute]:bg-background/80 [&>button.absolute]:backdrop-blur-sm [&>button.absolute]:rounded-full [&>button.absolute]:p-1.5">
+          <DialogHeader
+            className="px-3 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b shrink-0"
+            style={{ paddingTop: 'max(1rem, calc(env(safe-area-inset-top) + 0.5rem))' }}
+          >
+            <DialogTitle className="text-sm sm:text-base font-semibold pr-10">{dialog.title}</DialogTitle>
           </DialogHeader>
-          <div className="flex items-center justify-end -mt-2">
-            <ExportButtons
-              onExportExcel={() => exportToExcel(dialog.properties, dialog.title, simpleColumns)}
-              onExportPDF={() => exportToPDF(dialog.properties, dialog.title, undefined, simpleColumns)}
-            />
-          </div>
+          <div className="flex-1 min-h-0 overflow-y-auto px-3 sm:px-6 py-3 sm:py-4">
+            <div className="flex items-center justify-end mb-2">
+              <ExportButtons
+                onExportExcel={() => exportToExcel(dialog.properties, dialog.title, simpleColumns)}
+                onExportPDF={() => exportToPDF(dialog.properties, dialog.title, undefined, simpleColumns)}
+              />
+            </div>
 
           {/* Mobile: cards empilhados */}
           <div className="sm:hidden space-y-2">
@@ -384,6 +388,7 @@ export function CustosReceitasStats() {
                 </tbody>
               </table>
             </div>
+          </div>
           </div>
         </DialogContent>
       </Dialog>
