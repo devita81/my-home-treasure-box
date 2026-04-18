@@ -229,7 +229,8 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Pergunte sobre seus imóveis..."
-              className="resize-none min-h-[42px] max-h-[120px] flex-1 min-w-0 w-full text-sm"
+              className="resize-none min-h-[42px] max-h-[120px] flex-1 min-w-0 w-full text-base sm:text-sm"
+              style={{ fontSize: '16px' }}
               rows={1}
             />
             <Button
