@@ -1,5 +1,5 @@
 import { useProperties } from '@/contexts/PropertyContext';
-import { Home, DollarSign, Key, CheckCircle, AlertTriangle, FileText, ArrowUpDown } from 'lucide-react';
+import { Home, DollarSign, Key, CheckCircle, AlertTriangle, FileText, ArrowUpDown, X } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { Property } from '@/types/property';
 import {
