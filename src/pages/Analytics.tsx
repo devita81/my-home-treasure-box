@@ -429,31 +429,18 @@ const Analytics = () => {
 
   return (
     <div className="min-h-screen bg-slate-800">
-      {/* Header */}
-      <header
-        className="sticky top-0 z-50 w-full bg-slate-900/95 backdrop-blur-md border-b border-white/5"
-        style={{ paddingTop: 'env(safe-area-inset-top)' }}
-      >
-        <div className="container px-3 sm:px-4 flex h-11 items-center justify-between gap-2">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="text-slate-400 hover:text-white hover:bg-white/5 h-7 w-7 p-0 shrink-0">
-              <ArrowLeft className="h-3.5 w-3.5" />
-            </Button>
-            <div className="h-px w-4 bg-slate-700 hidden sm:block" />
-            <h1 className="text-xs font-medium text-slate-300 tracking-widest uppercase truncate">Analytics</h1>
-            <span className="text-[10px] text-slate-300 font-mono ml-1 shrink-0">{properties.length} imóveis</span>
-          </div>
-          <div className="flex items-center gap-1 shrink-0">
-            <Button variant="ghost" size="sm" onClick={handleExportExcel} className="text-slate-400 hover:text-slate-200 hover:bg-white/5 gap-1.5 h-7 px-2 text-[10px] uppercase tracking-wider">
-              <Download className="h-3 w-3" />
-              <span className="hidden sm:inline">Exportar</span>
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="text-slate-400 hover:text-slate-200 hover:bg-white/5 h-7 w-7 p-0">
-              <Home className="h-3.5 w-3.5" />
-            </Button>
-          </div>
+      <Header />
+
+      <div className="container px-3 sm:px-4 pt-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <h1 className="text-xs font-medium text-slate-300 tracking-widest uppercase truncate">Analytics</h1>
+          <span className="text-[10px] text-slate-300 font-mono shrink-0">{properties.length} imóveis</span>
         </div>
-      </header>
+        <Button variant="ghost" size="sm" onClick={handleExportExcel} className="text-slate-400 hover:text-slate-200 hover:bg-white/5 gap-1.5 h-7 px-2 text-[10px] uppercase tracking-wider">
+          <Download className="h-3 w-3" />
+          <span className="hidden sm:inline">Exportar</span>
+        </Button>
+      </div>
 
       <main className="container px-3 sm:px-4 py-3 sm:py-5 space-y-3 sm:space-y-4">
         {/* ─── Value Summary ─── */}
