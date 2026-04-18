@@ -57,16 +57,24 @@ const Index = () => {
         <PropertyFilters />
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Home className="h-5 w-5 text-primary" />
-              <h2 className="font-display text-xl font-semibold">Meus Imóveis</h2>
-              <span className="text-sm text-muted-foreground">({filteredProperties.length} encontrados)</span>
+          <div className="flex items-center justify-between gap-3 rounded-lg border bg-card px-3 py-2.5 sm:px-4 sm:py-3 shadow-sm">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="hidden sm:flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 shrink-0">
+                <Home className="h-4 w-4 text-primary" />
+              </div>
+              <Home className="h-4 w-4 text-primary sm:hidden shrink-0" />
+              <div className="min-w-0 flex items-baseline gap-1.5 sm:gap-2">
+                <h2 className="font-display text-base sm:text-xl font-semibold truncate">Meus Imóveis</h2>
+                <span className="text-[11px] sm:text-sm text-muted-foreground tabular-nums whitespace-nowrap">
+                  {filteredProperties.length}
+                </span>
+              </div>
             </div>
-            <Link to="/add">
-              <Button>
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Adicionar Imóvel
+            <Link to="/add" className="shrink-0">
+              <Button size="sm" className="h-8 sm:h-9 px-2.5 sm:px-4 text-xs sm:text-sm">
+                <PlusCircle className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Adicionar Imóvel</span>
+                <span className="sm:hidden ml-1">Adicionar</span>
               </Button>
             </Link>
           </div>
