@@ -26,6 +26,7 @@ import {
   Home,
   Key,
   Building,
+  Building2,
   Ruler,
   BedDouble,
   Bath,
@@ -257,6 +258,9 @@ const PropertyDetails = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [itbiResult, setItbiResult] = useState<string | null>(null);
+  const [isLoadingItbi, setIsLoadingItbi] = useState(false);
+  const [itbiDialogOpen, setItbiDialogOpen] = useState(false);
   const [estimates, setEstimates] = useState<MarketEstimates>({
     vendaMin: null, vendaMed: null, vendaMax: null,
     aluguelMin: null, aluguelMed: null, aluguelMax: null,
@@ -357,9 +361,54 @@ const PropertyDetails = () => {
     }
   };
 
-  if (!property) {
-    return <Navigate to="/" replace />;
-  }
+  // Consulta ITBI da Prefeitura de SP
+  const lookupItbi = async () => {
+    if (!property) return;
+    const cidadeLower = (property.cidade ?? '').toLowerCase();
+    if (cidadeLower !== 'são paulo' && cidadeLower !== 'sao paulo') {
+      toast.error('Disponível apenas para imóveis em São Paulo (capital)');
+      return;
+    }
+
+    setIsLoadingItbi(true);
+    setItbiResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('itbi-lookup', {
+        body: {
+          rua: property.rua,
+          numero: property.numero,
+          bairro: property.bairro,
+          cidade: property.cidade,
+          estado: property.estado,
+          declared_value: property.declared_value,
+          market_value: property.market_value,
+          tipo_imovel: property.tipo_imovel,
+          metragem: property.metragem,
+        },
+      });
+
+      if (error) {
+        logger.error('Erro ITBI:', error);
+        toast.error('Erro ao consultar ITBI');
+        return;
+      }
+
+      if (data?.result) {
+        setItbiResult(data.result);
+        setItbiDialogOpen(true);
+        if (!data.hadData) {
+          toast.warning('Nenhuma transação ITBI específica encontrada');
+        } else {
+          toast.success('Análise ITBI concluída');
+        }
+      }
+    } catch (e) {
+      logger.error('Erro ITBI:', e);
+      toast.error('Erro ao consultar ITBI');
+    } finally {
+      setIsLoadingItbi(false);
+    }
+  };
 
   const formatCurrency = (value: number | null | undefined) => {
     if (value === null || value === undefined) return null;
@@ -785,6 +834,22 @@ const PropertyDetails = () => {
                 </Button>
 
                 <Button
+                  onClick={lookupItbi}
+                  disabled={isLoadingItbi}
+                  variant="outline"
+                  className="gap-2 border-amber-600/40 bg-amber-50 hover:bg-amber-100 text-amber-900"
+                  size="lg"
+                  title="Consulta transações ITBI da Prefeitura de São Paulo"
+                >
+                  {isLoadingItbi ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Building2 className="h-4 w-4" />
+                  )}
+                  {isLoadingItbi ? 'Consultando ITBI...' : 'Comparar ITBI (SP)'}
+                </Button>
+
+                <Button
                   onClick={() => setChatOpen(true)}
                   variant="outline"
                   className="gap-2"
@@ -912,6 +977,33 @@ const PropertyDetails = () => {
         onOpenChange={setReportOpen}
         property={property}
       />
+
+      {/* Dialog ITBI */}
+      <Dialog open={itbiDialogOpen} onOpenChange={setItbiDialogOpen}>
+        <DialogContent className="w-[min(96vw,1100px)] max-w-5xl max-h-[88vh] overflow-hidden flex flex-col p-0">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b bg-card">
+            <DialogTitle className="flex items-center gap-2 text-base font-semibold pr-8">
+              <Building2 className="h-4 w-4 text-amber-700" />
+              Comparativo ITBI — Prefeitura de São Paulo
+            </DialogTitle>
+            <p className="text-[11px] leading-5 text-muted-foreground">
+              Análise baseada em dados públicos de transações imobiliárias da Prefeitura de SP.
+            </p>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto bg-muted/20 px-6 py-5">
+            {itbiResult && (
+              <div className="mx-auto max-w-none rounded-2xl border border-border/60 bg-background p-5 shadow-sm">
+                <div
+                  className="space-y-4 text-sm"
+                  dangerouslySetInnerHTML={{
+                    __html: convertMarkdownToHtml(itbiResult)
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
