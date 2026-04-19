@@ -447,15 +447,15 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               </div>
             </div>
 
-            <div className="flex gap-2 pt-3 mt-3 border-t border-border/40">
-              <Link to={`/property/${property.id}`} className="flex-1" onClick={(e) => e.stopPropagation()}>
-                <Button variant="default" size="sm" className="w-full">
-                  <Eye className="h-3.5 w-3.5 mr-1.5" />
-                  Ver detalhes
+            <div className={compact ? 'flex gap-1 pt-2 mt-2 border-t border-border/40' : 'flex gap-2 pt-3 mt-3 border-t border-border/40'}>
+              <Link to={`/property/${property.id}`} className="flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+                <Button variant="default" size="sm" className={compact ? 'w-full h-8 px-1.5 text-[11px]' : 'w-full'}>
+                  <Eye className={compact ? 'h-3.5 w-3.5' : 'h-3.5 w-3.5 mr-1.5'} />
+                  {!compact && 'Ver detalhes'}
                 </Button>
               </Link>
               <Link to={`/edit/${property.id}`} onClick={(e) => e.stopPropagation()}>
-                <Button variant="outline" size="sm" className="px-3">
+                <Button variant="outline" size="sm" className={compact ? 'h-8 w-8 p-0' : 'px-3'} title="Editar">
                   <Edit className="h-3.5 w-3.5" />
                 </Button>
               </Link>
@@ -467,7 +467,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                     e.stopPropagation();
                     onDuplicate(property.id);
                   }}
-                  className="px-3"
+                  className={compact ? 'h-8 w-8 p-0' : 'px-3'}
                   title="Duplicar imóvel"
                 >
                   <Copy className="h-3.5 w-3.5" />
@@ -480,10 +480,12 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                   e.stopPropagation();
                   setShowReport(true);
                 }}
-                className="px-3 bg-background border-red-700/40 hover:bg-red-50 hover:border-red-700/60"
+                className={compact
+                  ? 'h-8 w-8 p-0 bg-background border-destructive/40 hover:bg-destructive/10'
+                  : 'px-3 bg-background border-destructive/40 hover:bg-destructive/10'}
                 title="Relatório PDF"
               >
-                <FileText className="h-3.5 w-3.5 text-red-700" />
+                <FileText className="h-3.5 w-3.5 text-destructive" />
               </Button>
               {onDelete && (
                 <Button
@@ -493,7 +495,10 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                     e.stopPropagation();
                     onDelete(property.id);
                   }}
-                  className="px-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  className={compact
+                    ? 'h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10'
+                    : 'px-3 text-destructive hover:text-destructive hover:bg-destructive/10'}
+                  title="Excluir"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
