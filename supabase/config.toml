@@ -6,6 +6,9 @@ verify_jwt = false
 [functions.itbi-lookup]
 verify_jwt = false
 
+[functions.itbi-import]
+verify_jwt = false
+
 [functions.search-property-info]
 verify_jwt = false
 

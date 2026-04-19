@@ -101,6 +101,114 @@ export type Database = {
         }
         Relationships: []
       }
+      itbi_import_log: {
+        Row: {
+          ano_referencia: number
+          completed_at: string | null
+          error_message: string | null
+          id: string
+          imported_by: string | null
+          mes_referencia: number | null
+          rows_imported: number
+          rows_skipped: number
+          source_url: string | null
+          started_at: string
+          status: string
+        }
+        Insert: {
+          ano_referencia: number
+          completed_at?: string | null
+          error_message?: string | null
+          id?: string
+          imported_by?: string | null
+          mes_referencia?: number | null
+          rows_imported?: number
+          rows_skipped?: number
+          source_url?: string | null
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          ano_referencia?: number
+          completed_at?: string | null
+          error_message?: string | null
+          id?: string
+          imported_by?: string | null
+          mes_referencia?: number | null
+          rows_imported?: number
+          rows_skipped?: number
+          source_url?: string | null
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      itbi_transactions: {
+        Row: {
+          ano_referencia: number
+          area_construida: number | null
+          area_terreno: number | null
+          bairro: string | null
+          bairro_normalizado: string | null
+          cep: string | null
+          complemento: string | null
+          created_at: string
+          data_transacao: string | null
+          id: string
+          logradouro: string
+          logradouro_normalizado: string | null
+          mes_referencia: number
+          natureza_transacao: string | null
+          numero: string | null
+          numero_limpo: string | null
+          sql_iptu: string | null
+          valor_transacao: number | null
+          valor_venal: number | null
+        }
+        Insert: {
+          ano_referencia: number
+          area_construida?: number | null
+          area_terreno?: number | null
+          bairro?: string | null
+          bairro_normalizado?: string | null
+          cep?: string | null
+          complemento?: string | null
+          created_at?: string
+          data_transacao?: string | null
+          id?: string
+          logradouro: string
+          logradouro_normalizado?: string | null
+          mes_referencia: number
+          natureza_transacao?: string | null
+          numero?: string | null
+          numero_limpo?: string | null
+          sql_iptu?: string | null
+          valor_transacao?: number | null
+          valor_venal?: number | null
+        }
+        Update: {
+          ano_referencia?: number
+          area_construida?: number | null
+          area_terreno?: number | null
+          bairro?: string | null
+          bairro_normalizado?: string | null
+          cep?: string | null
+          complemento?: string | null
+          created_at?: string
+          data_transacao?: string | null
+          id?: string
+          logradouro?: string
+          logradouro_normalizado?: string | null
+          mes_referencia?: number
+          natureza_transacao?: string | null
+          numero?: string | null
+          numero_limpo?: string | null
+          sql_iptu?: string | null
+          valor_transacao?: number | null
+          valor_venal?: number | null
+        }
+        Relationships: []
+      }
       properties: {
         Row: {
           ai_market_estimate: string | null
@@ -348,6 +456,29 @@ export type Database = {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
       }
+      match_itbi_candidates: {
+        Args: {
+          p_bairro?: string
+          p_limit?: number
+          p_logradouro: string
+          p_numero?: string
+        }
+        Returns: {
+          area_construida: number
+          bairro: string
+          cep: string
+          complemento: string
+          data_transacao: string
+          id: string
+          logradouro: string
+          numero: string
+          similarity_bairro: number
+          similarity_logradouro: number
+          sql_iptu: string
+          valor_transacao: number
+          valor_venal: number
+        }[]
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -357,6 +488,7 @@ export type Database = {
         }
         Returns: number
       }
+      normalize_address_text: { Args: { input: string }; Returns: string }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -365,6 +497,9 @@ export type Database = {
           read_ct: number
         }[]
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
+      unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "user"
