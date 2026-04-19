@@ -229,9 +229,14 @@ Foram analisados **${totalCandidates} candidatos** próximos no banco ITBI da Pr
     return c ?? '—';
   };
 
-  const tableRows = sorted.slice(0, 20).map(m => {
+  const tableRows = sorted.slice(0, 30).map(m => {
     const data = m.data_transacao ? new Date(m.data_transacao).toLocaleDateString('pt-BR') : 'N/D';
-    return `| ${data} | ${fmt(m.valor_transacao)} | ${fmt(m.valor_venal)} | ${classBadge(m.classificacao_valor)} | ${m.score}% |`;
+    const enderecoBase = `${m.logradouro ?? ''}${m.numero ? `, ${m.numero}` : ''}`.trim() || 'N/D';
+    const compl = m.complemento?.trim() || '—';
+    const bairro = m.bairro?.trim() || '—';
+    const sql = m.sql_iptu?.trim() || '—';
+    const area = m.area_construida ? `${Number(m.area_construida).toLocaleString('pt-BR')} m²` : '—';
+    return `| ${data} | ${enderecoBase} | ${compl} | ${bairro} | ${sql} | ${area} | ${fmt(m.valor_transacao)} | ${fmt(m.valor_venal)} | ${classBadge(m.classificacao_valor)} | ${m.score}% |`;
   }).join('\n');
 
   const diff = valorRef?.valor_estimado && property.declared_value
@@ -255,10 +260,10 @@ ${property.rua}${property.numero ? `, ${property.numero}` : ''}${property.bairro
 ${valorRef?.observacao ? `> ${valorRef.observacao}` : ''}
 
 ### 📊 Transações do Mesmo Imóvel (confiança ≥95%)
-${matched.length} transação(ões) confiável(is) de ${totalCandidates} candidatos analisados — ordenadas da mais recente para a mais antiga:
+${dedup.length} transação(ões) única(s) de ${totalCandidates} candidatos analisados${duplicatasRemovidas > 0 ? ` (${duplicatasRemovidas} duplicata(s) removida(s) — ITBI registra comprador+vendedor)` : ''} — ordenadas da mais recente para a mais antiga:
 
-| Data | Valor Transação | Valor Venal | Classificação | Confiança |
-|------|-----------------|-------------|---------------|-----------|
+| Data | Endereço | Compl. | Bairro | SQL/IPTU | Área | Valor Transação | Valor Venal | Classificação | Confiança |
+|------|----------|--------|--------|----------|------|-----------------|-------------|---------------|-----------|
 ${tableRows}
 
 ### 🎯 Avaliação Final
