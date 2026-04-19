@@ -111,7 +111,7 @@ const Index = () => {
             <div className={`grid gap-4 md:gap-6 ${gridColsClass}`}>
               {filteredProperties.map((property, index) => (
                 <div key={property.id} className="animate-slide-up min-w-0" style={{ animationDelay: `${index * 50}ms` }}>
-                  <PropertyCard property={property} onDelete={handleDelete} onDuplicate={handleDuplicate} />
+                  <PropertyCard property={property} onDelete={handleDelete} onDuplicate={handleDuplicate} compact={!isMobile && density === 2} />
                 </div>
               ))}
             </div>
