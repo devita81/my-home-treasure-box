@@ -103,7 +103,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
 
   return (
     <>
-      <div className="bg-card rounded-xl border border-border/60 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+      <div className="bg-card rounded-xl border-2 border-border shadow-md hover:shadow-lg hover:border-primary/40 transition-all overflow-hidden ring-1 ring-foreground/5">
         <div className={compact ? 'flex flex-col' : 'flex flex-col sm:flex-row'}>
           <div className={compact
             ? 'relative w-full aspect-[4/3] overflow-hidden bg-black shrink-0'
