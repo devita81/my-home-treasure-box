@@ -111,7 +111,7 @@ const renderMarkdownTable = (tableLines: string[]) => {
   const mobileShowClass = isWide ? 'lg:hidden' : 'sm:hidden';
 
   // ===== Desktop view: traditional table =====
-  let desktop = `<div class="my-5 ${desktopShowClass} overflow-hidden rounded-xl border border-border bg-card/80 shadow-sm"><div class="overflow-x-auto"><table class="w-full border-collapse text-sm`;
+  let desktop = `<div class="my-5 ${desktopShowClass} overflow-hidden rounded-xl border border-border bg-card shadow-sm"><div class="overflow-x-auto"><table class="w-full border-collapse text-[13px]`;
   desktop += hasNarrativeLastColumn ? ' table-fixed' : '';
   desktop += '">';
 
@@ -119,21 +119,31 @@ const renderMarkdownTable = (tableLines: string[]) => {
     desktop += '<colgroup><col style="width: 17%" /><col style="width: 15%" /><col style="width: 15%" /><col style="width: 53%" /></colgroup>';
   }
 
-  desktop += '<thead><tr class="border-b border-border/70 bg-muted/50">';
+  desktop += '<thead><tr class="border-b-2 border-border bg-muted">';
   headers.forEach((header, index) => {
     const alignClass = index === 0 || (hasNarrativeLastColumn && index === headers.length - 1) ? 'text-left' : 'text-right';
-    desktop += `<th class="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground ${alignClass}">${header}</th>`;
+    desktop += `<th class="px-3 py-2.5 text-[10px] font-bold uppercase tracking-[0.08em] text-foreground/80 ${alignClass} whitespace-nowrap">${header}</th>`;
   });
   desktop += '</tr></thead><tbody>';
 
-  rows.forEach((row) => {
-    desktop += '<tr class="border-b border-border/50 last:border-b-0">';
+  rows.forEach((row, rowIdx) => {
+    const zebra = rowIdx % 2 === 1 ? 'bg-muted/30' : '';
+    desktop += `<tr class="border-b border-border/40 last:border-b-0 ${zebra} hover:bg-accent/40 transition-colors">`;
     row.forEach((cell, index) => {
       const plainText = cell.replace(/<[^>]+>/g, '').trim();
       const isNarrativeCell = hasNarrativeLastColumn && index === row.length - 1;
-      const alignClass = index === 0 || isNarrativeCell ? 'text-left' : isCompactMetricCell(plainText) ? 'text-right whitespace-nowrap tabular-nums' : 'text-left';
-      const toneClass = isNarrativeCell ? 'text-muted-foreground leading-6 break-words' : index === 0 ? 'font-semibold text-foreground' : 'font-medium text-foreground';
-      desktop += `<td class="px-4 py-3 align-top ${alignClass} ${toneClass}">${cell || '—'}</td>`;
+      const isMetric = isCompactMetricCell(plainText);
+      const alignClass = index === 0 || isNarrativeCell
+        ? 'text-left'
+        : isMetric ? 'text-right whitespace-nowrap tabular-nums' : 'text-left';
+      const toneClass = isNarrativeCell
+        ? 'text-muted-foreground leading-6 break-words text-[12px]'
+        : index === 0
+          ? 'font-semibold text-foreground whitespace-nowrap'
+          : isMetric
+            ? 'font-semibold text-foreground'
+            : 'text-foreground';
+      desktop += `<td class="px-3 py-2.5 align-middle ${alignClass} ${toneClass}">${cell || '—'}</td>`;
     });
     desktop += '</tr>';
   });
