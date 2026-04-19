@@ -1,7 +1,7 @@
-import { Square, LayoutGrid, Grid3x3 } from 'lucide-react';
+import { Square, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type GridDensity = 1 | 2 | 3;
+export type GridDensity = 1 | 2;
 
 interface GridDensitySelectorProps {
   value: GridDensity;
@@ -12,7 +12,6 @@ interface GridDensitySelectorProps {
 const options: { value: GridDensity; icon: typeof Square; label: string }[] = [
   { value: 1, icon: Square, label: '1 coluna' },
   { value: 2, icon: LayoutGrid, label: '2 colunas' },
-  { value: 3, icon: Grid3x3, label: '3 colunas' },
 ];
 
 export function GridDensitySelector({ value, onChange, className }: GridDensitySelectorProps) {
