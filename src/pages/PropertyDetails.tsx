@@ -1,4 +1,4 @@
-import { useParams, Navigate, Link } from 'react-router-dom';
+import { useParams, Navigate, Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Header } from '@/components/layout/Header';
 import { AIChatDialog } from '@/components/property/AIChatDialog';
@@ -248,6 +248,7 @@ const convertMarkdownToHtml = (markdown: string): string => {
 
 const PropertyDetails = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { getPropertyById } = useProperties();
   
   const [searchResult, setSearchResult] = useState<string | null>(null);
@@ -416,12 +417,20 @@ const PropertyDetails = () => {
         <div className="max-w-6xl mx-auto space-y-6">
           {/* Header Actions */}
           <div className="flex items-center justify-between">
-            <Link to="/">
-              <Button variant="outline" className="border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 font-semibold shadow-sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar
-              </Button>
-            </Link>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (window.history.length > 1) {
+                  navigate(-1);
+                } else {
+                  navigate('/');
+                }
+              }}
+              className="border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 font-semibold shadow-sm"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
