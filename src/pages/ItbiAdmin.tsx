@@ -110,7 +110,7 @@ const ItbiAdmin = () => {
   };
 
   const statusBadge = (s: string) => {
-    if (s === 'completed') return <Badge variant="outline" className="text-green-600 border-green-600"><CheckCircle2 className="h-3 w-3 mr-1" />Concluído</Badge>;
+    if (s === 'completed') return <Badge variant="outline" className="text-emerald-600 border-emerald-600"><CheckCircle2 className="h-3 w-3 mr-1" />Concluído</Badge>;
     if (s === 'failed') return <Badge variant="destructive"><AlertCircle className="h-3 w-3 mr-1" />Falhou</Badge>;
     return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Em progresso</Badge>;
   };
