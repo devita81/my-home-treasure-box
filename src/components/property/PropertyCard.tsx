@@ -388,7 +388,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                 </div>
               </div>
 
-              <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30">
+              <div className={`rounded-lg p-2.5 border border-border/40 bg-muted/30 ${compact ? 'hidden sm:block' : ''}`}>
                 <div className="flex items-center gap-1.5 mb-2">
                   <Home className="h-3 w-3 text-primary" />
                   <h4 className="text-[10px] font-semibold text-primary uppercase tracking-wider">Características</h4>
