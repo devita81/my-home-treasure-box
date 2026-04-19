@@ -8,7 +8,7 @@ export function useGridDensity(defaultValue: GridDensity = 1) {
     if (typeof window === 'undefined') return defaultValue;
     const stored = window.localStorage.getItem(STORAGE_KEY);
     const parsed = stored ? Number(stored) : defaultValue;
-    return (parsed === 1 || parsed === 2 || parsed === 3 ? parsed : defaultValue) as GridDensity;
+    return (parsed === 1 || parsed === 2 ? parsed : defaultValue) as GridDensity;
   });
 
   useEffect(() => {
