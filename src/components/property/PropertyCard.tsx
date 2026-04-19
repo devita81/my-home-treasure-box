@@ -295,12 +295,12 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                 </div>
               </div>
 
-              <div className={`rounded-lg p-2.5 border border-border/40 bg-muted/30 ${compact ? 'col-span-2' : 'lg:col-span-2'}`}>
+              <div className={`rounded-lg p-2.5 border border-border/40 bg-muted/30 ${compact ? '' : 'lg:col-span-2'}`}>
                 <div className="flex items-center gap-1.5 mb-2">
                   <Building className="h-3 w-3 text-primary" />
                   <h4 className="text-[10px] font-semibold text-primary uppercase tracking-wider">Propriedade</h4>
                 </div>
-                <div className={compact ? 'grid grid-cols-2 gap-x-4 gap-y-0.5' : 'grid grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-0.5'}>
+                <div className={compact ? 'grid grid-cols-1 gap-x-4 gap-y-0.5' : 'grid grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-0.5'}>
                   <div className="space-y-0.5">
                     <div className="flex items-center justify-between py-0.5 border-b border-border/20">
                       <span className="text-[11px] text-muted-foreground">Tipo</span>
