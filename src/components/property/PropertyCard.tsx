@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Bath,
   BedDouble,
@@ -36,9 +36,14 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property, onDelete, onDuplicate, compact = false }: PropertyCardProps) {
+  const navigate = useNavigate();
   const [showReport, setShowReport] = useState(false);
   const [mediaIndex, setMediaIndex] = useState(0);
   const [showLightbox, setShowLightbox] = useState(false);
+
+  const handleCardClick = useCallback(() => {
+    navigate(`/property/${property.id}`);
+  }, [navigate, property.id]);
 
   const photos = property.photos || [];
   const totalSlides = 1 + photos.length;
@@ -124,7 +129,11 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                 <>
                   <iframe
                     src={embedUrl}
-                    className="h-full w-full border-0 pointer-events-none"
+                    className={
+                      compact
+                        ? 'h-[140%] w-[120%] -ml-[10%] -mt-[10%] border-0 pointer-events-none'
+                        : 'h-full w-full border-0 pointer-events-none'
+                    }
                     loading="lazy"
                     title={getAddressDisplay()}
                   />
@@ -233,7 +242,15 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
             )}
           </div>
 
-          <div className={compact ? 'flex-1 p-2 flex flex-col' : 'flex-1 p-3 flex flex-col'}>
+          <div
+            className={compact ? 'flex-1 p-2 flex flex-col cursor-pointer sm:cursor-default' : 'flex-1 p-3 flex flex-col cursor-pointer sm:cursor-default'}
+            onClick={(e) => {
+              // Only navigate on mobile (below sm breakpoint - 640px)
+              if (typeof window !== 'undefined' && window.innerWidth < 640) {
+                handleCardClick();
+              }
+            }}
+          >
             {compact && (
               <div className="mb-2 pb-2 border-b border-border/40">
                 <div className="flex flex-wrap items-center gap-1 mb-1">
@@ -459,7 +476,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                   <Edit className="h-3.5 w-3.5" />
                 </Button>
               </Link>
-              {onDuplicate && (
+              {onDuplicate && !compact && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -467,7 +484,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                     e.stopPropagation();
                     onDuplicate(property.id);
                   }}
-                  className={compact ? 'h-8 w-8 p-0' : 'px-3'}
+                  className="px-3"
                   title="Duplicar imóvel"
                 >
                   <Copy className="h-3.5 w-3.5" />
