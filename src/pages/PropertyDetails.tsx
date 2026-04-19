@@ -257,6 +257,9 @@ const PropertyDetails = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [itbiResult, setItbiResult] = useState<string | null>(null);
+  const [isLoadingItbi, setIsLoadingItbi] = useState(false);
+  const [itbiDialogOpen, setItbiDialogOpen] = useState(false);
   const [estimates, setEstimates] = useState<MarketEstimates>({
     vendaMin: null, vendaMed: null, vendaMax: null,
     aluguelMin: null, aluguelMed: null, aluguelMax: null,
