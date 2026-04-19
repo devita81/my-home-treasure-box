@@ -337,8 +337,27 @@ serve(async (req) => {
     });
 
     if (rpcErr) throw rpcErr;
-    const candList = candidates ?? [];
+    let candList = candidates ?? [];
     console.log(`[itbi-lookup] ${candList.length} candidatos pré-filtrados`);
+
+    // Pré-filtro server-side por TIPO do imóvel — evita garagens/vagas/depósitos quando é apto
+    const tipoImovel = (property.tipo_imovel ?? '').toLowerCase();
+    const isResidencial = ['apartamento', 'casa', 'cobertura', 'kitnet', 'studio', 'sobrado', ''].some(t => tipoImovel.includes(t)) && !tipoImovel.includes('garagem') && !tipoImovel.includes('comercial');
+    const NON_RESIDENTIAL_RE = /\b(GARAGEM|GAR|VAGA|VG|BOX|ESTACIONAMENTO|DEPOSITO|DEP|HOBBY|CUBICULO)\b/i;
+
+    let descartadosTipo = 0;
+    if (isResidencial) {
+      const before = candList.length;
+      candList = candList.filter((c: any) => {
+        const compl = (c.complemento ?? '').toString();
+        if (NON_RESIDENTIAL_RE.test(compl)) return false;
+        // descartar áreas muito pequenas (típico de vaga/box)
+        if (c.area_construida != null && Number(c.area_construida) > 0 && Number(c.area_construida) < 25) return false;
+        return true;
+      });
+      descartadosTipo = before - candList.length;
+      console.log(`[itbi-lookup] Filtro tipo residencial: ${descartadosTipo} descartados, ${candList.length} restantes`);
+    }
 
     if (candList.length === 0) {
       const report = buildReport(property, [], 0, null);
@@ -354,8 +373,10 @@ serve(async (req) => {
     console.log(`[itbi-lookup] Enviando ao GPT-4o para matching...`);
     const gptResult = await filterMatchesWithGPT(
       {
+        tipo_imovel: property.tipo_imovel,
         logradouro: property.rua,
         numero: property.numero,
+        apartamento: property.apartamento,
         complemento: property.complemento,
         bairro: property.bairro,
         cep: property.cep,
