@@ -31,11 +31,8 @@ const Index = () => {
   const [density, setDensity] = useGridDensity(1);
   const isMobile = useIsMobile();
 
-  const gridColsClass = isMobile
-    ? 'grid-cols-1'
-    : density === 1
-      ? 'grid-cols-1'
-      : 'grid-cols-1 md:grid-cols-2';
+  const gridColsClass = density === 1 ? 'grid-cols-1' : 'grid-cols-2';
+  const isCompact = density === 2;
 
   const handleDelete = (id: string) => {
     setDeleteId(id);
