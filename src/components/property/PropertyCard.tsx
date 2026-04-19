@@ -109,9 +109,9 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
   return (
     <>
       <div className="bg-card rounded-xl border border-border/60 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-        <div className="flex flex-col sm:flex-row">
+        <div className={compact ? 'flex flex-col' : 'flex flex-col sm:flex-row'}>
           <div className={compact
-            ? 'relative w-full aspect-[16/9] overflow-hidden bg-black shrink-0'
+            ? 'relative w-full aspect-[4/3] overflow-hidden bg-black shrink-0'
             : 'relative w-full sm:w-[30%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-black shrink-0'}>
             <div
               className="w-full h-full cursor-pointer"
@@ -231,7 +231,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
 
           <div className="flex-1 p-3 flex flex-col">
             <div className={compact
-              ? 'grid grid-cols-2 gap-2 flex-1'
+              ? 'grid grid-cols-1 gap-2 flex-1'
               : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 flex-1'}>
               <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30">
                 <div className="flex items-center gap-1.5 mb-2">
@@ -295,12 +295,12 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                 </div>
               </div>
 
-              <div className={`rounded-lg p-2.5 border border-border/40 bg-muted/30 ${compact ? 'col-span-2' : 'lg:col-span-2'}`}>
+              <div className={`rounded-lg p-2.5 border border-border/40 bg-muted/30 ${compact ? '' : 'lg:col-span-2'}`}>
                 <div className="flex items-center gap-1.5 mb-2">
                   <Building className="h-3 w-3 text-primary" />
                   <h4 className="text-[10px] font-semibold text-primary uppercase tracking-wider">Propriedade</h4>
                 </div>
-                <div className={compact ? 'grid grid-cols-2 gap-x-4 gap-y-0.5' : 'grid grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-0.5'}>
+                <div className={compact ? 'grid grid-cols-1 gap-x-4 gap-y-0.5' : 'grid grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-0.5'}>
                   <div className="space-y-0.5">
                     <div className="flex items-center justify-between py-0.5 border-b border-border/20">
                       <span className="text-[11px] text-muted-foreground">Tipo</span>
