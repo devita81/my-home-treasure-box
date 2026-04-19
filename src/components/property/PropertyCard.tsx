@@ -109,9 +109,9 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
   return (
     <>
       <div className="bg-card rounded-xl border border-border/60 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-        <div className="flex flex-col sm:flex-row">
+        <div className={compact ? 'flex flex-col' : 'flex flex-col sm:flex-row'}>
           <div className={compact
-            ? 'relative w-full aspect-[16/9] overflow-hidden bg-black shrink-0'
+            ? 'relative w-full aspect-[4/3] overflow-hidden bg-black shrink-0'
             : 'relative w-full sm:w-[30%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-black shrink-0'}>
             <div
               className="w-full h-full cursor-pointer"
