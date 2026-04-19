@@ -27,6 +27,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { PropertyReportDialog } from './PropertyReportDialog';
+import { PropertyCardMap } from './PropertyCardMap';
 
 interface PropertyCardProps {
   property: Property;
@@ -95,31 +96,9 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
     return addr;
   };
 
-  const getEmbedUrl = () => {
-    if (property.latitude != null && property.longitude != null) {
-      const lat = property.latitude;
-      const lng = property.longitude;
-      const bbox = `${lng - 0.003},${lat - 0.002},${lng + 0.003},${lat + 0.002}`;
-      return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
-    }
-
-    const parts = [property.rua, property.numero, property.bairro, property.cidade, property.estado, 'Brasil'].filter(Boolean);
-    const query = encodeURIComponent(parts.join(', '));
-    return `https://www.openstreetmap.org/export/embed.html?bbox=-47.5,-24.0,-46.0,-23.0&layer=mapnik&marker=&query=${query}`;
-  };
-
-  // Static map image URL - no attribution overlay (used in compact mode)
-  const getStaticMapUrl = () => {
-    if (property.latitude != null && property.longitude != null) {
-      const lat = property.latitude;
-      const lng = property.longitude;
-      return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=16&size=600x450&markers=${lat},${lng},lightgreen`;
-    }
-    return null;
-  };
-
-  const embedUrl = getEmbedUrl();
-  const staticMapUrl = getStaticMapUrl();
+  const address = [property.rua, property.numero, property.bairro, property.cidade, property.estado, 'Brasil']
+    .filter(Boolean)
+    .join(', ');
   const activePhoto = mediaIndex > 0 ? photos[Math.min(mediaIndex - 1, photos.length - 1)] : null;
 
   return (
@@ -137,28 +116,13 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               }}
             >
               {mediaIndex === 0 ? (
-                compact && staticMapUrl ? (
-                  <img
-                    src={staticMapUrl}
-                    alt={getAddressDisplay()}
-                    className="w-full h-full object-cover pointer-events-none"
-                    draggable={false}
-                  />
-                ) : (
-                  <>
-                    <iframe
-                      src={embedUrl}
-                      className={
-                        compact
-                          ? 'h-[140%] w-[120%] -ml-[10%] -mt-[10%] border-0 pointer-events-none'
-                          : 'h-full w-full border-0 pointer-events-none'
-                      }
-                      loading="lazy"
-                      title={getAddressDisplay()}
-                    />
-                    <div className="absolute inset-0 z-[5]" />
-                  </>
-                )
+                <PropertyCardMap
+                  latitude={property.latitude}
+                  longitude={property.longitude}
+                  address={address}
+                  title={getAddressDisplay()}
+                  className="pointer-events-none"
+                />
               ) : isVideoUrl(photos[mediaIndex - 1]) ? (
                 <div className="w-full h-full flex items-center justify-center bg-muted">
                   <video
@@ -561,11 +525,12 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               <span className="text-black text-lg font-bold leading-none">✕</span>
             </button>
             {mediaIndex === 0 ? (
-              <iframe
-                src={embedUrl}
+              <PropertyCardMap
+                latitude={property.latitude}
+                longitude={property.longitude}
+                address={address}
                 title={`Mapa de ${getAddressDisplay()}`}
-                className="h-full w-full border-0"
-                loading="lazy"
+                interactive
               />
             ) : activePhoto ? (
               <div className="flex h-full w-full items-center justify-center bg-black">
