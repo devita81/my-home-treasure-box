@@ -248,6 +248,7 @@ const convertMarkdownToHtml = (markdown: string): string => {
 
 const PropertyDetails = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { getPropertyById } = useProperties();
   
   const [searchResult, setSearchResult] = useState<string | null>(null);
