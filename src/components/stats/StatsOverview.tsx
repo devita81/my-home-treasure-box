@@ -321,8 +321,8 @@ export function StatsOverview() {
                             <div className="flex justify-between"><span className="text-slate-500">Mercado</span><span className="font-semibold text-slate-900">{formatCurrency(property.market_value || 0)}</span></div>
                             <div className="flex justify-between"><span className="text-slate-500">Declar.</span><span>{formatCurrency(property.declared_value)}</span></div>
                             <div className="flex justify-between"><span className="text-slate-500">Aluguel</span><span>{formatCurrency(property.valor_aluguel || 0)}</span></div>
-                            <div className="flex justify-between"><span className="text-slate-500">IPTU</span><span>{formatCurrency(property.iptu_value || 0)}</span></div>
                             <div className="flex justify-between"><span className="text-slate-500">Condom.</span><span>{formatCurrency(property.valor_condominio || 0)}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">IPTU</span><span>{formatCurrency(property.iptu_value || 0)}</span></div>
                             <div />
                           </div>
                           {(property.numero_matricula || property.proprietario_matricula) && (
