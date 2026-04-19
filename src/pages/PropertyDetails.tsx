@@ -833,6 +833,22 @@ const PropertyDetails = () => {
                 </Button>
 
                 <Button
+                  onClick={lookupItbi}
+                  disabled={isLoadingItbi}
+                  variant="outline"
+                  className="gap-2 border-amber-600/40 bg-amber-50 hover:bg-amber-100 text-amber-900"
+                  size="lg"
+                  title="Consulta transações ITBI da Prefeitura de São Paulo"
+                >
+                  {isLoadingItbi ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Building2 className="h-4 w-4" />
+                  )}
+                  {isLoadingItbi ? 'Consultando ITBI...' : 'Comparar ITBI (SP)'}
+                </Button>
+
+                <Button
                   onClick={() => setChatOpen(true)}
                   variant="outline"
                   className="gap-2"
