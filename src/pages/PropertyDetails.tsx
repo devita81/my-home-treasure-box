@@ -458,40 +458,45 @@ const PropertyDetails = () => {
                 className="h-full w-full object-cover"
               />
             ) : property.latitude != null && property.longitude != null ? (
-              <iframe
-                src={`https://www.openstreetmap.org/export/embed.html?bbox=${property.longitude! - 0.003},${property.latitude! - 0.002},${property.longitude! + 0.003},${property.latitude! + 0.002}&layer=mapnik&marker=${property.latitude},${property.longitude}`}
-                className="h-full w-full border-0"
-                loading="lazy"
-                title={`${property.rua}, ${property.numero}`}
+              <PropertyCardMap
+                latitude={property.latitude}
+                longitude={property.longitude}
+                address={`${property.rua}, ${property.numero ?? ''} ${property.bairro}, ${property.cidade}`}
+                title={`${property.rua}, ${property.numero ?? ''}`}
+                className="h-full w-full"
               />
             ) : (
               <div className="h-full w-full flex items-center justify-center bg-muted">
                 <MapPin className="h-12 w-12 text-muted-foreground/30" />
               </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
-            
-            <div className="absolute bottom-6 left-6 right-6">
-              <div className="flex gap-2 mb-3">
-                {getStatusBadge()}
-                {property.validado ? (
-                  <Badge variant="outline" className="bg-card/80 backdrop-blur-sm border-success text-success text-[10px] font-medium">
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    Validado
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="bg-card/80 backdrop-blur-sm border-warning text-warning text-[10px] font-medium">
-                    <XCircle className="h-3 w-3 mr-1" />
-                    Pendente
-                  </Badge>
-                )}
-              </div>
-              <h1 className="font-display text-lg md:text-xl font-medium text-card mb-1.5">
-                {getAddressDisplay()}
-              </h1>
-              <div className="flex items-center gap-1 text-xs md:text-sm text-card/80">
-                <MapPin className="h-3.5 w-3.5" />
-                <span>{property.bairro}, {property.cidade} - {property.estado}</span>
+
+            {/* Status badges - top */}
+            <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-1.5 md:gap-2 z-10">
+              {getStatusBadge()}
+              {property.validado ? (
+                <Badge variant="outline" className="bg-card/90 backdrop-blur-sm border-success text-success text-[10px] font-medium">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Validado
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="bg-card/90 backdrop-blur-sm border-warning text-warning text-[10px] font-medium">
+                  <XCircle className="h-3 w-3 mr-1" />
+                  Pendente
+                </Badge>
+              )}
+            </div>
+
+            {/* Address banner - bottom */}
+            <div className="absolute bottom-0 left-0 right-0 z-10">
+              <div className="bg-gradient-to-t from-foreground/90 via-foreground/70 to-transparent px-4 py-3 md:px-6 md:py-4">
+                <h1 className="font-display text-base md:text-xl font-semibold text-card mb-0.5 md:mb-1 leading-tight">
+                  {getAddressDisplay()}
+                </h1>
+                <div className="flex items-center gap-1 text-[11px] md:text-sm text-card/90">
+                  <MapPin className="h-3 w-3 md:h-3.5 md:w-3.5 shrink-0" />
+                  <span className="truncate">{property.bairro}, {property.cidade} - {property.estado}</span>
+                </div>
               </div>
             </div>
           </div>
