@@ -252,7 +252,7 @@ export function PropertyFilters() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os Tipos</SelectItem>
-              {tiposImovel.map((tipo) => <SelectItem key={tipo.value} value={tipo.value}>{tipo.label}</SelectItem>)}
+              {tiposImovelFiltrados.map((tipo) => <SelectItem key={tipo.value} value={tipo.value}>{tipo.label}</SelectItem>)}
             </SelectContent>
           </Select>
           {(proprietariosPapel.length > 0 || hasEmptyProprietarioPapel) ? (
