@@ -4,7 +4,7 @@ import { PropertyCard } from '@/components/property/PropertyCard';
 import { PropertyFilters } from '@/components/property/PropertyFilters';
 import { GridDensitySelector } from '@/components/property/GridDensitySelector';
 import { useGridDensity } from '@/hooks/useGridDensity';
-import { useIsMobile } from '@/hooks/use-mobile';
+
 import { StatsOverview } from '@/components/stats/StatsOverview';
 import { MetragemStats } from '@/components/stats/MetragemStats';
 import { CustosReceitasStats } from '@/components/stats/CustosReceitasStats';
