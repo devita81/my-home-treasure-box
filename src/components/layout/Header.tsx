@@ -26,7 +26,7 @@ export function Header() {
   return (
     <>
       <header
-        className="sticky top-0 z-50 glass-effect border-b border-border"
+        className="sticky top-0 z-50 isolate border-b border-border bg-background shadow-sm supports-[backdrop-filter]:bg-background/95 supports-[backdrop-filter]:backdrop-blur-md"
         style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}
       >
         <div className="container mx-auto px-3 sm:px-4">
