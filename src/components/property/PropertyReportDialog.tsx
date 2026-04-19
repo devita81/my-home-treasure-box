@@ -528,8 +528,34 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
       const doc = await generatePropertyPDF(property);
       const addressParts = [property.rua, property.numero, property.apartamento ? `Apto ${property.apartamento}` : '', property.bairro, `${property.cidade}/${property.estado}`].filter(Boolean).join(', ');
       const fileName = `Reporte - ${property.tipo_imovel || 'Imóvel'} - ${addressParts}.pdf`;
-      doc.save(fileName);
-      toast.success('Relatório PDF gerado com sucesso!');
+
+      // Detect mobile / iOS — doc.save() often fails silently on iOS Safari & PWAs.
+      const ua = navigator.userAgent || '';
+      const isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+
+      if (isIOS || isMobile) {
+        // Open PDF in a new tab so the OS native viewer handles it (works on iOS Safari + PWA + Android Chrome)
+        const blob = doc.output('blob');
+        const blobUrl = URL.createObjectURL(blob);
+        const newWin = window.open(blobUrl, '_blank');
+        if (!newWin) {
+          // Popup blocked — fallback to anchor download
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = fileName;
+          a.rel = 'noopener';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+        // Cleanup the blob URL after a delay (allow the new tab to load it)
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+        toast.success('PDF aberto em nova aba. Use o botão de compartilhar para salvar.');
+      } else {
+        doc.save(fileName);
+        toast.success('Relatório PDF gerado com sucesso!');
+      }
     } catch (err) {
       logger.error('PDF generation error:', err);
       toast.error('Erro ao gerar PDF');
