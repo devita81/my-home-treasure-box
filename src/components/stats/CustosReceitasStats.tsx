@@ -335,8 +335,8 @@ export function CustosReceitasStats() {
                           <div className="flex justify-between"><span className="text-slate-500">Mercado</span><span className="font-semibold text-slate-900">{fmt(p.market_value || 0)}</span></div>
                           <div className="flex justify-between"><span className="text-slate-500">Declar.</span><span>{fmt(p.declared_value)}</span></div>
                           <div className="flex justify-between"><span className="text-slate-500">Aluguel</span><span>{fmt(p.valor_aluguel || 0)}</span></div>
-                          <div className="flex justify-between"><span className="text-slate-500">IPTU</span><span>{fmt(p.iptu_value || 0)}</span></div>
                           <div className="flex justify-between"><span className="text-slate-500">Condom.</span><span>{fmt(p.valor_condominio || 0)}</span></div>
+                          <div className="flex justify-between"><span className="text-slate-500">IPTU</span><span>{fmt(p.iptu_value || 0)}</span></div>
                           <div />
                         </div>
                         {(p.numero_matricula || p.proprietario_matricula) && (
