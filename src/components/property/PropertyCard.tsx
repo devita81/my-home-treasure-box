@@ -110,7 +110,9 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
     <>
       <div className="bg-card rounded-xl border border-border/60 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
         <div className="flex flex-col sm:flex-row">
-          <div className="relative w-full sm:w-[30%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-black shrink-0">
+          <div className={compact
+            ? 'relative w-full aspect-[4/3] overflow-hidden bg-black shrink-0'
+            : 'relative w-full sm:w-[30%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-black shrink-0'}>
             <div
               className="w-full h-full cursor-pointer"
               onClick={(e) => {
@@ -228,7 +230,9 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
           </div>
 
           <div className="flex-1 p-3 flex flex-col">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 flex-1">
+            <div className={compact
+              ? 'grid grid-cols-1 gap-2 flex-1'
+              : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 flex-1'}>
               <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30">
                 <div className="flex items-center gap-1.5 mb-2">
                   <DollarSign className="h-3 w-3 text-primary" />
