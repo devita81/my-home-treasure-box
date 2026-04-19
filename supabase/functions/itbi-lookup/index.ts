@@ -1,5 +1,5 @@
 // itbi-lookup: consulta cache local de transações ITBI e usa GPT-4o (OpenAI)
-// para filtrar matches com confiança ≥95%, conforme prompt do usuário.
+// para filtrar matches com confiança ≥95% e inferir valor de mercado.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -11,96 +11,123 @@ const corsHeaders = {
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
-const MATCHING_PROMPT = `Você é um especialista em matching de endereços contra a base de transações imobiliárias (ITBI) da Prefeitura de São Paulo.
+const MATCHING_PROMPT = `Você é um especialista em matching de endereços e análise de valor de mercado usando a base de transações imobiliárias (ITBI) da Prefeitura de São Paulo.
 
-Você receberá um endereço já parcialmente estruturado no seguinte formato:
-- Nome do Logradouro
-- Número
-- Complemento (opcional)
-- Bairro
-- Referência (opcional)
-- CEP (opcional)
-
-E terá acesso a uma base de dados com as seguintes colunas:
+Você receberá um endereço estruturado:
 - Nome do Logradouro
 - Número
 - Complemento
 - Bairro
-- Referência
 - CEP
-- (demais campos como valor, data, SQL)
 
-OBJETIVO
-Encontrar registros na base que correspondam ao MESMO imóvel com nível de confiança ≥ 95%.
+E terá acesso a uma base contendo:
+- Nome do Logradouro
+- Número
+- Complemento
+- Bairro
+- CEP
+- SQL
+- Valor de Transação
+- Valor Venal de Referência
+- Base de Cálculo
+- Data de Transação
 
-NORMALIZAÇÃO (OBRIGATÓRIO)
-Para o endereço de entrada e para os registros da base:
-- Converter tudo para MAIÚSCULO
-- Remover acentos
-- Padronizar logradouro: RUA → R, AVENIDA → AV, ALAMEDA → AL, TRAVESSA → TV
-- Remover palavras irrelevantes: APTO, APARTAMENTO, BLOCO, TORRE, ANDAR
-- Remover pontuação
+OBJETIVO FINAL
+Encontrar transações do MESMO imóvel com confiança ≥95% e retornar os valores negociados para inferência de valor de mercado.
 
-MATCHING POR CAMPO (SCORING)
-Calcule um score de 0 a 100:
-- Nome do Logradouro (similaridade textual): 50%
-  - Similaridade ≥ 95% → score máximo
-  - Similaridade parcial → proporcional
-- Número: 30%
-  - Igual → 30 pontos
-  - Diferença até ±10% → 20 pontos
-  - Ausente ou muito diferente → 0
-- Bairro: 10%
-  - Igual → 10 pontos
-  - Similar → 5 pontos
-  - Diferente → 0
-- CEP: 10%
-  - Igual → 10 pontos
-  - Parcial (mesma região) → 5 pontos
-  - Diferente → 0
+NORMALIZAÇÃO
+Aplicar para input e base:
+- MAIÚSCULAS
+- remover acentos
+- remover pontuação
+- padronizar: RUA → R, AVENIDA → AV, ALAMEDA → AL
+- remover complementos irrelevantes: APTO, BLOCO, TORRE, ANDAR
+- extrair corretamente nome da rua e número
 
-REGRAS DE MATCH (CRÍTICO)
-Um registro só pode ser considerado válido se:
-- Score total ≥ 95
-- Nome do logradouro com similaridade ≥ 90%
-- NÃO houver conflito grave (nome claramente diferente, bairro incompatível)
+MATCHING (CRÍTICO)
+Score total = 100
+Pesos:
+- Nome do logradouro: 60
+- Número: 35
+- Bairro: 3
+- CEP: 1
+- Complemento: 1
 
-PROCESSO
-1. Compare o endereço de entrada com TODOS os registros da base fornecida
-2. Calcule o score para cada registro
-3. Filtre apenas os que atingirem ≥95
-4. Ordene por score decrescente
+REGRA CENTRAL:
+✔ Rua + número devem bater de forma convincente
+✔ Sem isso, NÃO pode atingir 95
 
-OUTPUT
-Retorne APENAS um JSON no formato:
+REGRAS:
+- Nome da rua ≥95% similaridade → válido
+- Número:
+  - igual → score máximo
+  - pequena variação estrutural (ex: 300 vs 300A) → aceitável
+  - ausente ou diferente → descartar
+
+CORTE DE QUALIDADE
+- Retornar apenas registros com score ≥95
+- Caso contrário: "SEM_MATCH_CONFIAVEL"
+
+EXTRAÇÃO DE VALORES (CRÍTICO)
+Para cada match extrair:
+- Valor de Transação (principal — preço negociado declarado pelo contribuinte)
+- Valor Venal de Referência
+- Base de Cálculo
+- Data
+
+AVALIAÇÃO DO VALOR
+Para cada registro, classifique:
+- "CONSISTENTE" → valores próximos
+- "POSSIVEL_SUBDECLARACAO" → valor de transação muito abaixo do venal/base
+- "ACIMA_REFERENCIA" → valor de transação acima do venal
+
+CONSOLIDAÇÃO (VALOR DE MERCADO)
+Se houver múltiplas transações do mesmo imóvel:
+- ordenar por data
+- identificar tendência
+- destacar o valor mais recente
+
+OUTPUT (apenas JSON):
 {
-  "input": { "logradouro": "...", "numero": "...", "bairro": "...", "cep": "..." },
+  "input": { "logradouro": "...", "numero": "...", "bairro": "..." },
   "matches_encontrados": [
     {
       "id": "uuid do registro",
+      "data": "...",
       "logradouro_base": "...",
       "numero_base": "...",
       "bairro_base": "...",
-      "cep_base": "...",
-      "score": 95,
-      "justificativa": "explicação objetiva do match"
+      "sql": "...",
+      "valor_transacao": "...",
+      "valor_venal": "...",
+      "base_calculo": "...",
+      "classificacao_valor": "CONSISTENTE | POSSIVEL_SUBDECLARACAO | ACIMA_REFERENCIA",
+      "score": 97,
+      "justificativa": "match forte de rua + número"
     }
   ],
-  "status": "MATCH_ENCONTRADO" ou "SEM_MATCH_CONFIAVEL"
+  "valor_referencia_mercado": {
+    "metodologia": "última transação válida ou média ponderada",
+    "valor_estimado": "...",
+    "observacao": "baseado apenas em matches ≥95"
+  },
+  "status": "MATCH_ENCONTRADO | SEM_MATCH_CONFIAVEL"
 }
 
 REGRAS FINAIS
-- NÃO retornar resultados com score < 95
-- NÃO forçar correspondência
-- Se nenhum registro atingir 95 → retornar SEM_MATCH_CONFIAVEL
-- Priorizar precisão absoluta (evitar falso positivo)
+- NÃO retornar registros <95
+- NÃO inferir valor sem match forte
+- NÃO confiar cegamente no valor de transação
+- Sempre contextualizar com valor venal e base de cálculo
+- Prioridade: precisão do imóvel > quantidade de dados
 
-SAÍDA DEVE SER APENAS JSON.`;
+SAÍDA: APENAS JSON.`;
 
 async function filterMatchesWithGPT(input: any, candidates: any[]) {
   const userMsg = `ENDEREÇO DE ENTRADA:
 - Logradouro: ${input.logradouro}
 - Número: ${input.numero ?? ''}
+- Complemento: ${input.complemento ?? ''}
 - Bairro: ${input.bairro ?? ''}
 - CEP: ${input.cep ?? ''}
 
@@ -112,6 +139,10 @@ ${JSON.stringify(candidates.map(c => ({
   complemento: c.complemento,
   bairro: c.bairro,
   cep: c.cep,
+  sql: c.sql_iptu,
+  valor_transacao: c.valor_transacao,
+  valor_venal: c.valor_venal,
+  data: c.data_transacao,
 })), null, 2)}
 
 Aplique o matching e retorne APENAS o JSON especificado.`;
@@ -143,8 +174,8 @@ Aplique o matching e retorne APENAS o JSON especificado.`;
   return JSON.parse(content);
 }
 
-function buildReport(property: any, matched: any[], totalCandidates: number): string {
-  const fmt = (v: any) => v == null ? 'N/D' : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v));
+function buildReport(property: any, matched: any[], totalCandidates: number, valorRef: any): string {
+  const fmt = (v: any) => v == null || v === '' ? 'N/D' : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v));
   const declared = fmt(property.declared_value);
   const market = fmt(property.market_value);
 
@@ -161,7 +192,7 @@ ${property.rua}${property.numero ? `, ${property.numero}` : ''}${property.bairro
 | Valor de mercado estimado | ${market} |
 
 ### 📊 Resultado da Busca
-Foram analisados **${totalCandidates} candidatos** próximos no banco ITBI da Prefeitura, mas **nenhum atingiu o limiar de confiança de 95%** para ser considerado o mesmo imóvel.
+Foram analisados **${totalCandidates} candidatos** próximos no banco ITBI da Prefeitura (50 meses, 2022-2026), mas **nenhum atingiu o limiar de confiança de 95%** para ser considerado o mesmo imóvel.
 
 ### ⚠️ Limitações
 - A base ITBI da Prefeitura tem defasagem de meses.
@@ -170,17 +201,32 @@ Foram analisados **${totalCandidates} candidatos** próximos no banco ITBI da Pr
 - Este é um indicativo, não uma avaliação oficial.`;
   }
 
-  const valores = matched.map(m => Number(m.valor_transacao)).filter(v => v > 0).sort((a, b) => a - b);
-  const mediana = valores.length > 0 ? valores[Math.floor(valores.length / 2)] : null;
-  const medianaFmt = mediana ? fmt(mediana) : 'N/D';
-  const diff = mediana && property.declared_value
-    ? `${(((property.declared_value - mediana) / mediana) * 100).toFixed(1)}%`
-    : 'N/D';
+  // Ordena por data desc para destacar a mais recente
+  const sorted = [...matched].sort((a, b) => {
+    const da = a.data_transacao ? new Date(a.data_transacao).getTime() : 0;
+    const db = b.data_transacao ? new Date(b.data_transacao).getTime() : 0;
+    return db - da;
+  });
 
-  const tableRows = matched.slice(0, 15).map(m => {
+  const ultima = sorted[0];
+  const valorEstimado = valorRef?.valor_estimado ? fmt(valorRef.valor_estimado) : (ultima?.valor_transacao ? fmt(ultima.valor_transacao) : 'N/D');
+  const metodologia = valorRef?.metodologia ?? 'última transação válida';
+
+  const classBadge = (c: string) => {
+    if (c === 'CONSISTENTE') return '✅ Consistente';
+    if (c === 'POSSIVEL_SUBDECLARACAO') return '⚠️ Possível subdeclaração';
+    if (c === 'ACIMA_REFERENCIA') return '📈 Acima do venal';
+    return c ?? '—';
+  };
+
+  const tableRows = sorted.slice(0, 20).map(m => {
     const data = m.data_transacao ? new Date(m.data_transacao).toLocaleDateString('pt-BR') : 'N/D';
-    return `| ${m.logradouro}${m.numero ? `, ${m.numero}` : ''} | ${data} | ${fmt(m.valor_transacao)} | ${fmt(m.valor_venal)} | ${m.score}% |`;
+    return `| ${data} | ${fmt(m.valor_transacao)} | ${fmt(m.valor_venal)} | ${classBadge(m.classificacao_valor)} | ${m.score}% |`;
   }).join('\n');
+
+  const diff = valorRef?.valor_estimado && property.declared_value
+    ? `${(((property.declared_value - Number(valorRef.valor_estimado)) / Number(valorRef.valor_estimado)) * 100).toFixed(1)}%`
+    : 'N/D';
 
   return `## 🏛️ Análise ITBI — Prefeitura de São Paulo
 
@@ -190,30 +236,35 @@ ${property.rua}${property.numero ? `, ${property.numero}` : ''}${property.bairro
 ### 💰 Comparativo de Valores
 | Indicador | Valor |
 |-----------|-------|
-| Valor declarado | ${declared} |
-| Valor de mercado estimado | ${market} |
-| Mediana ITBI da região | ${medianaFmt} |
-| Diferença vs. mediana ITBI | ${diff} |
+| Valor declarado no sistema | ${declared} |
+| Valor de mercado interno | ${market} |
+| **Valor de referência ITBI** | **${valorEstimado}** |
+| Diferença declarado vs ITBI | ${diff} |
 
-### 📊 Transações Encontradas (confiança ≥95%)
-${matched.length} transação(ões) com match confiável de ${totalCandidates} candidatos analisados:
+> **Metodologia:** ${metodologia}
+${valorRef?.observacao ? `> ${valorRef.observacao}` : ''}
 
-| Endereço | Data | Valor Transação | Valor Venal | Confiança |
-|----------|------|-----------------|-------------|-----------|
+### 📊 Transações do Mesmo Imóvel (confiança ≥95%)
+${matched.length} transação(ões) confiável(is) de ${totalCandidates} candidatos analisados — ordenadas da mais recente para a mais antiga:
+
+| Data | Valor Transação | Valor Venal | Classificação | Confiança |
+|------|-----------------|-------------|---------------|-----------|
 ${tableRows}
 
 ### 🎯 Avaliação Final
-${mediana && property.declared_value
-  ? (property.declared_value > mediana * 1.1
-    ? `O valor declarado (${declared}) está **${diff} acima** da mediana das transações ITBI registradas para este imóvel/região. Pode indicar valorização ou que as transações ITBI estão subdeclaradas (prática comum).`
-    : property.declared_value < mediana * 0.9
-      ? `O valor declarado (${declared}) está **${diff} abaixo** da mediana ITBI. Vale revisar a precificação.`
-      : `O valor declarado (${declared}) está **alinhado** com a mediana das transações ITBI desta região (${medianaFmt}).`)
-  : 'Sem dados suficientes para comparação estatística.'}
+${ultima ? `Última transação registrada: **${fmt(ultima.valor_transacao)}** em ${ultima.data_transacao ? new Date(ultima.data_transacao).toLocaleDateString('pt-BR') : 'N/D'} (${classBadge(ultima.classificacao_valor)}).` : ''}
+
+${valorRef?.valor_estimado && property.declared_value
+  ? (property.declared_value > Number(valorRef.valor_estimado) * 1.1
+    ? `O valor declarado (${declared}) está **${diff} acima** da referência ITBI. Pode indicar valorização recente ou subdeclaração nas transações oficiais (prática comum).`
+    : property.declared_value < Number(valorRef.valor_estimado) * 0.9
+      ? `O valor declarado (${declared}) está **${diff} abaixo** da referência ITBI. Vale revisar a precificação.`
+      : `O valor declarado (${declared}) está **alinhado** com a referência ITBI (${valorEstimado}).`)
+  : ''}
 
 ### ⚠️ Limitações
-- Base ITBI tem defasagem de meses e nem toda transação é registrada com endereço completo.
 - Valores de transação ITBI tendem a ser subdeclarados em relação ao valor real de mercado.
+- O classificador (Consistente/Subdeclaração/Acima) é heurístico baseado em valor venal.
 - Este é um indicativo, **não uma avaliação oficial**.`;
 }
 
@@ -273,7 +324,7 @@ serve(async (req) => {
     console.log(`[itbi-lookup] ${candList.length} candidatos pré-filtrados`);
 
     if (candList.length === 0) {
-      const report = buildReport(property, [], 0);
+      const report = buildReport(property, [], 0, null);
       return new Response(JSON.stringify({
         result: report,
         matched: [],
@@ -282,29 +333,37 @@ serve(async (req) => {
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // 2) GPT-4o filtra com score ≥95
+    // 2) GPT-4o filtra com score ≥95 e infere valor de mercado
     console.log(`[itbi-lookup] Enviando ao GPT-4o para matching...`);
     const gptResult = await filterMatchesWithGPT(
       {
         logradouro: property.rua,
         numero: property.numero,
+        complemento: property.complemento,
         bairro: property.bairro,
         cep: property.cep,
       },
       candList,
     );
 
-    const matchedIds = new Set((gptResult.matches_encontrados ?? []).map((m: any) => m.id));
+    const gptMatches = gptResult.matches_encontrados ?? [];
+    const matchedIds = new Set(gptMatches.map((m: any) => m.id).filter(Boolean));
     const matched = candList
       .filter((c: any) => matchedIds.has(c.id))
       .map((c: any) => {
-        const m = (gptResult.matches_encontrados ?? []).find((x: any) => x.id === c.id);
-        return { ...c, score: m?.score ?? 95, justificativa: m?.justificativa };
+        const m = gptMatches.find((x: any) => x.id === c.id) ?? {};
+        return {
+          ...c,
+          score: m.score ?? 95,
+          justificativa: m.justificativa,
+          classificacao_valor: m.classificacao_valor,
+          base_calculo: m.base_calculo,
+        };
       });
 
     console.log(`[itbi-lookup] ${matched.length} matches confiáveis (≥95%)`);
 
-    const report = buildReport(property, matched, candList.length);
+    const report = buildReport(property, matched, candList.length, gptResult.valor_referencia_mercado);
 
     return new Response(JSON.stringify({
       result: report,
@@ -312,6 +371,7 @@ serve(async (req) => {
       totalCandidates: candList.length,
       hadData: matched.length > 0,
       gptStatus: gptResult.status,
+      valorReferencia: gptResult.valor_referencia_mercado,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (error) {
