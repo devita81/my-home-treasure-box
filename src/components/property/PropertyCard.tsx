@@ -476,7 +476,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                   <Edit className="h-3.5 w-3.5" />
                 </Button>
               </Link>
-              {onDuplicate && (
+              {onDuplicate && !compact && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -484,7 +484,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                     e.stopPropagation();
                     onDuplicate(property.id);
                   }}
-                  className={compact ? 'h-8 w-8 p-0' : 'px-3'}
+                  className="px-3"
                   title="Duplicar imóvel"
                 >
                   <Copy className="h-3.5 w-3.5" />
