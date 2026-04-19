@@ -360,9 +360,54 @@ const PropertyDetails = () => {
     }
   };
 
-  if (!property) {
-    return <Navigate to="/" replace />;
-  }
+  // Consulta ITBI da Prefeitura de SP
+  const lookupItbi = async () => {
+    if (!property) return;
+    const cidadeLower = (property.cidade ?? '').toLowerCase();
+    if (cidadeLower !== 'são paulo' && cidadeLower !== 'sao paulo') {
+      toast.error('Disponível apenas para imóveis em São Paulo (capital)');
+      return;
+    }
+
+    setIsLoadingItbi(true);
+    setItbiResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('itbi-lookup', {
+        body: {
+          rua: property.rua,
+          numero: property.numero,
+          bairro: property.bairro,
+          cidade: property.cidade,
+          estado: property.estado,
+          declared_value: property.declared_value,
+          market_value: property.market_value,
+          tipo_imovel: property.tipo_imovel,
+          metragem: property.metragem,
+        },
+      });
+
+      if (error) {
+        logger.error('Erro ITBI:', error);
+        toast.error('Erro ao consultar ITBI');
+        return;
+      }
+
+      if (data?.result) {
+        setItbiResult(data.result);
+        setItbiDialogOpen(true);
+        if (!data.hadData) {
+          toast.warning('Nenhuma transação ITBI específica encontrada');
+        } else {
+          toast.success('Análise ITBI concluída');
+        }
+      }
+    } catch (e) {
+      logger.error('Erro ITBI:', e);
+      toast.error('Erro ao consultar ITBI');
+    } finally {
+      setIsLoadingItbi(false);
+    }
+  };
 
   const formatCurrency = (value: number | null | undefined) => {
     if (value === null || value === undefined) return null;
