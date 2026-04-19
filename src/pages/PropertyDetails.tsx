@@ -473,7 +473,7 @@ const PropertyDetails = () => {
             )}
 
             {/* Status badges - top */}
-            <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-1.5 md:gap-2 z-10">
+            <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-1.5 md:gap-2 z-[500] pointer-events-none">
               {getStatusBadge()}
               {property.validado ? (
                 <Badge variant="outline" className="bg-card/90 backdrop-blur-sm border-success text-success text-[10px] font-medium">
