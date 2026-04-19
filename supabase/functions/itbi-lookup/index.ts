@@ -408,6 +408,7 @@ serve(async (req) => {
           justificativa: m.justificativa,
           classificacao_valor: m.classificacao_valor,
           base_calculo: m.base_calculo,
+          is_unidade_exata: m.is_unidade_exata === true,
         };
       });
 
