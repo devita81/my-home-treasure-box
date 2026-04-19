@@ -398,21 +398,42 @@ serve(async (req) => {
 
     const gptMatches = gptResult.matches_encontrados ?? [];
     const matchedIds = new Set(gptMatches.map((m: any) => m.id).filter(Boolean));
+
+    // ⚠️ SAFETY NET: o LLM eventualmente omite registros válidos do mesmo prédio.
+    // Forçamos a inclusão de TODOS os candidatos residenciais cujo número bate
+    // exatamente com o do imóvel-alvo (rua+número idênticos após pré-filtro).
+    const numAlvo = (property.numero ?? '').toString().replace(/[^0-9]/g, '');
+    if (numAlvo) {
+      for (const c of candList) {
+        const cNum = (c.numero ?? '').toString().replace(/[^0-9]/g, '');
+        if (cNum === numAlvo && !matchedIds.has(c.id)) {
+          matchedIds.add(c.id);
+        }
+      }
+    }
+    const aptoAlvo = (property.apartamento ?? '').toString().replace(/[^0-9]/g, '');
+
     const matched = candList
       .filter((c: any) => matchedIds.has(c.id))
       .map((c: any) => {
         const m = gptMatches.find((x: any) => x.id === c.id) ?? {};
+        // Detecção determinística da unidade exata via número do apartamento
+        let isExata = m.is_unidade_exata === true;
+        if (aptoAlvo) {
+          const complNums = ((c.complemento ?? '').toString().match(/\d+/g) ?? [])[0];
+          if (complNums === aptoAlvo) isExata = true;
+        }
         return {
           ...c,
           score: m.score ?? 95,
-          justificativa: m.justificativa,
-          classificacao_valor: m.classificacao_valor,
+          justificativa: m.justificativa ?? 'Mesmo prédio (rua+número idênticos)',
+          classificacao_valor: m.classificacao_valor ?? 'CONSISTENTE',
           base_calculo: m.base_calculo,
-          is_unidade_exata: m.is_unidade_exata === true,
+          is_unidade_exata: isExata,
         };
       });
 
-    console.log(`[itbi-lookup] ${matched.length} matches confiáveis (≥95%)`);
+    console.log(`[itbi-lookup] ${matched.length} matches confiáveis (≥95%) [${gptMatches.length} via GPT, ${matched.length - gptMatches.length} via safety net]`);
 
     const report = buildReport(property, matched, candList.length, gptResult.valor_referencia_mercado);
 
