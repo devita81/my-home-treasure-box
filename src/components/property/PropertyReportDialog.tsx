@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { FileText, Send, Download, Loader2, Eye, ArrowLeft } from 'lucide-react';
+import { FileText, Send, Download, Loader2, Eye, ArrowLeft, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
@@ -522,25 +522,43 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
     if (!open) setShowPreview(false);
   }, [open]);
 
+  const buildFileName = () => {
+    const addressParts = [property.rua, property.numero, property.apartamento ? `Apto ${property.apartamento}` : '', property.bairro, `${property.cidade}/${property.estado}`].filter(Boolean).join(', ');
+    return `Reporte - ${property.tipo_imovel || 'Imóvel'} - ${addressParts}.pdf`.replace(/[/\\:*?"<>|]/g, '-');
+  };
+
   const handleDownloadPDF = async () => {
     setGenerating(true);
     try {
       const doc = await generatePropertyPDF(property);
-      const addressParts = [property.rua, property.numero, property.apartamento ? `Apto ${property.apartamento}` : '', property.bairro, `${property.cidade}/${property.estado}`].filter(Boolean).join(', ');
-      const fileName = `Reporte - ${property.tipo_imovel || 'Imóvel'} - ${addressParts}.pdf`;
+      const fileName = buildFileName();
 
-      // Detect mobile / iOS — doc.save() often fails silently on iOS Safari & PWAs.
       const ua = navigator.userAgent || '';
       const isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+      const isAndroid = /Android/i.test(ua);
+      const isMobile = isIOS || isAndroid || /webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
 
-      if (isIOS || isMobile) {
-        // Open PDF in a new tab so the OS native viewer handles it (works on iOS Safari + PWA + Android Chrome)
-        const blob = doc.output('blob');
+      const blob = doc.output('blob');
+      const file = new File([blob], fileName, { type: 'application/pdf' });
+
+      // Mobile: try native share (WhatsApp, Email, Files…) — this gives a REAL .pdf file, not a URL.
+      if (isMobile && (navigator as any).canShare && (navigator as any).canShare({ files: [file] })) {
+        try {
+          await (navigator as any).share({ files: [file], title: fileName });
+          toast.success('PDF compartilhado!');
+          return;
+        } catch (shareErr: any) {
+          // User cancelled — don't fall back, just exit
+          if (shareErr?.name === 'AbortError') return;
+          // Other share errors → fall through to blob open
+        }
+      }
+
+      // iOS/Android fallback: open PDF in new tab so the OS native viewer renders it
+      if (isMobile) {
         const blobUrl = URL.createObjectURL(blob);
         const newWin = window.open(blobUrl, '_blank');
         if (!newWin) {
-          // Popup blocked — fallback to anchor download
           const a = document.createElement('a');
           a.href = blobUrl;
           a.download = fileName;
@@ -549,13 +567,14 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
           a.click();
           document.body.removeChild(a);
         }
-        // Cleanup the blob URL after a delay (allow the new tab to load it)
         setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
-        toast.success('PDF aberto em nova aba. Use o botão de compartilhar para salvar.');
-      } else {
-        doc.save(fileName);
-        toast.success('Relatório PDF gerado com sucesso!');
+        toast.success('PDF aberto. Use o botão de compartilhar do navegador para salvar.');
+        return;
       }
+
+      // Desktop: native save dialog
+      doc.save(fileName);
+      toast.success('Relatório PDF gerado com sucesso!');
     } catch (err) {
       logger.error('PDF generation error:', err);
       toast.error('Erro ao gerar PDF');
@@ -574,8 +593,7 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
     try {
       const doc = await generatePropertyPDF(property);
       const pdfBlob = doc.output('blob');
-      const addressParts = [property.rua, property.numero, property.apartamento ? `Apto ${property.apartamento}` : '', property.bairro, `${property.cidade}/${property.estado}`].filter(Boolean).join(', ');
-      const fileName = `Reporte - ${property.tipo_imovel || 'Imóvel'} - ${addressParts}.pdf`;
+      const fileName = buildFileName();
       const filePath = `reports/${crypto.randomUUID()}_${fileName}`;
 
       const { error: uploadError } = await supabase.storage
