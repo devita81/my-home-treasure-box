@@ -218,6 +218,44 @@
     scrollbar-color: hsl(var(--muted-foreground) / 0.4) transparent;
   }
   .scroll-x-visible::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .scroll-x-visible::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scroll-x-visible::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.35);
+    border-radius: 9999px;
+  }
+
+  .property-card-map-marker {
+    background: transparent;
+    border: 0;
+  }
+
+  .property-card-map-marker__dot {
+    display: block;
+    width: 18px;
+    height: 18px;
+    border-radius: 9999px;
+    background: hsl(var(--primary));
+    border: 3px solid hsl(var(--primary-foreground));
+    box-shadow: 0 4px 12px hsl(var(--foreground) / 0.18);
+  }
+
+  .leaflet-container {
+    background: hsl(var(--muted));
+    font: inherit;
+  }
+
+  .leaflet-control-attribution,
+  .leaflet-control-container .leaflet-bottom,
+  .leaflet-control-container .leaflet-top {
+    display: none !important;
+  }
+}
     height: 8px;
     -webkit-appearance: none;
   }
