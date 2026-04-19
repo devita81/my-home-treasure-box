@@ -977,6 +977,33 @@ const PropertyDetails = () => {
         onOpenChange={setReportOpen}
         property={property}
       />
+
+      {/* Dialog ITBI */}
+      <Dialog open={itbiDialogOpen} onOpenChange={setItbiDialogOpen}>
+        <DialogContent className="w-[min(96vw,1100px)] max-w-5xl max-h-[88vh] overflow-hidden flex flex-col p-0">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b bg-card">
+            <DialogTitle className="flex items-center gap-2 text-base font-semibold pr-8">
+              <Building2 className="h-4 w-4 text-amber-700" />
+              Comparativo ITBI — Prefeitura de São Paulo
+            </DialogTitle>
+            <p className="text-[11px] leading-5 text-muted-foreground">
+              Análise baseada em dados públicos de transações imobiliárias da Prefeitura de SP.
+            </p>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto bg-muted/20 px-6 py-5">
+            {itbiResult && (
+              <div className="mx-auto max-w-none rounded-2xl border border-border/60 bg-background p-5 shadow-sm">
+                <div
+                  className="space-y-4 text-sm"
+                  dangerouslySetInnerHTML={{
+                    __html: convertMarkdownToHtml(itbiResult)
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
