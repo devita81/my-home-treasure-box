@@ -27,12 +27,53 @@ const sortOptions: { value: SortField; label: string }[] = [
 export function PropertyFilters() {
   const { filters, setFilters, properties } = useProperties();
 
-  const estados = [...new Set(properties.map((p) => p.estado).filter(Boolean))].sort();
-  const cidades = [...new Set(properties.map((p) => p.cidade).filter(Boolean))].sort();
-  const bairros = [...new Set(properties.map((p) => p.bairro).filter(Boolean))].sort();
+  // Aplica todos os filtros EXCETO o campo informado, para gerar opções interdependentes
+  const filterExcept = (exclude: 'tipoImovel' | 'proprietarioPapel' | 'estado' | 'cidade' | 'bairro' | 'status' | 'validado') => {
+    return properties.filter((p) => {
+      if (exclude !== 'tipoImovel' && filters.tipoImovel && p.tipo_imovel !== filters.tipoImovel) return false;
+      if (exclude !== 'proprietarioPapel' && filters.proprietarioPapel) {
+        if (filters.proprietarioPapel === '__empty__') {
+          if (p.proprietario_papel) return false;
+        } else if (p.proprietario_papel !== filters.proprietarioPapel) return false;
+      }
+      if (exclude !== 'estado' && filters.estado && p.estado !== filters.estado) return false;
+      if (exclude !== 'cidade' && filters.cidade && p.cidade !== filters.cidade) return false;
+      if (exclude !== 'bairro' && filters.bairro && p.bairro !== filters.bairro) return false;
+      if (exclude !== 'status' && filters.status !== 'all') {
+        if (filters.status === 'vendido' && !p.vendido) return false;
+        if (filters.status === 'alugado' && !p.alugado) return false;
+        if (filters.status === 'disponivel' && (p.vendido || p.alugado)) return false;
+      }
+      if (exclude !== 'validado' && filters.validado !== 'all') {
+        if (filters.validado === 'sim' && !p.validado) return false;
+        if (filters.validado === 'nao' && p.validado) return false;
+      }
+      return true;
+    });
+  };
 
-  const proprietariosPapel = [...new Set(properties.map((p) => p.proprietario_papel).filter(Boolean))].sort();
-  const hasEmptyProprietarioPapel = properties.some((p) => !p.proprietario_papel);
+  const estados = [...new Set(filterExcept('estado').map((p) => p.estado).filter(Boolean))].sort();
+  const cidades = [...new Set(filterExcept('cidade').map((p) => p.cidade).filter(Boolean))].sort();
+  const bairros = [...new Set(filterExcept('bairro').map((p) => p.bairro).filter(Boolean))].sort();
+  const tiposDisponiveis = new Set(filterExcept('tipoImovel').map((p) => p.tipo_imovel).filter(Boolean));
+
+  const propsForOwner = filterExcept('proprietarioPapel');
+  const proprietariosPapel = [...new Set(propsForOwner.map((p) => p.proprietario_papel).filter(Boolean))].sort();
+  const hasEmptyProprietarioPapel = propsForOwner.some((p) => !p.proprietario_papel);
+
+  const propsForStatus = filterExcept('status');
+  const statusDisponiveis = new Set<string>();
+  propsForStatus.forEach((p) => {
+    if (p.vendido) statusDisponiveis.add('vendido');
+    if (p.alugado) statusDisponiveis.add('alugado');
+    if (!p.vendido && !p.alugado) statusDisponiveis.add('disponivel');
+  });
+
+  const propsForValidado = filterExcept('validado');
+  const validadoDisponiveis = new Set<string>();
+  propsForValidado.forEach((p) => validadoDisponiveis.add(p.validado ? 'sim' : 'nao'));
+
+  const tiposImovelFiltrados = tiposImovel.filter((t) => tiposDisponiveis.has(t.value) || filters.tipoImovel === t.value);
 
   const handleClearFilters = () => {
     setFilters({
@@ -108,7 +149,7 @@ export function PropertyFilters() {
               <SelectTrigger className="h-9 text-[11px]"><SelectValue placeholder="Tipo" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os Tipos</SelectItem>
-                {tiposImovel.map((tipo) => <SelectItem key={tipo.value} value={tipo.value}>{tipo.label}</SelectItem>)}
+                {tiposImovelFiltrados.map((tipo) => <SelectItem key={tipo.value} value={tipo.value}>{tipo.label}</SelectItem>)}
               </SelectContent>
             </Select>
             {(proprietariosPapel.length > 0 || hasEmptyProprietarioPapel) && (
@@ -162,17 +203,17 @@ export function PropertyFilters() {
               <SelectTrigger className="h-9 text-[11px]"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos Status</SelectItem>
-                <SelectItem value="disponivel">Disponível</SelectItem>
-                <SelectItem value="alugado">Alugado</SelectItem>
-                <SelectItem value="vendido">Vendido</SelectItem>
+                {statusDisponiveis.has('disponivel') && <SelectItem value="disponivel">Disponível</SelectItem>}
+                {statusDisponiveis.has('alugado') && <SelectItem value="alugado">Alugado</SelectItem>}
+                {statusDisponiveis.has('vendido') && <SelectItem value="vendido">Vendido</SelectItem>}
               </SelectContent>
             </Select>
             <Select value={filters.validado} onValueChange={(value) => setFilters({ ...filters, validado: value as any })}>
               <SelectTrigger className="h-9 text-[11px]"><SelectValue placeholder="Validação" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="sim">Validado</SelectItem>
-                <SelectItem value="nao">Pendente</SelectItem>
+                {validadoDisponiveis.has('sim') && <SelectItem value="sim">Validado</SelectItem>}
+                {validadoDisponiveis.has('nao') && <SelectItem value="nao">Pendente</SelectItem>}
               </SelectContent>
             </Select>
           </div>
@@ -211,7 +252,7 @@ export function PropertyFilters() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os Tipos</SelectItem>
-              {tiposImovel.map((tipo) => <SelectItem key={tipo.value} value={tipo.value}>{tipo.label}</SelectItem>)}
+              {tiposImovelFiltrados.map((tipo) => <SelectItem key={tipo.value} value={tipo.value}>{tipo.label}</SelectItem>)}
             </SelectContent>
           </Select>
           {(proprietariosPapel.length > 0 || hasEmptyProprietarioPapel) ? (
@@ -271,9 +312,9 @@ export function PropertyFilters() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="disponivel">Disponível</SelectItem>
-              <SelectItem value="alugado">Alugado</SelectItem>
-              <SelectItem value="vendido">Vendido</SelectItem>
+              {statusDisponiveis.has('disponivel') && <SelectItem value="disponivel">Disponível</SelectItem>}
+              {statusDisponiveis.has('alugado') && <SelectItem value="alugado">Alugado</SelectItem>}
+              {statusDisponiveis.has('vendido') && <SelectItem value="vendido">Vendido</SelectItem>}
             </SelectContent>
           </Select>
           <Select value={filters.validado} onValueChange={(value) => setFilters({ ...filters, validado: value as any })}>
@@ -283,8 +324,8 @@ export function PropertyFilters() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="sim">Validado</SelectItem>
-              <SelectItem value="nao">Pendente</SelectItem>
+              {validadoDisponiveis.has('sim') && <SelectItem value="sim">Validado</SelectItem>}
+              {validadoDisponiveis.has('nao') && <SelectItem value="nao">Pendente</SelectItem>}
             </SelectContent>
           </Select>
           <div className="h-5 w-px bg-border justify-self-center" />
