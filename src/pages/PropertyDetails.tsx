@@ -102,35 +102,68 @@ const renderMarkdownTable = (tableLines: string[]) => {
     return lastCell.length > 28 && !isCompactMetricCell(lastCell);
   });
 
-  let html = '<div class="my-5 overflow-hidden rounded-xl border border-border bg-card/80 shadow-sm"><div class="overflow-x-auto"><table class="w-full border-collapse text-sm';
-  html += hasNarrativeLastColumn ? ' table-fixed' : '';
-  html += '">';
+  // ===== Desktop view (sm and up): traditional table =====
+  let desktop = '<div class="my-5 hidden sm:block overflow-hidden rounded-xl border border-border bg-card/80 shadow-sm"><div class="overflow-x-auto"><table class="w-full border-collapse text-sm';
+  desktop += hasNarrativeLastColumn ? ' table-fixed' : '';
+  desktop += '">';
 
   if (hasNarrativeLastColumn && headers.length === 4) {
-    html += '<colgroup><col style="width: 17%" /><col style="width: 15%" /><col style="width: 15%" /><col style="width: 53%" /></colgroup>';
+    desktop += '<colgroup><col style="width: 17%" /><col style="width: 15%" /><col style="width: 15%" /><col style="width: 53%" /></colgroup>';
   }
 
-  html += '<thead><tr class="border-b border-border/70 bg-muted/50">';
+  desktop += '<thead><tr class="border-b border-border/70 bg-muted/50">';
   headers.forEach((header, index) => {
     const alignClass = index === 0 || (hasNarrativeLastColumn && index === headers.length - 1) ? 'text-left' : 'text-right';
-    html += `<th class="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground ${alignClass}">${header}</th>`;
+    desktop += `<th class="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground ${alignClass}">${header}</th>`;
   });
-  html += '</tr></thead><tbody>';
+  desktop += '</tr></thead><tbody>';
 
   rows.forEach((row) => {
-    html += '<tr class="border-b border-border/50 last:border-b-0">';
+    desktop += '<tr class="border-b border-border/50 last:border-b-0">';
     row.forEach((cell, index) => {
       const plainText = cell.replace(/<[^>]+>/g, '').trim();
       const isNarrativeCell = hasNarrativeLastColumn && index === row.length - 1;
       const alignClass = index === 0 || isNarrativeCell ? 'text-left' : isCompactMetricCell(plainText) ? 'text-right whitespace-nowrap tabular-nums' : 'text-left';
       const toneClass = isNarrativeCell ? 'text-muted-foreground leading-6 break-words' : index === 0 ? 'font-semibold text-foreground' : 'font-medium text-foreground';
-      html += `<td class="px-4 py-3 align-top ${alignClass} ${toneClass}">${cell || '—'}</td>`;
+      desktop += `<td class="px-4 py-3 align-top ${alignClass} ${toneClass}">${cell || '—'}</td>`;
     });
-    html += '</tr>';
+    desktop += '</tr>';
   });
 
-  html += '</tbody></table></div></div>';
-  return html;
+  desktop += '</tbody></table></div></div>';
+
+  // ===== Mobile view (below sm): card list, no horizontal scroll =====
+  let mobile = '<div class="my-4 sm:hidden space-y-2.5">';
+  rows.forEach((row) => {
+    const titleCell = row[0] || '—';
+    mobile += '<div class="rounded-lg border border-border bg-card/80 shadow-sm p-3">';
+    mobile += `<div class="text-[12px] font-semibold text-foreground mb-2 break-words">${titleCell}</div>`;
+    mobile += '<dl class="space-y-1.5">';
+    for (let i = 1; i < row.length; i++) {
+      const cell = row[i] || '—';
+      const plainText = cell.replace(/<[^>]+>/g, '').trim();
+      const header = headers[i] || '';
+      const isNarrativeCell = hasNarrativeLastColumn && i === row.length - 1;
+      if (isNarrativeCell) {
+        mobile += '<div class="pt-1.5 mt-1.5 border-t border-border/60">';
+        if (header) {
+          mobile += `<dt class="text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1">${header}</dt>`;
+        }
+        mobile += `<dd class="text-[11px] leading-5 text-muted-foreground break-words">${cell}</dd>`;
+        mobile += '</div>';
+      } else {
+        const valueAlign = isCompactMetricCell(plainText) ? 'tabular-nums' : '';
+        mobile += '<div class="flex items-start justify-between gap-3">';
+        mobile += `<dt class="text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground shrink-0">${header}</dt>`;
+        mobile += `<dd class="text-[11px] font-medium text-foreground text-right break-words ${valueAlign}">${cell}</dd>`;
+        mobile += '</div>';
+      }
+    }
+    mobile += '</dl></div>';
+  });
+  mobile += '</div>';
+
+  return desktop + mobile;
 };
 
 const convertMarkdownToHtml = (markdown: string): string => {
