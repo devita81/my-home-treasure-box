@@ -520,7 +520,8 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
           <div className="relative w-full h-[90vh] bg-black">
             <button
               onClick={() => setShowLightbox(false)}
-              className="absolute top-3 right-3 z-40 h-9 w-9 rounded-full bg-white hover:bg-white/80 flex items-center justify-center shadow-lg transition-colors"
+              className="absolute top-3 right-3 z-[1000] h-10 w-10 rounded-full bg-white hover:bg-white/90 flex items-center justify-center shadow-xl transition-colors"
+              aria-label="Fechar"
             >
               <span className="text-black text-lg font-bold leading-none">✕</span>
             </button>
@@ -555,20 +556,20 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               <>
                 <button
                   onClick={goPrev}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-white hover:bg-white/80 flex items-center justify-center shadow-lg transition-colors"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-[999] h-10 w-10 rounded-full bg-white hover:bg-white/80 flex items-center justify-center shadow-lg transition-colors"
                 >
                   <ChevronLeft className="h-5 w-5 text-black" />
                 </button>
                 <button
                   onClick={goNext}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-white hover:bg-white/80 flex items-center justify-center shadow-lg transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-[999] h-10 w-10 rounded-full bg-white hover:bg-white/80 flex items-center justify-center shadow-lg transition-colors"
                 >
                   <ChevronRight className="h-5 w-5 text-black" />
                 </button>
               </>
             )}
 
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 bg-black/60 px-3 py-1 rounded-full">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[999] bg-black/60 px-3 py-1 rounded-full">
               <span className="text-white text-xs">
                 {mediaIndex === 0 ? 'Mapa' : `Foto ${mediaIndex}`} · {mediaIndex + 1} / {totalSlides}
               </span>
