@@ -520,7 +520,8 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
           <div className="relative w-full h-[90vh] bg-black">
             <button
               onClick={() => setShowLightbox(false)}
-              className="absolute top-3 right-3 z-40 h-9 w-9 rounded-full bg-white hover:bg-white/80 flex items-center justify-center shadow-lg transition-colors"
+              className="absolute top-3 right-3 z-[1000] h-10 w-10 rounded-full bg-white hover:bg-white/90 flex items-center justify-center shadow-xl transition-colors"
+              aria-label="Fechar"
             >
               <span className="text-black text-lg font-bold leading-none">✕</span>
             </button>
