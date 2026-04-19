@@ -104,8 +104,14 @@ const renderMarkdownTable = (tableLines: string[]) => {
     return lastCell.length > 28 && !isCompactMetricCell(lastCell);
   });
 
-  // ===== Desktop view (sm and up): traditional table =====
-  let desktop = '<div class="my-5 hidden sm:block overflow-hidden rounded-xl border border-border bg-card/80 shadow-sm"><div class="overflow-x-auto"><table class="w-full border-collapse text-sm';
+  // Tabelas com muitas colunas (>=6) só viram tabela em telas grandes (lg+),
+  // caso contrário ficam como cards para evitar scroll horizontal no mobile/tablet.
+  const isWide = headers.length >= 6;
+  const desktopShowClass = isWide ? 'hidden lg:block' : 'hidden sm:block';
+  const mobileShowClass = isWide ? 'lg:hidden' : 'sm:hidden';
+
+  // ===== Desktop view: traditional table =====
+  let desktop = `<div class="my-5 ${desktopShowClass} overflow-hidden rounded-xl border border-border bg-card/80 shadow-sm"><div class="overflow-x-auto"><table class="w-full border-collapse text-sm`;
   desktop += hasNarrativeLastColumn ? ' table-fixed' : '';
   desktop += '">';
 
@@ -134,8 +140,8 @@ const renderMarkdownTable = (tableLines: string[]) => {
 
   desktop += '</tbody></table></div></div>';
 
-  // ===== Mobile view (below sm): card list, no horizontal scroll =====
-  let mobile = '<div class="my-4 sm:hidden space-y-2.5">';
+  // ===== Mobile/tablet view: card list =====
+  let mobile = `<div class="my-4 ${mobileShowClass} space-y-2.5">`;
   rows.forEach((row) => {
     const titleCell = row[0] || '—';
     mobile += '<div class="rounded-lg border border-border bg-card/80 shadow-sm p-3">';
@@ -157,7 +163,7 @@ const renderMarkdownTable = (tableLines: string[]) => {
         const valueAlign = isCompactMetricCell(plainText) ? 'tabular-nums' : '';
         mobile += '<div class="flex items-start justify-between gap-3">';
         mobile += `<dt class="text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground shrink-0">${header}</dt>`;
-        mobile += `<dd class="text-[11px] font-medium text-foreground text-right break-words ${valueAlign}">${cell}</dd>`;
+        mobile += `<dd class="text-[11px] font-medium text-foreground text-right break-words min-w-0 ${valueAlign}">${cell}</dd>`;
         mobile += '</div>';
       }
     }
@@ -988,7 +994,7 @@ const PropertyDetails = () => {
       {/* Dialog ITBI */}
       <Dialog open={itbiDialogOpen} onOpenChange={setItbiDialogOpen}>
         <DialogContent className="w-[min(96vw,1100px)] max-w-5xl max-h-[88vh] overflow-hidden flex flex-col p-0">
-          <DialogHeader className="px-6 pt-6 pb-4 border-b bg-card">
+          <DialogHeader className="px-4 sm:px-6 pt-6 pb-4 border-b bg-card">
             <DialogTitle className="flex items-center gap-2 text-base font-semibold pr-8">
               <Building2 className="h-4 w-4 text-amber-700" />
               Comparativo ITBI — Prefeitura de São Paulo
@@ -997,11 +1003,11 @@ const PropertyDetails = () => {
               Análise baseada em dados públicos de transações imobiliárias da Prefeitura de SP.
             </p>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto bg-muted/20 px-6 py-5">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden bg-muted/20 px-3 sm:px-6 py-5 min-w-0">
             {itbiResult && (
-              <div className="mx-auto max-w-none rounded-2xl border border-border/60 bg-background p-5 shadow-sm">
+              <div className="mx-auto max-w-none rounded-2xl border border-border/60 bg-background p-3 sm:p-5 shadow-sm min-w-0">
                 <div
-                  className="space-y-4 text-sm"
+                  className="space-y-4 text-sm min-w-0"
                   dangerouslySetInnerHTML={{
                     __html: convertMarkdownToHtml(itbiResult)
                   }}
