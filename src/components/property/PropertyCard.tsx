@@ -108,7 +108,18 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
     return `https://www.openstreetmap.org/export/embed.html?bbox=-47.5,-24.0,-46.0,-23.0&layer=mapnik&marker=&query=${query}`;
   };
 
+  // Static map image URL - no attribution overlay (used in compact mode)
+  const getStaticMapUrl = () => {
+    if (property.latitude != null && property.longitude != null) {
+      const lat = property.latitude;
+      const lng = property.longitude;
+      return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=16&size=600x450&markers=${lat},${lng},lightgreen`;
+    }
+    return null;
+  };
+
   const embedUrl = getEmbedUrl();
+  const staticMapUrl = getStaticMapUrl();
   const activePhoto = mediaIndex > 0 ? photos[Math.min(mediaIndex - 1, photos.length - 1)] : null;
 
   return (
