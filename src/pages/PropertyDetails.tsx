@@ -473,7 +473,7 @@ const PropertyDetails = () => {
             )}
 
             {/* Status badges - top */}
-            <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-1.5 md:gap-2 z-10">
+            <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-1.5 md:gap-2 z-[500] pointer-events-none">
               {getStatusBadge()}
               {property.validado ? (
                 <Badge variant="outline" className="bg-card/90 backdrop-blur-sm border-success text-success text-[10px] font-medium">
@@ -489,7 +489,7 @@ const PropertyDetails = () => {
             </div>
 
             {/* Address banner - bottom */}
-            <div className="absolute bottom-0 left-0 right-0 z-10">
+            <div className="absolute bottom-0 left-0 right-0 z-[500] pointer-events-none">
               <div className="bg-gradient-to-t from-foreground/90 via-foreground/70 to-transparent px-4 py-3 md:px-6 md:py-4">
                 <h1 className="font-display text-base md:text-xl font-semibold text-card mb-0.5 md:mb-1 leading-tight">
                   {getAddressDisplay()}
