@@ -26,6 +26,7 @@ import {
   Home,
   Key,
   Building,
+  Building2,
   Ruler,
   BedDouble,
   Bath,
