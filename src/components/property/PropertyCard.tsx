@@ -32,9 +32,10 @@ interface PropertyCardProps {
   property: Property;
   onDelete?: (id: string) => void;
   onDuplicate?: (id: string) => void;
+  compact?: boolean;
 }
 
-export function PropertyCard({ property, onDelete, onDuplicate }: PropertyCardProps) {
+export function PropertyCard({ property, onDelete, onDuplicate, compact = false }: PropertyCardProps) {
   const [showReport, setShowReport] = useState(false);
   const [mediaIndex, setMediaIndex] = useState(0);
   const [showLightbox, setShowLightbox] = useState(false);
