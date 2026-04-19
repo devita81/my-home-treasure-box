@@ -231,7 +231,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
 
           <div className="flex-1 p-3 flex flex-col">
             <div className={compact
-              ? 'grid grid-cols-2 gap-2 flex-1'
+              ? 'grid grid-cols-1 gap-2 flex-1'
               : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 flex-1'}>
               <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30">
                 <div className="flex items-center gap-1.5 mb-2">
