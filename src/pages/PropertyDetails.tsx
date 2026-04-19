@@ -489,7 +489,7 @@ const PropertyDetails = () => {
             </div>
 
             {/* Address banner - bottom */}
-            <div className="absolute bottom-0 left-0 right-0 z-10">
+            <div className="absolute bottom-0 left-0 right-0 z-[500] pointer-events-none">
               <div className="bg-gradient-to-t from-foreground/90 via-foreground/70 to-transparent px-4 py-3 md:px-6 md:py-4">
                 <h1 className="font-display text-base md:text-xl font-semibold text-card mb-0.5 md:mb-1 leading-tight">
                   {getAddressDisplay()}
