@@ -201,14 +201,24 @@ Foram analisados **${totalCandidates} candidatos** próximos no banco ITBI da Pr
 - Este é um indicativo, não uma avaliação oficial.`;
   }
 
+  // Deduplica por (data + valor_transacao + sql_iptu) — ITBI registra 2x (comprador/vendedor)
+  const seen = new Set<string>();
+  const dedup = matched.filter((m) => {
+    const key = `${m.data_transacao ?? ''}|${m.valor_transacao ?? ''}|${m.sql_iptu ?? ''}|${m.numero ?? ''}|${m.complemento ?? ''}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
   // Ordena por data desc para destacar a mais recente
-  const sorted = [...matched].sort((a, b) => {
+  const sorted = [...dedup].sort((a, b) => {
     const da = a.data_transacao ? new Date(a.data_transacao).getTime() : 0;
     const db = b.data_transacao ? new Date(b.data_transacao).getTime() : 0;
     return db - da;
   });
 
   const ultima = sorted[0];
+  const duplicatasRemovidas = matched.length - dedup.length;
   const valorEstimado = valorRef?.valor_estimado ? fmt(valorRef.valor_estimado) : (ultima?.valor_transacao ? fmt(ultima.valor_transacao) : 'N/D');
   const metodologia = valorRef?.metodologia ?? 'última transação válida';
 
