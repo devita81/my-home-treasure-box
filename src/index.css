@@ -244,6 +244,12 @@
   .leaflet-container {
     background: hsl(var(--muted));
     font: inherit;
+    z-index: 0;
+  }
+  .leaflet-pane,
+  .leaflet-top,
+  .leaflet-bottom {
+    z-index: 0 !important;
   }
   .leaflet-control-attribution,
   .leaflet-control-container .leaflet-bottom,
