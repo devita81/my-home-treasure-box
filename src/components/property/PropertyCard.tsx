@@ -242,7 +242,15 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
             )}
           </div>
 
-          <div className={compact ? 'flex-1 p-2 flex flex-col' : 'flex-1 p-3 flex flex-col'}>
+          <div
+            className={compact ? 'flex-1 p-2 flex flex-col cursor-pointer sm:cursor-default' : 'flex-1 p-3 flex flex-col cursor-pointer sm:cursor-default'}
+            onClick={(e) => {
+              // Only navigate on mobile (below sm breakpoint - 640px)
+              if (typeof window !== 'undefined' && window.innerWidth < 640) {
+                handleCardClick();
+              }
+            }}
+          >
             {compact && (
               <div className="mb-2 pb-2 border-b border-border/40">
                 <div className="flex flex-wrap items-center gap-1 mb-1">
