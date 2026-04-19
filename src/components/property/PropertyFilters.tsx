@@ -312,9 +312,9 @@ export function PropertyFilters() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="disponivel">Disponível</SelectItem>
-              <SelectItem value="alugado">Alugado</SelectItem>
-              <SelectItem value="vendido">Vendido</SelectItem>
+              {statusDisponiveis.has('disponivel') && <SelectItem value="disponivel">Disponível</SelectItem>}
+              {statusDisponiveis.has('alugado') && <SelectItem value="alugado">Alugado</SelectItem>}
+              {statusDisponiveis.has('vendido') && <SelectItem value="vendido">Vendido</SelectItem>}
             </SelectContent>
           </Select>
           <Select value={filters.validado} onValueChange={(value) => setFilters({ ...filters, validado: value as any })}>
@@ -324,8 +324,8 @@ export function PropertyFilters() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="sim">Validado</SelectItem>
-              <SelectItem value="nao">Pendente</SelectItem>
+              {validadoDisponiveis.has('sim') && <SelectItem value="sim">Validado</SelectItem>}
+              {validadoDisponiveis.has('nao') && <SelectItem value="nao">Pendente</SelectItem>}
             </SelectContent>
           </Select>
           <div className="h-5 w-px bg-border justify-self-center" />
