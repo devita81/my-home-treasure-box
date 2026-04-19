@@ -104,8 +104,14 @@ const renderMarkdownTable = (tableLines: string[]) => {
     return lastCell.length > 28 && !isCompactMetricCell(lastCell);
   });
 
-  // ===== Desktop view (sm and up): traditional table =====
-  let desktop = '<div class="my-5 hidden sm:block overflow-hidden rounded-xl border border-border bg-card/80 shadow-sm"><div class="overflow-x-auto"><table class="w-full border-collapse text-sm';
+  // Tabelas com muitas colunas (>=6) só viram tabela em telas grandes (lg+),
+  // caso contrário ficam como cards para evitar scroll horizontal no mobile/tablet.
+  const isWide = headers.length >= 6;
+  const desktopShowClass = isWide ? 'hidden lg:block' : 'hidden sm:block';
+  const mobileShowClass = isWide ? 'lg:hidden' : 'sm:hidden';
+
+  // ===== Desktop view: traditional table =====
+  let desktop = `<div class="my-5 ${desktopShowClass} overflow-hidden rounded-xl border border-border bg-card/80 shadow-sm"><div class="overflow-x-auto"><table class="w-full border-collapse text-sm`;
   desktop += hasNarrativeLastColumn ? ' table-fixed' : '';
   desktop += '">';
 
@@ -134,8 +140,8 @@ const renderMarkdownTable = (tableLines: string[]) => {
 
   desktop += '</tbody></table></div></div>';
 
-  // ===== Mobile view (below sm): card list, no horizontal scroll =====
-  let mobile = '<div class="my-4 sm:hidden space-y-2.5">';
+  // ===== Mobile/tablet view: card list =====
+  let mobile = `<div class="my-4 ${mobileShowClass} space-y-2.5">`;
   rows.forEach((row) => {
     const titleCell = row[0] || '—';
     mobile += '<div class="rounded-lg border border-border bg-card/80 shadow-sm p-3">';
@@ -157,7 +163,7 @@ const renderMarkdownTable = (tableLines: string[]) => {
         const valueAlign = isCompactMetricCell(plainText) ? 'tabular-nums' : '';
         mobile += '<div class="flex items-start justify-between gap-3">';
         mobile += `<dt class="text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground shrink-0">${header}</dt>`;
-        mobile += `<dd class="text-[11px] font-medium text-foreground text-right break-words ${valueAlign}">${cell}</dd>`;
+        mobile += `<dd class="text-[11px] font-medium text-foreground text-right break-words min-w-0 ${valueAlign}">${cell}</dd>`;
         mobile += '</div>';
       }
     }
