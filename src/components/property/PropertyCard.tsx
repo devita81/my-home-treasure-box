@@ -36,9 +36,14 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property, onDelete, onDuplicate, compact = false }: PropertyCardProps) {
+  const navigate = useNavigate();
   const [showReport, setShowReport] = useState(false);
   const [mediaIndex, setMediaIndex] = useState(0);
   const [showLightbox, setShowLightbox] = useState(false);
+
+  const handleCardClick = useCallback(() => {
+    navigate(`/property/${property.id}`);
+  }, [navigate, property.id]);
 
   const photos = property.photos || [];
   const totalSlides = 1 + photos.length;
