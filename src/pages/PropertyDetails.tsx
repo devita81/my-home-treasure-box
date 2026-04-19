@@ -377,9 +377,12 @@ const PropertyDetails = () => {
         body: {
           rua: property.rua,
           numero: property.numero,
+          apartamento: property.apartamento,
+          complemento: property.complemento,
           bairro: property.bairro,
           cidade: property.cidade,
           estado: property.estado,
+          cep: (property as any).cep,
           declared_value: property.declared_value,
           market_value: property.market_value,
           tipo_imovel: property.tipo_imovel,
