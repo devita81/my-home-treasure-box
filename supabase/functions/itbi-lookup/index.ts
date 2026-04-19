@@ -241,11 +241,15 @@ Foram analisados **${totalCandidates} candidatos** próximos no banco ITBI da Pr
     const data = m.data_transacao ? new Date(m.data_transacao).toLocaleDateString('pt-BR') : 'N/D';
     const enderecoBase = `${m.logradouro ?? ''}${m.numero ? `, ${m.numero}` : ''}`.trim() || 'N/D';
     const compl = m.complemento?.trim() || '—';
+    const complDisplay = m.is_unidade_exata ? `🎯 **${compl}**` : compl;
     const bairro = m.bairro?.trim() || '—';
     const sql = m.sql_iptu?.trim() || '—';
     const area = m.area_construida ? `${Number(m.area_construida).toLocaleString('pt-BR')} m²` : '—';
-    return `| ${data} | ${enderecoBase} | ${compl} | ${bairro} | ${sql} | ${area} | ${fmt(m.valor_transacao)} | ${fmt(m.valor_venal)} | ${classBadge(m.classificacao_valor)} | ${m.score}% |`;
+    return `| ${data} | ${enderecoBase} | ${complDisplay} | ${bairro} | ${sql} | ${area} | ${fmt(m.valor_transacao)} | ${fmt(m.valor_venal)} | ${classBadge(m.classificacao_valor)} | ${m.score}% |`;
   }).join('\n');
+
+  const exatas = dedup.filter((m: any) => m.is_unidade_exata).length;
+  const outrasUnidades = dedup.length - exatas;
 
   const diff = valorRef?.valor_estimado && property.declared_value
     ? `${(((property.declared_value - Number(valorRef.valor_estimado)) / Number(valorRef.valor_estimado)) * 100).toFixed(1)}%`
@@ -254,7 +258,7 @@ Foram analisados **${totalCandidates} candidatos** próximos no banco ITBI da Pr
   return `## 🏛️ Análise ITBI — Prefeitura de São Paulo
 
 ### 📍 Endereço Analisado
-${property.rua}${property.numero ? `, ${property.numero}` : ''}${property.bairro ? ` - ${property.bairro}` : ''}, ${property.cidade}/${property.estado}
+${property.rua}${property.numero ? `, ${property.numero}` : ''}${property.apartamento ? `, AP ${property.apartamento}` : ''}${property.bairro ? ` - ${property.bairro}` : ''}, ${property.cidade}/${property.estado}
 
 ### 💰 Comparativo de Valores
 | Indicador | Valor |
@@ -267,8 +271,10 @@ ${property.rua}${property.numero ? `, ${property.numero}` : ''}${property.bairro
 > **Metodologia:** ${metodologia}
 ${valorRef?.observacao ? `> ${valorRef.observacao}` : ''}
 
-### 📊 Transações do Mesmo Imóvel (confiança ≥95%)
-${dedup.length} transação(ões) única(s) de ${totalCandidates} candidatos analisados${duplicatasRemovidas > 0 ? ` (${duplicatasRemovidas} duplicata(s) removida(s) — ITBI registra comprador+vendedor)` : ''} — ordenadas da mais recente para a mais antiga:
+### 📊 Transações no Mesmo Prédio (confiança ≥95%)
+${dedup.length} transação(ões) única(s) — **${exatas} da unidade exata** + ${outrasUnidades} de outras unidades do mesmo prédio (referência de mercado). ${duplicatasRemovidas > 0 ? `${duplicatasRemovidas} duplicata(s) removida(s) — ITBI registra comprador+vendedor.` : ''}
+
+🎯 = unidade exata informada no cadastro
 
 | Data | Endereço | Compl. | Bairro | SQL/IPTU | Área | Valor Transação | Valor Venal | Classificação | Confiança |
 |------|----------|--------|--------|----------|------|-----------------|-------------|---------------|-----------|
