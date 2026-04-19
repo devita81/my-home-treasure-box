@@ -62,31 +62,34 @@ Aplicar para input e base:
 
 MATCHING (após filtro de tipo)
 Score total = 100. Pesos:
-- Nome do logradouro: 50
-- Número do prédio: 25
-- Apartamento/unidade (complemento): 20  ← MUITO IMPORTANTE para condomínios
+- Nome do logradouro: 60
+- Número do prédio: 35
 - Bairro: 3
 - CEP: 1
-- Tipo correto (não garagem quando é apto): pré-requisito (sem isso, descartar)
+- Complemento: 1
 
 REGRA CENTRAL:
-✔ Rua + número + tipo correto da unidade devem bater
-✔ Se o usuário informou número de apartamento, ele DEVE bater com o complemento da base
-✔ Sem isso, NÃO pode atingir 95
+✔ Rua + número devem bater de forma convincente (score ≥95)
+✔ TODAS as unidades residenciais do MESMO PRÉDIO devem ser retornadas (mesmo logradouro+número, complementos AP/APTO diferentes) — elas servem como referência de mercado para o imóvel.
+✔ Se o usuário informou "apartamento", marque o match exato com flag is_unidade_exata=true e os demais como is_unidade_exata=false (mesmo prédio, outra unidade).
 
 CORTE DE QUALIDADE
-- Retornar apenas registros com score ≥95
-- Caso contrário: status "SEM_MATCH_CONFIAVEL"
+- Retornar TODOS os apartamentos do mesmo prédio com score ≥95 (mesma rua+número, tipo residencial)
+- Caso não haja nenhum: status "SEM_MATCH_CONFIAVEL"
 
 EXTRAÇÃO E AVALIAÇÃO
-Para cada match extrair: data, valor_transacao, valor_venal, base_calculo.
+Para cada match extrair: data, valor_transacao, valor_venal, área_construída.
 Classificar:
-- "CONSISTENTE" → valor_transacao próximo do venal
-- "POSSIVEL_SUBDECLARACAO" → valor_transacao muito abaixo do venal
+- "CONSISTENTE" → valor_transacao próximo do venal (diferença ≤20%)
+- "POSSIVEL_SUBDECLARACAO" → valor_transacao muito abaixo do venal (>30% abaixo) — ⚠️ comum em ITBI
 - "ACIMA_REFERENCIA" → valor_transacao acima do venal
 
-CONSOLIDAÇÃO
-Ordenar por data desc, destacar mais recente, sugerir valor de mercado.
+CONSOLIDAÇÃO (VALOR DE MERCADO)
+- Ordenar por data desc
+- Para "valor_estimado" priorizar:
+  1. unidade exata mais recente (se houver) com classificação CONSISTENTE
+  2. caso contrário, média/mediana das transações CONSISTENTES de unidades do mesmo prédio com área similar (±20%)
+  3. ignorar transações classificadas como POSSIVEL_SUBDECLARACAO no cálculo (mas mostrar na tabela)
 
 OUTPUT (apenas JSON):
 {
@@ -102,24 +105,27 @@ OUTPUT (apenas JSON):
       "sql": "...",
       "valor_transacao": "...",
       "valor_venal": "...",
+      "area_construida": "...",
+      "is_unidade_exata": true,
       "classificacao_valor": "CONSISTENTE | POSSIVEL_SUBDECLARACAO | ACIMA_REFERENCIA",
       "score": 97,
-      "justificativa": "match forte de rua + número + apto compatível"
+      "justificativa": "mesmo prédio, AP 102 (unidade exata)"
     }
   ],
   "descartados_por_tipo": 0,
   "valor_referencia_mercado": {
-    "metodologia": "última transação válida ou média ponderada",
+    "metodologia": "última transação da unidade exata | mediana de unidades similares no prédio",
     "valor_estimado": "...",
-    "observacao": "baseado apenas em matches do mesmo tipo de imóvel ≥95"
+    "observacao": "baseado em N transações de apartamentos do mesmo prédio"
   },
   "status": "MATCH_ENCONTRADO | SEM_MATCH_CONFIAVEL"
 }
 
 REGRAS FINAIS
+- SEMPRE retornar TODOS os apartamentos do mesmo prédio (não apenas a unidade exata)
 - NUNCA retornar garagem/vaga/depósito quando o imóvel é apartamento
 - NUNCA retornar registros <95
-- Sempre informar quantos foram descartados por tipo incompatível
+- Marcar a unidade exata com is_unidade_exata=true para destaque visual
 SAÍDA: APENAS JSON.`;
 
 async function filterMatchesWithGPT(input: any, candidates: any[]) {
@@ -235,11 +241,15 @@ Foram analisados **${totalCandidates} candidatos** próximos no banco ITBI da Pr
     const data = m.data_transacao ? new Date(m.data_transacao).toLocaleDateString('pt-BR') : 'N/D';
     const enderecoBase = `${m.logradouro ?? ''}${m.numero ? `, ${m.numero}` : ''}`.trim() || 'N/D';
     const compl = m.complemento?.trim() || '—';
+    const complDisplay = m.is_unidade_exata ? `🎯 **${compl}**` : compl;
     const bairro = m.bairro?.trim() || '—';
     const sql = m.sql_iptu?.trim() || '—';
     const area = m.area_construida ? `${Number(m.area_construida).toLocaleString('pt-BR')} m²` : '—';
-    return `| ${data} | ${enderecoBase} | ${compl} | ${bairro} | ${sql} | ${area} | ${fmt(m.valor_transacao)} | ${fmt(m.valor_venal)} | ${classBadge(m.classificacao_valor)} | ${m.score}% |`;
+    return `| ${data} | ${enderecoBase} | ${complDisplay} | ${bairro} | ${sql} | ${area} | ${fmt(m.valor_transacao)} | ${fmt(m.valor_venal)} | ${classBadge(m.classificacao_valor)} | ${m.score}% |`;
   }).join('\n');
+
+  const exatas = dedup.filter((m: any) => m.is_unidade_exata).length;
+  const outrasUnidades = dedup.length - exatas;
 
   const diff = valorRef?.valor_estimado && property.declared_value
     ? `${(((property.declared_value - Number(valorRef.valor_estimado)) / Number(valorRef.valor_estimado)) * 100).toFixed(1)}%`
@@ -248,7 +258,7 @@ Foram analisados **${totalCandidates} candidatos** próximos no banco ITBI da Pr
   return `## 🏛️ Análise ITBI — Prefeitura de São Paulo
 
 ### 📍 Endereço Analisado
-${property.rua}${property.numero ? `, ${property.numero}` : ''}${property.bairro ? ` - ${property.bairro}` : ''}, ${property.cidade}/${property.estado}
+${property.rua}${property.numero ? `, ${property.numero}` : ''}${property.apartamento ? `, AP ${property.apartamento}` : ''}${property.bairro ? ` - ${property.bairro}` : ''}, ${property.cidade}/${property.estado}
 
 ### 💰 Comparativo de Valores
 | Indicador | Valor |
@@ -261,8 +271,10 @@ ${property.rua}${property.numero ? `, ${property.numero}` : ''}${property.bairro
 > **Metodologia:** ${metodologia}
 ${valorRef?.observacao ? `> ${valorRef.observacao}` : ''}
 
-### 📊 Transações do Mesmo Imóvel (confiança ≥95%)
-${dedup.length} transação(ões) única(s) de ${totalCandidates} candidatos analisados${duplicatasRemovidas > 0 ? ` (${duplicatasRemovidas} duplicata(s) removida(s) — ITBI registra comprador+vendedor)` : ''} — ordenadas da mais recente para a mais antiga:
+### 📊 Transações no Mesmo Prédio (confiança ≥95%)
+${dedup.length} transação(ões) única(s) — **${exatas} da unidade exata** + ${outrasUnidades} de outras unidades do mesmo prédio (referência de mercado). ${duplicatasRemovidas > 0 ? `${duplicatasRemovidas} duplicata(s) removida(s) — ITBI registra comprador+vendedor.` : ''}
+
+🎯 = unidade exata informada no cadastro
 
 | Data | Endereço | Compl. | Bairro | SQL/IPTU | Área | Valor Transação | Valor Venal | Classificação | Confiança |
 |------|----------|--------|--------|----------|------|-----------------|-------------|---------------|-----------|
@@ -396,6 +408,7 @@ serve(async (req) => {
           justificativa: m.justificativa,
           classificacao_valor: m.classificacao_valor,
           base_calculo: m.base_calculo,
+          is_unidade_exata: m.is_unidade_exata === true,
         };
       });
 
