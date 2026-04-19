@@ -186,52 +186,88 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               </>
             )}
 
-            <div className="absolute top-3 left-3 right-12 flex flex-wrap gap-1.5 z-10">
-              {property.vendido ? (
-                <Badge className="bg-destructive text-destructive-foreground text-[10px]">Vendido</Badge>
-              ) : property.alugado ? (
-                <Badge className="bg-info text-info-foreground text-[10px]">Alugado</Badge>
-              ) : (
-                <Badge className="bg-success text-success-foreground text-[10px]">Disponível</Badge>
-              )}
-              {property.validado ? (
-                <Badge variant="outline" className="bg-card/90 border-success text-success text-[10px]">
-                  <CheckCircle className="h-2.5 w-2.5 mr-0.5" />
-                  Validado
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="bg-card/90 border-warning text-warning text-[10px]">
-                  <XCircle className="h-2.5 w-2.5 mr-0.5" />
-                  Pendente
-                </Badge>
-              )}
-            </div>
+            {!compact && (
+              <div className="absolute top-3 left-3 right-12 flex flex-wrap gap-1.5 z-10">
+                {property.vendido ? (
+                  <Badge className="bg-destructive text-destructive-foreground text-[10px]">Vendido</Badge>
+                ) : property.alugado ? (
+                  <Badge className="bg-info text-info-foreground text-[10px]">Alugado</Badge>
+                ) : (
+                  <Badge className="bg-success text-success-foreground text-[10px]">Disponível</Badge>
+                )}
+                {property.validado ? (
+                  <Badge variant="outline" className="bg-card/90 border-success text-success text-[10px]">
+                    <CheckCircle className="h-2.5 w-2.5 mr-0.5" />
+                    Validado
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="bg-card/90 border-warning text-warning text-[10px]">
+                    <XCircle className="h-2.5 w-2.5 mr-0.5" />
+                    Pendente
+                  </Badge>
+                )}
+              </div>
+            )}
 
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 openMediaViewer(0);
               }}
-              className="absolute top-3 right-3 flex h-7 w-7 items-center justify-center rounded-full bg-card/90 text-primary hover:bg-card transition-all shadow-sm z-10"
+              className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-card/90 text-primary hover:bg-card transition-all shadow-sm z-10"
               title="Ver mapa e fotos"
             >
               <MapPin className="h-3.5 w-3.5" />
             </button>
 
-            <div className="absolute bottom-0 left-0 right-0 z-10 bg-foreground/85 backdrop-blur-sm px-3 py-2.5">
-              <p className="text-card font-semibold text-sm truncate">
-                {getAddressDisplay()}
-              </p>
-              <div className="flex items-center gap-1 text-card/70 text-[11px] mt-0.5">
-                <MapPin className="h-3 w-3 shrink-0" />
-                <span className="truncate">{property.bairro}, {property.cidade} - {property.estado}</span>
+            {!compact && (
+              <div className="absolute bottom-0 left-0 right-0 z-10 bg-foreground/85 backdrop-blur-sm px-3 py-2.5">
+                <p className="text-card font-semibold text-sm truncate">
+                  {getAddressDisplay()}
+                </p>
+                <div className="flex items-center gap-1 text-card/70 text-[11px] mt-0.5">
+                  <MapPin className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{property.bairro}, {property.cidade} - {property.estado}</span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
-          <div className="flex-1 p-3 flex flex-col">
+          <div className={compact ? 'flex-1 p-2 flex flex-col' : 'flex-1 p-3 flex flex-col'}>
+            {compact && (
+              <div className="mb-2 pb-2 border-b border-border/40">
+                <div className="flex flex-wrap items-center gap-1 mb-1">
+                  {property.vendido ? (
+                    <Badge className="bg-destructive text-destructive-foreground text-[9px] px-1.5 py-0">Vendido</Badge>
+                  ) : property.alugado ? (
+                    <Badge className="bg-info text-info-foreground text-[9px] px-1.5 py-0">Alugado</Badge>
+                  ) : (
+                    <Badge className="bg-success text-success-foreground text-[9px] px-1.5 py-0">Disponível</Badge>
+                  )}
+                  {property.validado ? (
+                    <Badge variant="outline" className="border-success text-success text-[9px] px-1.5 py-0">
+                      <CheckCircle className="h-2 w-2 mr-0.5" />
+                      Validado
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="border-warning text-warning text-[9px] px-1.5 py-0">
+                      <XCircle className="h-2 w-2 mr-0.5" />
+                      Pendente
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-foreground font-semibold text-xs leading-tight truncate" title={getAddressDisplay()}>
+                  {getAddressDisplay()}
+                </p>
+                <div className="flex items-center gap-1 text-muted-foreground text-[10px] mt-0.5">
+                  <MapPin className="h-2.5 w-2.5 shrink-0" />
+                  <span className="truncate">{property.bairro}, {property.cidade} - {property.estado}</span>
+                </div>
+              </div>
+            )}
+
             <div className={compact
-              ? 'grid grid-cols-1 gap-2 flex-1'
+              ? 'grid grid-cols-1 gap-1.5 flex-1'
               : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 flex-1'}>
               <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30">
                 <div className="flex items-center gap-1.5 mb-2">
