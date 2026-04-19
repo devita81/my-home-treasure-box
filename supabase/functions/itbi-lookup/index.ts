@@ -14,119 +14,120 @@ const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 const MATCHING_PROMPT = `Você é um especialista em matching de endereços e análise de valor de mercado usando a base de transações imobiliárias (ITBI) da Prefeitura de São Paulo.
 
 Você receberá um endereço estruturado:
+- Tipo do Imóvel (apartamento, casa, garagem, sala comercial, etc.)
 - Nome do Logradouro
 - Número
+- Apartamento / Unidade
 - Complemento
 - Bairro
 - CEP
 
-E terá acesso a uma base contendo:
-- Nome do Logradouro
-- Número
-- Complemento
-- Bairro
-- CEP
-- SQL
+E terá acesso a uma base contendo registros do ITBI:
+- Logradouro, Número, Complemento, Bairro, CEP
+- SQL/IPTU
 - Valor de Transação
 - Valor Venal de Referência
-- Base de Cálculo
 - Data de Transação
+- Área Construída
 
 OBJETIVO FINAL
-Encontrar transações do MESMO imóvel com confiança ≥95% e retornar os valores negociados para inferência de valor de mercado.
+Encontrar transações do MESMO IMÓVEL (mesma unidade) com confiança ≥95% e retornar os valores negociados.
+
+⚠️ REGRA ABSOLUTA — TIPO DO IMÓVEL (CRÍTICO)
+Um único endereço (rua + número) contém VÁRIAS UNIDADES diferentes no ITBI:
+apartamentos, garagens/vagas/box, depósitos, salas comerciais, lojas, etc.
+
+VOCÊ DEVE FILTRAR PELO TIPO CORRETO antes de qualquer outra análise:
+
+➡️ Se o imóvel de entrada é APARTAMENTO / CASA / RESIDENCIAL:
+   - DESCARTAR todo registro cujo complemento contenha:
+     "GARAGEM", "GAR", "VAGA", "BOX", "ESTACIONAMENTO",
+     "DEPOSITO", "DEPÓSITO", "DEP", "HOBBY BOX", "CUBICULO"
+   - DESCARTAR registros com área_construída < 25 m² (típico de vaga/box)
+   - DESCARTAR registros com valor_transacao muito baixo (< R$ 50.000) em zonas nobres — sinal de vaga
+
+➡️ Se o imóvel é GARAGEM / VAGA:
+   - manter apenas registros com complemento de garagem/vaga/box
+
+➡️ Se o imóvel é COMERCIAL (sala/loja):
+   - manter apenas registros com complemento "SALA", "LOJA", "CONJ", "CONJUNTO"
+
+NUNCA misture tipos diferentes no mesmo resultado.
 
 NORMALIZAÇÃO
 Aplicar para input e base:
-- MAIÚSCULAS
-- remover acentos
-- remover pontuação
+- MAIÚSCULAS, remover acentos e pontuação
 - padronizar: RUA → R, AVENIDA → AV, ALAMEDA → AL
-- remover complementos irrelevantes: APTO, BLOCO, TORRE, ANDAR
-- extrair corretamente nome da rua e número
+- extrair corretamente nome da rua, número e UNIDADE (apto/conjunto)
 
-MATCHING (CRÍTICO)
-Score total = 100
-Pesos:
-- Nome do logradouro: 60
-- Número: 35
+MATCHING (após filtro de tipo)
+Score total = 100. Pesos:
+- Nome do logradouro: 50
+- Número do prédio: 25
+- Apartamento/unidade (complemento): 20  ← MUITO IMPORTANTE para condomínios
 - Bairro: 3
 - CEP: 1
-- Complemento: 1
+- Tipo correto (não garagem quando é apto): pré-requisito (sem isso, descartar)
 
 REGRA CENTRAL:
-✔ Rua + número devem bater de forma convincente
+✔ Rua + número + tipo correto da unidade devem bater
+✔ Se o usuário informou número de apartamento, ele DEVE bater com o complemento da base
 ✔ Sem isso, NÃO pode atingir 95
-
-REGRAS:
-- Nome da rua ≥95% similaridade → válido
-- Número:
-  - igual → score máximo
-  - pequena variação estrutural (ex: 300 vs 300A) → aceitável
-  - ausente ou diferente → descartar
 
 CORTE DE QUALIDADE
 - Retornar apenas registros com score ≥95
-- Caso contrário: "SEM_MATCH_CONFIAVEL"
+- Caso contrário: status "SEM_MATCH_CONFIAVEL"
 
-EXTRAÇÃO DE VALORES (CRÍTICO)
-Para cada match extrair:
-- Valor de Transação (principal — preço negociado declarado pelo contribuinte)
-- Valor Venal de Referência
-- Base de Cálculo
-- Data
+EXTRAÇÃO E AVALIAÇÃO
+Para cada match extrair: data, valor_transacao, valor_venal, base_calculo.
+Classificar:
+- "CONSISTENTE" → valor_transacao próximo do venal
+- "POSSIVEL_SUBDECLARACAO" → valor_transacao muito abaixo do venal
+- "ACIMA_REFERENCIA" → valor_transacao acima do venal
 
-AVALIAÇÃO DO VALOR
-Para cada registro, classifique:
-- "CONSISTENTE" → valores próximos
-- "POSSIVEL_SUBDECLARACAO" → valor de transação muito abaixo do venal/base
-- "ACIMA_REFERENCIA" → valor de transação acima do venal
-
-CONSOLIDAÇÃO (VALOR DE MERCADO)
-Se houver múltiplas transações do mesmo imóvel:
-- ordenar por data
-- identificar tendência
-- destacar o valor mais recente
+CONSOLIDAÇÃO
+Ordenar por data desc, destacar mais recente, sugerir valor de mercado.
 
 OUTPUT (apenas JSON):
 {
-  "input": { "logradouro": "...", "numero": "...", "bairro": "..." },
+  "input": { "logradouro": "...", "numero": "...", "apartamento": "...", "tipo_imovel": "..." },
   "matches_encontrados": [
     {
       "id": "uuid do registro",
       "data": "...",
       "logradouro_base": "...",
       "numero_base": "...",
+      "complemento_base": "...",
       "bairro_base": "...",
       "sql": "...",
       "valor_transacao": "...",
       "valor_venal": "...",
-      "base_calculo": "...",
       "classificacao_valor": "CONSISTENTE | POSSIVEL_SUBDECLARACAO | ACIMA_REFERENCIA",
       "score": 97,
-      "justificativa": "match forte de rua + número"
+      "justificativa": "match forte de rua + número + apto compatível"
     }
   ],
+  "descartados_por_tipo": 0,
   "valor_referencia_mercado": {
     "metodologia": "última transação válida ou média ponderada",
     "valor_estimado": "...",
-    "observacao": "baseado apenas em matches ≥95"
+    "observacao": "baseado apenas em matches do mesmo tipo de imóvel ≥95"
   },
   "status": "MATCH_ENCONTRADO | SEM_MATCH_CONFIAVEL"
 }
 
 REGRAS FINAIS
-- NÃO retornar registros <95
-- NÃO inferir valor sem match forte
-- NÃO confiar cegamente no valor de transação
-- Sempre contextualizar com valor venal e base de cálculo
-- Prioridade: precisão do imóvel > quantidade de dados
-
+- NUNCA retornar garagem/vaga/depósito quando o imóvel é apartamento
+- NUNCA retornar registros <95
+- Sempre informar quantos foram descartados por tipo incompatível
 SAÍDA: APENAS JSON.`;
 
 async function filterMatchesWithGPT(input: any, candidates: any[]) {
   const userMsg = `ENDEREÇO DE ENTRADA:
+- Tipo do Imóvel: ${input.tipo_imovel ?? 'apartamento'}
 - Logradouro: ${input.logradouro}
 - Número: ${input.numero ?? ''}
+- Apartamento/Unidade: ${input.apartamento ?? ''}
 - Complemento: ${input.complemento ?? ''}
 - Bairro: ${input.bairro ?? ''}
 - CEP: ${input.cep ?? ''}
@@ -140,12 +141,13 @@ ${JSON.stringify(candidates.map(c => ({
   bairro: c.bairro,
   cep: c.cep,
   sql: c.sql_iptu,
+  area_construida: c.area_construida,
   valor_transacao: c.valor_transacao,
   valor_venal: c.valor_venal,
   data: c.data_transacao,
 })), null, 2)}
 
-Aplique o matching e retorne APENAS o JSON especificado.`;
+Aplique PRIMEIRO o filtro de tipo (descarte garagens/vagas/depósitos se o imóvel for apartamento), depois o matching de score. Retorne APENAS o JSON especificado.`;
 
   const resp = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
