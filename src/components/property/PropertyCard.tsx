@@ -129,7 +129,11 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                 <>
                   <iframe
                     src={embedUrl}
-                    className="h-full w-full border-0 pointer-events-none"
+                    className={
+                      compact
+                        ? 'h-[140%] w-[120%] -ml-[10%] -mt-[10%] border-0 pointer-events-none'
+                        : 'h-full w-full border-0 pointer-events-none'
+                    }
                     loading="lazy"
                     title={getAddressDisplay()}
                   />
