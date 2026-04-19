@@ -137,19 +137,28 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               }}
             >
               {mediaIndex === 0 ? (
-                <>
-                  <iframe
-                    src={embedUrl}
-                    className={
-                      compact
-                        ? 'h-[140%] w-[120%] -ml-[10%] -mt-[10%] border-0 pointer-events-none'
-                        : 'h-full w-full border-0 pointer-events-none'
-                    }
-                    loading="lazy"
-                    title={getAddressDisplay()}
+                compact && staticMapUrl ? (
+                  <img
+                    src={staticMapUrl}
+                    alt={getAddressDisplay()}
+                    className="w-full h-full object-cover pointer-events-none"
+                    draggable={false}
                   />
-                  <div className="absolute inset-0 z-[5]" />
-                </>
+                ) : (
+                  <>
+                    <iframe
+                      src={embedUrl}
+                      className={
+                        compact
+                          ? 'h-[140%] w-[120%] -ml-[10%] -mt-[10%] border-0 pointer-events-none'
+                          : 'h-full w-full border-0 pointer-events-none'
+                      }
+                      loading="lazy"
+                      title={getAddressDisplay()}
+                    />
+                    <div className="absolute inset-0 z-[5]" />
+                  </>
+                )
               ) : isVideoUrl(photos[mediaIndex - 1]) ? (
                 <div className="w-full h-full flex items-center justify-center bg-muted">
                   <video
