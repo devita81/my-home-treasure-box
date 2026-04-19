@@ -18,7 +18,7 @@ export function GridDensitySelector({ value, onChange, className }: GridDensityS
   return (
     <div
       className={cn(
-        'hidden md:inline-flex items-center rounded-md border bg-background p-0.5 shadow-sm',
+        'inline-flex items-center rounded-md border bg-background p-0.5 shadow-sm',
         className
       )}
       role="group"

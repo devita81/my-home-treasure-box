@@ -4,7 +4,7 @@ import { PropertyCard } from '@/components/property/PropertyCard';
 import { PropertyFilters } from '@/components/property/PropertyFilters';
 import { GridDensitySelector } from '@/components/property/GridDensitySelector';
 import { useGridDensity } from '@/hooks/useGridDensity';
-import { useIsMobile } from '@/hooks/use-mobile';
+
 import { StatsOverview } from '@/components/stats/StatsOverview';
 import { MetragemStats } from '@/components/stats/MetragemStats';
 import { CustosReceitasStats } from '@/components/stats/CustosReceitasStats';
@@ -29,13 +29,10 @@ const Index = () => {
   const filteredProperties = getFilteredProperties();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [density, setDensity] = useGridDensity(1);
-  const isMobile = useIsMobile();
+  
 
-  const gridColsClass = isMobile
-    ? 'grid-cols-1'
-    : density === 1
-      ? 'grid-cols-1'
-      : 'grid-cols-1 md:grid-cols-2';
+  const gridColsClass = density === 1 ? 'grid-cols-1' : 'grid-cols-2';
+  const isCompact = density === 2;
 
   const handleDelete = (id: string) => {
     setDeleteId(id);
@@ -108,10 +105,10 @@ const Index = () => {
               </Link>
             </div>
           ) : (
-            <div className={`grid gap-4 md:gap-6 ${gridColsClass}`}>
+            <div className={`grid gap-3 sm:gap-4 md:gap-6 ${gridColsClass}`}>
               {filteredProperties.map((property, index) => (
                 <div key={property.id} className="animate-slide-up min-w-0" style={{ animationDelay: `${index * 50}ms` }}>
-                  <PropertyCard property={property} onDelete={handleDelete} onDuplicate={handleDuplicate} compact={!isMobile && density === 2} />
+                  <PropertyCard property={property} onDelete={handleDelete} onDuplicate={handleDuplicate} compact={isCompact} />
                 </div>
               ))}
             </div>
