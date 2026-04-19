@@ -29,7 +29,7 @@ const Index = () => {
   const filteredProperties = getFilteredProperties();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [density, setDensity] = useGridDensity(1);
-  const isMobile = useIsMobile();
+  
 
   const gridColsClass = density === 1 ? 'grid-cols-1' : 'grid-cols-2';
   const isCompact = density === 2;
