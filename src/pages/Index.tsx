@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { useProperties } from '@/contexts/PropertyContext';
 import { PropertyCard } from '@/components/property/PropertyCard';
 import { PropertyFilters } from '@/components/property/PropertyFilters';
+import { GridDensitySelector } from '@/components/property/GridDensitySelector';
+import { useGridDensity } from '@/hooks/useGridDensity';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { StatsOverview } from '@/components/stats/StatsOverview';
 import { MetragemStats } from '@/components/stats/MetragemStats';
 import { CustosReceitasStats } from '@/components/stats/CustosReceitasStats';
@@ -25,6 +28,16 @@ const Index = () => {
   const { getFilteredProperties, deleteProperty, duplicateProperty, loading } = useProperties();
   const filteredProperties = getFilteredProperties();
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [density, setDensity] = useGridDensity(1);
+  const isMobile = useIsMobile();
+
+  const gridColsClass = isMobile
+    ? 'grid-cols-1'
+    : density === 1
+      ? 'grid-cols-1'
+      : density === 2
+        ? 'grid-cols-1 md:grid-cols-2'
+        : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3';
 
   const handleDelete = (id: string) => {
     setDeleteId(id);
@@ -70,13 +83,16 @@ const Index = () => {
                 </span>
               </div>
             </div>
-            <Link to="/add" className="shrink-0">
-              <Button size="sm" className="h-8 sm:h-9 px-2.5 sm:px-4 text-xs sm:text-sm">
-                <PlusCircle className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Adicionar Imóvel</span>
-                <span className="sm:hidden ml-1">Adicionar</span>
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2 shrink-0">
+              <GridDensitySelector value={density} onChange={setDensity} />
+              <Link to="/add" className="shrink-0">
+                <Button size="sm" className="h-8 sm:h-9 px-2.5 sm:px-4 text-xs sm:text-sm">
+                  <PlusCircle className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Adicionar Imóvel</span>
+                  <span className="sm:hidden ml-1">Adicionar</span>
+                </Button>
+              </Link>
+            </div>
           </div>
 
           {filteredProperties.length === 0 ? (
@@ -94,9 +110,9 @@ const Index = () => {
               </Link>
             </div>
           ) : (
-            <div className="grid gap-6 grid-cols-1">
+            <div className={`grid gap-4 md:gap-6 ${gridColsClass}`}>
               {filteredProperties.map((property, index) => (
-                <div key={property.id} className="animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
+                <div key={property.id} className="animate-slide-up min-w-0" style={{ animationDelay: `${index * 50}ms` }}>
                   <PropertyCard property={property} onDelete={handleDelete} onDuplicate={handleDuplicate} />
                 </div>
               ))}
