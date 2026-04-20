@@ -411,6 +411,11 @@ export default function ItbiSearch() {
                       )}
                     </div>
                   ))}
+                  {results.length > 500 && (
+                    <p className="text-xs text-muted-foreground mt-2 text-center">
+                      Mostrando os primeiros 500 resultados. Refine os filtros para ver mais.
+                    </p>
+                  )}
                 </div>
 
                 {/* Desktop: tabela */}
