@@ -11,100 +11,10 @@ const corsHeaders = {
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
-// Mapa de títulos honoríficos / qualificadores comuns em logradouros de SP
-// que aparecem abreviados no ITBI da Prefeitura. Ex.: "Coronel" → "Cel".
-// Cada entrada: forma completa ↔ abreviações equivalentes.
-const HONORIFIC_PAIRS: [string, string[]][] = [
-  ["CORONEL", ["CEL"]],
-  ["TENENTE", ["TEN"]],
-  ["CAPITAO", ["CAP"]],
-  ["GENERAL", ["GAL", "GEN"]],
-  ["MARECHAL", ["MAL"]],
-  ["BRIGADEIRO", ["BRIG"]],
-  ["COMANDANTE", ["CMTE", "CMT"]],
-  ["ALMIRANTE", ["ALM"]],
-  ["SARGENTO", ["SGT"]],
-  ["SOLDADO", ["SD"]],
-  ["DOUTOR", ["DR"]],
-  ["DOUTORA", ["DRA"]],
-  ["PROFESSOR", ["PROF"]],
-  ["PROFESSORA", ["PROFA"]],
-  ["ENGENHEIRO", ["ENG"]],
-  ["ENGENHEIRA", ["ENGA"]],
-  ["ARQUITETO", ["ARQ"]],
-  ["COMENDADOR", ["COMEND", "COM"]],
-  ["DESEMBARGADOR", ["DES", "DESEMB"]],
-  ["MONSENHOR", ["MONS"]],
-  ["CARDEAL", ["CARD"]],
-  ["PADRE", ["PE"]],
-  ["FREI", ["FR"]],
-  ["IRMA", ["IR"]],
-  ["MINISTRO", ["MIN"]],
-  ["PRESIDENTE", ["PRES"]],
-  ["GOVERNADOR", ["GOV"]],
-  ["SENADOR", ["SEN"]],
-  ["DEPUTADO", ["DEP"]],
-  ["VEREADOR", ["VER"]],
-  ["EMBAIXADOR", ["EMB"]],
-  ["CONSELHEIRO", ["CONS"]],
-  ["VISCONDE", ["VISC"]],
-  ["BARAO", ["BAR"]],
-  ["MARQUES", ["MARQ"]],
-  ["DUQUE", ["DUQ"]],
-  ["SAO", ["S"]],
-  ["SANTA", ["STA"]],
-  ["SANTO", ["STO"]],
-  ["NOSSA SENHORA", ["NSA SRA", "N SRA", "NS"]],
-];
-
-// Gera variantes do nome do logradouro substituindo títulos honoríficos
-// por suas abreviações (e vice-versa) para melhorar o recall do trigram.
-function buildLogradouroVariants(rua: string): string[] {
-  if (!rua) return [];
-  const original = rua.trim();
-  const upper = original
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toUpperCase();
-
-  const variants = new Set<string>([original, upper]);
-
-  for (const [full, abbrs] of HONORIFIC_PAIRS) {
-    const fullRe = new RegExp(`\\b${full}\\b`, "g");
-    if (fullRe.test(upper)) {
-      for (const ab of abbrs) variants.add(upper.replace(fullRe, ab));
-    }
-    for (const ab of abbrs) {
-      const abRe = new RegExp(`\\b${ab}\\b`, "g");
-      if (abRe.test(upper)) variants.add(upper.replace(abRe, full));
-    }
-  }
-
-  return Array.from(variants);
-}
-
-// Tokens "fracos" que NÃO devem ser usados como filtro de validação
-// (genéricos de logradouro + títulos honoríficos abreviados/completos).
-const WEAK_TOKENS = new Set<string>([
-  "R","RUA","AV","AVENIDA","AL","ALAMEDA","TR","TRAV","TRAVESSA","EST","ESTRADA",
-  "PRC","PRACA","LARGO","RODOVIA","ROD","VIELA","VIA","PASSAGEM","PSG","BECO",
-  "DE","DA","DO","DAS","DOS","E","DR","DRA","PROF","PROFA","ENG","ENGA",
-  "CEL","TEN","CAP","GAL","GEN","MAL","BRIG","CMTE","CMT","ALM","SGT","SD",
-  "PE","FR","IR","STA","STO","S","NSA","SRA","NS","COMEND","COM","MONS",
-  "PRES","GOV","SEN","DEP","VER","EMB","CONS","VISC","BAR","MARQ","DUQ","CARD","DES","DESEMB",
-]);
-
-// Extrai tokens "significativos" (não genéricos/honoríficos) do logradouro.
-function strongTokens(rua: string): string[] {
-  if (!rua) return [];
-  const upper = rua
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .toUpperCase().replace(/[^A-Z0-9 ]/g, " ");
-  const tokens = upper.split(/\s+/).filter(Boolean);
-  const allWeak = new Set(WEAK_TOKENS);
-  for (const [full] of HONORIFIC_PAIRS) allWeak.add(full);
-  return tokens.filter((t) => t.length >= 3 && !allWeak.has(t));
-}
+// Toda a lógica de normalização de logradouros (abreviações honoríficas como
+// CORONEL↔CEL, validação de "rua certa" vs ruído de trigram, etc.) é
+// delegada ao GPT-4o no prompt MATCHING_PROMPT. Aqui só fazemos a busca
+// permissiva de candidatos pelo número do imóvel.
 
 
 const MATCHING_PROMPT = `Você é um especialista em matching de endereços e análise de valor de mercado usando a base de transações imobiliárias (ITBI) da Prefeitura de São Paulo.
