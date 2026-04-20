@@ -476,46 +476,35 @@ serve(async (req) => {
       );
     }
 
-    // 3) LLM valida apenas honoríficos + tipo de imóvel (residencial vs garagem/etc)
-    console.log(`[itbi-lookup] Enviando ${candidatosNomeOk.length} candidatos ao GPT-4o para validação de honorífico...`);
-    const gptResult = await filterMatchesWithGPT(
-      {
-        tipo_imovel: property.tipo_imovel,
-        logradouro: property.rua,
-        nome_principal: nomePrincipal.join(" "),
-        honorificos: honorificos.join(" "),
-        numero: property.numero,
-        apartamento: property.apartamento,
-      },
-      candidatosNomeOk,
-    );
-
-    const gptMatches = gptResult.matches_encontrados ?? [];
-    const matchedIds = new Set(gptMatches.map((m: any) => m.id).filter(Boolean));
-
-    // Safety net: se honoríficos ficarem todos vazios em alvo e candidato, aceita todos
-    // que passaram no filtro determinístico (já é match seguro por nome+número).
-    if (honorificos.length === 0 && matchedIds.size === 0) {
-      console.log("[itbi-lookup] Safety net: alvo sem honorífico, aceitando todos os candidatos por nome+número");
-      for (const c of candidatosNomeOk) matchedIds.add(c.id);
-    }
+    // 3) Filtro determinístico de tipo de imóvel (sem LLM — evita não-determinismo).
+    //    Os candidatos JÁ passaram por: número EXATO + nome principal IDÊNTICO
+    //    (com honoríficos/tipos de via removidos). São matches seguros por construção.
+    //    Se o alvo é residencial, descarta candidatos cujo complemento indica garagem/depósito.
+    const tipoAlvo = (property.tipo_imovel ?? "apartamento").toLowerCase();
+    const ehResidencial = !["garagem", "vaga", "comercial", "terreno"].some((t) => tipoAlvo.includes(t));
+    const PADROES_NAO_RESIDENCIAL = /\b(GARAGEM|GAR|VAGA|BOX|ESTACIONAMENTO|DEP[OÓ]SITO|DEP|HOBBY|CUB[IÍ]CULO)\b/;
 
     const aptoAlvo = (property.apartamento ?? "").toString().replace(/[^0-9]/g, "");
 
     const matched = candidatosNomeOk
-      .filter((c: any) => matchedIds.has(c.id))
+      .filter((c: any) => {
+        if (!ehResidencial) return true;
+        const compl = strip(c.complemento ?? "");
+        // Só descarta se o complemento indica garagem/etc E NÃO menciona AP/APTO
+        if (/\bAP\b|\bAPTO\b|\bAPARTAMENTO\b|\bCASA\b/.test(compl)) return true;
+        return !PADROES_NAO_RESIDENCIAL.test(compl);
+      })
       .map((c: any) => {
-        const m = gptMatches.find((x: any) => x.id === c.id) ?? {};
-        let isExata = m.is_unidade_exata === true;
+        let isExata = false;
         if (aptoAlvo) {
           const complNum = ((c.complemento ?? "").toString().match(/\d+/g) ?? [])[0];
           if (complNum === aptoAlvo) isExata = true;
         }
         return {
           ...c,
-          score: m.score ?? 98,
-          justificativa: m.justificativa ?? "Nome principal idêntico + número exato",
-          classificacao_valor: m.classificacao_valor ?? "CONSISTENTE",
+          score: 100,
+          justificativa: "Número exato + nome principal idêntico (filtro determinístico)",
+          classificacao_valor: "CONSISTENTE",
           is_unidade_exata: isExata,
         };
       });
@@ -611,7 +600,7 @@ serve(async (req) => {
         matched,
         totalCandidates: candidatosNomeOk.length,
         hadData: matched.length > 0,
-        gptStatus: gptResult.status,
+        gptStatus: matched.length > 0 ? "MATCH_ENCONTRADO" : "SEM_MATCH_CONFIAVEL",
         valorReferencia,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
