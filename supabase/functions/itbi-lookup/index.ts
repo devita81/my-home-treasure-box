@@ -83,6 +83,30 @@ function buildLogradouroVariants(rua: string): string[] {
   return Array.from(variants);
 }
 
+// Tokens "fracos" que NÃO devem ser usados como filtro de validação
+// (genéricos de logradouro + títulos honoríficos abreviados/completos).
+const WEAK_TOKENS = new Set<string>([
+  "R","RUA","AV","AVENIDA","AL","ALAMEDA","TR","TRAV","TRAVESSA","EST","ESTRADA",
+  "PRC","PRACA","LARGO","RODOVIA","ROD","VIELA","VIA","PASSAGEM","PSG","BECO",
+  "DE","DA","DO","DAS","DOS","E","DR","DRA","PROF","PROFA","ENG","ENGA",
+  "CEL","TEN","CAP","GAL","GEN","MAL","BRIG","CMTE","CMT","ALM","SGT","SD",
+  "PE","FR","IR","STA","STO","S","NSA","SRA","NS","COMEND","COM","MONS",
+  "PRES","GOV","SEN","DEP","VER","EMB","CONS","VISC","BAR","MARQ","DUQ","CARD","DES","DESEMB",
+]);
+
+// Extrai tokens "significativos" (não genéricos/honoríficos) do logradouro.
+function strongTokens(rua: string): string[] {
+  if (!rua) return [];
+  const upper = rua
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase().replace(/[^A-Z0-9 ]/g, " ");
+  const tokens = upper.split(/\s+/).filter(Boolean);
+  const allWeak = new Set(WEAK_TOKENS);
+  for (const [full] of HONORIFIC_PAIRS) allWeak.add(full);
+  return tokens.filter((t) => t.length >= 3 && !allWeak.has(t));
+}
+
+
 const MATCHING_PROMPT = `Você é um especialista em matching de endereços e análise de valor de mercado usando a base de transações imobiliárias (ITBI) da Prefeitura de São Paulo.
 
 Você receberá um endereço estruturado:
@@ -336,7 +360,7 @@ Foram analisados **${totalCandidates} candidatos** próximos no banco ITBI da Pr
   return `## 🏛️ Análise ITBI — Prefeitura de São Paulo
 
 ### 📍 Endereço Analisado
-${property.rua}${property.numero ? `, ${property.numero}` : ''}${property.apartamento ? `, AP ${property.apartamento}` : ''}${property.bairro ? ` - ${property.bairro}` : ''}, ${property.cidade}/${property.estado}
+${property.rua}${property.numero ? `, ${property.numero}` : ''}${property.apartamento ? `, ${/^ap\b|^apto\b/i.test(String(property.apartamento).trim()) ? '' : 'AP '}${property.apartamento}` : ''}${property.bairro ? ` - ${property.bairro}` : ''}, ${property.cidade}/${property.estado}
 
 ### 💰 Comparativo de Valores
 | Indicador | Valor |
@@ -445,6 +469,20 @@ serve(async (req) => {
 
     let candList = Array.from(candMap.values());
     console.log(`[itbi-lookup] ${candList.length} candidatos pré-filtrados (após união de variantes)`);
+
+    // Filtro anti-ruído: o trigram pode trazer ruas com nome parecido
+    // (ex.: "OLIVEIRA PINTO" quando buscamos "MELO OLIVEIRA"). Exigimos que
+    // o logradouro do candidato contenha PELO MENOS UM token significativo
+    // do logradouro consultado (ignorando R/RUA/AV/DR/CEL/etc.).
+    const alvoTokens = strongTokens(property.rua);
+    if (alvoTokens.length > 0) {
+      const before = candList.length;
+      candList = candList.filter((c: any) => {
+        const candTokens = new Set(strongTokens(c.logradouro_normalizado ?? c.logradouro ?? ''));
+        return alvoTokens.some((t) => candTokens.has(t));
+      });
+      console.log(`[itbi-lookup] Filtro tokens fortes (${alvoTokens.join(',')}): ${before - candList.length} descartados, ${candList.length} restantes`);
+    }
 
     // Pré-filtro server-side por TIPO do imóvel — evita garagens/vagas/depósitos quando é apto
     const tipoImovel = (property.tipo_imovel ?? '').toLowerCase();
