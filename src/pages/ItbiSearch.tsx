@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Loader2, Database, Download, X } from 'lucide-react';
+import { Search, Loader2, Database, Download, X, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
@@ -56,8 +56,55 @@ export default function ItbiSearch() {
   const [results, setResults] = useState<ItbiResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [sortField, setSortField] = useState<keyof ItbiResult>('data_transacao');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const hasAnyFilter = !!(logradouro.trim() || numero.trim() || bairro.trim() || cep.trim());
+
+  const toggleSort = (field: keyof ItbiResult) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
+
+  const sortedResults = useMemo(() => {
+    const arr = [...results];
+    arr.sort((a, b) => {
+      const av = a[sortField];
+      const bv = b[sortField];
+      // nulls last
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+
+      let cmp = 0;
+      if (sortField === 'data_transacao') {
+        cmp = new Date(av as string).getTime() - new Date(bv as string).getTime();
+      } else if (
+        sortField === 'valor_transacao' ||
+        sortField === 'valor_venal' ||
+        sortField === 'area_construida'
+      ) {
+        cmp = Number(av) - Number(bv);
+      } else if (sortField === 'numero') {
+        const an = parseInt(String(av).replace(/\D/g, ''), 10) || 0;
+        const bn = parseInt(String(bv).replace(/\D/g, ''), 10) || 0;
+        cmp = an - bn;
+      } else {
+        cmp = String(av).localeCompare(String(bv), 'pt-BR');
+      }
+      return sortOrder === 'asc' ? cmp : -cmp;
+    });
+    return arr;
+  }, [results, sortField, sortOrder]);
+
+  const SortIcon = ({ field }: { field: keyof ItbiResult }) => {
+    if (sortField !== field) return <ArrowUpDown className="h-3 w-3 opacity-40" />;
+    return sortOrder === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
+  };
 
   // Auto-search com debounce conforme o usuário preenche
   useEffect(() => {
@@ -299,7 +346,7 @@ export default function ItbiSearch() {
               <>
                 {/* Mobile: cards */}
                 <div className="sm:hidden space-y-2">
-                  {results.slice(0, 200).map((r) => (
+                  {sortedResults.slice(0, 200).map((r) => (
                     <div key={r.id} className="border rounded-lg p-3 bg-card text-xs space-y-1">
                       <div className="flex justify-between items-start gap-2">
                         <div className="font-medium">{r.logradouro}{r.numero ? `, ${r.numero}` : ''}</div>
@@ -329,19 +376,32 @@ export default function ItbiSearch() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="text-xs uppercase tracking-wide">Data</TableHead>
-                        <TableHead className="text-xs uppercase tracking-wide">Logradouro</TableHead>
-                        <TableHead className="text-xs uppercase tracking-wide">Nº</TableHead>
-                        <TableHead className="text-xs uppercase tracking-wide">Complemento</TableHead>
-                        <TableHead className="text-xs uppercase tracking-wide">Bairro</TableHead>
-                        <TableHead className="text-xs uppercase tracking-wide text-right">Área</TableHead>
-                        <TableHead className="text-xs uppercase tracking-wide text-right">Valor Transação</TableHead>
-                        <TableHead className="text-xs uppercase tracking-wide text-right">Valor Venal</TableHead>
-                        <TableHead className="text-xs uppercase tracking-wide">SQL/IPTU</TableHead>
+                        {([
+                          { field: 'data_transacao' as const, label: 'Data', align: 'left' },
+                          { field: 'logradouro' as const, label: 'Logradouro', align: 'left' },
+                          { field: 'numero' as const, label: 'Nº', align: 'left' },
+                          { field: 'complemento' as const, label: 'Complemento', align: 'left' },
+                          { field: 'bairro' as const, label: 'Bairro', align: 'left' },
+                          { field: 'area_construida' as const, label: 'Área', align: 'right' },
+                          { field: 'valor_transacao' as const, label: 'Valor Transação', align: 'right' },
+                          { field: 'valor_venal' as const, label: 'Valor Venal', align: 'right' },
+                          { field: 'sql_iptu' as const, label: 'SQL/IPTU', align: 'left' },
+                        ]).map((col) => (
+                          <TableHead
+                            key={col.field}
+                            className={`text-xs uppercase tracking-wide cursor-pointer select-none hover:text-foreground transition-colors ${col.align === 'right' ? 'text-right' : ''}`}
+                            onClick={() => toggleSort(col.field)}
+                          >
+                            <span className={`inline-flex items-center gap-1 ${col.align === 'right' ? 'flex-row-reverse' : ''}`}>
+                              {col.label}
+                              <SortIcon field={col.field} />
+                            </span>
+                          </TableHead>
+                        ))}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {results.slice(0, 500).map((r, i) => (
+                      {sortedResults.slice(0, 500).map((r, i) => (
                         <TableRow key={r.id} className={i % 2 === 1 ? 'bg-muted/30' : ''}>
                           <TableCell className="py-2 text-xs whitespace-nowrap">{fmtDate(r.data_transacao)}</TableCell>
                           <TableCell className="py-2 text-xs">{r.logradouro}</TableCell>
