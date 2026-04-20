@@ -346,7 +346,7 @@ export default function ItbiSearch() {
               <>
                 {/* Mobile: cards */}
                 <div className="sm:hidden space-y-2">
-                  {results.slice(0, 200).map((r) => (
+                  {sortedResults.slice(0, 200).map((r) => (
                     <div key={r.id} className="border rounded-lg p-3 bg-card text-xs space-y-1">
                       <div className="flex justify-between items-start gap-2">
                         <div className="font-medium">{r.logradouro}{r.numero ? `, ${r.numero}` : ''}</div>
@@ -376,19 +376,32 @@ export default function ItbiSearch() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="text-xs uppercase tracking-wide">Data</TableHead>
-                        <TableHead className="text-xs uppercase tracking-wide">Logradouro</TableHead>
-                        <TableHead className="text-xs uppercase tracking-wide">Nº</TableHead>
-                        <TableHead className="text-xs uppercase tracking-wide">Complemento</TableHead>
-                        <TableHead className="text-xs uppercase tracking-wide">Bairro</TableHead>
-                        <TableHead className="text-xs uppercase tracking-wide text-right">Área</TableHead>
-                        <TableHead className="text-xs uppercase tracking-wide text-right">Valor Transação</TableHead>
-                        <TableHead className="text-xs uppercase tracking-wide text-right">Valor Venal</TableHead>
-                        <TableHead className="text-xs uppercase tracking-wide">SQL/IPTU</TableHead>
+                        {([
+                          { field: 'data_transacao' as const, label: 'Data', align: 'left' },
+                          { field: 'logradouro' as const, label: 'Logradouro', align: 'left' },
+                          { field: 'numero' as const, label: 'Nº', align: 'left' },
+                          { field: 'complemento' as const, label: 'Complemento', align: 'left' },
+                          { field: 'bairro' as const, label: 'Bairro', align: 'left' },
+                          { field: 'area_construida' as const, label: 'Área', align: 'right' },
+                          { field: 'valor_transacao' as const, label: 'Valor Transação', align: 'right' },
+                          { field: 'valor_venal' as const, label: 'Valor Venal', align: 'right' },
+                          { field: 'sql_iptu' as const, label: 'SQL/IPTU', align: 'left' },
+                        ]).map((col) => (
+                          <TableHead
+                            key={col.field}
+                            className={`text-xs uppercase tracking-wide cursor-pointer select-none hover:text-foreground transition-colors ${col.align === 'right' ? 'text-right' : ''}`}
+                            onClick={() => toggleSort(col.field)}
+                          >
+                            <span className={`inline-flex items-center gap-1 ${col.align === 'right' ? 'flex-row-reverse' : ''}`}>
+                              {col.label}
+                              <SortIcon field={col.field} />
+                            </span>
+                          </TableHead>
+                        ))}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {results.slice(0, 500).map((r, i) => (
+                      {sortedResults.slice(0, 500).map((r, i) => (
                         <TableRow key={r.id} className={i % 2 === 1 ? 'bg-muted/30' : ''}>
                           <TableCell className="py-2 text-xs whitespace-nowrap">{fmtDate(r.data_transacao)}</TableCell>
                           <TableCell className="py-2 text-xs">{r.logradouro}</TableCell>
