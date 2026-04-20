@@ -216,6 +216,9 @@ const Analytics = () => {
     countNaoAlugados: number;
     // Total geral
     total: number;
+    // Drill-down
+    propertiesAlugados: Property[];
+    propertiesNaoAlugados: Property[];
   }
 
   const cityFinancials = useMemo((): CityFinancialRow[] => {
