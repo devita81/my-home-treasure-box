@@ -145,6 +145,75 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
   });
 }
 
+async function fetchPropertyMatriculaPdfs(propertyId: string): Promise<{ name: string; data: ArrayBuffer }[]> {
+  try {
+    const { data: docs, error } = await supabase
+      .from('property_documents')
+      .select('file_name, file_path')
+      .eq('property_id', propertyId);
+    if (error || !docs) return [];
+
+    const results: { name: string; data: ArrayBuffer }[] = [];
+    for (const d of docs) {
+      // Only include PDFs
+      if (!/\.pdf(\?|$)/i.test(d.file_name)) continue;
+      const { data: blob, error: dlErr } = await supabase.storage
+        .from('property-documents')
+        .download(d.file_path);
+      if (dlErr || !blob) continue;
+      results.push({ name: d.file_name, data: await blob.arrayBuffer() });
+    }
+    return results;
+  } catch (e) {
+    logger.error('Error fetching matrícula PDFs:', e);
+    return [];
+  }
+}
+
+async function appendPdfPagesToReport(doc: jsPDF, pdfBuffer: ArrayBuffer, label: string): Promise<void> {
+  try {
+    const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(pdfBuffer) });
+    const pdf = await loadingTask.promise;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 10;
+
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      // Render at higher scale for clarity
+      const viewport = page.getViewport({ scale: 2 });
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) continue;
+      await page.render({ canvas, canvasContext: ctx, viewport } as any).promise;
+      const imgData = canvas.toDataURL('image/jpeg', 0.85);
+
+      doc.addPage();
+      // Header label on first page
+      if (pageNum === 1) {
+        doc.setFillColor(30, 58, 45);
+        doc.rect(0, 0, pageWidth, 14, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text(label, margin, 9);
+      }
+      const topOffset = pageNum === 1 ? 18 : margin;
+      const availW = pageWidth - margin * 2;
+      const availH = pageHeight - topOffset - margin;
+      const ratio = Math.min(availW / viewport.width, availH / viewport.height);
+      const drawW = viewport.width * ratio;
+      const drawH = viewport.height * ratio;
+      const x = (pageWidth - drawW) / 2;
+      doc.addImage(imgData, 'JPEG', x, topOffset, drawW, drawH);
+    }
+  } catch (e) {
+    logger.error('Error appending PDF pages:', e);
+  }
+}
+
 async function generatePropertyPDF(property: Property): Promise<jsPDF> {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
