@@ -600,7 +600,7 @@ serve(async (req) => {
         matched,
         totalCandidates: candidatosNomeOk.length,
         hadData: matched.length > 0,
-        gptStatus: gptResult.status,
+        gptStatus: matched.length > 0 ? "MATCH_ENCONTRADO" : "SEM_MATCH_CONFIAVEL",
         valorReferencia,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
