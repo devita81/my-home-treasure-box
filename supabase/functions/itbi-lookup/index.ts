@@ -83,6 +83,30 @@ function buildLogradouroVariants(rua: string): string[] {
   return Array.from(variants);
 }
 
+// Tokens "fracos" que NÃO devem ser usados como filtro de validação
+// (genéricos de logradouro + títulos honoríficos abreviados/completos).
+const WEAK_TOKENS = new Set<string>([
+  "R","RUA","AV","AVENIDA","AL","ALAMEDA","TR","TRAV","TRAVESSA","EST","ESTRADA",
+  "PRC","PRACA","LARGO","RODOVIA","ROD","VIELA","VIA","PASSAGEM","PSG","BECO",
+  "DE","DA","DO","DAS","DOS","E","DR","DRA","PROF","PROFA","ENG","ENGA",
+  "CEL","TEN","CAP","GAL","GEN","MAL","BRIG","CMTE","CMT","ALM","SGT","SD",
+  "PE","FR","IR","STA","STO","S","NSA","SRA","NS","COMEND","COM","MONS",
+  "PRES","GOV","SEN","DEP","VER","EMB","CONS","VISC","BAR","MARQ","DUQ","CARD","DES","DESEMB",
+]);
+
+// Extrai tokens "significativos" (não genéricos/honoríficos) do logradouro.
+function strongTokens(rua: string): string[] {
+  if (!rua) return [];
+  const upper = rua
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase().replace(/[^A-Z0-9 ]/g, " ");
+  const tokens = upper.split(/\s+/).filter(Boolean);
+  const allWeak = new Set(WEAK_TOKENS);
+  for (const [full] of HONORIFIC_PAIRS) allWeak.add(full);
+  return tokens.filter((t) => t.length >= 3 && !allWeak.has(t));
+}
+
+
 const MATCHING_PROMPT = `Você é um especialista em matching de endereços e análise de valor de mercado usando a base de transações imobiliárias (ITBI) da Prefeitura de São Paulo.
 
 Você receberá um endereço estruturado:
