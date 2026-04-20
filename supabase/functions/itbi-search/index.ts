@@ -92,7 +92,15 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const tipo = (body.tipo ?? "").toString().toLowerCase().trim();
+    // Aceita `tipos` (array) ou `tipo` (string única — compat).
+    const tiposRaw = Array.isArray(body.tipos)
+      ? body.tipos
+      : body.tipo
+      ? [body.tipo]
+      : [];
+    const tipos: string[] = tiposRaw
+      .map((t: unknown) => String(t ?? "").toLowerCase().trim())
+      .filter((t: string) => t && t !== "todos");
     const logradouro = (body.logradouro ?? "").toString().trim();
     const numero = (body.numero ?? "").toString().trim();
     const bairro = (body.bairro ?? "").toString().trim();
