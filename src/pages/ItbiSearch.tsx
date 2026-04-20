@@ -375,7 +375,11 @@ export default function ItbiSearch() {
               />
             </div>
             <div className="lg:col-span-3 flex items-end">
-              <Button onClick={runSearch} disabled={!hasAnyFilter || loading} className="w-full h-9">
+              <Button
+                onClick={() => runSearch({ tipos: [...tipos], logradouro, numero, bairro, cep })}
+                disabled={!hasAnyFilter || loading}
+                className="w-full h-9"
+              >
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
