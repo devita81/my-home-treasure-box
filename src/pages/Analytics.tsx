@@ -1348,7 +1348,7 @@ const Analytics = () => {
                               const iptuMes = (property.iptu_value || 0) / 12;
                               const txAdm = property.taxa_administracao || 0;
                               const rowTotal = property.alugado
-                                ? aluguel - cond - txAdm
+                                ? aluguel - txAdm
                                 : -(cond + iptuMes + txAdm);
                               return (
                                 <td className={`text-right py-2 px-3 text-[11px] font-mono tabular-nums font-bold whitespace-nowrap ${rowTotal >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
