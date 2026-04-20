@@ -380,7 +380,9 @@ export function CustosReceitasStats() {
                   {dialog.properties.map((p) => {
                     const iptuMes = (p.iptu_value ?? 0) / 12;
                     const taxaAdm = p.taxa_administracao ?? 0;
-                    const liquido = (p.valor_aluguel ?? 0) - taxaAdm;
+                    const aluguel = p.valor_aluguel ?? 0;
+                    const condominio = p.valor_condominio ?? 0;
+                    const liquido = p.alugado ? (aluguel - taxaAdm) : -(condominio + iptuMes);
                     return (
                       <tr
                         key={p.id}
@@ -395,8 +397,8 @@ export function CustosReceitasStats() {
                             <p className="text-[10px] sm:text-xs text-muted-foreground">{p.bairro}, {p.cidade}</p>
                           </Link>
                         </td>
-                        <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-medium whitespace-nowrap">{fmtFull(p.valor_aluguel ?? 0)}</td>
-                        <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-medium whitespace-nowrap">{fmtFull(p.valor_condominio ?? 0)}</td>
+                        <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-medium whitespace-nowrap">{fmtFull(aluguel)}</td>
+                        <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-medium whitespace-nowrap">{fmtFull(condominio)}</td>
                         <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-medium whitespace-nowrap">{fmtFull(iptuMes)}</td>
                         <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-medium whitespace-nowrap">{fmtFull(taxaAdm)}</td>
                         <td className={`px-2 sm:px-3 py-2 sm:py-2.5 text-right font-bold whitespace-nowrap ${liquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -410,7 +412,13 @@ export function CustosReceitasStats() {
                     const totCond = dialog.properties.reduce((s, p) => s + (p.valor_condominio ?? 0), 0);
                     const totIptu = dialog.properties.reduce((s, p) => s + ((p.iptu_value ?? 0) / 12), 0);
                     const totAdm = dialog.properties.reduce((s, p) => s + (p.taxa_administracao ?? 0), 0);
-                    const totLiq = totAluguel - totAdm;
+                    const totLiq = dialog.properties.reduce((s, p) => {
+                      const al = p.valor_aluguel ?? 0;
+                      const cd = p.valor_condominio ?? 0;
+                      const ip = (p.iptu_value ?? 0) / 12;
+                      const tx = p.taxa_administracao ?? 0;
+                      return s + (p.alugado ? (al - tx) : -(cd + ip));
+                    }, 0);
                     return (
                       <tr className="bg-muted/50 font-bold border-t-2">
                         <td className="px-2 sm:px-3 py-2">Total ({dialog.properties.length} imóveis)</td>
