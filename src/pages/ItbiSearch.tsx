@@ -128,7 +128,7 @@ export default function ItbiSearch() {
     try {
       const { data, error } = await supabase.functions.invoke('itbi-search', {
         body: {
-          tipo: tipo === 'todos' ? '' : tipo,
+          tipos,
           logradouro,
           numero,
           bairro,
