@@ -515,7 +515,43 @@ serve(async (req) => {
 
     console.log(`[itbi-lookup] ${matched.length} matches finais`);
 
-    const report = buildReport(property, matched, candidatosNomeOk.length, gptResult.valor_referencia_mercado);
+    // === Cálculo determinístico do Valor de Referência ITBI ===
+    // 1) Deduplica (ITBI registra comprador + vendedor)
+    // 2) Tira a média de TODAS as transações válidas
+    // 3) Remove outliers (±30% da média inicial)
+    // 4) Recalcula a média sobre o que sobrou
+    const seenKeys = new Set<string>();
+    const valoresValidos: number[] = [];
+    for (const m of matched) {
+      const v = Number(m.valor_transacao);
+      if (!v || v <= 0) continue;
+      const key = `${m.data_transacao ?? ""}|${m.valor_transacao ?? ""}|${m.sql_iptu ?? ""}|${m.numero ?? ""}|${m.complemento ?? ""}`;
+      if (seenKeys.has(key)) continue;
+      seenKeys.add(key);
+      valoresValidos.push(v);
+    }
+
+    let valorReferencia: { metodologia: string; valor_estimado: number | null; observacao: string } | null = null;
+    if (valoresValidos.length > 0) {
+      const mediaInicial = valoresValidos.reduce((a, b) => a + b, 0) / valoresValidos.length;
+      const min = mediaInicial * 0.7;
+      const max = mediaInicial * 1.3;
+      const semOutliers = valoresValidos.filter((v) => v >= min && v <= max);
+      const removidos = valoresValidos.length - semOutliers.length;
+      const baseFinal = semOutliers.length > 0 ? semOutliers : valoresValidos;
+      const mediaFinal = baseFinal.reduce((a, b) => a + b, 0) / baseFinal.length;
+
+      valorReferencia = {
+        metodologia: "média das transações do mesmo prédio, descartando outliers além de ±30% da média inicial",
+        valor_estimado: Math.round(mediaFinal),
+        observacao: `${valoresValidos.length} transação(ões) analisada(s), ${removidos} outlier(s) removido(s), média final sobre ${baseFinal.length}`,
+      };
+      console.log(
+        `[itbi-lookup] Valor referência: média inicial=${Math.round(mediaInicial)} | sem ${removidos} outliers → ${Math.round(mediaFinal)}`,
+      );
+    }
+
+    const report = buildReport(property, matched, candidatosNomeOk.length, valorReferencia);
 
     return new Response(
       JSON.stringify({
@@ -524,7 +560,7 @@ serve(async (req) => {
         totalCandidates: candidatosNomeOk.length,
         hadData: matched.length > 0,
         gptStatus: gptResult.status,
-        valorReferencia: gptResult.valor_referencia_mercado,
+        valorReferencia,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
