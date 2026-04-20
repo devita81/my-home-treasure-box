@@ -1238,10 +1238,10 @@ const Analytics = () => {
                       >
                         <div className="flex items-start justify-between gap-2 mb-1.5">
                           <div className="min-w-0 flex-1">
-                            <p className="text-[12px] font-semibold text-slate-900 truncate" title={getPropertyAddress(property)}>
+                            <p className="text-[12px] font-semibold text-slate-900 truncate uppercase" title={getPropertyAddress(property)}>
                               {getPropertyAddress(property)}
                             </p>
-                            <p className="text-[10px] text-slate-500 truncate">
+                            <p className="text-[10px] text-slate-500 truncate uppercase">
                               {getTipoLabel(property.tipo_imovel)} • {property.cidade} - {property.estado}
                             </p>
                           </div>
