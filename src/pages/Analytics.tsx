@@ -568,7 +568,105 @@ const Analytics = () => {
           </div>
         </div>
 
-        {/* ─── Distribuição ─── */}
+        {/* ─── Resultado Financeiro por Cidade ─── */}
+        <div className="rounded-lg border border-slate-700/50 bg-slate-700/30 overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-700/40 flex items-center gap-2">
+            <Wallet className="h-3.5 w-3.5 text-slate-400" />
+            <h2 className="text-[11px] font-medium text-slate-300 uppercase tracking-widest">Resultado Financeiro por Cidade</h2>
+          </div>
+          
+          {/* Mobile */}
+          <div className="sm:hidden divide-y divide-slate-700/40">
+            {cityFinancials.map((row) => (
+              <div key={row.cidade} className="px-3 py-2.5 space-y-1.5">
+                <div className="text-[11px] font-semibold text-slate-200">{row.cidade}</div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <p className="text-[9px] text-slate-400 uppercase">Receita</p>
+                    <p className="text-[11px] font-mono tabular-nums text-emerald-400">{formatCurrency(row.receitaAlugados)}</p>
+                    <p className="text-[9px] text-slate-500 font-mono">{row.countAlugados} alug.</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] text-slate-400 uppercase">Despesa</p>
+                    <p className="text-[11px] font-mono tabular-nums text-red-400">-{formatCurrency(row.despesaNaoAlugados)}</p>
+                    <p className="text-[9px] text-slate-500 font-mono">{row.countNaoAlugados} vagos</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] text-slate-400 uppercase">Total</p>
+                    <p className={`text-[11px] font-mono tabular-nums font-semibold ${row.total >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {row.total < 0 ? '-' : ''}{formatCurrency(Math.abs(row.total))}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {/* Subtotal mobile */}
+            <div className="px-3 py-2.5 bg-blue-900/30 border-t-2 border-blue-500/40">
+              <div className="text-[11px] font-bold text-blue-300 uppercase mb-1.5">Subtotal Geral</div>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <p className="text-[9px] text-blue-400 uppercase">Receita</p>
+                  <p className="text-[11px] font-mono tabular-nums text-emerald-400 font-semibold">{formatCurrency(cityFinancialsTotals.receitaAlugados)}</p>
+                  <p className="text-[9px] text-blue-400 font-mono">{cityFinancialsTotals.countAlugados} alug.</p>
+                </div>
+                <div>
+                  <p className="text-[9px] text-blue-400 uppercase">Despesa</p>
+                  <p className="text-[11px] font-mono tabular-nums text-red-400 font-semibold">-{formatCurrency(cityFinancialsTotals.despesaNaoAlugados)}</p>
+                  <p className="text-[9px] text-blue-400 font-mono">{cityFinancialsTotals.countNaoAlugados} vagos</p>
+                </div>
+                <div>
+                  <p className="text-[9px] text-blue-400 uppercase">Total</p>
+                  <p className={`text-[11px] font-mono tabular-nums font-bold ${cityFinancialsTotals.total >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {cityFinancialsTotals.total < 0 ? '-' : ''}{formatCurrency(Math.abs(cityFinancialsTotals.total))}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop */}
+          <div className="hidden sm:block">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-slate-700/40 hover:bg-transparent">
+                  <TableHead className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Cidade</TableHead>
+                  <TableHead className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold text-right">Receita (Alugados)</TableHead>
+                  <TableHead className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold text-center">Qtd</TableHead>
+                  <TableHead className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold text-right">Despesa (Não Alugados)</TableHead>
+                  <TableHead className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold text-center">Qtd</TableHead>
+                  <TableHead className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold text-right">Total</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {cityFinancials.map((row) => (
+                  <TableRow key={row.cidade} className="border-slate-700/40 hover:bg-slate-700/30">
+                    <TableCell className="text-[11px] text-slate-200 font-medium">{row.cidade}</TableCell>
+                    <TableCell className="text-[11px] font-mono tabular-nums text-emerald-400 text-right">{formatCurrency(row.receitaAlugados)}</TableCell>
+                    <TableCell className="text-[10px] font-mono text-slate-400 text-center">{row.countAlugados}</TableCell>
+                    <TableCell className="text-[11px] font-mono tabular-nums text-red-400 text-right">-{formatCurrency(row.despesaNaoAlugados)}</TableCell>
+                    <TableCell className="text-[10px] font-mono text-slate-400 text-center">{row.countNaoAlugados}</TableCell>
+                    <TableCell className={`text-[11px] font-mono tabular-nums font-semibold text-right ${row.total >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {row.total < 0 ? '-' : ''}{formatCurrency(Math.abs(row.total))}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {/* Subtotal row */}
+                <TableRow className="border-t-2 border-blue-500/40 bg-blue-900/20 hover:bg-blue-900/30">
+                  <TableCell className="text-[11px] text-blue-300 font-bold uppercase">Subtotal</TableCell>
+                  <TableCell className="text-[11px] font-mono tabular-nums text-emerald-400 font-bold text-right">{formatCurrency(cityFinancialsTotals.receitaAlugados)}</TableCell>
+                  <TableCell className="text-[10px] font-mono text-blue-300 font-bold text-center">{cityFinancialsTotals.countAlugados}</TableCell>
+                  <TableCell className="text-[11px] font-mono tabular-nums text-red-400 font-bold text-right">-{formatCurrency(cityFinancialsTotals.despesaNaoAlugados)}</TableCell>
+                  <TableCell className="text-[10px] font-mono text-blue-300 font-bold text-center">{cityFinancialsTotals.countNaoAlugados}</TableCell>
+                  <TableCell className={`text-[11px] font-mono tabular-nums font-bold text-right ${cityFinancialsTotals.total >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {cityFinancialsTotals.total < 0 ? '-' : ''}{formatCurrency(Math.abs(cityFinancialsTotals.total))}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+
+
         <div className="rounded-lg border border-slate-700/50 bg-slate-700/30 overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-700/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div className="flex items-center gap-2">
