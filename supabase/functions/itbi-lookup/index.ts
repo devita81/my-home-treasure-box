@@ -262,15 +262,21 @@ Foram analisados **${totalCandidates} candidatos** com número exato e nome de r
       const enderecoBase = `${m.logradouro ?? ""}${m.numero ? `, ${m.numero}` : ""}`.trim() || "N/D";
       const compl = m.complemento?.trim() || "—";
       const complDisplay = m.is_unidade_exata ? `🎯 **${compl}**` : compl;
-      const bairro = m.bairro?.trim() || "—";
       const sql = m.sql_iptu?.trim() || "—";
       const area = m.area_construida ? `${Number(m.area_construida).toLocaleString("pt-BR")} m²` : "—";
-      return `| ${data} | ${enderecoBase} | ${complDisplay} | ${bairro} | ${sql} | ${area} | ${fmt(m.valor_transacao)} | ${fmt(m.valor_venal)} | ${classBadge(m.classificacao_valor)} | ${m.score}% |`;
+      const naMedia = m.incluido_na_media === false
+        ? `❌ ${m.motivo_exclusao ?? "fora"}`
+        : m.incluido_na_media === true
+          ? "✅ Sim"
+          : "—";
+      return `| ${data} | ${enderecoBase} | ${complDisplay} | ${sql} | ${area} | ${fmt(m.valor_transacao)} | ${fmt(m.valor_venal)} | ${naMedia} |`;
     })
     .join("\n");
 
   const exatas = dedup.filter((m: any) => m.is_unidade_exata).length;
   const outrasUnidades = dedup.length - exatas;
+  const incluidasNaMedia = matched.filter((m: any) => m.incluido_na_media === true).length;
+  const excluidasOutlier = matched.filter((m: any) => m.incluido_na_media === false && (m.motivo_exclusao ?? "").startsWith("outlier")).length;
 
   const diff =
     valorRef?.valor_estimado && property.declared_value
@@ -298,12 +304,13 @@ ${property.rua}${property.numero ? `, ${property.numero}` : ""}${aptoTxt}${prope
 ${valorRef?.observacao ? `> ${valorRef.observacao}` : ""}
 
 ### 📊 Transações no Mesmo Prédio
-${dedup.length} transação(ões) única(s) — **${exatas} da unidade exata** + ${outrasUnidades} de outras unidades do mesmo prédio. ${duplicatasRemovidas > 0 ? `${duplicatasRemovidas} duplicata(s) removida(s) — ITBI registra comprador+vendedor.` : ""}
+${dedup.length} transação(ões) única(s) — **${exatas} da unidade exata** + ${outrasUnidades} de outras unidades. ${duplicatasRemovidas > 0 ? `${duplicatasRemovidas} duplicata(s) removida(s) — ITBI registra comprador+vendedor.` : ""}
+**${incluidasNaMedia} entraram no cálculo da média final** | ${excluidasOutlier} descartada(s) como outlier (±30%).
 
-🎯 = unidade exata informada no cadastro
+🎯 = unidade exata informada no cadastro · ✅ = entrou na média · ❌ = descartada
 
-| Data | Endereço | Compl. | Bairro | SQL/IPTU | Área | Valor Transação | Valor Venal | Classificação | Confiança |
-|------|----------|--------|--------|----------|------|-----------------|-------------|---------------|-----------|
+| Data | Endereço | Compl. | SQL/IPTU | Área | Valor Transação | Valor Venal | Na média? |
+|------|----------|--------|----------|------|-----------------|-------------|-----------|
 ${tableRows}
 
 ### 🎯 Avaliação Final
