@@ -639,7 +639,7 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
 
       if (isMobile && (navigator as any).canShare?.({ files: [file] })) {
         try {
-          await (navigator as any).share({ files: [file], title: fileName });
+          await (navigator as any).share({ files: [file] });
           toast.success('PDF compartilhado!');
           return;
         } catch (shareErr: any) {
