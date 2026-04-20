@@ -145,67 +145,118 @@ export type Database = {
       }
       itbi_transactions: {
         Row: {
+          acc_iptu: string | null
           ano_referencia: number
           area_construida: number | null
           area_terreno: number | null
           bairro: string | null
           bairro_normalizado: string | null
+          base_calculo: number | null
+          cartorio_registro: string | null
           cep: string | null
           complemento: string | null
           created_at: string
           data_transacao: string | null
+          descricao_padrao_iptu: string | null
+          descricao_uso_iptu: string | null
+          fracao_ideal: number | null
           id: string
+          linha_hash: string | null
           logradouro: string
           logradouro_normalizado: string | null
+          matricula_imovel: string | null
           mes_referencia: number
           natureza_transacao: string | null
           numero: string | null
           numero_limpo: string | null
+          padrao_iptu: string | null
+          proporcao_transmitida: number | null
+          referencia: string | null
+          situacao_sql: string | null
           sql_iptu: string | null
+          testada: number | null
+          tipo_financiamento: string | null
+          uso_iptu: string | null
+          valor_financiado: number | null
           valor_transacao: number | null
           valor_venal: number | null
+          valor_venal_proporcional: number | null
         }
         Insert: {
+          acc_iptu?: string | null
           ano_referencia: number
           area_construida?: number | null
           area_terreno?: number | null
           bairro?: string | null
           bairro_normalizado?: string | null
+          base_calculo?: number | null
+          cartorio_registro?: string | null
           cep?: string | null
           complemento?: string | null
           created_at?: string
           data_transacao?: string | null
+          descricao_padrao_iptu?: string | null
+          descricao_uso_iptu?: string | null
+          fracao_ideal?: number | null
           id?: string
+          linha_hash?: string | null
           logradouro: string
           logradouro_normalizado?: string | null
+          matricula_imovel?: string | null
           mes_referencia: number
           natureza_transacao?: string | null
           numero?: string | null
           numero_limpo?: string | null
+          padrao_iptu?: string | null
+          proporcao_transmitida?: number | null
+          referencia?: string | null
+          situacao_sql?: string | null
           sql_iptu?: string | null
+          testada?: number | null
+          tipo_financiamento?: string | null
+          uso_iptu?: string | null
+          valor_financiado?: number | null
           valor_transacao?: number | null
           valor_venal?: number | null
+          valor_venal_proporcional?: number | null
         }
         Update: {
+          acc_iptu?: string | null
           ano_referencia?: number
           area_construida?: number | null
           area_terreno?: number | null
           bairro?: string | null
           bairro_normalizado?: string | null
+          base_calculo?: number | null
+          cartorio_registro?: string | null
           cep?: string | null
           complemento?: string | null
           created_at?: string
           data_transacao?: string | null
+          descricao_padrao_iptu?: string | null
+          descricao_uso_iptu?: string | null
+          fracao_ideal?: number | null
           id?: string
+          linha_hash?: string | null
           logradouro?: string
           logradouro_normalizado?: string | null
+          matricula_imovel?: string | null
           mes_referencia?: number
           natureza_transacao?: string | null
           numero?: string | null
           numero_limpo?: string | null
+          padrao_iptu?: string | null
+          proporcao_transmitida?: number | null
+          referencia?: string | null
+          situacao_sql?: string | null
           sql_iptu?: string | null
+          testada?: number | null
+          tipo_financiamento?: string | null
+          uso_iptu?: string | null
+          valor_financiado?: number | null
           valor_transacao?: number | null
           valor_venal?: number | null
+          valor_venal_proporcional?: number | null
         }
         Relationships: []
       }

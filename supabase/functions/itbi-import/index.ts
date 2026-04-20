@@ -1,5 +1,6 @@
 // Edge function para importar XLSX da Prefeitura de SP para a tabela itbi_transactions.
-// Recebe { ano, mes, sourceUrl } e processa o arquivo em batches.
+// Importa TODOS os campos disponíveis e usa hash único por linha para evitar duplicatas
+// entre execuções (idempotente — pode reimportar os mesmos arquivos sem criar duplicatas).
 // Apenas admins podem invocar.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -13,41 +14,72 @@ const corsHeaders = {
 
 const BATCH_SIZE = 500;
 
-// Tenta encontrar o índice da coluna procurando por palavras-chave no header
+const MES_MAP: Record<string, number> = {
+  JAN: 1, FEV: 2, MAR: 3, ABR: 4, MAI: 5, JUN: 6,
+  JUL: 7, AGO: 8, SET: 9, OUT: 10, NOV: 11, DEZ: 12,
+};
+
+const SKIP_SHEETS = new Set(["LEGENDA", "EXPLICACOES", "EXPLICAÇÕES", "TABELA DE USOS", "TABELA DE PADROES", "TABELA DE PADRÕES"]);
+
+function normalizeHeader(s: string): string {
+  return (s ?? "").toString().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+}
+
 function findCol(headers: string[], ...keywords: string[]): number {
-  const norm = (s: string) => (s ?? "").toString().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  const normHeaders = headers.map(norm);
+  const normHeaders = headers.map(normalizeHeader);
   for (const kw of keywords) {
-    const k = norm(kw);
-    const idx = normHeaders.findIndex((h) => h.includes(k));
+    const k = normalizeHeader(kw);
+    const idx = normHeaders.findIndex((h) => h === k || h.includes(k));
     if (idx !== -1) return idx;
   }
   return -1;
 }
 
-function parseDate(value: any): string | null {
-  if (!value) return null;
+function parseDate(value: unknown): string | null {
+  if (value == null || value === "") return null;
   if (value instanceof Date) return value.toISOString().slice(0, 10);
   if (typeof value === "number") {
-    // Excel serial date
     const d = XLSX.SSF.parse_date_code(value);
     if (d) return `${d.y}-${String(d.m).padStart(2, "0")}-${String(d.d).padStart(2, "0")}`;
   }
   const s = String(value).trim();
-  // dd/mm/yyyy
   const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (m) return `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
-  // yyyy-mm-dd
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
   return null;
 }
 
-function parseNumber(value: any): number | null {
+function parseNumber(value: unknown): number | null {
   if (value === null || value === undefined || value === "") return null;
-  if (typeof value === "number") return value;
-  const s = String(value).replace(/[R$\s.]/g, "").replace(",", ".");
+  if (typeof value === "number") return isNaN(value) ? null : value;
+  const s = String(value).replace(/[R$\s]/g, "").replace(/\.(?=\d{3}(\D|$))/g, "").replace(",", ".");
   const n = parseFloat(s);
   return isNaN(n) ? null : n;
+}
+
+function strOrNull(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  const s = String(value).trim();
+  return s === "" ? null : s;
+}
+
+async function sha256Hex(input: string): Promise<string> {
+  const data = new TextEncoder().encode(input);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function detectMonthFromSheet(sheetName: string): number | null {
+  const upper = sheetName.toUpperCase();
+  for (const [abbr, num] of Object.entries(MES_MAP)) {
+    if (upper.includes(abbr)) return num;
+  }
+  const m = sheetName.match(/(\d{1,2})/);
+  if (m) {
+    const n = parseInt(m[1], 10);
+    if (n >= 1 && n <= 12) return n;
+  }
+  return null;
 }
 
 serve(async (req) => {
@@ -77,13 +109,9 @@ serve(async (req) => {
     }
     const userId = claimsData.claims.sub as string;
 
-    // Verificar se é admin
     const { data: roleData } = await adminClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
+      .from("user_roles").select("role")
+      .eq("user_id", userId).eq("role", "admin").maybeSingle();
     if (!roleData) {
       return new Response(JSON.stringify({ error: "Apenas administradores podem importar dados ITBI" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -97,18 +125,13 @@ serve(async (req) => {
       });
     }
 
-    // Cria registro de log
     const { data: logRow, error: logErr } = await adminClient
       .from("itbi_import_log")
       .insert({
-        ano_referencia: ano,
-        mes_referencia: mes ?? null,
-        source_url: sourceUrl,
-        status: "in_progress",
-        imported_by: userId,
+        ano_referencia: ano, mes_referencia: mes ?? null,
+        source_url: sourceUrl, status: "in_progress", imported_by: userId,
       })
-      .select()
-      .single();
+      .select().single();
     if (logErr) throw logErr;
 
     let imported = 0;
@@ -122,48 +145,60 @@ serve(async (req) => {
       const buf = new Uint8Array(await xlsxResp.arrayBuffer());
 
       console.log(`[itbi-import] Parseando ${buf.length} bytes...`);
-      const wb = XLSX.read(buf, { type: "array" });
+      const wb = XLSX.read(buf, { type: "array", cellDates: true });
 
-      // Processar todas as abas (cada aba normalmente é um mês)
       for (const sheetName of wb.SheetNames) {
-        // Se mes foi especificado, tenta filtrar abas pelo nome
-        if (mes && !sheetName.toLowerCase().includes(String(mes).padStart(2, "0")) && !sheetName.includes(`${mes}`)) {
-          // Não pula se nome da aba não tem padrão claro; processa mesmo assim na primeira aba
+        const upperSheet = sheetName.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        if (SKIP_SHEETS.has(upperSheet)) {
+          console.log(`[itbi-import] Pulando aba "${sheetName}" (metadata).`);
+          continue;
         }
+
+        const mesAba = mes ?? detectMonthFromSheet(sheetName);
+        if (mes && mesAba !== mes) continue; // filtra para mês específico se solicitado
+
         const ws = wb.Sheets[sheetName];
-        const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null });
+        const rows: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null });
         if (rows.length < 2) continue;
 
-        const headers = rows[0].map((h) => String(h ?? ""));
+        const headers = (rows[0] as unknown[]).map((h) => String(h ?? ""));
         const idx = {
-          sql: findCol(headers, "SQL", "S.Q.L"),
-          natureza: findCol(headers, "NATUREZA"),
+          sql: findCol(headers, "N° DO CADASTRO (SQL)", "CADASTRO (SQL)", "SQL"),
           logradouro: findCol(headers, "NOME DO LOGRADOURO", "LOGRADOURO"),
           numero: findCol(headers, "NUMERO", "NÚMERO"),
           complemento: findCol(headers, "COMPLEMENTO"),
           bairro: findCol(headers, "BAIRRO"),
+          referencia: findCol(headers, "REFERENCIA", "REFERÊNCIA"),
           cep: findCol(headers, "CEP"),
-          data: findCol(headers, "DATA DE TRANSACAO", "DATA TRANSACAO", "DATA DA TRANSACAO"),
-          valor: findCol(headers, "VALOR DE TRANSACAO", "VALOR TRANSACAO"),
-          venal: findCol(headers, "VALOR VENAL", "VALOR DE REFERENCIA"),
+          natureza: findCol(headers, "NATUREZA DE TRANSACAO", "NATUREZA"),
+          valor: findCol(headers, "VALOR DE TRANSACAO", "VALOR DE TRANSAÇÃO"),
+          data: findCol(headers, "DATA DE TRANSACAO", "DATA DE TRANSAÇÃO"),
+          venal: findCol(headers, "VALOR VENAL DE REFERENCIA", "VALOR VENAL"),
+          proporcao: findCol(headers, "PROPORCAO TRANSMITIDA", "PROPORÇÃO TRANSMITIDA"),
+          venalProp: findCol(headers, "VALOR VENAL DE REFERENCIA (PROPORCIONAL)", "VENAL DE REFERENCIA (PROPORCIONAL)"),
+          baseCalc: findCol(headers, "BASE DE CALCULO", "BASE DE CÁLCULO"),
+          tipoFin: findCol(headers, "TIPO DE FINANCIAMENTO"),
+          valorFin: findCol(headers, "VALOR FINANCIADO"),
+          cartorio: findCol(headers, "CARTORIO DE REGISTRO", "CARTÓRIO DE REGISTRO"),
+          matricula: findCol(headers, "MATRICULA DO IMOVEL", "MATRÍCULA DO IMÓVEL"),
+          situacao: findCol(headers, "SITUACAO DO SQL", "SITUAÇÃO DO SQL"),
+          areaTerr: findCol(headers, "AREA DO TERRENO", "ÁREA DO TERRENO"),
+          testada: findCol(headers, "TESTADA"),
+          fracao: findCol(headers, "FRACAO IDEAL", "FRAÇÃO IDEAL"),
           areaCons: findCol(headers, "AREA CONSTRUIDA", "ÁREA CONSTRUÍDA"),
-          areaTerr: findCol(headers, "AREA DO TERRENO", "AREA TERRENO"),
+          uso: findCol(headers, "USO (IPTU)"),
+          descUso: findCol(headers, "DESCRICAO DO USO (IPTU)", "DESCRIÇÃO DO USO (IPTU)"),
+          padrao: findCol(headers, "PADRAO (IPTU)", "PADRÃO (IPTU)"),
+          descPadrao: findCol(headers, "DESCRICAO DO PADRAO (IPTU)", "DESCRIÇÃO DO PADRÃO (IPTU)"),
+          acc: findCol(headers, "ACC (IPTU)"),
         };
 
         if (idx.logradouro === -1) {
-          console.warn(`[itbi-import] Aba "${sheetName}" sem coluna logradouro reconhecível, pulando.`);
+          console.warn(`[itbi-import] Aba "${sheetName}" sem coluna logradouro, pulando.`);
           continue;
         }
 
-        // Detectar mês pela aba se não foi passado
-        let mesAba = mes ?? null;
-        const mAba = sheetName.match(/(\d{1,2})/);
-        if (!mesAba && mAba) {
-          const m = parseInt(mAba[1], 10);
-          if (m >= 1 && m <= 12) mesAba = m;
-        }
-
-        let batch: any[] = [];
+        let batch: Record<string, unknown>[] = [];
         for (let i = 1; i < rows.length; i++) {
           const r = rows[i];
           const logradouro = r[idx.logradouro];
@@ -171,63 +206,94 @@ serve(async (req) => {
             skipped++;
             continue;
           }
+
+          const sqlIptu = idx.sql !== -1 ? strOrNull(r[idx.sql]) : null;
+          const dataTransacao = idx.data !== -1 ? parseDate(r[idx.data]) : null;
+          const valorTransacao = idx.valor !== -1 ? parseNumber(r[idx.valor]) : null;
+          const numero = idx.numero !== -1 ? strOrNull(r[idx.numero]) : null;
+          const complemento = idx.complemento !== -1 ? strOrNull(r[idx.complemento]) : null;
+
+          // Hash determinístico (idempotente entre reimportações)
+          const hashInput = [
+            sqlIptu ?? "",
+            String(logradouro).trim(),
+            numero ?? "",
+            complemento ?? "",
+            dataTransacao ?? "",
+            valorTransacao ?? "",
+            ano,
+            mesAba ?? 0,
+          ].join("|");
+          const linhaHash = await sha256Hex(hashInput);
+
           batch.push({
-            sql_iptu: idx.sql !== -1 ? (r[idx.sql] ? String(r[idx.sql]).trim() : null) : null,
-            natureza_transacao: idx.natureza !== -1 ? (r[idx.natureza] ? String(r[idx.natureza]).trim() : null) : null,
+            sql_iptu: sqlIptu,
             logradouro: String(logradouro).trim(),
-            numero: idx.numero !== -1 && r[idx.numero] != null ? String(r[idx.numero]).trim() : null,
-            complemento: idx.complemento !== -1 && r[idx.complemento] != null ? String(r[idx.complemento]).trim() : null,
-            bairro: idx.bairro !== -1 && r[idx.bairro] != null ? String(r[idx.bairro]).trim() : null,
-            cep: idx.cep !== -1 && r[idx.cep] != null ? String(r[idx.cep]).trim() : null,
-            data_transacao: idx.data !== -1 ? parseDate(r[idx.data]) : null,
-            valor_transacao: idx.valor !== -1 ? parseNumber(r[idx.valor]) : null,
+            numero,
+            complemento,
+            bairro: idx.bairro !== -1 ? strOrNull(r[idx.bairro]) : null,
+            referencia: idx.referencia !== -1 ? strOrNull(r[idx.referencia]) : null,
+            cep: idx.cep !== -1 ? strOrNull(r[idx.cep]) : null,
+            natureza_transacao: idx.natureza !== -1 ? strOrNull(r[idx.natureza]) : null,
+            valor_transacao: valorTransacao,
+            data_transacao: dataTransacao,
             valor_venal: idx.venal !== -1 ? parseNumber(r[idx.venal]) : null,
-            area_construida: idx.areaCons !== -1 ? parseNumber(r[idx.areaCons]) : null,
+            proporcao_transmitida: idx.proporcao !== -1 ? parseNumber(r[idx.proporcao]) : null,
+            valor_venal_proporcional: idx.venalProp !== -1 ? parseNumber(r[idx.venalProp]) : null,
+            base_calculo: idx.baseCalc !== -1 ? parseNumber(r[idx.baseCalc]) : null,
+            tipo_financiamento: idx.tipoFin !== -1 ? strOrNull(r[idx.tipoFin]) : null,
+            valor_financiado: idx.valorFin !== -1 ? parseNumber(r[idx.valorFin]) : null,
+            cartorio_registro: idx.cartorio !== -1 ? strOrNull(r[idx.cartorio]) : null,
+            matricula_imovel: idx.matricula !== -1 ? strOrNull(r[idx.matricula]) : null,
+            situacao_sql: idx.situacao !== -1 ? strOrNull(r[idx.situacao]) : null,
             area_terreno: idx.areaTerr !== -1 ? parseNumber(r[idx.areaTerr]) : null,
+            testada: idx.testada !== -1 ? parseNumber(r[idx.testada]) : null,
+            fracao_ideal: idx.fracao !== -1 ? parseNumber(r[idx.fracao]) : null,
+            area_construida: idx.areaCons !== -1 ? parseNumber(r[idx.areaCons]) : null,
+            uso_iptu: idx.uso !== -1 ? strOrNull(r[idx.uso]) : null,
+            descricao_uso_iptu: idx.descUso !== -1 ? strOrNull(r[idx.descUso]) : null,
+            padrao_iptu: idx.padrao !== -1 ? strOrNull(r[idx.padrao]) : null,
+            descricao_padrao_iptu: idx.descPadrao !== -1 ? strOrNull(r[idx.descPadrao]) : null,
+            acc_iptu: idx.acc !== -1 ? strOrNull(r[idx.acc]) : null,
             ano_referencia: ano,
             mes_referencia: mesAba ?? 0,
+            linha_hash: linhaHash,
           });
 
           if (batch.length >= BATCH_SIZE) {
-            const { error: insErr } = await adminClient.from("itbi_transactions").insert(batch);
+            const { error: insErr } = await adminClient
+              .from("itbi_transactions")
+              .upsert(batch, { onConflict: "linha_hash", ignoreDuplicates: true });
             if (insErr) throw insErr;
             imported += batch.length;
             batch = [];
           }
         }
         if (batch.length > 0) {
-          const { error: insErr } = await adminClient.from("itbi_transactions").insert(batch);
+          const { error: insErr } = await adminClient
+            .from("itbi_transactions")
+            .upsert(batch, { onConflict: "linha_hash", ignoreDuplicates: true });
           if (insErr) throw insErr;
           imported += batch.length;
         }
-        console.log(`[itbi-import] Aba "${sheetName}": ${imported} inseridos até agora.`);
+        console.log(`[itbi-import] Aba "${sheetName}" (mês ${mesAba}): ${imported} acumulados.`);
       }
 
-      await adminClient
-        .from("itbi_import_log")
-        .update({
-          rows_imported: imported,
-          rows_skipped: skipped,
-          status: "completed",
-          completed_at: new Date().toISOString(),
-        })
-        .eq("id", logRow.id);
+      await adminClient.from("itbi_import_log").update({
+        rows_imported: imported, rows_skipped: skipped,
+        status: "completed", completed_at: new Date().toISOString(),
+      }).eq("id", logRow.id);
 
       return new Response(JSON.stringify({ imported, skipped, logId: logRow.id }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     } catch (err) {
       errorMessage = err instanceof Error ? err.message : String(err);
-      await adminClient
-        .from("itbi_import_log")
-        .update({
-          rows_imported: imported,
-          rows_skipped: skipped,
-          status: "failed",
-          error_message: errorMessage,
-          completed_at: new Date().toISOString(),
-        })
-        .eq("id", logRow.id);
+      await adminClient.from("itbi_import_log").update({
+        rows_imported: imported, rows_skipped: skipped,
+        status: "failed", error_message: errorMessage,
+        completed_at: new Date().toISOString(),
+      }).eq("id", logRow.id);
       throw err;
     }
   } catch (error) {
