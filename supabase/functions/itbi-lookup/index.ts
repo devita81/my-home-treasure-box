@@ -470,6 +470,20 @@ serve(async (req) => {
     let candList = Array.from(candMap.values());
     console.log(`[itbi-lookup] ${candList.length} candidatos pré-filtrados (após união de variantes)`);
 
+    // Filtro anti-ruído: o trigram pode trazer ruas com nome parecido
+    // (ex.: "OLIVEIRA PINTO" quando buscamos "MELO OLIVEIRA"). Exigimos que
+    // o logradouro do candidato contenha PELO MENOS UM token significativo
+    // do logradouro consultado (ignorando R/RUA/AV/DR/CEL/etc.).
+    const alvoTokens = strongTokens(property.rua);
+    if (alvoTokens.length > 0) {
+      const before = candList.length;
+      candList = candList.filter((c: any) => {
+        const candTokens = new Set(strongTokens(c.logradouro_normalizado ?? c.logradouro ?? ''));
+        return alvoTokens.some((t) => candTokens.has(t));
+      });
+      console.log(`[itbi-lookup] Filtro tokens fortes (${alvoTokens.join(',')}): ${before - candList.length} descartados, ${candList.length} restantes`);
+    }
+
     // Pré-filtro server-side por TIPO do imóvel — evita garagens/vagas/depósitos quando é apto
     const tipoImovel = (property.tipo_imovel ?? '').toLowerCase();
     const isResidencial = ['apartamento', 'casa', 'cobertura', 'kitnet', 'studio', 'sobrado', ''].some(t => tipoImovel.includes(t)) && !tipoImovel.includes('garagem') && !tipoImovel.includes('comercial');
