@@ -297,6 +297,10 @@ export default function ItbiSearch() {
                 onChange={(e) => setLogradouro(e.target.value)}
                 placeholder="Ex: Itacema"
                 className="h-9"
+                autoCorrect="off"
+                autoCapitalize="off"
+                autoComplete="off"
+                spellCheck={false}
               />
             </div>
             <div className="space-y-1">
@@ -306,6 +310,8 @@ export default function ItbiSearch() {
                 onChange={(e) => setNumero(e.target.value)}
                 placeholder="Ex: 300"
                 className="h-9"
+                inputMode="numeric"
+                autoComplete="off"
               />
             </div>
             <div className="space-y-1">
@@ -316,6 +322,7 @@ export default function ItbiSearch() {
                 placeholder="Ex: 04530"
                 className="h-9"
                 inputMode="numeric"
+                autoComplete="off"
               />
             </div>
             <div className="lg:col-span-3 space-y-1">
@@ -325,6 +332,10 @@ export default function ItbiSearch() {
                 onChange={(e) => setBairro(e.target.value)}
                 placeholder="Ex: Itaim Bibi"
                 className="h-9"
+                autoCorrect="off"
+                autoCapitalize="off"
+                autoComplete="off"
+                spellCheck={false}
               />
             </div>
             <div className="lg:col-span-3 flex items-end">
