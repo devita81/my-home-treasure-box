@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { deliverPdfBlob } from '@/lib/pdf-delivery';
+import { deliverPdfBlob, isMobileBrowser, sharePreparedPdf } from '@/lib/pdf-delivery';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -601,28 +601,54 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
   const [sending, setSending] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [preparedPdfBlob, setPreparedPdfBlob] = useState<Blob | null>(null);
+  const isMobile = isMobileBrowser();
 
   // Reset preview when dialog closes
   useEffect(() => {
-    if (!open) setShowPreview(false);
+    if (!open) {
+      setShowPreview(false);
+      setPreparedPdfBlob(null);
+    }
   }, [open]);
+
+  useEffect(() => {
+    setPreparedPdfBlob(null);
+  }, [property.id]);
 
   const buildFileName = () => {
     const addressParts = [property.rua, property.numero, property.apartamento ? `Apto ${property.apartamento}` : '', property.bairro, `${property.cidade}/${property.estado}`].filter(Boolean).join(', ');
     return `Reporte - ${property.tipo_imovel || 'Imóvel'} - ${addressParts}.pdf`.replace(/[/\\:*?"<>|]/g, '-');
   };
 
+  const preparePdfBlob = useCallback(async () => {
+    const doc = await generatePropertyPDF(property);
+    return doc.output('blob');
+  }, [property]);
+
   const handleDownloadPDF = async () => {
     setGenerating(true);
     try {
-      const doc = await generatePropertyPDF(property);
       const fileName = buildFileName();
 
-      const blob = doc.output('blob');
-      const deliveryResult = await deliverPdfBlob(blob, fileName);
+      if (isMobile) {
+        if (!preparedPdfBlob) {
+          const blob = await preparePdfBlob();
+          setPreparedPdfBlob(blob);
+          toast.success('PDF pronto. Toque novamente para compartilhar o arquivo.');
+          return;
+        }
 
-      if (deliveryResult === 'cancelled') {
-        return;
+        const deliveryResult = await sharePreparedPdf(preparedPdfBlob, fileName);
+        if (deliveryResult === 'cancelled') {
+          return;
+        }
+      } else {
+        const blob = preparedPdfBlob ?? await preparePdfBlob();
+        const deliveryResult = await deliverPdfBlob(blob, fileName);
+        if (deliveryResult === 'cancelled') {
+          return;
+        }
       }
 
       toast.success('Relatório PDF gerado com sucesso!');
@@ -732,7 +758,7 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
                 size="sm"
               >
                 {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-                Baixar PDF
+                {isMobile ? 'Compartilhar PDF' : 'Baixar PDF'}
               </Button>
             </div>
           </>
@@ -766,7 +792,7 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
                 className="w-full gap-2 bg-[hsl(145,30%,18%)] hover:bg-[hsl(145,30%,14%)] text-white"
               >
                 {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                Baixar Relatório PDF
+                {isMobile ? 'Compartilhar Relatório PDF' : 'Baixar Relatório PDF'}
               </Button>
 
               <div className="relative">

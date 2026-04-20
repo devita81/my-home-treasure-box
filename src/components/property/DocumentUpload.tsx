@@ -8,7 +8,7 @@ import { logger } from '@/lib/logger';
 import { FileText, Upload, Trash2, Eye, Loader2, Download, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { PdfCanvasViewer } from './PdfCanvasViewer';
-import { deliverPdfBlob, isMobileBrowser } from '@/lib/pdf-delivery';
+import { deliverPdfBlob, isMobileBrowser, sharePreparedPdf } from '@/lib/pdf-delivery';
 
 interface PropertyDocument {
   id: string;
@@ -34,6 +34,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
   const [pdfFileUrl, setPdfFileUrl] = useState<string | null>(null);
   const [pdfFileData, setPdfFileData] = useState<ArrayBuffer | null>(null);
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [viewingFileName, setViewingFileName] = useState<string>('');
   const [viewingDoc, setViewingDoc] = useState<PropertyDocument | null>(null);
   const [isLoadingPdf, setIsLoadingPdf] = useState(false);
@@ -68,6 +69,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
   };
 
   const resetPdfState = () => {
+    setPdfBlob(null);
     setPdfFileData(null);
     replacePdfFileUrl(null);
   };
@@ -168,6 +170,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
     }
 
     return {
+      fileBlob: data,
       fileUrl: URL.createObjectURL(data),
       fileData: await data.arrayBuffer(),
     };
@@ -184,7 +187,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
     setIsLoadingPdf(true);
 
     try {
-      const { fileUrl, fileData } = await loadDocumentFile(doc);
+      const { fileBlob, fileUrl, fileData } = await loadDocumentFile(doc);
 
       if (viewRequestIdRef.current !== requestId) {
         URL.revokeObjectURL(fileUrl);
@@ -192,6 +195,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
       }
 
       replacePdfFileUrl(fileUrl);
+      setPdfBlob(fileBlob);
       setPdfFileData(fileData);
     } catch (error) {
       logger.error('Error viewing document:', error);
@@ -218,6 +222,23 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
 
   const handleDownload = async (doc: PropertyDocument) => {
     try {
+      if (isMobileBrowser()) {
+        if (viewingDoc?.id === doc.id && pdfBlob) {
+          const result = await sharePreparedPdf(pdfBlob, getDownloadFileName(doc.file_name));
+          if (result === 'cancelled') return;
+          return;
+        }
+
+        const { fileBlob, fileUrl, fileData } = await loadDocumentFile(doc);
+        setViewingDoc(doc);
+        setViewingFileName(doc.file_name);
+        replacePdfFileUrl(fileUrl);
+        setPdfBlob(fileBlob);
+        setPdfFileData(fileData);
+        toast.success('PDF pronto. Toque novamente para compartilhar o arquivo.');
+        return;
+      }
+
       const { data, error } = await supabase.storage
         .from('property-documents')
         .download(doc.file_path);
@@ -235,6 +256,12 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
   const handleOpenInNewTab = async () => {
     try {
       if (isMobileBrowser() && viewingDoc) {
+        if (pdfBlob) {
+          const result = await sharePreparedPdf(pdfBlob, getDownloadFileName(viewingDoc.file_name));
+          if (result === 'cancelled') return;
+          return;
+        }
+
         await handleDownload(viewingDoc);
         return;
       }
@@ -248,8 +275,9 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
         return;
       }
 
-      const { fileUrl, fileData } = await loadDocumentFile(viewingDoc);
+      const { fileBlob, fileUrl, fileData } = await loadDocumentFile(viewingDoc);
       replacePdfFileUrl(fileUrl);
+      setPdfBlob((current) => current ?? fileBlob);
       setPdfFileData((current) => current ?? fileData);
       window.open(fileUrl, '_blank', 'noopener,noreferrer');
     } catch (error) {
@@ -377,7 +405,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
                     variant="ghost"
                     size="sm"
                     onClick={() => handleDownload(doc)}
-                    title="Baixar"
+                    title={isMobileBrowser() ? 'Compartilhar PDF' : 'Baixar'}
                   >
                     <Download className="h-4 w-4" />
                   </Button>
@@ -416,10 +444,10 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
                     size="sm"
                     onClick={() => handleDownload(viewingDoc)}
                     className="gap-2"
-                    title="Baixar"
+                    title={isMobileBrowser() ? 'Compartilhar PDF' : 'Baixar'}
                   >
                     <Download className="h-4 w-4" />
-                    <span className="hidden sm:inline">Baixar</span>
+                    <span className="hidden sm:inline">{isMobileBrowser() ? 'Compartilhar' : 'Baixar'}</span>
                   </Button>
                 )}
               </div>
@@ -446,7 +474,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
                     </Button>
                     <Button onClick={() => handleDownload(viewingDoc)} className="gap-2">
                       <Download className="h-4 w-4" />
-                      Baixar PDF
+                      {isMobileBrowser() ? 'Compartilhar PDF' : 'Baixar PDF'}
                     </Button>
                   </div>
                 )}
