@@ -860,7 +860,7 @@ const PropertyDetails = () => {
                   onClick={lookupItbi}
                   disabled={isLoadingItbi}
                   variant="outline"
-                  className="gap-2 border-amber-600/40 bg-amber-50 hover:bg-amber-100 text-amber-900"
+                  className="gap-2 border-blue-700/40 bg-blue-50 hover:bg-blue-100 text-blue-900"
                   size="lg"
                   title="Consulta transações ITBI da Prefeitura de São Paulo"
                 >
