@@ -449,6 +449,12 @@ async function generatePropertyPDF(property: Property): Promise<jsPDF> {
     }
   }
 
+  // --- APPEND MATRÍCULA PDFs ---
+  const matriculaPdfs = await fetchPropertyMatriculaPdfs(property.id);
+  for (const pdfFile of matriculaPdfs) {
+    await appendPdfPagesToReport(doc, pdfFile.data, `Documento: ${pdfFile.name}`);
+  }
+
   return doc;
 }
 
