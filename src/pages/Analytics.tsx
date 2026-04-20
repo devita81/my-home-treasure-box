@@ -778,76 +778,76 @@ const Analytics = () => {
                   <TableRow key={row.cidade} className="border-slate-700/40 hover:bg-slate-700/30">
                     <TableCell
                       className="text-[11px] text-slate-200 font-medium cursor-pointer hover:text-blue-300 hover:underline"
-                      onClick={() => openDialog(`Imóveis em ${row.cidade}`, `${allCityProps.length} imóveis (${row.countAlugados} alugados, ${row.countNaoAlugados} vagos)`, allCityProps)}
+                      onClick={() => openFinancialDialog(`Imóveis em ${row.cidade}`, `${allCityProps.length} imóveis (${row.countAlugados} alugados, ${row.countNaoAlugados} vagos)`, allCityProps)}
                     >
                       {row.cidade}
                     </TableCell>
                     {/* Receita - clicáveis */}
                     <TableCell
                       className="text-[10px] font-mono text-slate-400 text-center border-l border-slate-700/40 cursor-pointer hover:bg-emerald-900/20 hover:text-emerald-300"
-                      onClick={() => row.countAlugados > 0 && openDialog(`Alugados em ${row.cidade}`, `${row.countAlugados} imóveis · Receita líq. ${formatCurrency(row.receitaTotal)}`, row.propertiesAlugados)}
+                      onClick={() => row.countAlugados > 0 && openFinancialDialog(`Alugados em ${row.cidade}`, `${row.countAlugados} imóveis · Receita líq. ${formatCurrency(row.receitaTotal)}`, row.propertiesAlugados)}
                     >
                       {row.countAlugados}
                     </TableCell>
                     <TableCell
                       className="text-[11px] font-mono tabular-nums text-slate-200 text-right cursor-pointer hover:bg-emerald-900/20"
-                      onClick={() => row.countAlugados > 0 && openDialog(`Aluguel · ${row.cidade}`, `${row.countAlugados} alugados · Bruto ${formatCurrency(row.aluguelBruto)}`, row.propertiesAlugados)}
+                      onClick={() => row.countAlugados > 0 && openFinancialDialog(`Aluguel · ${row.cidade}`, `${row.countAlugados} alugados · Bruto ${formatCurrency(row.aluguelBruto)}`, row.propertiesAlugados)}
                     >
                       {formatCurrency(row.aluguelBruto)}
                     </TableCell>
                     <TableCell
                       className="text-[11px] font-mono tabular-nums text-slate-300 text-right cursor-pointer hover:bg-emerald-900/20"
-                      onClick={() => row.countAlugados > 0 && openDialog(`Condomínio (Alugados) · ${row.cidade}`, `${formatCurrency(row.condAlugados)} / mês`, row.propertiesAlugados)}
+                      onClick={() => row.countAlugados > 0 && openFinancialDialog(`Condomínio (Alugados) · ${row.cidade}`, `${formatCurrency(row.condAlugados)} / mês`, row.propertiesAlugados)}
                     >
                       {formatCurrency(row.condAlugados)}
                     </TableCell>
                     <TableCell
                       className="text-[11px] font-mono tabular-nums text-slate-300 text-right cursor-pointer hover:bg-emerald-900/20"
-                      onClick={() => row.countAlugados > 0 && openDialog(`IPTU (Alugados) · ${row.cidade}`, `${formatCurrency(row.iptuAlugados)} / mês`, row.propertiesAlugados)}
+                      onClick={() => row.countAlugados > 0 && openFinancialDialog(`IPTU (Alugados) · ${row.cidade}`, `${formatCurrency(row.iptuAlugados)} / mês`, row.propertiesAlugados)}
                     >
                       {formatCurrency(row.iptuAlugados)}
                     </TableCell>
                     <TableCell
                       className="text-[11px] font-mono tabular-nums text-slate-300 text-right cursor-pointer hover:bg-emerald-900/20"
-                      onClick={() => row.countAlugados > 0 && openDialog(`Taxa Adm · ${row.cidade}`, `-${formatCurrency(row.taxaAdmAlugados)} / mês`, row.propertiesAlugados)}
+                      onClick={() => row.countAlugados > 0 && openFinancialDialog(`Taxa Adm · ${row.cidade}`, `-${formatCurrency(row.taxaAdmAlugados)} / mês`, row.propertiesAlugados)}
                     >
                       {row.taxaAdmAlugados > 0 ? `-${formatCurrency(row.taxaAdmAlugados)}` : formatCurrency(0)}
                     </TableCell>
                     <TableCell
                       className="text-[11px] font-mono tabular-nums text-emerald-400 text-right border-r border-slate-700/40 font-semibold cursor-pointer hover:bg-emerald-900/30"
-                      onClick={() => row.countAlugados > 0 && openDialog(`Receita Líquida · ${row.cidade}`, `${formatCurrency(row.receitaTotal)} / mês`, row.propertiesAlugados)}
+                      onClick={() => row.countAlugados > 0 && openFinancialDialog(`Receita Líquida · ${row.cidade}`, `${formatCurrency(row.receitaTotal)} / mês`, row.propertiesAlugados)}
                     >
                       {formatCurrency(row.receitaTotal)}
                     </TableCell>
                     {/* Despesa - clicáveis */}
                     <TableCell
                       className="text-[10px] font-mono text-slate-400 text-center cursor-pointer hover:bg-red-900/20 hover:text-red-300"
-                      onClick={() => row.countNaoAlugados > 0 && openDialog(`Não Alugados em ${row.cidade}`, `${row.countNaoAlugados} imóveis · Despesa ${formatCurrency(row.despesaTotal)}`, row.propertiesNaoAlugados)}
+                      onClick={() => row.countNaoAlugados > 0 && openFinancialDialog(`Não Alugados em ${row.cidade}`, `${row.countNaoAlugados} imóveis · Despesa ${formatCurrency(row.despesaTotal)}`, row.propertiesNaoAlugados)}
                     >
                       {row.countNaoAlugados}
                     </TableCell>
                     <TableCell
                       className="text-[11px] font-mono tabular-nums text-slate-300 text-right cursor-pointer hover:bg-red-900/20"
-                      onClick={() => row.countNaoAlugados > 0 && openDialog(`Condomínio (Não Alugados) · ${row.cidade}`, `${formatCurrency(row.condNaoAlugados)} / mês`, row.propertiesNaoAlugados)}
+                      onClick={() => row.countNaoAlugados > 0 && openFinancialDialog(`Condomínio (Não Alugados) · ${row.cidade}`, `${formatCurrency(row.condNaoAlugados)} / mês`, row.propertiesNaoAlugados)}
                     >
                       {formatCurrency(row.condNaoAlugados)}
                     </TableCell>
                     <TableCell
                       className="text-[11px] font-mono tabular-nums text-slate-300 text-right cursor-pointer hover:bg-red-900/20"
-                      onClick={() => row.countNaoAlugados > 0 && openDialog(`IPTU (Não Alugados) · ${row.cidade}`, `${formatCurrency(row.iptuNaoAlugados)} / mês`, row.propertiesNaoAlugados)}
+                      onClick={() => row.countNaoAlugados > 0 && openFinancialDialog(`IPTU (Não Alugados) · ${row.cidade}`, `${formatCurrency(row.iptuNaoAlugados)} / mês`, row.propertiesNaoAlugados)}
                     >
                       {formatCurrency(row.iptuNaoAlugados)}
                     </TableCell>
                     <TableCell
                       className="text-[11px] font-mono tabular-nums text-red-400 text-right border-r border-slate-700/40 font-semibold cursor-pointer hover:bg-red-900/30"
-                      onClick={() => row.countNaoAlugados > 0 && openDialog(`Despesa Total · ${row.cidade}`, `-${formatCurrency(row.despesaTotal)} / mês`, row.propertiesNaoAlugados)}
+                      onClick={() => row.countNaoAlugados > 0 && openFinancialDialog(`Despesa Total · ${row.cidade}`, `-${formatCurrency(row.despesaTotal)} / mês`, row.propertiesNaoAlugados)}
                     >
                       -{formatCurrency(row.despesaTotal)}
                     </TableCell>
                     {/* Total Geral */}
                     <TableCell
                       className={`text-[11px] font-mono tabular-nums font-semibold text-right cursor-pointer hover:bg-blue-900/20 ${row.total >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
-                      onClick={() => allCityProps.length > 0 && openDialog(`Resultado · ${row.cidade}`, `Receita ${formatCurrency(row.receitaTotal)} − Despesa ${formatCurrency(row.despesaTotal)} = ${formatCurrency(row.total)}`, allCityProps)}
+                      onClick={() => allCityProps.length > 0 && openFinancialDialog(`Resultado · ${row.cidade}`, `Receita ${formatCurrency(row.receitaTotal)} − Despesa ${formatCurrency(row.despesaTotal)} = ${formatCurrency(row.total)}`, allCityProps)}
                     >
                       {row.total < 0 ? '-' : ''}{formatCurrency(Math.abs(row.total))}
                     </TableCell>
