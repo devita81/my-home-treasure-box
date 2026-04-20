@@ -340,17 +340,33 @@ serve(async (req) => {
     }
 
     // 1) Pré-filtro por similaridade trigram no banco
-    console.log(`[itbi-lookup] Buscando candidatos para: ${property.rua}, ${property.numero}`);
-    const { data: candidates, error: rpcErr } = await userClient.rpc("match_itbi_candidates", {
-      p_logradouro: property.rua,
-      p_numero: property.numero ?? null,
-      p_bairro: property.bairro ?? null,
-      p_limit: 200,
-    });
+    // Geramos VARIANTES do logradouro para lidar com abreviações comuns que
+    // o ITBI usa (ex.: "Coronel Melo Oliveira" no cadastro vs "CEL MELO OLIVEIRA"
+    // no banco da Prefeitura). A similaridade trigram do Postgres falha quando
+    // a palavra mais "pesada" muda completamente (CORONEL vs CEL).
+    const ruaVariants = buildLogradouroVariants(property.rua);
+    console.log(`[itbi-lookup] Buscando candidatos para: ${property.rua} | variantes: ${ruaVariants.join(' | ')} | nº ${property.numero}`);
 
-    if (rpcErr) throw rpcErr;
-    let candList = candidates ?? [];
-    console.log(`[itbi-lookup] ${candList.length} candidatos pré-filtrados`);
+    const candMap = new Map<string, any>();
+    for (const variant of ruaVariants) {
+      const { data: vCand, error: vErr } = await userClient.rpc("match_itbi_candidates", {
+        p_logradouro: variant,
+        p_numero: property.numero ?? null,
+        p_bairro: property.bairro ?? null,
+        p_limit: 200,
+      });
+      if (vErr) {
+        console.error(`[itbi-lookup] Erro RPC variante "${variant}":`, vErr);
+        continue;
+      }
+      for (const c of (vCand ?? [])) {
+        if (!candMap.has(c.id)) candMap.set(c.id, c);
+      }
+      console.log(`[itbi-lookup] Variante "${variant}" → ${vCand?.length ?? 0} candidatos (acumulado: ${candMap.size})`);
+    }
+
+    let candList = Array.from(candMap.values());
+    console.log(`[itbi-lookup] ${candList.length} candidatos pré-filtrados (após união de variantes)`);
 
     // Pré-filtro server-side por TIPO do imóvel — evita garagens/vagas/depósitos quando é apto
     const tipoImovel = (property.tipo_imovel ?? '').toLowerCase();
