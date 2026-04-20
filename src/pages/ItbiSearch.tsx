@@ -48,7 +48,7 @@ const fmtDate = (s: string | null) => {
 };
 
 export default function ItbiSearch() {
-  const [tipo, setTipo] = useState('todos');
+  const [tipos, setTipos] = useState<string[]>([]);
   const [logradouro, setLogradouro] = useState('');
   const [numero, setNumero] = useState('');
   const [bairro, setBairro] = useState('');
