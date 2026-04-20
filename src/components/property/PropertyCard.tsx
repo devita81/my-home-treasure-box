@@ -179,28 +179,26 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               </>
             )}
 
-            {!compact && (
-              <div className="absolute top-3 left-3 right-12 flex flex-wrap gap-1.5 z-10">
-                {property.vendido ? (
-                  <Badge className="bg-destructive text-destructive-foreground text-[10px]">Vendido</Badge>
-                ) : property.alugado ? (
-                  <Badge className="bg-info text-info-foreground text-[10px]">Alugado</Badge>
-                ) : (
-                  <Badge className="bg-success text-success-foreground text-[10px]">Disponível</Badge>
-                )}
-                {property.validado ? (
-                  <Badge variant="outline" className="bg-card/90 border-success text-success text-[10px]">
-                    <CheckCircle className="h-2.5 w-2.5 mr-0.5" />
-                    Validado
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="bg-card/90 border-warning text-warning text-[10px]">
-                    <XCircle className="h-2.5 w-2.5 mr-0.5" />
-                    Pendente
-                  </Badge>
-                )}
-              </div>
-            )}
+            <div className={`absolute ${compact ? 'top-2 left-2 right-10' : 'top-3 left-3 right-12'} flex flex-wrap gap-1.5 z-10`}>
+              {property.vendido ? (
+                <Badge className={`bg-destructive text-destructive-foreground ${compact ? 'text-[9px] px-1.5 py-0' : 'text-[10px]'}`}>Vendido</Badge>
+              ) : property.alugado ? (
+                <Badge className={`bg-info text-info-foreground ${compact ? 'text-[9px] px-1.5 py-0' : 'text-[10px]'}`}>Alugado</Badge>
+              ) : (
+                <Badge className={`bg-success text-success-foreground ${compact ? 'text-[9px] px-1.5 py-0' : 'text-[10px]'}`}>Disponível</Badge>
+              )}
+              {property.validado ? (
+                <Badge variant="outline" className={`bg-card/90 border-success text-success ${compact ? 'text-[9px] px-1.5 py-0' : 'text-[10px]'}`}>
+                  <CheckCircle className={compact ? 'h-2 w-2 mr-0.5' : 'h-2.5 w-2.5 mr-0.5'} />
+                  Validado
+                </Badge>
+              ) : (
+                <Badge variant="outline" className={`bg-card/90 border-warning text-warning ${compact ? 'text-[9px] px-1.5 py-0' : 'text-[10px]'}`}>
+                  <XCircle className={compact ? 'h-2 w-2 mr-0.5' : 'h-2.5 w-2.5 mr-0.5'} />
+                  Pendente
+                </Badge>
+              )}
+            </div>
 
             <button
               onClick={(e) => {
