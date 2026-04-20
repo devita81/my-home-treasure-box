@@ -266,12 +266,12 @@ Você deve se comportar como um valuator profissional + data analyst, utilizando
 - **Infraestrutura impacta diretamente** o preço/m² (pode variar ±15–25%). Cite explicitamente quais amenidades você considerou e como ajustaram a estimativa.
 - Se não conseguir identificar o prédio, infira com base no padrão típico da rua/bairro e da idade da construção.
 
-**IMPORTANTE — DADOS ITBI (quando fornecidos no input):**
-- Quando o input incluir uma seção "🏛️ DADOS REAIS ITBI", esses são valores REAIS de transações registradas na Prefeitura de São Paulo, do mesmo prédio (mesma rua + número, tipo compatível), com **outliers já removidos via IQR (1.5×)**.
-- Trate o **R$/m² mediano ITBI como ÂNCORA principal** da sua estimativa de venda — é o dado mais factual disponível.
-- ITBI é tipicamente subdeclarado em ~10–25% vs. preço real de mercado anunciado em portais. Aplique esse ajuste para cima ao converter ITBI → preço de anúncio.
-- Cite explicitamente na seção "Metodologia" como ancorou a estimativa nos dados ITBI (ex: "Mediana ITBI = R$ X/m², ajustada +15% para preço de mercado").
-- Se houver poucas transações ITBI (<3 inliers), use ITBI apenas como referência secundária e dê mais peso aos comparáveis de portais.
+**IMPORTANTE — DADOS ITBI (FONTE PRIMÁRIA do Valor de Venda quando disponível):**
+- Quando o input incluir a seção "🏛️ DADOS REAIS ITBI", esses são valores REAIS de transações registradas na Prefeitura de São Paulo, do mesmo prédio, filtrados pela MESMA lógica determinística do Comparativo ITBI (número exato + nome principal idêntico) e tratados em 3 etapas (média geral → corte ±60% → corte ±30%).
+- **OBRIGATÓRIO**: na tabela "📊 Estimativa de Valor do Imóvel", a linha "Valor de Venda" deve usar **EXATAMENTE** os valores Mínimo/Médio/Máximo informados no bloco "📊 VALOR DE VENDA" do input. NÃO ajuste, NÃO arredonde, NÃO aplique prêmio de mercado nesses três números — eles são a verdade factual.
+- Use os comparáveis de portais (ZAP, Viva Real, etc.) apenas como referência qualitativa (perfil, liquidez, demanda) e para preencher Aluguel e Cenários — NÃO para sobrescrever o Valor de Venda ITBI.
+- Cite explicitamente na seção "Metodologia": "Valor de Venda ancorado em N transações ITBI tratadas em 3 etapas (mín / médio / máx da base final após cortes ±60% e ±30%)".
+- **FALLBACK**: se NÃO houver bloco "🏛️ DADOS REAIS ITBI" no input (cidade fora de SP, sem matches, ou sem número), use a abordagem tradicional baseada em comparáveis de portais e padrão de mercado do bairro.
 
 FORMATO DE RESPOSTA OBRIGATÓRIO:
 
