@@ -247,18 +247,48 @@ export default function ItbiSearch() {
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
             <div className="lg:col-span-2 space-y-1">
               <Label className="text-xs">Tipo</Label>
-              <Select value={tipo} onValueChange={setTipo}>
-                <SelectTrigger className="h-9">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TIPOS.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="h-9 w-full justify-between font-normal"
+                  >
+                    <span className={tipos.length === 0 ? 'text-muted-foreground' : ''}>
+                      {tiposLabel}
+                    </span>
+                    <ChevronDown className="h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-2" align="start">
+                  <div className="space-y-1">
+                    {TIPOS.map((t) => {
+                      const checked = tipos.includes(t.value);
+                      return (
+                        <label
+                          key={t.value}
+                          className="flex items-center gap-2 px-2 py-1.5 rounded-sm hover:bg-accent cursor-pointer text-sm"
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={() => toggleTipo(t.value)}
+                          />
+                          <span>{t.label}</span>
+                        </label>
+                      );
+                    })}
+                    {tipos.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-full text-xs mt-1"
+                        onClick={() => setTipos([])}
+                      >
+                        Limpar tipos
+                      </Button>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="lg:col-span-2 space-y-1">
               <Label className="text-xs">Logradouro (rua, avenida, estrada...)</Label>
