@@ -163,18 +163,18 @@ export function CustosReceitasStats() {
                   ))}
                 </div>
               ))}
-              <div className="rounded-lg border-2 bg-muted/40 px-3 py-2">
+              <div className="rounded-lg border-2 border-blue-300 bg-blue-50 px-3 py-2 shadow-sm">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[11px] font-bold">Subtotal</span>
-                  <span className="text-[10px] font-mono">{totals.count} imóveis</span>
+                  <span className="text-[11px] font-bold text-blue-900">Subtotal</span>
+                  <span className="text-[10px] font-mono text-blue-700">{totals.count} imóveis</span>
                 </div>
-                <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
+                <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] text-blue-900">
                   <span>Aluguel</span><span className="text-right font-medium tabular-nums">{fmt(totals.aluguel)}</span>
                   <span>Condomínio</span><span className="text-right font-medium tabular-nums">{fmt(totals.condominio)}</span>
                   <span>IPTU/mês</span><span className="text-right font-medium tabular-nums">{fmt(totals.iptuMes)}</span>
                   <span>Taxa Adm</span><span className="text-right font-medium tabular-nums">{fmt(totals.taxaAdm)}</span>
-                  <span className="font-semibold pt-1 border-t mt-1">Líquido</span>
-                  <span className={`text-right font-bold tabular-nums pt-1 border-t mt-1 ${totals.liquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(totals.liquido)}</span>
+                  <span className="font-semibold pt-1 border-t border-blue-200 mt-1">Líquido</span>
+                  <span className={`text-right font-bold tabular-nums pt-1 border-t border-blue-200 mt-1 ${totals.liquido >= 0 ? 'text-green-700' : 'text-red-600'}`}>{fmt(totals.liquido)}</span>
                 </div>
               </div>
             </>
