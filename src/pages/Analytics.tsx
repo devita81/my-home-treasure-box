@@ -202,42 +202,73 @@ const Analytics = () => {
   // ==================== RESULTADO FINANCEIRO POR CIDADE ====================
   interface CityFinancialRow {
     cidade: string;
-    receitaAlugados: number;
-    despesaNaoAlugados: number;
-    total: number;
+    // Receita (alugados)
+    aluguelBruto: number;
+    condAlugados: number;
+    iptuAlugados: number;
+    taxaAdmAlugados: number;
+    receitaTotal: number;
     countAlugados: number;
+    // Despesa (não alugados)
+    condNaoAlugados: number;
+    iptuNaoAlugados: number;
+    despesaTotal: number;
     countNaoAlugados: number;
+    // Total geral
+    total: number;
   }
 
   const cityFinancials = useMemo((): CityFinancialRow[] => {
     const grouped: Record<string, CityFinancialRow> = {};
     properties.forEach(p => {
       const city = `${p.cidade} - ${p.estado}`;
-      if (!grouped[city]) grouped[city] = { cidade: city, receitaAlugados: 0, despesaNaoAlugados: 0, total: 0, countAlugados: 0, countNaoAlugados: 0 };
+      if (!grouped[city]) grouped[city] = {
+        cidade: city,
+        aluguelBruto: 0, condAlugados: 0, iptuAlugados: 0, taxaAdmAlugados: 0, receitaTotal: 0, countAlugados: 0,
+        condNaoAlugados: 0, iptuNaoAlugados: 0, despesaTotal: 0, countNaoAlugados: 0,
+        total: 0,
+      };
+      const cond = p.valor_condominio ?? 0;
+      const iptuMes = (p.iptu_value ?? 0) / 12;
       if (p.alugado) {
-        const liquido = (p.valor_aluguel ?? 0) - (p.taxa_administracao ?? 0);
-        grouped[city].receitaAlugados += liquido;
+        grouped[city].aluguelBruto += p.valor_aluguel ?? 0;
+        grouped[city].condAlugados += cond;
+        grouped[city].iptuAlugados += iptuMes;
+        grouped[city].taxaAdmAlugados += p.taxa_administracao ?? 0;
         grouped[city].countAlugados += 1;
       } else {
-        const despesa = (p.valor_condominio ?? 0) + ((p.iptu_value ?? 0) / 12);
-        grouped[city].despesaNaoAlugados += despesa;
+        grouped[city].condNaoAlugados += cond;
+        grouped[city].iptuNaoAlugados += iptuMes;
         grouped[city].countNaoAlugados += 1;
       }
     });
     Object.values(grouped).forEach(row => {
-      row.total = row.receitaAlugados - row.despesaNaoAlugados;
+      // Receita líquida = aluguel - taxa adm (cond/iptu de alugados são informativos, não impactam)
+      row.receitaTotal = row.aluguelBruto - row.taxaAdmAlugados;
+      row.despesaTotal = row.condNaoAlugados + row.iptuNaoAlugados;
+      row.total = row.receitaTotal - row.despesaTotal;
     });
     return Object.values(grouped).sort((a, b) => b.total - a.total);
   }, [properties]);
 
   const cityFinancialsTotals = useMemo(() => {
     return cityFinancials.reduce((acc, row) => ({
-      receitaAlugados: acc.receitaAlugados + row.receitaAlugados,
-      despesaNaoAlugados: acc.despesaNaoAlugados + row.despesaNaoAlugados,
-      total: acc.total + row.total,
+      aluguelBruto: acc.aluguelBruto + row.aluguelBruto,
+      condAlugados: acc.condAlugados + row.condAlugados,
+      iptuAlugados: acc.iptuAlugados + row.iptuAlugados,
+      taxaAdmAlugados: acc.taxaAdmAlugados + row.taxaAdmAlugados,
+      receitaTotal: acc.receitaTotal + row.receitaTotal,
       countAlugados: acc.countAlugados + row.countAlugados,
+      condNaoAlugados: acc.condNaoAlugados + row.condNaoAlugados,
+      iptuNaoAlugados: acc.iptuNaoAlugados + row.iptuNaoAlugados,
+      despesaTotal: acc.despesaTotal + row.despesaTotal,
       countNaoAlugados: acc.countNaoAlugados + row.countNaoAlugados,
-    }), { receitaAlugados: 0, despesaNaoAlugados: 0, total: 0, countAlugados: 0, countNaoAlugados: 0 });
+      total: acc.total + row.total,
+    }), {
+      aluguelBruto: 0, condAlugados: 0, iptuAlugados: 0, taxaAdmAlugados: 0, receitaTotal: 0, countAlugados: 0,
+      condNaoAlugados: 0, iptuNaoAlugados: 0, despesaTotal: 0, countNaoAlugados: 0,
+      total: 0,
+    });
   }, [cityFinancials]);
 
   // ==================== GROUPED DATA ====================
