@@ -28,7 +28,6 @@ interface ItbiResult {
 }
 
 const TIPOS = [
-  { value: 'todos', label: 'Todos os tipos' },
   { value: 'apartamento', label: 'Apartamento' },
   { value: 'casa', label: 'Casa' },
   { value: 'terreno', label: 'Terreno' },
