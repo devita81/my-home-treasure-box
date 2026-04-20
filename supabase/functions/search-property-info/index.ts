@@ -76,83 +76,120 @@ serve(async (req) => {
     const searchAddress = `${rua} ${bairro} ${cidade} ${estado}`;
     const tipoForSearch = tipo_imovel || 'apartamento';
 
-    // ===== ITBI (apenas São Paulo capital) — busca + tratamento de outliers via IQR =====
+    // ===== ITBI (apenas São Paulo capital) =====
+    // Replica EXATAMENTE a lógica determinística da função `itbi-lookup`:
+    //   1) Filtro por número EXATO (numero_limpo) — paginado para superar limite de 1000
+    //   2) Filtro por NOME PRINCIPAL idêntico (sem honoríficos/tipo de via)
+    //   3) Filtro de tipo de imóvel (descarta garagem/vaga/depósito se for residencial)
+    //   4) Tratamento de média em 3 etapas: geral → corte ±60% → corte ±30%
+    // O resultado (min/médio/máx da base final + média final) é a ÂNCORA principal
+    // do Valor de Venda. Só cai no fallback de portais se a base final ficar vazia.
     let itbiSummary = '';
+    let itbiHasData = false;
     const cidadeLower = (cidade ?? '').toString().toLowerCase().trim();
     const isSaoPaulo = cidadeLower === 'são paulo' || cidadeLower === 'sao paulo';
-    if (isSaoPaulo) {
+
+    // Honoríficos / tipos de via descartados na extração do nome principal
+    const HONORIFIC_OR_VIA = new Set([
+      'R','RUA','AV','AVE','AVENIDA','AL','ALAMEDA','TRAV','TRAVESSA','EST','ESTR','ESTRADA',
+      'PRC','PRACA','LARGO','RODOVIA','ROD','VIA','VIELA','PASSAGEM','PSG','ACESSO','BECO','LADEIRA',
+      'CORONEL','CEL','TENENTE','TEN','CAPITAO','CAP','MAJOR','MAJ','GENERAL','GAL','GEN','MARECHAL','MAL',
+      'ALMIRANTE','ALM','BRIGADEIRO','BRIG','SARGENTO','SGT','SOLDADO',
+      'DOUTOR','DR','DOUTORA','DRA','PROFESSOR','PROF','PROFESSORA','PROFA','ENGENHEIRO','ENG',
+      'COMENDADOR','COMEND','DESEMBARGADOR','DES','MONSENHOR','MONS','PADRE','PE','PRESIDENTE','PRES',
+      'GOVERNADOR','GOV','SENADOR','SEN','DEPUTADO','DEP','MINISTRO','MIN',
+      'BARAO','BAR','VISCONDE','VISC','MARQUES','MARQ','DUQUE','CONDE',
+      'DOM','FREI','IRMAO','IRMA','SAO','S','SANTA','STA','SANTO','STO','NOSSA','SENHORA','NSRA',
+      'DA','DE','DO','DAS','DOS','E',
+    ]);
+    const stripText = (s: string) => (s ?? '')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+    const extractCoreName = (s: string) => stripText(s).split(' ')
+      .filter(Boolean)
+      .filter((t) => !HONORIFIC_OR_VIA.has(t) && !/^\d+$/.test(t));
+
+    const numeroLimpo = (numero ?? '').toString().replace(/\D/g, '');
+    const nomePrincipal = extractCoreName(rua);
+
+    if (isSaoPaulo && numeroLimpo && nomePrincipal.length > 0) {
       try {
-        const { data: candidates, error: rpcErr } = await supabaseClient.rpc('match_itbi_candidates', {
-          p_logradouro: rua,
-          p_numero: numero ?? null,
-          p_bairro: bairro ?? null,
-          p_limit: 200,
+        // 1) Busca paginada por número exato (sem limite de 1000)
+        const PAGE = 1000;
+        let from = 0;
+        const numMatches: any[] = [];
+        while (true) {
+          const { data: page, error: pageErr } = await supabaseClient
+            .from('itbi_transactions')
+            .select('id, sql_iptu, logradouro, numero, complemento, bairro, data_transacao, valor_transacao, valor_venal, area_construida')
+            .eq('numero_limpo', numeroLimpo)
+            .range(from, from + PAGE - 1);
+          if (pageErr) { console.warn('ITBI page error:', pageErr.message); break; }
+          if (!page || page.length === 0) break;
+          numMatches.push(...page);
+          if (page.length < PAGE) break;
+          from += PAGE;
+        }
+
+        // 2) Filtro por nome principal idêntico
+        const nomeAlvoSet = new Set(nomePrincipal);
+        const candidatosNomeOk = numMatches.filter((c: any) => {
+          const candCore = new Set(extractCoreName(c.logradouro ?? ''));
+          if (candCore.size !== nomeAlvoSet.size) return false;
+          for (const t of nomeAlvoSet) if (!candCore.has(t)) return false;
+          return true;
         });
 
-        if (rpcErr) {
-          console.warn('ITBI rpc error:', rpcErr.message);
-        } else if (candidates && candidates.length > 0) {
-          // Filtro de tipo: se for residencial, descartar garagens/vagas/depósitos e áreas <25m²
-          const tipoLower = (tipo_imovel ?? '').toLowerCase();
-          const isResidencial = !tipoLower.includes('garagem') && !tipoLower.includes('comercial') && !tipoLower.includes('terreno');
-          const NON_RESIDENTIAL_RE = /\b(GARAGEM|GAR|VAGA|VG|BOX|ESTACIONAMENTO|DEPOSITO|DEP|HOBBY|CUBICULO)\b/i;
+        // 3) Filtro de tipo (residencial descarta garagem/vaga/etc)
+        const tipoLower = (tipo_imovel ?? '').toLowerCase();
+        const ehResidencial = !['garagem','vaga','comercial','terreno'].some((t) => tipoLower.includes(t));
+        const PADROES_NAO_RESID = /\b(GARAGEM|GAR|VAGA|VG|BOX|ESTACIONAMENTO|DEPOSITO|DEP|HOBBY|CUBICULO)\b/;
+        const matchedItbi = candidatosNomeOk.filter((c: any) => {
+          if (!ehResidencial) return true;
+          const compl = stripText(c.complemento ?? '');
+          if (/\bAP\b|\bAPTO\b|\bAPARTAMENTO\b|\bCASA\b/.test(compl)) return true;
+          return !PADROES_NAO_RESID.test(compl);
+        });
 
-          let filtered = candidates as any[];
-          if (isResidencial) {
-            filtered = filtered.filter((c: any) => {
-              const compl = (c.complemento ?? '').toString();
-              if (NON_RESIDENTIAL_RE.test(compl)) return false;
-              if (c.area_construida != null && Number(c.area_construida) > 0 && Number(c.area_construida) < 25) return false;
-              return true;
-            });
-          }
+        // 4) Deduplica (ITBI registra comprador+vendedor) e coleta valores válidos
+        const seen = new Set<string>();
+        const valoresValidos: number[] = [];
+        const transacoesValidas: any[] = [];
+        for (const m of matchedItbi) {
+          const v = Number(m.valor_transacao);
+          if (!v || v <= 0) continue;
+          const key = `${m.data_transacao ?? ''}|${m.valor_transacao ?? ''}|${m.sql_iptu ?? ''}|${m.numero ?? ''}|${m.complemento ?? ''}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          valoresValidos.push(v);
+          transacoesValidas.push(m);
+        }
 
-          // Deduplica (ITBI registra comprador+vendedor) e mantém apenas registros com valor_transacao válido
-          const seen = new Set<string>();
-          const dedup = filtered.filter((c: any) => {
-            if (!c.valor_transacao || Number(c.valor_transacao) <= 0) return false;
-            const key = `${c.data_transacao ?? ''}|${c.valor_transacao}|${c.sql_iptu ?? ''}|${c.numero ?? ''}|${c.complemento ?? ''}`;
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-          });
+        if (valoresValidos.length > 0) {
+          // Tratamento de média em 3 etapas (idêntico ao itbi-lookup)
+          const media1 = valoresValidos.reduce((a, b) => a + b, 0) / valoresValidos.length;
 
-          // Calcula R$/m² para cada transação válida (precisa de área)
-          const withPpsm = dedup
-            .map((c: any) => {
-              const valor = Number(c.valor_transacao);
-              const area = Number(c.area_construida);
-              return {
-                ...c,
-                _ppsm: area > 0 ? valor / area : null,
-              };
-            });
+          const min2 = media1 * 0.4, max2 = media1 * 1.6;
+          const aposCorte60 = valoresValidos.filter((v) => v >= min2 && v <= max2);
+          const baseEtapa2 = aposCorte60.length > 0 ? aposCorte60 : valoresValidos;
+          const media2 = baseEtapa2.reduce((a, b) => a + b, 0) / baseEtapa2.length;
+          const removidos60 = valoresValidos.length - baseEtapa2.length;
 
-          const ppsmValues = withPpsm
-            .map((c: any) => c._ppsm)
-            .filter((v: number | null) => v !== null && Number.isFinite(v) && v > 1000) as number[];
+          const min3 = media2 * 0.7, max3 = media2 * 1.3;
+          const aposCorte30 = baseEtapa2.filter((v) => v >= min3 && v <= max3);
+          const baseFinal = aposCorte30.length > 0 ? aposCorte30 : baseEtapa2;
+          const mediaFinal = baseFinal.reduce((a, b) => a + b, 0) / baseFinal.length;
+          const removidos30 = baseEtapa2.length - baseFinal.length;
 
-          // Tratamento de outliers via IQR (1.5 × IQR)
-          const sorted = [...ppsmValues].sort((a, b) => a - b);
-          const quantile = (arr: number[], q: number) => {
-            if (arr.length === 0) return null;
-            const pos = (arr.length - 1) * q;
-            const base = Math.floor(pos);
-            const rest = pos - base;
-            return arr[base + 1] !== undefined ? arr[base] + rest * (arr[base + 1] - arr[base]) : arr[base];
-          };
-          const q1 = quantile(sorted, 0.25);
-          const q3 = quantile(sorted, 0.75);
-          const median = quantile(sorted, 0.5);
-          const iqr = q1 != null && q3 != null ? q3 - q1 : 0;
-          const lowerFence = q1 != null ? q1 - 1.5 * iqr : -Infinity;
-          const upperFence = q3 != null ? q3 + 1.5 * iqr : Infinity;
+          const minFinal = Math.min(...baseFinal);
+          const maxFinal = Math.max(...baseFinal);
 
-          const inliers = withPpsm.filter((c: any) => c._ppsm != null && c._ppsm >= lowerFence && c._ppsm <= upperFence);
-          const outliersCount = withPpsm.filter((c: any) => c._ppsm != null).length - inliers.length;
+          const fmtBRL = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v);
 
-          // Top 10 transações inliers mais recentes
-          const recent = [...inliers]
+          // Top 10 transações da base final, mais recentes
+          const baseFinalSet = new Set(baseFinal);
+          const inliersTransacoes = transacoesValidas.filter((t: any) => baseFinalSet.has(Number(t.valor_transacao)));
+          const recent = [...inliersTransacoes]
             .sort((a, b) => {
               const da = a.data_transacao ? new Date(a.data_transacao).getTime() : 0;
               const db = b.data_transacao ? new Date(b.data_transacao).getTime() : 0;
@@ -160,35 +197,32 @@ serve(async (req) => {
             })
             .slice(0, 10);
 
-          const fmtBRL = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v);
+          const tableLines = recent.map((c: any) => {
+            const data = c.data_transacao ? new Date(c.data_transacao).toLocaleDateString('pt-BR') : 'N/D';
+            const compl = (c.complemento ?? '—').toString().slice(0, 25);
+            const area = c.area_construida ? `${Number(c.area_construida).toFixed(0)}m²` : '—';
+            return `  • ${data} | ${compl} | ${area} | ${fmtBRL(Number(c.valor_transacao))}`;
+          }).join('\n');
 
-          if (recent.length > 0) {
-            const tableLines = recent.map((c: any) => {
-              const data = c.data_transacao ? new Date(c.data_transacao).toLocaleDateString('pt-BR') : 'N/D';
-              const compl = (c.complemento ?? '—').toString().slice(0, 25);
-              const area = c.area_construida ? `${Number(c.area_construida).toFixed(0)}m²` : '—';
-              const ppsm = c._ppsm ? fmtBRL(c._ppsm) : '—';
-              return `  • ${data} | ${compl} | ${area} | ${fmtBRL(Number(c.valor_transacao))} | ${ppsm}/m²`;
-            }).join('\n');
+          itbiHasData = true;
+          itbiSummary = `
 
-            const inlierPpsm = inliers.map((c: any) => c._ppsm).filter((v: any) => v != null) as number[];
-            const avg = inlierPpsm.length ? inlierPpsm.reduce((a, b) => a + b, 0) / inlierPpsm.length : null;
+**🏛️ DADOS REAIS ITBI — Prefeitura de São Paulo (FONTE PRIMÁRIA do Valor de Venda):**
+Mesma lógica determinística usada no Comparativo ITBI: filtro por número EXATO + nome principal IDÊNTICO (ignorando honoríficos), tratamento de outliers em 3 etapas.
 
-            itbiSummary = `
+- Total de transações no mesmo prédio (após filtros): ${valoresValidos.length}
+- Etapa 1 (média geral): ${fmtBRL(media1)}
+- Etapa 2 (média após corte ±60%): ${fmtBRL(media2)} — ${removidos60} outlier(s) removido(s)
+- Etapa 3 (média final após corte ±30%): ${fmtBRL(mediaFinal)} — ${removidos30} outlier(s) removido(s)
+- Base final: ${baseFinal.length} transação(ões)
 
-**🏛️ DADOS REAIS ITBI — Prefeitura de São Paulo (use como ÂNCORA principal):**
-- Total de transações encontradas no mesmo prédio (rua + número, tipo compatível): ${dedup.length}
-- Outliers descartados via IQR (1.5×): ${outliersCount}
-- Transações válidas (inliers): ${inliers.length}
-- R$/m² mediano (ITBI): ${median ? fmtBRL(median) : 'N/D'}
-- R$/m² médio (ITBI, sem outliers): ${avg ? fmtBRL(avg) : 'N/D'}
-- Faixa interquartil (Q1–Q3): ${q1 ? fmtBRL(q1) : 'N/D'} – ${q3 ? fmtBRL(q3) : 'N/D'}
+**📊 VALOR DE VENDA — usar OBRIGATORIAMENTE estes valores na tabela "Estimativa de Valor do Imóvel":**
+- Mínimo: ${fmtBRL(minFinal)}
+- Médio (central): ${fmtBRL(mediaFinal)}
+- Máximo: ${fmtBRL(maxFinal)}
 
-Últimas transações (data | complemento | área | valor | R$/m²):
-${tableLines}
-
-⚠️ ATENÇÃO: valores ITBI tendem a ser **subdeclarados** em ~10–25% vs. preço real de mercado anunciado. Use o R$/m² mediano ITBI como **piso/âncora**, e ajuste para cima conforme prática de mercado e os anúncios em portais.`;
-          }
+Últimas transações da base final (data | complemento | área | valor):
+${tableLines}`;
         }
       } catch (e) {
         console.warn('ITBI lookup falhou (seguindo sem):', e instanceof Error ? e.message : e);
