@@ -739,8 +739,8 @@ const Analytics = () => {
                 {/* Header agrupado nível 1 */}
                 <TableRow className="border-slate-700/40 hover:bg-transparent">
                   <TableHead rowSpan={2} className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold align-bottom">Cidade</TableHead>
-                  <TableHead colSpan={5} className="text-[10px] text-emerald-400 uppercase tracking-wider font-bold text-center border-l border-r border-slate-700/40 bg-emerald-900/10">Receita (Alugados)</TableHead>
-                  <TableHead colSpan={3} className="text-[10px] text-red-400 uppercase tracking-wider font-bold text-center border-r border-slate-700/40 bg-red-900/10">Despesa (Não Alugados)</TableHead>
+                  <TableHead colSpan={6} className="text-[10px] text-emerald-400 uppercase tracking-wider font-bold text-center border-l border-r border-slate-700/40 bg-emerald-900/10">Receita (Alugados)</TableHead>
+                  <TableHead colSpan={4} className="text-[10px] text-red-400 uppercase tracking-wider font-bold text-center border-r border-slate-700/40 bg-red-900/10">Despesa (Não Alugados)</TableHead>
                   <TableHead rowSpan={2} className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold text-right align-bottom">Total Geral</TableHead>
                 </TableRow>
                 {/* Header agrupado nível 2 */}
@@ -749,10 +749,12 @@ const Analytics = () => {
                   <TableHead className="text-[9px] text-slate-400 uppercase font-semibold text-right bg-emerald-900/5">Aluguel</TableHead>
                   <TableHead className="text-[9px] text-slate-400 uppercase font-semibold text-right bg-emerald-900/5">Cond</TableHead>
                   <TableHead className="text-[9px] text-slate-400 uppercase font-semibold text-right bg-emerald-900/5">IPTU</TableHead>
-                  <TableHead className="text-[9px] text-slate-400 uppercase font-semibold text-right border-r border-slate-700/40 bg-emerald-900/5">Tx Adm</TableHead>
+                  <TableHead className="text-[9px] text-slate-400 uppercase font-semibold text-right bg-emerald-900/5">Tx Adm</TableHead>
+                  <TableHead className="text-[9px] text-emerald-400 uppercase font-bold text-right border-r border-slate-700/40 bg-emerald-900/10">Total</TableHead>
                   <TableHead className="text-[9px] text-slate-400 uppercase font-semibold text-center bg-red-900/5">Qtd</TableHead>
                   <TableHead className="text-[9px] text-slate-400 uppercase font-semibold text-right bg-red-900/5">Cond</TableHead>
-                  <TableHead className="text-[9px] text-slate-400 uppercase font-semibold text-right border-r border-slate-700/40 bg-red-900/5">IPTU</TableHead>
+                  <TableHead className="text-[9px] text-slate-400 uppercase font-semibold text-right bg-red-900/5">IPTU</TableHead>
+                  <TableHead className="text-[9px] text-red-400 uppercase font-bold text-right border-r border-slate-700/40 bg-red-900/10">Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -764,10 +766,12 @@ const Analytics = () => {
                     <TableCell className="text-[11px] font-mono tabular-nums text-slate-200 text-right">{formatCurrency(row.aluguelBruto)}</TableCell>
                     <TableCell className="text-[11px] font-mono tabular-nums text-slate-300 text-right">{formatCurrency(row.condAlugados)}</TableCell>
                     <TableCell className="text-[11px] font-mono tabular-nums text-slate-300 text-right">{formatCurrency(row.iptuAlugados)}</TableCell>
+                    <TableCell className="text-[11px] font-mono tabular-nums text-slate-300 text-right">{row.taxaAdmAlugados > 0 ? `-${formatCurrency(row.taxaAdmAlugados)}` : formatCurrency(0)}</TableCell>
                     <TableCell className="text-[11px] font-mono tabular-nums text-emerald-400 text-right border-r border-slate-700/40 font-semibold">{formatCurrency(row.receitaTotal)}</TableCell>
                     {/* Despesa */}
                     <TableCell className="text-[10px] font-mono text-slate-400 text-center">{row.countNaoAlugados}</TableCell>
                     <TableCell className="text-[11px] font-mono tabular-nums text-slate-300 text-right">{formatCurrency(row.condNaoAlugados)}</TableCell>
+                    <TableCell className="text-[11px] font-mono tabular-nums text-slate-300 text-right">{formatCurrency(row.iptuNaoAlugados)}</TableCell>
                     <TableCell className="text-[11px] font-mono tabular-nums text-red-400 text-right border-r border-slate-700/40 font-semibold">-{formatCurrency(row.despesaTotal)}</TableCell>
                     {/* Total */}
                     <TableCell className={`text-[11px] font-mono tabular-nums font-semibold text-right ${row.total >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -782,10 +786,12 @@ const Analytics = () => {
                   <TableCell className="text-[11px] font-mono tabular-nums text-slate-100 text-right font-bold">{formatCurrency(cityFinancialsTotals.aluguelBruto)}</TableCell>
                   <TableCell className="text-[11px] font-mono tabular-nums text-slate-200 text-right font-bold">{formatCurrency(cityFinancialsTotals.condAlugados)}</TableCell>
                   <TableCell className="text-[11px] font-mono tabular-nums text-slate-200 text-right font-bold">{formatCurrency(cityFinancialsTotals.iptuAlugados)}</TableCell>
+                  <TableCell className="text-[11px] font-mono tabular-nums text-slate-200 text-right font-bold">{cityFinancialsTotals.taxaAdmAlugados > 0 ? `-${formatCurrency(cityFinancialsTotals.taxaAdmAlugados)}` : formatCurrency(0)}</TableCell>
                   <TableCell className="text-[11px] font-mono tabular-nums text-emerald-400 text-right font-bold border-r border-blue-500/30">{formatCurrency(cityFinancialsTotals.receitaTotal)}</TableCell>
                   <TableCell className="text-[10px] font-mono text-blue-300 text-center font-bold">{cityFinancialsTotals.countNaoAlugados}</TableCell>
                   <TableCell className="text-[11px] font-mono tabular-nums text-slate-200 text-right font-bold">{formatCurrency(cityFinancialsTotals.condNaoAlugados)}</TableCell>
-                  <TableCell className="text-[11px] font-mono tabular-nums text-red-400 text-right font-bold border-r border-blue-500/30">{formatCurrency(cityFinancialsTotals.iptuNaoAlugados)}</TableCell>
+                  <TableCell className="text-[11px] font-mono tabular-nums text-slate-200 text-right font-bold">{formatCurrency(cityFinancialsTotals.iptuNaoAlugados)}</TableCell>
+                  <TableCell className="text-[11px] font-mono tabular-nums text-red-400 text-right font-bold border-r border-blue-500/30">-{formatCurrency(cityFinancialsTotals.despesaTotal)}</TableCell>
                   <TableCell className={`text-[11px] font-mono tabular-nums font-bold text-right ${cityFinancialsTotals.total >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                     {cityFinancialsTotals.total < 0 ? '-' : ''}{formatCurrency(Math.abs(cityFinancialsTotals.total))}
                   </TableCell>
