@@ -360,7 +360,7 @@ Foram analisados **${totalCandidates} candidatos** próximos no banco ITBI da Pr
   return `## 🏛️ Análise ITBI — Prefeitura de São Paulo
 
 ### 📍 Endereço Analisado
-${property.rua}${property.numero ? `, ${property.numero}` : ''}${property.apartamento ? `, AP ${property.apartamento}` : ''}${property.bairro ? ` - ${property.bairro}` : ''}, ${property.cidade}/${property.estado}
+${property.rua}${property.numero ? `, ${property.numero}` : ''}${property.apartamento ? `, ${/^ap\b|^apto\b/i.test(String(property.apartamento).trim()) ? '' : 'AP '}${property.apartamento}` : ''}${property.bairro ? ` - ${property.bairro}` : ''}, ${property.cidade}/${property.estado}
 
 ### 💰 Comparativo de Valores
 | Indicador | Valor |
