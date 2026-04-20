@@ -491,13 +491,44 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               <span className="text-black text-lg font-bold leading-none">✕</span>
             </button>
             {mediaIndex === 0 ? (
-              <PropertyCardMap
-                latitude={property.latitude}
-                longitude={property.longitude}
-                address={address}
-                title={`Mapa de ${getAddressDisplay()}`}
-                interactive
-              />
+              <>
+                <PropertyCardMap
+                  latitude={property.latitude}
+                  longitude={property.longitude}
+                  address={address}
+                  title={`Mapa de ${getAddressDisplay()}`}
+                  interactive
+                />
+
+                <div className="absolute top-3 left-3 right-16 z-[998] flex flex-wrap gap-1.5 pointer-events-none">
+                  {property.vendido ? (
+                    <Badge className="bg-destructive text-destructive-foreground text-[10px]">Vendido</Badge>
+                  ) : property.alugado ? (
+                    <Badge className="bg-info text-info-foreground text-[10px]">Alugado</Badge>
+                  ) : (
+                    <Badge className="bg-success text-success-foreground text-[10px]">Disponível</Badge>
+                  )}
+                  {property.validado ? (
+                    <Badge variant="outline" className="bg-card/90 border-success text-success text-[10px]">
+                      <CheckCircle className="h-2.5 w-2.5 mr-0.5" />
+                      Validado
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-card/90 border-warning text-warning text-[10px]">
+                      <XCircle className="h-2.5 w-2.5 mr-0.5" />
+                      Pendente
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="absolute bottom-0 left-0 right-0 z-[998] pointer-events-none bg-foreground/85 backdrop-blur-sm px-3 py-2.5">
+                  <p className="text-card font-semibold text-sm truncate">{getAddressDisplay()}</p>
+                  <div className="flex items-center gap-1 text-card/70 text-[11px] mt-0.5">
+                    <MapPin className="h-3 w-3 shrink-0" />
+                    <span className="truncate">{property.bairro}, {property.cidade} - {property.estado}</span>
+                  </div>
+                </div>
+              </>
             ) : activePhoto ? (
               <div className="flex h-full w-full items-center justify-center bg-black">
                 {isVideoUrl(activePhoto) ? (
