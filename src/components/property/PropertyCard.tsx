@@ -231,37 +231,6 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               }
             }}
           >
-            {compact && (
-              <div className="mb-2 pb-2 border-b border-border/40">
-                <div className="flex flex-wrap items-center gap-1 mb-1">
-                  {property.vendido ? (
-                    <Badge className="bg-destructive text-destructive-foreground text-[9px] px-1.5 py-0">Vendido</Badge>
-                  ) : property.alugado ? (
-                    <Badge className="bg-info text-info-foreground text-[9px] px-1.5 py-0">Alugado</Badge>
-                  ) : (
-                    <Badge className="bg-success text-success-foreground text-[9px] px-1.5 py-0">Disponível</Badge>
-                  )}
-                  {property.validado ? (
-                    <Badge variant="outline" className="border-success text-success text-[9px] px-1.5 py-0">
-                      <CheckCircle className="h-2 w-2 mr-0.5" />
-                      Validado
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="border-warning text-warning text-[9px] px-1.5 py-0">
-                      <XCircle className="h-2 w-2 mr-0.5" />
-                      Pendente
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-foreground font-semibold text-xs leading-tight truncate" title={getAddressDisplay()}>
-                  {getAddressDisplay()}
-                </p>
-                <div className="flex items-center gap-1 text-muted-foreground text-[10px] mt-0.5">
-                  <MapPin className="h-2.5 w-2.5 shrink-0" />
-                  <span className="truncate">{property.bairro}, {property.cidade} - {property.estado}</span>
-                </div>
-              </div>
-            )}
 
             <div className={compact
               ? 'grid grid-cols-1 gap-1.5 flex-1'
