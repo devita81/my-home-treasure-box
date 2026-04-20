@@ -1034,16 +1034,16 @@ const Analytics = () => {
                       <span className="text-[11px] text-slate-900 font-medium truncate">{getPropertyAddress(property)}</span>
                     </div>
                     {property.alugado ? (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-700 font-medium shrink-0">Alugado</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium shrink-0">Alugado</span>
                     ) : (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-600/50 text-slate-500 font-medium shrink-0">Vago</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-500 font-medium shrink-0">Vago</span>
                     )}
                   </div>
                   <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1">
                     <span>{getTipoLabel(property.tipo_imovel)} • {property.cidade}</span>
                     <span className="text-slate-900 font-mono tabular-nums font-semibold">{formatCurrency(currentValue)}</span>
                   </div>
-                  <div className="h-1 rounded-full bg-blue-400/60" style={{ width: `${barWidth}%`, minWidth: barWidth > 0 ? '3px' : '0px' }} />
+                  <div className="h-1 rounded-full bg-blue-500" style={{ width: `${barWidth}%`, minWidth: barWidth > 0 ? '3px' : '0px' }} />
                 </Link>
               );
             })}
@@ -1081,13 +1081,13 @@ const Analytics = () => {
                       <td className="text-right py-1.5 px-3 font-medium text-slate-900 tabular-nums font-mono text-[11px]">{formatCurrency(currentValue)}</td>
                       <td className="py-1.5 px-3 text-center">
                         {property.alugado ? (
-                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-700 font-medium">Alugado</span>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
                         ) : (
-                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-600/50 text-slate-500 font-medium">Vago</span>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-500 font-medium">Vago</span>
                         )}
                       </td>
                       <td className="py-1.5 px-3">
-                        <div className="h-1 rounded-full bg-blue-400/60 transition-all duration-500" style={{ width: `${barWidth}%`, minWidth: barWidth > 0 ? '3px' : '0px' }} />
+                        <div className="h-1 rounded-full bg-blue-500 transition-all duration-500" style={{ width: `${barWidth}%`, minWidth: barWidth > 0 ? '3px' : '0px' }} />
                       </td>
                     </tr>
                   );
@@ -1100,9 +1100,9 @@ const Analytics = () => {
         {/* ─── Pendentes de Validação ─── */}
         <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-200 flex items-center gap-2">
-            <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
+            <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
             <h2 className="text-[11px] font-medium text-slate-600 uppercase tracking-widest">Pendentes de Validação</h2>
-            <span className="text-[10px] font-mono text-amber-400/80 ml-1">{naoValidadosProperties.length}</span>
+            <span className="text-[10px] font-mono text-amber-600/80 ml-1">{naoValidadosProperties.length}</span>
           </div>
           {naoValidadosProperties.length > 0 ? (
             <>
@@ -1191,7 +1191,7 @@ const Analytics = () => {
             </>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <CheckCircle2 className="h-8 w-8 text-emerald-500/60 mb-2" />
+              <CheckCircle2 className="h-8 w-8 text-emerald-500 mb-2" />
               <p className="text-sm text-emerald-700">Todos os imóveis estão validados</p>
             </div>
           )}
