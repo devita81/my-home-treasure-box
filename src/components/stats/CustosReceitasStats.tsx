@@ -377,7 +377,8 @@ export function CustosReceitasStats() {
                 <tbody>
                   {dialog.properties.map((p) => {
                     const iptuMes = (p.iptu_value ?? 0) / 12;
-                    const liquido = (p.valor_aluguel ?? 0) - (p.valor_condominio ?? 0) - iptuMes - (p.taxa_administracao ?? 0);
+                    const taxaAdm = p.taxa_administracao ?? 0;
+                    const liquido = (p.valor_aluguel ?? 0) - taxaAdm;
                     return (
                       <tr
                         key={p.id}
@@ -395,7 +396,7 @@ export function CustosReceitasStats() {
                         <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-medium whitespace-nowrap">{fmtFull(p.valor_aluguel ?? 0)}</td>
                         <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-medium whitespace-nowrap">{fmtFull(p.valor_condominio ?? 0)}</td>
                         <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-medium whitespace-nowrap">{fmtFull(iptuMes)}</td>
-                        <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-medium whitespace-nowrap">{fmtFull(p.taxa_administracao ?? 0)}</td>
+                        <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-medium whitespace-nowrap">{fmtFull(taxaAdm)}</td>
                         <td className={`px-2 sm:px-3 py-2 sm:py-2.5 text-right font-bold whitespace-nowrap ${liquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {fmtFull(liquido)}
                         </td>
@@ -407,7 +408,7 @@ export function CustosReceitasStats() {
                     const totCond = dialog.properties.reduce((s, p) => s + (p.valor_condominio ?? 0), 0);
                     const totIptu = dialog.properties.reduce((s, p) => s + ((p.iptu_value ?? 0) / 12), 0);
                     const totAdm = dialog.properties.reduce((s, p) => s + (p.taxa_administracao ?? 0), 0);
-                    const totLiq = totAluguel - totCond - totIptu - totAdm;
+                    const totLiq = totAluguel - totAdm;
                     return (
                       <tr className="bg-muted/50 font-bold border-t-2">
                         <td className="px-2 sm:px-3 py-2">Total ({dialog.properties.length} imóveis)</td>
