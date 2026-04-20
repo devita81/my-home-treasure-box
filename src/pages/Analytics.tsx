@@ -1251,14 +1251,27 @@ const Analytics = () => {
                             <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Vago</span>
                           )}
                         </div>
-                        {dialogState.mode === 'financial' ? (
-                          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] font-mono tabular-nums text-slate-700">
-                            <div className="flex justify-between"><span className="text-slate-500">Aluguel</span><span className="font-semibold text-slate-900">{formatCurrency(property.valor_aluguel || 0)}</span></div>
-                            <div className="flex justify-between"><span className="text-slate-500">Cond.</span><span>{formatCurrency(property.valor_condominio || 0)}</span></div>
-                            <div className="flex justify-between"><span className="text-slate-500">IPTU/mês</span><span>{formatCurrency((property.iptu_value || 0) / 12)}</span></div>
-                            <div className="flex justify-between"><span className="text-slate-500">Tx Adm</span><span>{formatCurrency(property.taxa_administracao || 0)}</span></div>
-                          </div>
-                        ) : (
+                        {dialogState.mode === 'financial' ? (() => {
+                          const aluguel = property.valor_aluguel || 0;
+                          const cond = property.valor_condominio || 0;
+                          const iptuMes = (property.iptu_value || 0) / 12;
+                          const txAdm = property.taxa_administracao || 0;
+                          const total = property.alugado
+                            ? aluguel - cond - iptuMes - txAdm
+                            : -(cond + iptuMes + txAdm);
+                          return (
+                            <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] font-mono tabular-nums text-slate-700">
+                              <div className="flex justify-between"><span className="text-slate-500">Aluguel</span><span className="font-semibold text-slate-900">{formatCurrency(aluguel)}</span></div>
+                              <div className="flex justify-between"><span className="text-slate-500">Cond.</span><span className="text-red-600">-{formatCurrency(cond)}</span></div>
+                              <div className="flex justify-between"><span className="text-slate-500">IPTU/mês</span><span className="text-red-600">-{formatCurrency(iptuMes)}</span></div>
+                              <div className="flex justify-between"><span className="text-slate-500">Tx Adm</span><span className="text-red-600">-{formatCurrency(txAdm)}</span></div>
+                              <div className="col-span-2 flex justify-between border-t border-slate-200 pt-1 mt-0.5">
+                                <span className="text-slate-700 font-semibold">{property.alugado ? 'Líquido' : 'Despesas'}</span>
+                                <span className={`font-bold ${total >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>{total < 0 ? '-' : ''}{formatCurrency(Math.abs(total))}</span>
+                              </div>
+                            </div>
+                          );
+                        })() : (
                           <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] font-mono tabular-nums text-slate-700">
                             <div className="flex justify-between"><span className="text-slate-500">Mercado</span><span className="font-semibold text-slate-900">{formatCurrency(property.market_value || 0)}</span></div>
                             <div className="flex justify-between"><span className="text-slate-500">Declar.</span><span>{formatCurrency(property.declared_value)}</span></div>
@@ -1297,6 +1310,7 @@ const Analytics = () => {
                           <SortableHeader field="valor_condominio" label="Cond." />
                           <SortableHeader field="iptu_value" label="IPTU/mês" />
                           <th className="text-right py-2 px-3 text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap">Tx Adm</th>
+                          <th className="text-right py-2 px-3 text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap">Total</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1328,11 +1342,25 @@ const Analytics = () => {
                             <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums whitespace-nowrap">-{formatCurrency(property.valor_condominio || 0)}</td>
                             <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums whitespace-nowrap">-{formatCurrency((property.iptu_value || 0) / 12)}</td>
                             <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums whitespace-nowrap">-{formatCurrency(property.taxa_administracao || 0)}</td>
+                            {(() => {
+                              const aluguel = property.valor_aluguel || 0;
+                              const cond = property.valor_condominio || 0;
+                              const iptuMes = (property.iptu_value || 0) / 12;
+                              const txAdm = property.taxa_administracao || 0;
+                              const rowTotal = property.alugado
+                                ? aluguel - cond - iptuMes - txAdm
+                                : -(cond + iptuMes + txAdm);
+                              return (
+                                <td className={`text-right py-2 px-3 text-[11px] font-mono tabular-nums font-bold whitespace-nowrap ${rowTotal >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+                                  {rowTotal < 0 ? '-' : ''}{formatCurrency(Math.abs(rowTotal))}
+                                </td>
+                              );
+                            })()}
                           </tr>
                         ))}
                         {sortedDialogProperties.length === 0 && (
                           <tr>
-                            <td colSpan={8} className="text-center text-slate-400 py-12 text-sm">
+                            <td colSpan={9} className="text-center text-slate-400 py-12 text-sm">
                               Nenhum imóvel encontrado
                             </td>
                           </tr>
@@ -1345,19 +1373,26 @@ const Analytics = () => {
                     const totalCond = sortedDialogProperties.reduce((acc, p) => acc + (p.valor_condominio || 0), 0);
                     const totalIptu = sortedDialogProperties.reduce((acc, p) => acc + ((p.iptu_value || 0) / 12), 0);
                     const totalTxAdm = sortedDialogProperties.reduce((acc, p) => acc + (p.taxa_administracao || 0), 0);
-                    const totalLiquido = totalAluguel - totalCond - totalIptu - totalTxAdm;
+                    const totalGeral = sortedDialogProperties.reduce((acc, p) => {
+                      const aluguel = p.valor_aluguel || 0;
+                      const cond = p.valor_condominio || 0;
+                      const iptuMes = (p.iptu_value || 0) / 12;
+                      const txAdm = p.taxa_administracao || 0;
+                      return acc + (p.alugado ? aluguel - cond - iptuMes - txAdm : -(cond + iptuMes + txAdm));
+                    }, 0);
                     return (
                       <div className="shrink-0 border-t-2 border-blue-300 bg-blue-50">
                         <table className="w-full text-xs">
                           <tbody>
                             <tr>
                               <td colSpan={4} className="py-2 px-3 text-[11px] font-bold text-blue-700 uppercase tracking-wider">
-                                Total · Líquido <span className={`font-mono tabular-nums ${totalLiquido >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>{totalLiquido < 0 ? '-' : ''}{formatCurrency(Math.abs(totalLiquido))}</span>
+                                Totais
                               </td>
                               <td className="text-right py-2 px-3 text-[11px] text-emerald-700 font-mono tabular-nums font-bold whitespace-nowrap">{formatCurrency(totalAluguel)}</td>
                               <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums font-bold whitespace-nowrap">-{formatCurrency(totalCond)}</td>
                               <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums font-bold whitespace-nowrap">-{formatCurrency(totalIptu)}</td>
                               <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums font-bold whitespace-nowrap">-{formatCurrency(totalTxAdm)}</td>
+                              <td className={`text-right py-2 px-3 text-[11px] font-mono tabular-nums font-bold whitespace-nowrap ${totalGeral >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>{totalGeral < 0 ? '-' : ''}{formatCurrency(Math.abs(totalGeral))}</td>
                             </tr>
                           </tbody>
                         </table>
