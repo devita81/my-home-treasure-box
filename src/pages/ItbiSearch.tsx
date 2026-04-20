@@ -297,6 +297,10 @@ export default function ItbiSearch() {
                 onChange={(e) => setLogradouro(e.target.value)}
                 placeholder="Ex: Itacema"
                 className="h-9"
+                autoCorrect="off"
+                autoCapitalize="off"
+                autoComplete="off"
+                spellCheck={false}
               />
             </div>
             <div className="space-y-1">
@@ -306,6 +310,8 @@ export default function ItbiSearch() {
                 onChange={(e) => setNumero(e.target.value)}
                 placeholder="Ex: 300"
                 className="h-9"
+                inputMode="numeric"
+                autoComplete="off"
               />
             </div>
             <div className="space-y-1">
@@ -316,6 +322,7 @@ export default function ItbiSearch() {
                 placeholder="Ex: 04530"
                 className="h-9"
                 inputMode="numeric"
+                autoComplete="off"
               />
             </div>
             <div className="lg:col-span-3 space-y-1">
@@ -325,6 +332,10 @@ export default function ItbiSearch() {
                 onChange={(e) => setBairro(e.target.value)}
                 placeholder="Ex: Itaim Bibi"
                 className="h-9"
+                autoCorrect="off"
+                autoCapitalize="off"
+                autoComplete="off"
+                spellCheck={false}
               />
             </div>
             <div className="lg:col-span-3 flex items-end">
@@ -368,6 +379,11 @@ export default function ItbiSearch() {
               </Button>
             )}
           </CardHeader>
+          {hasSearched && logradouro && (
+            <div className="px-6 -mt-2 pb-2 text-[11px] text-muted-foreground">
+              Buscando logradouro contendo: <code className="px-1 py-0.5 bg-muted rounded">{logradouro.trim()}</code>
+            </div>
+          )}
           <CardContent>
             {!hasSearched && !loading && (
               <p className="text-sm text-muted-foreground py-8 text-center">
