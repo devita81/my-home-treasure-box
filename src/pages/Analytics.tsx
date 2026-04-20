@@ -514,15 +514,15 @@ const Analytics = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-800">
+    <div className="min-h-screen bg-[hsl(220_14%_93%)]">
       <Header />
 
       <div className="container px-3 sm:px-4 pt-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <h1 className="text-xs font-medium text-slate-300 tracking-widest uppercase truncate">Analytics</h1>
-          <span className="text-[10px] text-slate-300 font-mono shrink-0">{properties.length} imóveis</span>
+          <h1 className="text-xs font-medium text-slate-600 tracking-widest uppercase truncate">Analytics</h1>
+          <span className="text-[10px] text-slate-600 font-mono shrink-0">{properties.length} imóveis</span>
         </div>
-        <Button variant="ghost" size="sm" onClick={handleExportExcel} className="text-slate-400 hover:text-slate-200 hover:bg-white/5 gap-1.5 h-7 px-2 text-[10px] uppercase tracking-wider">
+        <Button variant="ghost" size="sm" onClick={handleExportExcel} className="text-slate-500 hover:text-slate-800 hover:bg-slate-100 gap-1.5 h-7 px-2 text-[10px] uppercase tracking-wider">
           <Download className="h-3 w-3" />
           <span className="hidden sm:inline">Exportar</span>
         </Button>
@@ -530,216 +530,216 @@ const Analytics = () => {
 
       <main className="container px-3 sm:px-4 py-3 sm:py-5 space-y-3 sm:space-y-4">
         {/* ─── Value Summary ─── */}
-        <div className="grid gap-px grid-cols-2 lg:grid-cols-4 bg-slate-700/30 rounded-lg overflow-hidden border border-slate-700/50">
-          <div onClick={() => openDialog('Valor de Mercado', `${properties.length} imóveis • Total: ${formatCurrency(totalMarketValue)}`, properties)} className="bg-slate-700/40 p-4 cursor-pointer hover:bg-slate-700/50 transition-colors">
-            <p className="text-[10px] font-medium text-slate-300 uppercase tracking-widest mb-1.5">Valor Mercado</p>
-            <p className="text-base font-semibold text-slate-100 tabular-nums tracking-tight">{formatCurrency(totalMarketValue)}</p>
-            <p className="text-[10px] text-slate-300 mt-1 font-mono">{properties.length} imóveis</p>
+        <div className="grid gap-px grid-cols-2 lg:grid-cols-4 bg-white rounded-lg overflow-hidden border border-slate-200">
+          <div onClick={() => openDialog('Valor de Mercado', `${properties.length} imóveis • Total: ${formatCurrency(totalMarketValue)}`, properties)} className="bg-white p-4 cursor-pointer hover:bg-slate-50 transition-colors">
+            <p className="text-[10px] font-medium text-slate-600 uppercase tracking-widest mb-1.5">Valor Mercado</p>
+            <p className="text-base font-semibold text-slate-900 tabular-nums tracking-tight">{formatCurrency(totalMarketValue)}</p>
+            <p className="text-[10px] text-slate-600 mt-1 font-mono">{properties.length} imóveis</p>
           </div>
-          <div onClick={() => openDialog('Valor Declarado', `${properties.length} imóveis • Total: ${formatCurrency(totalDeclaredValue)}`, properties)} className="bg-slate-700/40 p-4 cursor-pointer hover:bg-slate-700/50 transition-colors">
-            <p className="text-[10px] font-medium text-slate-300 uppercase tracking-widest mb-1.5">Valor Declarado</p>
-            <p className="text-base font-semibold text-slate-100 tabular-nums tracking-tight">{formatCurrency(totalDeclaredValue)}</p>
-            <p className="text-[10px] text-slate-300 mt-1 font-mono">{properties.length} imóveis</p>
+          <div onClick={() => openDialog('Valor Declarado', `${properties.length} imóveis • Total: ${formatCurrency(totalDeclaredValue)}`, properties)} className="bg-white p-4 cursor-pointer hover:bg-slate-50 transition-colors">
+            <p className="text-[10px] font-medium text-slate-600 uppercase tracking-widest mb-1.5">Valor Declarado</p>
+            <p className="text-base font-semibold text-slate-900 tabular-nums tracking-tight">{formatCurrency(totalDeclaredValue)}</p>
+            <p className="text-[10px] text-slate-600 mt-1 font-mono">{properties.length} imóveis</p>
           </div>
-          <div onClick={() => openDialog('Total IPTU', `${properties.length} imóveis • Total: ${formatCurrency(totalIptu)}`, properties)} className="bg-slate-700/40 p-4 cursor-pointer hover:bg-slate-700/50 transition-colors">
-            <p className="text-[10px] font-medium text-slate-300 uppercase tracking-widest mb-1.5">Total IPTU</p>
-            <p className="text-base font-semibold text-slate-100 tabular-nums tracking-tight">{formatCurrency(totalIptu)}</p>
-            <p className="text-[10px] text-slate-300 mt-1 font-mono">{properties.length} imóveis</p>
+          <div onClick={() => openDialog('Total IPTU', `${properties.length} imóveis • Total: ${formatCurrency(totalIptu)}`, properties)} className="bg-white p-4 cursor-pointer hover:bg-slate-50 transition-colors">
+            <p className="text-[10px] font-medium text-slate-600 uppercase tracking-widest mb-1.5">Total IPTU</p>
+            <p className="text-base font-semibold text-slate-900 tabular-nums tracking-tight">{formatCurrency(totalIptu)}</p>
+            <p className="text-[10px] text-slate-600 mt-1 font-mono">{properties.length} imóveis</p>
           </div>
-          <div onClick={() => openDialog('Valorização', `${properties.length} imóveis • +${valorizationPercentage}%`, properties)} className="bg-slate-700/40 p-4 cursor-pointer hover:bg-slate-700/50 transition-colors">
-            <p className="text-[10px] font-medium text-slate-300 uppercase tracking-widest mb-1.5">Valorização</p>
-            <p className="text-base font-semibold text-slate-100 tabular-nums tracking-tight">{formatCurrency(valorization)}</p>
-            <p className="text-[10px] text-slate-300 mt-1 font-mono">+{valorizationPercentage}%</p>
+          <div onClick={() => openDialog('Valorização', `${properties.length} imóveis • +${valorizationPercentage}%`, properties)} className="bg-white p-4 cursor-pointer hover:bg-slate-50 transition-colors">
+            <p className="text-[10px] font-medium text-slate-600 uppercase tracking-widest mb-1.5">Valorização</p>
+            <p className="text-base font-semibold text-slate-900 tabular-nums tracking-tight">{formatCurrency(valorization)}</p>
+            <p className="text-[10px] text-slate-600 mt-1 font-mono">+{valorizationPercentage}%</p>
           </div>
         </div>
 
         {/* ─── IPTU ─── */}
-        <div className="rounded-lg border border-slate-700/50 bg-slate-700/30 overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-700/40 flex items-center gap-2">
-            <Receipt className="h-3.5 w-3.5 text-slate-400" />
-            <h2 className="text-[11px] font-medium text-slate-300 uppercase tracking-widest">Resumo de IPTU</h2>
+        <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-200 flex items-center gap-2">
+            <Receipt className="h-3.5 w-3.5 text-slate-500" />
+            <h2 className="text-[11px] font-medium text-slate-600 uppercase tracking-widest">Resumo de IPTU</h2>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-slate-700/20">
-            <div onClick={() => openDialog('IPTU Pago', `${iptuPagoCount} imóveis • Total: ${formatCurrency(iptuPagoValue)}`, iptuPagoProperties)} className="bg-slate-700/40 p-3.5 cursor-pointer hover:bg-slate-700/50 transition-colors border-l-2 border-emerald-500/60">
-              <p className="text-[10px] text-slate-300 uppercase tracking-wider mb-1">IPTU Pago</p>
-              <p className="text-sm font-semibold text-slate-100 tabular-nums">{formatCurrency(iptuPagoValue)}</p>
-              <p className="text-[10px] text-slate-300 font-mono mt-0.5">{iptuPagoCount} imóveis</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-slate-100">
+            <div onClick={() => openDialog('IPTU Pago', `${iptuPagoCount} imóveis • Total: ${formatCurrency(iptuPagoValue)}`, iptuPagoProperties)} className="bg-white p-3.5 cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-emerald-400">
+              <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">IPTU Pago</p>
+              <p className="text-sm font-semibold text-slate-900 tabular-nums">{formatCurrency(iptuPagoValue)}</p>
+              <p className="text-[10px] text-slate-600 font-mono mt-0.5">{iptuPagoCount} imóveis</p>
             </div>
-            <div onClick={() => openDialog('IPTU Pendente', `${iptuPendenteCount} imóveis • Total: ${formatCurrency(iptuPendenteValue)}`, iptuPendenteProperties)} className="bg-slate-700/40 p-3.5 cursor-pointer hover:bg-slate-700/50 transition-colors border-l-2 border-amber-500/60">
-              <p className="text-[10px] text-slate-300 uppercase tracking-wider mb-1">IPTU Pendente</p>
-              <p className="text-sm font-semibold text-slate-100 tabular-nums">{formatCurrency(iptuPendenteValue)}</p>
-              <p className="text-[10px] text-slate-300 font-mono mt-0.5">{iptuPendenteCount} imóveis</p>
+            <div onClick={() => openDialog('IPTU Pendente', `${iptuPendenteCount} imóveis • Total: ${formatCurrency(iptuPendenteValue)}`, iptuPendenteProperties)} className="bg-white p-3.5 cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-amber-400">
+              <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">IPTU Pendente</p>
+              <p className="text-sm font-semibold text-slate-900 tabular-nums">{formatCurrency(iptuPendenteValue)}</p>
+              <p className="text-[10px] text-slate-600 font-mono mt-0.5">{iptuPendenteCount} imóveis</p>
             </div>
-            <div onClick={() => openDialog('Todos os Imóveis', `${properties.length} imóveis cadastrados`, properties)} className="bg-slate-700/40 p-3.5 cursor-pointer hover:bg-slate-700/50 transition-colors border-l-2 border-sky-500/40">
-              <p className="text-[10px] text-slate-300 uppercase tracking-wider mb-1">Imóveis</p>
-              <p className="text-sm font-semibold text-slate-100 tabular-nums">{properties.length}</p>
-              <p className="text-[10px] text-slate-300 font-mono mt-0.5">total cadastrado</p>
+            <div onClick={() => openDialog('Todos os Imóveis', `${properties.length} imóveis cadastrados`, properties)} className="bg-white p-3.5 cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-sky-400">
+              <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Imóveis</p>
+              <p className="text-sm font-semibold text-slate-900 tabular-nums">{properties.length}</p>
+              <p className="text-[10px] text-slate-600 font-mono mt-0.5">total cadastrado</p>
             </div>
-            <div onClick={() => openDialog('IPTU Pago', `${iptuPagoCount} de ${properties.length} imóveis`, iptuPagoProperties)} className="bg-slate-700/40 p-3.5 cursor-pointer hover:bg-slate-700/50 transition-colors border-l-2 border-slate-500/40">
-              <p className="text-[10px] text-slate-300 uppercase tracking-wider mb-1">Pagaram</p>
-              <p className="text-sm font-semibold text-slate-100 tabular-nums">{iptuPagoPercentage}%</p>
-              <p className="text-[10px] text-slate-300 font-mono mt-0.5">{iptuPagoCount} de {properties.length}</p>
+            <div onClick={() => openDialog('IPTU Pago', `${iptuPagoCount} de ${properties.length} imóveis`, iptuPagoProperties)} className="bg-white p-3.5 cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-slate-300">
+              <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Pagaram</p>
+              <p className="text-sm font-semibold text-slate-900 tabular-nums">{iptuPagoPercentage}%</p>
+              <p className="text-[10px] text-slate-600 font-mono mt-0.5">{iptuPagoCount} de {properties.length}</p>
             </div>
           </div>
         </div>
 
         {/* ─── Aluguel & Condomínio ─── */}
-        <div className="rounded-lg border border-slate-700/50 bg-slate-700/30 overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-700/40 flex items-center gap-2">
-            <Key className="h-3.5 w-3.5 text-slate-400" />
-            <h2 className="text-[11px] font-medium text-slate-300 uppercase tracking-widest">Aluguel & Condomínio</h2>
+        <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-200 flex items-center gap-2">
+            <Key className="h-3.5 w-3.5 text-slate-500" />
+            <h2 className="text-[11px] font-medium text-slate-600 uppercase tracking-widest">Aluguel & Condomínio</h2>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-slate-700/20">
-            <div onClick={() => openDialog('Aluguel Recebido', `${alugadosCount} imóveis • ${formatCurrency(totalAluguelRecebido)}/mês`, alugadosProperties)} className="bg-slate-700/40 p-3.5 cursor-pointer hover:bg-slate-700/50 transition-colors border-l-2 border-emerald-500/60">
-              <p className="text-[10px] text-slate-300 uppercase tracking-wider mb-1">Aluguel</p>
-              <p className="text-sm font-semibold text-slate-100 tabular-nums">{formatCurrency(totalAluguelRecebido)}</p>
-              <p className="text-[10px] text-slate-300 font-mono mt-0.5">{alugadosCount} imóveis/mês</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-slate-100">
+            <div onClick={() => openDialog('Aluguel Recebido', `${alugadosCount} imóveis • ${formatCurrency(totalAluguelRecebido)}/mês`, alugadosProperties)} className="bg-white p-3.5 cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-emerald-400">
+              <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Aluguel</p>
+              <p className="text-sm font-semibold text-slate-900 tabular-nums">{formatCurrency(totalAluguelRecebido)}</p>
+              <p className="text-[10px] text-slate-600 font-mono mt-0.5">{alugadosCount} imóveis/mês</p>
             </div>
-            <div onClick={() => openDialog('Total Condomínio', `${properties.length} imóveis • ${formatCurrency(totalCondominio)}/mês`, properties)} className="bg-slate-700/40 p-3.5 cursor-pointer hover:bg-slate-700/50 transition-colors border-l-2 border-amber-500/60">
-              <p className="text-[10px] text-slate-300 uppercase tracking-wider mb-1">Condomínio</p>
-              <p className="text-sm font-semibold text-slate-100 tabular-nums">{formatCurrency(totalCondominio)}</p>
-              <p className="text-[10px] text-slate-300 font-mono mt-0.5">{properties.length} imóveis/mês</p>
+            <div onClick={() => openDialog('Total Condomínio', `${properties.length} imóveis • ${formatCurrency(totalCondominio)}/mês`, properties)} className="bg-white p-3.5 cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-amber-400">
+              <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Condomínio</p>
+              <p className="text-sm font-semibold text-slate-900 tabular-nums">{formatCurrency(totalCondominio)}</p>
+              <p className="text-[10px] text-slate-600 font-mono mt-0.5">{properties.length} imóveis/mês</p>
             </div>
-            <div onClick={() => openDialog('Imóveis Alugados', `${alugadosCount} imóveis alugados`, alugadosProperties)} className="bg-slate-700/40 p-3.5 cursor-pointer hover:bg-slate-700/50 transition-colors border-l-2 border-sky-500/40">
-              <p className="text-[10px] text-slate-300 uppercase tracking-wider mb-1">Alugados</p>
-              <p className="text-sm font-semibold text-slate-100 tabular-nums">{alugadosCount}</p>
-              <p className="text-[10px] text-slate-300 font-mono mt-0.5">de {properties.length}</p>
+            <div onClick={() => openDialog('Imóveis Alugados', `${alugadosCount} imóveis alugados`, alugadosProperties)} className="bg-white p-3.5 cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-sky-400">
+              <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Alugados</p>
+              <p className="text-sm font-semibold text-slate-900 tabular-nums">{alugadosCount}</p>
+              <p className="text-[10px] text-slate-600 font-mono mt-0.5">de {properties.length}</p>
             </div>
-            <div onClick={() => openDialog('Taxa de Ocupação', `${alugadosCount} de ${properties.length} alugados`, alugadosProperties)} className="bg-slate-700/40 p-3.5 cursor-pointer hover:bg-slate-700/50 transition-colors border-l-2 border-slate-500/40">
-              <p className="text-[10px] text-slate-300 uppercase tracking-wider mb-1">Ocupação</p>
-              <p className="text-sm font-semibold text-slate-100 tabular-nums">{alugadosPercentage}%</p>
-              <p className="text-[10px] text-slate-300 font-mono mt-0.5">{alugadosCount} de {properties.length}</p>
+            <div onClick={() => openDialog('Taxa de Ocupação', `${alugadosCount} de ${properties.length} alugados`, alugadosProperties)} className="bg-white p-3.5 cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-slate-300">
+              <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Ocupação</p>
+              <p className="text-sm font-semibold text-slate-900 tabular-nums">{alugadosPercentage}%</p>
+              <p className="text-[10px] text-slate-600 font-mono mt-0.5">{alugadosCount} de {properties.length}</p>
             </div>
           </div>
         </div>
 
         {/* ─── Resultado Financeiro por Cidade ─── */}
-        <div className="rounded-lg border border-slate-700/50 bg-slate-700/30 overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-700/40 flex items-center gap-2">
-            <Wallet className="h-3.5 w-3.5 text-slate-400" />
-            <h2 className="text-[11px] font-medium text-slate-300 uppercase tracking-widest">Resultado Financeiro por Cidade</h2>
+        <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-200 flex items-center gap-2">
+            <Wallet className="h-3.5 w-3.5 text-slate-500" />
+            <h2 className="text-[11px] font-medium text-slate-600 uppercase tracking-widest">Resultado Financeiro por Cidade</h2>
           </div>
           
           {/* Mobile */}
-          <div className="sm:hidden divide-y divide-slate-700/40">
+          <div className="sm:hidden divide-y divide-slate-200">
             {cityFinancials.map((row) => (
               <div key={row.cidade} className="px-3 py-2.5 space-y-2">
-                <div className="text-[11px] font-semibold text-slate-200">{row.cidade}</div>
+                <div className="text-[11px] font-semibold text-slate-800">{row.cidade}</div>
 
                 {/* Receita */}
-                <div className="rounded border border-emerald-500/20 bg-emerald-900/10 p-2">
+                <div className="rounded border border-emerald-200 bg-emerald-50 p-2">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-[9px] text-emerald-400 uppercase tracking-wider font-semibold">Receita</p>
+                    <p className="text-[9px] text-emerald-700 uppercase tracking-wider font-semibold">Receita</p>
                     <p className="text-[9px] text-slate-500 font-mono">{row.countAlugados} alug.</p>
                   </div>
                   <div className="grid grid-cols-4 gap-1 text-center">
                     <div>
-                      <p className="text-[8px] text-slate-400 uppercase">Aluguel</p>
-                      <p className="text-[10px] font-mono tabular-nums text-slate-200">{formatCurrency(row.aluguelBruto)}</p>
+                      <p className="text-[8px] text-slate-500 uppercase">Aluguel</p>
+                      <p className="text-[10px] font-mono tabular-nums text-slate-800">{formatCurrency(row.aluguelBruto)}</p>
                     </div>
                     <div>
-                      <p className="text-[8px] text-slate-400 uppercase">Cond</p>
-                      <p className="text-[10px] font-mono tabular-nums text-slate-300">{formatCurrency(row.condAlugados)}</p>
+                      <p className="text-[8px] text-slate-500 uppercase">Cond</p>
+                      <p className="text-[10px] font-mono tabular-nums text-slate-600">{formatCurrency(row.condAlugados)}</p>
                     </div>
                     <div>
-                      <p className="text-[8px] text-slate-400 uppercase">IPTU</p>
-                      <p className="text-[10px] font-mono tabular-nums text-slate-300">{formatCurrency(row.iptuAlugados)}</p>
+                      <p className="text-[8px] text-slate-500 uppercase">IPTU</p>
+                      <p className="text-[10px] font-mono tabular-nums text-slate-600">{formatCurrency(row.iptuAlugados)}</p>
                     </div>
                     <div>
-                      <p className="text-[8px] text-slate-400 uppercase">Tx Adm</p>
-                      <p className="text-[10px] font-mono tabular-nums text-slate-300">-{formatCurrency(row.taxaAdmAlugados)}</p>
+                      <p className="text-[8px] text-slate-500 uppercase">Tx Adm</p>
+                      <p className="text-[10px] font-mono tabular-nums text-slate-600">-{formatCurrency(row.taxaAdmAlugados)}</p>
                     </div>
                   </div>
-                  <div className="text-right mt-1 pt-1 border-t border-emerald-500/20">
-                    <p className="text-[11px] font-mono tabular-nums text-emerald-400 font-semibold">{formatCurrency(row.receitaTotal)}</p>
+                  <div className="text-right mt-1 pt-1 border-t border-emerald-200">
+                    <p className="text-[11px] font-mono tabular-nums text-emerald-700 font-semibold">{formatCurrency(row.receitaTotal)}</p>
                   </div>
                 </div>
 
                 {/* Despesa */}
-                <div className="rounded border border-red-500/20 bg-red-900/10 p-2">
+                <div className="rounded border border-red-200 bg-red-50 p-2">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-[9px] text-red-400 uppercase tracking-wider font-semibold">Despesa</p>
+                    <p className="text-[9px] text-red-600 uppercase tracking-wider font-semibold">Despesa</p>
                     <p className="text-[9px] text-slate-500 font-mono">{row.countNaoAlugados} vagos</p>
                   </div>
                   <div className="grid grid-cols-2 gap-1 text-center">
                     <div>
-                      <p className="text-[8px] text-slate-400 uppercase">Cond</p>
-                      <p className="text-[10px] font-mono tabular-nums text-slate-300">{formatCurrency(row.condNaoAlugados)}</p>
+                      <p className="text-[8px] text-slate-500 uppercase">Cond</p>
+                      <p className="text-[10px] font-mono tabular-nums text-slate-600">{formatCurrency(row.condNaoAlugados)}</p>
                     </div>
                     <div>
-                      <p className="text-[8px] text-slate-400 uppercase">IPTU</p>
-                      <p className="text-[10px] font-mono tabular-nums text-slate-300">{formatCurrency(row.iptuNaoAlugados)}</p>
+                      <p className="text-[8px] text-slate-500 uppercase">IPTU</p>
+                      <p className="text-[10px] font-mono tabular-nums text-slate-600">{formatCurrency(row.iptuNaoAlugados)}</p>
                     </div>
                   </div>
-                  <div className="text-right mt-1 pt-1 border-t border-red-500/20">
-                    <p className="text-[11px] font-mono tabular-nums text-red-400 font-semibold">-{formatCurrency(row.despesaTotal)}</p>
+                  <div className="text-right mt-1 pt-1 border-t border-red-200">
+                    <p className="text-[11px] font-mono tabular-nums text-red-600 font-semibold">-{formatCurrency(row.despesaTotal)}</p>
                   </div>
                 </div>
 
                 {/* Total */}
                 <div className="flex items-center justify-between px-1">
-                  <p className="text-[10px] text-slate-400 uppercase font-semibold">Total Geral</p>
-                  <p className={`text-[12px] font-mono tabular-nums font-bold ${row.total >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <p className="text-[10px] text-slate-500 uppercase font-semibold">Total Geral</p>
+                  <p className={`text-[12px] font-mono tabular-nums font-bold ${row.total >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
                     {row.total < 0 ? '-' : ''}{formatCurrency(Math.abs(row.total))}
                   </p>
                 </div>
               </div>
             ))}
             {/* Subtotal mobile */}
-            <div className="px-3 py-2.5 bg-blue-900/30 border-t-2 border-blue-500/40 space-y-2">
-              <div className="text-[11px] font-bold text-blue-300 uppercase">Subtotal Geral</div>
+            <div className="px-3 py-2.5 bg-blue-100 border-t-2 border-blue-300 space-y-2">
+              <div className="text-[11px] font-bold text-blue-700 uppercase">Subtotal Geral</div>
 
-              <div className="rounded border border-emerald-500/30 bg-emerald-900/20 p-2">
+              <div className="rounded border border-emerald-300 bg-emerald-50 p-2">
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-[9px] text-emerald-300 uppercase tracking-wider font-bold">Receita</p>
-                  <p className="text-[9px] text-blue-300 font-mono font-bold">{cityFinancialsTotals.countAlugados} alug.</p>
+                  <p className="text-[9px] text-emerald-700 uppercase tracking-wider font-bold">Receita</p>
+                  <p className="text-[9px] text-blue-700 font-mono font-bold">{cityFinancialsTotals.countAlugados} alug.</p>
                 </div>
                 <div className="grid grid-cols-4 gap-1 text-center">
                   <div>
-                    <p className="text-[8px] text-blue-400 uppercase">Aluguel</p>
-                    <p className="text-[10px] font-mono tabular-nums text-slate-100 font-semibold">{formatCurrency(cityFinancialsTotals.aluguelBruto)}</p>
+                    <p className="text-[8px] text-blue-600 uppercase">Aluguel</p>
+                    <p className="text-[10px] font-mono tabular-nums text-slate-900 font-semibold">{formatCurrency(cityFinancialsTotals.aluguelBruto)}</p>
                   </div>
                   <div>
-                    <p className="text-[8px] text-blue-400 uppercase">Cond</p>
-                    <p className="text-[10px] font-mono tabular-nums text-slate-200">{formatCurrency(cityFinancialsTotals.condAlugados)}</p>
+                    <p className="text-[8px] text-blue-600 uppercase">Cond</p>
+                    <p className="text-[10px] font-mono tabular-nums text-slate-800">{formatCurrency(cityFinancialsTotals.condAlugados)}</p>
                   </div>
                   <div>
-                    <p className="text-[8px] text-blue-400 uppercase">IPTU</p>
-                    <p className="text-[10px] font-mono tabular-nums text-slate-200">{formatCurrency(cityFinancialsTotals.iptuAlugados)}</p>
+                    <p className="text-[8px] text-blue-600 uppercase">IPTU</p>
+                    <p className="text-[10px] font-mono tabular-nums text-slate-800">{formatCurrency(cityFinancialsTotals.iptuAlugados)}</p>
                   </div>
                   <div>
-                    <p className="text-[8px] text-blue-400 uppercase">Tx Adm</p>
-                    <p className="text-[10px] font-mono tabular-nums text-slate-200">-{formatCurrency(cityFinancialsTotals.taxaAdmAlugados)}</p>
+                    <p className="text-[8px] text-blue-600 uppercase">Tx Adm</p>
+                    <p className="text-[10px] font-mono tabular-nums text-slate-800">-{formatCurrency(cityFinancialsTotals.taxaAdmAlugados)}</p>
                   </div>
                 </div>
-                <div className="text-right mt-1 pt-1 border-t border-emerald-500/30">
-                  <p className="text-[11px] font-mono tabular-nums text-emerald-400 font-bold">{formatCurrency(cityFinancialsTotals.receitaTotal)}</p>
+                <div className="text-right mt-1 pt-1 border-t border-emerald-300">
+                  <p className="text-[11px] font-mono tabular-nums text-emerald-700 font-bold">{formatCurrency(cityFinancialsTotals.receitaTotal)}</p>
                 </div>
               </div>
 
-              <div className="rounded border border-red-500/30 bg-red-900/20 p-2">
+              <div className="rounded border border-red-300 bg-red-50 p-2">
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-[9px] text-red-300 uppercase tracking-wider font-bold">Despesa</p>
-                  <p className="text-[9px] text-blue-300 font-mono font-bold">{cityFinancialsTotals.countNaoAlugados} vagos</p>
+                  <p className="text-[9px] text-red-600 uppercase tracking-wider font-bold">Despesa</p>
+                  <p className="text-[9px] text-blue-700 font-mono font-bold">{cityFinancialsTotals.countNaoAlugados} vagos</p>
                 </div>
                 <div className="grid grid-cols-2 gap-1 text-center">
                   <div>
-                    <p className="text-[8px] text-blue-400 uppercase">Cond</p>
-                    <p className="text-[10px] font-mono tabular-nums text-slate-200">{formatCurrency(cityFinancialsTotals.condNaoAlugados)}</p>
+                    <p className="text-[8px] text-blue-600 uppercase">Cond</p>
+                    <p className="text-[10px] font-mono tabular-nums text-slate-800">{formatCurrency(cityFinancialsTotals.condNaoAlugados)}</p>
                   </div>
                   <div>
-                    <p className="text-[8px] text-blue-400 uppercase">IPTU</p>
-                    <p className="text-[10px] font-mono tabular-nums text-slate-200">{formatCurrency(cityFinancialsTotals.iptuNaoAlugados)}</p>
+                    <p className="text-[8px] text-blue-600 uppercase">IPTU</p>
+                    <p className="text-[10px] font-mono tabular-nums text-slate-800">{formatCurrency(cityFinancialsTotals.iptuNaoAlugados)}</p>
                   </div>
                 </div>
-                <div className="text-right mt-1 pt-1 border-t border-red-500/30">
-                  <p className="text-[11px] font-mono tabular-nums text-red-400 font-bold">-{formatCurrency(cityFinancialsTotals.despesaTotal)}</p>
+                <div className="text-right mt-1 pt-1 border-t border-red-300">
+                  <p className="text-[11px] font-mono tabular-nums text-red-600 font-bold">-{formatCurrency(cityFinancialsTotals.despesaTotal)}</p>
                 </div>
               </div>
 
               <div className="flex items-center justify-between px-1">
-                <p className="text-[10px] text-blue-300 uppercase font-bold">Total Geral</p>
-                <p className={`text-[13px] font-mono tabular-nums font-bold ${cityFinancialsTotals.total >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                <p className="text-[10px] text-blue-700 uppercase font-bold">Total Geral</p>
+                <p className={`text-[13px] font-mono tabular-nums font-bold ${cityFinancialsTotals.total >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
                   {cityFinancialsTotals.total < 0 ? '-' : ''}{formatCurrency(Math.abs(cityFinancialsTotals.total))}
                 </p>
               </div>
@@ -751,102 +751,102 @@ const Analytics = () => {
             <Table>
               <TableHeader>
                 {/* Header agrupado nível 1 */}
-                <TableRow className="border-slate-700/40 hover:bg-transparent">
-                  <TableHead rowSpan={2} className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold align-bottom">Cidade</TableHead>
-                  <TableHead colSpan={6} className="text-[10px] text-emerald-400 uppercase tracking-wider font-bold text-center border-l border-r border-slate-700/40 bg-emerald-900/10">Receita (Alugados)</TableHead>
-                  <TableHead colSpan={4} className="text-[10px] text-red-400 uppercase tracking-wider font-bold text-center border-r border-slate-700/40 bg-red-900/10">Despesa (Não Alugados)</TableHead>
-                  <TableHead rowSpan={2} className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold text-right align-bottom">Total Geral</TableHead>
+                <TableRow className="border-slate-200 hover:bg-transparent">
+                  <TableHead rowSpan={2} className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold align-bottom">Cidade</TableHead>
+                  <TableHead colSpan={6} className="text-[10px] text-emerald-700 uppercase tracking-wider font-bold text-center border-l border-r border-slate-200 bg-emerald-50">Receita (Alugados)</TableHead>
+                  <TableHead colSpan={4} className="text-[10px] text-red-600 uppercase tracking-wider font-bold text-center border-r border-slate-200 bg-red-50">Despesa (Não Alugados)</TableHead>
+                  <TableHead rowSpan={2} className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold text-right align-bottom">Total Geral</TableHead>
                 </TableRow>
                 {/* Header agrupado nível 2 */}
-                <TableRow className="border-slate-700/40 hover:bg-transparent">
-                  <TableHead className="text-[9px] text-slate-400 uppercase font-semibold text-center border-l border-slate-700/40 bg-emerald-900/5">Qtd</TableHead>
-                  <TableHead className="text-[9px] text-slate-400 uppercase font-semibold text-right bg-emerald-900/5">Aluguel</TableHead>
-                  <TableHead className="text-[9px] text-slate-400 uppercase font-semibold text-right bg-emerald-900/5">Cond</TableHead>
-                  <TableHead className="text-[9px] text-slate-400 uppercase font-semibold text-right bg-emerald-900/5">IPTU</TableHead>
-                  <TableHead className="text-[9px] text-slate-400 uppercase font-semibold text-right bg-emerald-900/5">Tx Adm</TableHead>
-                  <TableHead className="text-[9px] text-emerald-400 uppercase font-bold text-right border-r border-slate-700/40 bg-emerald-900/10">Total</TableHead>
-                  <TableHead className="text-[9px] text-slate-400 uppercase font-semibold text-center bg-red-900/5">Qtd</TableHead>
-                  <TableHead className="text-[9px] text-slate-400 uppercase font-semibold text-right bg-red-900/5">Cond</TableHead>
-                  <TableHead className="text-[9px] text-slate-400 uppercase font-semibold text-right bg-red-900/5">IPTU</TableHead>
-                  <TableHead className="text-[9px] text-red-400 uppercase font-bold text-right border-r border-slate-700/40 bg-red-900/10">Total</TableHead>
+                <TableRow className="border-slate-200 hover:bg-transparent">
+                  <TableHead className="text-[9px] text-slate-500 uppercase font-semibold text-center border-l border-slate-200 bg-emerald-50/60">Qtd</TableHead>
+                  <TableHead className="text-[9px] text-slate-500 uppercase font-semibold text-right bg-emerald-50/60">Aluguel</TableHead>
+                  <TableHead className="text-[9px] text-slate-500 uppercase font-semibold text-right bg-emerald-50/60">Cond</TableHead>
+                  <TableHead className="text-[9px] text-slate-500 uppercase font-semibold text-right bg-emerald-50/60">IPTU</TableHead>
+                  <TableHead className="text-[9px] text-slate-500 uppercase font-semibold text-right bg-emerald-50/60">Tx Adm</TableHead>
+                  <TableHead className="text-[9px] text-emerald-700 uppercase font-bold text-right border-r border-slate-200 bg-emerald-50">Total</TableHead>
+                  <TableHead className="text-[9px] text-slate-500 uppercase font-semibold text-center bg-red-50/60">Qtd</TableHead>
+                  <TableHead className="text-[9px] text-slate-500 uppercase font-semibold text-right bg-red-50/60">Cond</TableHead>
+                  <TableHead className="text-[9px] text-slate-500 uppercase font-semibold text-right bg-red-50/60">IPTU</TableHead>
+                  <TableHead className="text-[9px] text-red-600 uppercase font-bold text-right border-r border-slate-200 bg-red-50">Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {cityFinancials.map((row) => {
                   const allCityProps = [...row.propertiesAlugados, ...row.propertiesNaoAlugados];
                   return (
-                  <TableRow key={row.cidade} className="border-slate-700/40 hover:bg-slate-700/30">
+                  <TableRow key={row.cidade} className="border-slate-200 hover:bg-white">
                     <TableCell
-                      className="text-[11px] text-slate-200 font-medium cursor-pointer hover:text-blue-300 hover:underline"
+                      className="text-[11px] text-slate-800 font-medium cursor-pointer hover:text-blue-700 hover:underline"
                       onClick={() => openFinancialDialog(`Imóveis em ${row.cidade}`, `${allCityProps.length} imóveis (${row.countAlugados} alugados, ${row.countNaoAlugados} vagos)`, allCityProps)}
                     >
                       {row.cidade}
                     </TableCell>
                     {/* Receita - clicáveis */}
                     <TableCell
-                      className="text-[10px] font-mono text-slate-400 text-center border-l border-slate-700/40 cursor-pointer hover:bg-emerald-900/20 hover:text-emerald-300"
+                      className="text-[10px] font-mono text-slate-500 text-center border-l border-slate-200 cursor-pointer hover:bg-emerald-50 hover:text-emerald-700"
                       onClick={() => row.countAlugados > 0 && openFinancialDialog(`Alugados em ${row.cidade}`, `${row.countAlugados} imóveis · Receita líq. ${formatCurrency(row.receitaTotal)}`, row.propertiesAlugados)}
                     >
                       {row.countAlugados}
                     </TableCell>
                     <TableCell
-                      className="text-[11px] font-mono tabular-nums text-slate-200 text-right cursor-pointer hover:bg-emerald-900/20"
+                      className="text-[11px] font-mono tabular-nums text-slate-800 text-right cursor-pointer hover:bg-emerald-50"
                       onClick={() => row.countAlugados > 0 && openFinancialDialog(`Aluguel · ${row.cidade}`, `${row.countAlugados} alugados · Bruto ${formatCurrency(row.aluguelBruto)}`, row.propertiesAlugados)}
                     >
                       {formatCurrency(row.aluguelBruto)}
                     </TableCell>
                     <TableCell
-                      className="text-[11px] font-mono tabular-nums text-slate-300 text-right cursor-pointer hover:bg-emerald-900/20"
+                      className="text-[11px] font-mono tabular-nums text-slate-600 text-right cursor-pointer hover:bg-emerald-50"
                       onClick={() => row.countAlugados > 0 && openFinancialDialog(`Condomínio (Alugados) · ${row.cidade}`, `${formatCurrency(row.condAlugados)} / mês`, row.propertiesAlugados)}
                     >
                       {formatCurrency(row.condAlugados)}
                     </TableCell>
                     <TableCell
-                      className="text-[11px] font-mono tabular-nums text-slate-300 text-right cursor-pointer hover:bg-emerald-900/20"
+                      className="text-[11px] font-mono tabular-nums text-slate-600 text-right cursor-pointer hover:bg-emerald-50"
                       onClick={() => row.countAlugados > 0 && openFinancialDialog(`IPTU (Alugados) · ${row.cidade}`, `${formatCurrency(row.iptuAlugados)} / mês`, row.propertiesAlugados)}
                     >
                       {formatCurrency(row.iptuAlugados)}
                     </TableCell>
                     <TableCell
-                      className="text-[11px] font-mono tabular-nums text-slate-300 text-right cursor-pointer hover:bg-emerald-900/20"
+                      className="text-[11px] font-mono tabular-nums text-slate-600 text-right cursor-pointer hover:bg-emerald-50"
                       onClick={() => row.countAlugados > 0 && openFinancialDialog(`Taxa Adm · ${row.cidade}`, `-${formatCurrency(row.taxaAdmAlugados)} / mês`, row.propertiesAlugados)}
                     >
                       {row.taxaAdmAlugados > 0 ? `-${formatCurrency(row.taxaAdmAlugados)}` : formatCurrency(0)}
                     </TableCell>
                     <TableCell
-                      className="text-[11px] font-mono tabular-nums text-emerald-400 text-right border-r border-slate-700/40 font-semibold cursor-pointer hover:bg-emerald-900/30"
+                      className="text-[11px] font-mono tabular-nums text-emerald-700 text-right border-r border-slate-200 font-semibold cursor-pointer hover:bg-emerald-100"
                       onClick={() => row.countAlugados > 0 && openFinancialDialog(`Receita Líquida · ${row.cidade}`, `${formatCurrency(row.receitaTotal)} / mês`, row.propertiesAlugados)}
                     >
                       {formatCurrency(row.receitaTotal)}
                     </TableCell>
                     {/* Despesa - clicáveis */}
                     <TableCell
-                      className="text-[10px] font-mono text-slate-400 text-center cursor-pointer hover:bg-red-900/20 hover:text-red-300"
+                      className="text-[10px] font-mono text-slate-500 text-center cursor-pointer hover:bg-red-50 hover:text-red-600"
                       onClick={() => row.countNaoAlugados > 0 && openFinancialDialog(`Não Alugados em ${row.cidade}`, `${row.countNaoAlugados} imóveis · Despesa ${formatCurrency(row.despesaTotal)}`, row.propertiesNaoAlugados)}
                     >
                       {row.countNaoAlugados}
                     </TableCell>
                     <TableCell
-                      className="text-[11px] font-mono tabular-nums text-slate-300 text-right cursor-pointer hover:bg-red-900/20"
+                      className="text-[11px] font-mono tabular-nums text-slate-600 text-right cursor-pointer hover:bg-red-50"
                       onClick={() => row.countNaoAlugados > 0 && openFinancialDialog(`Condomínio (Não Alugados) · ${row.cidade}`, `${formatCurrency(row.condNaoAlugados)} / mês`, row.propertiesNaoAlugados)}
                     >
                       {formatCurrency(row.condNaoAlugados)}
                     </TableCell>
                     <TableCell
-                      className="text-[11px] font-mono tabular-nums text-slate-300 text-right cursor-pointer hover:bg-red-900/20"
+                      className="text-[11px] font-mono tabular-nums text-slate-600 text-right cursor-pointer hover:bg-red-50"
                       onClick={() => row.countNaoAlugados > 0 && openFinancialDialog(`IPTU (Não Alugados) · ${row.cidade}`, `${formatCurrency(row.iptuNaoAlugados)} / mês`, row.propertiesNaoAlugados)}
                     >
                       {formatCurrency(row.iptuNaoAlugados)}
                     </TableCell>
                     <TableCell
-                      className="text-[11px] font-mono tabular-nums text-red-400 text-right border-r border-slate-700/40 font-semibold cursor-pointer hover:bg-red-900/30"
+                      className="text-[11px] font-mono tabular-nums text-red-600 text-right border-r border-slate-200 font-semibold cursor-pointer hover:bg-red-100"
                       onClick={() => row.countNaoAlugados > 0 && openFinancialDialog(`Despesa Total · ${row.cidade}`, `-${formatCurrency(row.despesaTotal)} / mês`, row.propertiesNaoAlugados)}
                     >
                       -{formatCurrency(row.despesaTotal)}
                     </TableCell>
                     {/* Total Geral */}
                     <TableCell
-                      className={`text-[11px] font-mono tabular-nums font-semibold text-right cursor-pointer hover:bg-blue-900/20 ${row.total >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
+                      className={`text-[11px] font-mono tabular-nums font-semibold text-right cursor-pointer hover:bg-blue-50 ${row.total >= 0 ? 'text-emerald-700' : 'text-red-600'}`}
                       onClick={() => allCityProps.length > 0 && openFinancialDialog(`Resultado · ${row.cidade}`, `Receita ${formatCurrency(row.receitaTotal)} − Despesa ${formatCurrency(row.despesaTotal)} = ${formatCurrency(row.total)}`, allCityProps)}
                     >
                       {row.total < 0 ? '-' : ''}{formatCurrency(Math.abs(row.total))}
@@ -855,19 +855,19 @@ const Analytics = () => {
                   );
                 })}
                 {/* Subtotal row */}
-                <TableRow className="border-t-2 border-blue-500/40 bg-blue-900/20 hover:bg-blue-900/30">
-                  <TableCell className="text-[11px] text-blue-300 font-bold uppercase">Subtotal</TableCell>
-                  <TableCell className="text-[10px] font-mono text-blue-300 text-center font-bold border-l border-blue-500/30">{cityFinancialsTotals.countAlugados}</TableCell>
-                  <TableCell className="text-[11px] font-mono tabular-nums text-slate-100 text-right font-bold">{formatCurrency(cityFinancialsTotals.aluguelBruto)}</TableCell>
-                  <TableCell className="text-[11px] font-mono tabular-nums text-slate-200 text-right font-bold">{formatCurrency(cityFinancialsTotals.condAlugados)}</TableCell>
-                  <TableCell className="text-[11px] font-mono tabular-nums text-slate-200 text-right font-bold">{formatCurrency(cityFinancialsTotals.iptuAlugados)}</TableCell>
-                  <TableCell className="text-[11px] font-mono tabular-nums text-slate-200 text-right font-bold">{cityFinancialsTotals.taxaAdmAlugados > 0 ? `-${formatCurrency(cityFinancialsTotals.taxaAdmAlugados)}` : formatCurrency(0)}</TableCell>
-                  <TableCell className="text-[11px] font-mono tabular-nums text-emerald-400 text-right font-bold border-r border-blue-500/30">{formatCurrency(cityFinancialsTotals.receitaTotal)}</TableCell>
-                  <TableCell className="text-[10px] font-mono text-blue-300 text-center font-bold">{cityFinancialsTotals.countNaoAlugados}</TableCell>
-                  <TableCell className="text-[11px] font-mono tabular-nums text-slate-200 text-right font-bold">{formatCurrency(cityFinancialsTotals.condNaoAlugados)}</TableCell>
-                  <TableCell className="text-[11px] font-mono tabular-nums text-slate-200 text-right font-bold">{formatCurrency(cityFinancialsTotals.iptuNaoAlugados)}</TableCell>
-                  <TableCell className="text-[11px] font-mono tabular-nums text-red-400 text-right font-bold border-r border-blue-500/30">-{formatCurrency(cityFinancialsTotals.despesaTotal)}</TableCell>
-                  <TableCell className={`text-[11px] font-mono tabular-nums font-bold text-right ${cityFinancialsTotals.total >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                <TableRow className="border-t-2 border-blue-300 bg-blue-50 hover:bg-blue-100">
+                  <TableCell className="text-[11px] text-blue-700 font-bold uppercase">Subtotal</TableCell>
+                  <TableCell className="text-[10px] font-mono text-blue-700 text-center font-bold border-l border-blue-200">{cityFinancialsTotals.countAlugados}</TableCell>
+                  <TableCell className="text-[11px] font-mono tabular-nums text-slate-900 text-right font-bold">{formatCurrency(cityFinancialsTotals.aluguelBruto)}</TableCell>
+                  <TableCell className="text-[11px] font-mono tabular-nums text-slate-800 text-right font-bold">{formatCurrency(cityFinancialsTotals.condAlugados)}</TableCell>
+                  <TableCell className="text-[11px] font-mono tabular-nums text-slate-800 text-right font-bold">{formatCurrency(cityFinancialsTotals.iptuAlugados)}</TableCell>
+                  <TableCell className="text-[11px] font-mono tabular-nums text-slate-800 text-right font-bold">{cityFinancialsTotals.taxaAdmAlugados > 0 ? `-${formatCurrency(cityFinancialsTotals.taxaAdmAlugados)}` : formatCurrency(0)}</TableCell>
+                  <TableCell className="text-[11px] font-mono tabular-nums text-emerald-700 text-right font-bold border-r border-blue-200">{formatCurrency(cityFinancialsTotals.receitaTotal)}</TableCell>
+                  <TableCell className="text-[10px] font-mono text-blue-700 text-center font-bold">{cityFinancialsTotals.countNaoAlugados}</TableCell>
+                  <TableCell className="text-[11px] font-mono tabular-nums text-slate-800 text-right font-bold">{formatCurrency(cityFinancialsTotals.condNaoAlugados)}</TableCell>
+                  <TableCell className="text-[11px] font-mono tabular-nums text-slate-800 text-right font-bold">{formatCurrency(cityFinancialsTotals.iptuNaoAlugados)}</TableCell>
+                  <TableCell className="text-[11px] font-mono tabular-nums text-red-600 text-right font-bold border-r border-blue-200">-{formatCurrency(cityFinancialsTotals.despesaTotal)}</TableCell>
+                  <TableCell className={`text-[11px] font-mono tabular-nums font-bold text-right ${cityFinancialsTotals.total >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
                     {cityFinancialsTotals.total < 0 ? '-' : ''}{formatCurrency(Math.abs(cityFinancialsTotals.total))}
                   </TableCell>
                 </TableRow>
@@ -877,11 +877,11 @@ const Analytics = () => {
         </div>
 
 
-        <div className="rounded-lg border border-slate-700/50 bg-slate-700/30 overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-700/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div className="flex items-center gap-2">
-              <Users className="h-3.5 w-3.5 text-slate-400" />
-              <h2 className="text-[11px] font-medium text-slate-300 uppercase tracking-widest">Distribuição</h2>
+              <Users className="h-3.5 w-3.5 text-slate-500" />
+              <h2 className="text-[11px] font-medium text-slate-600 uppercase tracking-widest">Distribuição</h2>
             </div>
             <div className="flex gap-1">
               {(['market_value', 'declared_value', 'valor_aluguel'] as const).map(m => (
@@ -890,8 +890,8 @@ const Analytics = () => {
                   onClick={() => setDistributionMetric(m)}
                   className={`px-2.5 py-1 rounded text-[10px] uppercase tracking-wider transition-colors ${
                     distributionMetric === m
-                      ? 'bg-slate-600 text-slate-100'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
+                      ? 'bg-slate-600 text-slate-900'
+                      : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
                   }`}
                 >
                   {m === 'market_value' ? 'Mercado' : m === 'declared_value' ? 'Declarado' : 'Aluguel'}
@@ -902,76 +902,76 @@ const Analytics = () => {
           <div className="p-3 sm:p-4 space-y-3 sm:space-y-4 bg-slate-900/40">
             <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
               {/* Por Tipo */}
-              <div className="rounded-md border border-slate-600/60 bg-slate-800/60 shadow-sm shadow-black/20">
-                <div className="px-3 py-2 border-b-2 border-slate-600/50 bg-slate-700/40 flex items-center gap-2 rounded-t-md">
+              <div className="rounded-md border border-slate-600/60 bg-[hsl(220_14%_93%)]/60 shadow-sm shadow-black/20">
+                <div className="px-3 py-2 border-b-2 border-slate-600/50 bg-white flex items-center gap-2 rounded-t-md">
                   <Building2 className="h-3 w-3 text-primary" />
-                  <span className="text-[10px] font-semibold text-slate-200 uppercase tracking-wider">Por Tipo</span>
+                  <span className="text-[10px] font-semibold text-slate-800 uppercase tracking-wider">Por Tipo</span>
                 </div>
                 <div className="max-h-48 overflow-y-auto">
                   {propertiesByType.map((item, idx) => (
                     <div key={idx} onClick={() => openDialog(`Tipo: ${item.name}`, `${item.count} imóveis • ${formatCurrency(item.value)}`, item.properties)}
-                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 py-2 px-3 cursor-pointer hover:bg-slate-700/30 transition-colors border-b border-slate-700/40 last:border-0">
-                      <span className="text-[11px] text-slate-300 sm:truncate sm:flex-1 sm:mr-3 break-words">{item.name}</span>
+                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 py-2 px-3 cursor-pointer hover:bg-white transition-colors border-b border-slate-200 last:border-0">
+                      <span className="text-[11px] text-slate-600 sm:truncate sm:flex-1 sm:mr-3 break-words">{item.name}</span>
                       <div className="flex items-center justify-end gap-3 shrink-0">
-                        <span className="text-[10px] font-mono text-slate-400">{item.count}</span>
-                        <span className="text-[11px] font-semibold text-slate-200 tabular-nums font-mono whitespace-nowrap">{formatCurrency(item.value)}</span>
+                        <span className="text-[10px] font-mono text-slate-500">{item.count}</span>
+                        <span className="text-[11px] font-semibold text-slate-800 tabular-nums font-mono whitespace-nowrap">{formatCurrency(item.value)}</span>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
               {/* Por Cidade */}
-              <div className="rounded-md border border-slate-600/60 bg-slate-800/60 shadow-sm shadow-black/20">
-                <div className="px-3 py-2 border-b-2 border-slate-600/50 bg-slate-700/40 flex items-center gap-2 rounded-t-md">
+              <div className="rounded-md border border-slate-600/60 bg-[hsl(220_14%_93%)]/60 shadow-sm shadow-black/20">
+                <div className="px-3 py-2 border-b-2 border-slate-600/50 bg-white flex items-center gap-2 rounded-t-md">
                   <Home className="h-3 w-3 text-primary" />
-                  <span className="text-[10px] font-semibold text-slate-200 uppercase tracking-wider">Por Cidade</span>
+                  <span className="text-[10px] font-semibold text-slate-800 uppercase tracking-wider">Por Cidade</span>
                 </div>
                 <div className="max-h-48 overflow-y-auto">
                   {propertiesByCity.map((item, idx) => (
                     <div key={idx} onClick={() => openDialog(`Cidade: ${item.name}`, `${item.count} imóveis • ${formatCurrency(item.value)}`, item.properties)}
-                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 py-2 px-3 cursor-pointer hover:bg-slate-700/30 transition-colors border-b border-slate-700/40 last:border-0">
-                      <span className="text-[11px] text-slate-300 sm:truncate sm:flex-1 sm:mr-3 break-words">{item.name}</span>
+                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 py-2 px-3 cursor-pointer hover:bg-white transition-colors border-b border-slate-200 last:border-0">
+                      <span className="text-[11px] text-slate-600 sm:truncate sm:flex-1 sm:mr-3 break-words">{item.name}</span>
                       <div className="flex items-center justify-end gap-3 shrink-0">
-                        <span className="text-[10px] font-mono text-slate-400">{item.count}</span>
-                        <span className="text-[11px] font-semibold text-slate-200 tabular-nums font-mono whitespace-nowrap">{formatCurrency(item.value)}</span>
+                        <span className="text-[10px] font-mono text-slate-500">{item.count}</span>
+                        <span className="text-[11px] font-semibold text-slate-800 tabular-nums font-mono whitespace-nowrap">{formatCurrency(item.value)}</span>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
               {/* Por Proprietário Papel */}
-              <div className="rounded-md border border-slate-600/60 bg-slate-800/60 shadow-sm shadow-black/20">
-                <div className="px-3 py-2 border-b-2 border-slate-600/50 bg-slate-700/40 flex items-center gap-2 rounded-t-md">
+              <div className="rounded-md border border-slate-600/60 bg-[hsl(220_14%_93%)]/60 shadow-sm shadow-black/20">
+                <div className="px-3 py-2 border-b-2 border-slate-600/50 bg-white flex items-center gap-2 rounded-t-md">
                   <FileCheck className="h-3 w-3 text-primary" />
-                  <span className="text-[10px] font-semibold text-slate-200 uppercase tracking-wider">Por Proprietário (Papel)</span>
+                  <span className="text-[10px] font-semibold text-slate-800 uppercase tracking-wider">Por Proprietário (Papel)</span>
                 </div>
                 <div className="max-h-48 overflow-y-auto">
                   {proprietariosPapel.map((item, idx) => (
                     <div key={idx} onClick={() => openDialog(`Proprietário (Papel): ${item.name}`, `${item.count} imóveis • ${formatCurrency(item.value)}`, item.properties)}
-                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 py-2 px-3 cursor-pointer hover:bg-slate-700/30 transition-colors border-b border-slate-700/40 last:border-0">
-                      <span className="text-[11px] text-slate-300 sm:truncate sm:flex-1 sm:mr-3 break-words">{item.name}</span>
+                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 py-2 px-3 cursor-pointer hover:bg-white transition-colors border-b border-slate-200 last:border-0">
+                      <span className="text-[11px] text-slate-600 sm:truncate sm:flex-1 sm:mr-3 break-words">{item.name}</span>
                       <div className="flex items-center justify-end gap-3 shrink-0">
-                        <span className="text-[10px] font-mono text-slate-400">{item.count}</span>
-                        <span className="text-[11px] font-semibold text-slate-200 tabular-nums font-mono whitespace-nowrap">{formatCurrency(item.value)}</span>
+                        <span className="text-[10px] font-mono text-slate-500">{item.count}</span>
+                        <span className="text-[11px] font-semibold text-slate-800 tabular-nums font-mono whitespace-nowrap">{formatCurrency(item.value)}</span>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
               {/* Por Proprietário Matrícula */}
-              <div className="rounded-md border border-slate-600/60 bg-slate-800/60 shadow-sm shadow-black/20">
-                <div className="px-3 py-2 border-b-2 border-slate-600/50 bg-slate-700/40 flex items-center gap-2 rounded-t-md">
+              <div className="rounded-md border border-slate-600/60 bg-[hsl(220_14%_93%)]/60 shadow-sm shadow-black/20">
+                <div className="px-3 py-2 border-b-2 border-slate-600/50 bg-white flex items-center gap-2 rounded-t-md">
                   <Users className="h-3 w-3 text-primary" />
-                  <span className="text-[10px] font-semibold text-slate-200 uppercase tracking-wider">Por Proprietário (Matrícula)</span>
+                  <span className="text-[10px] font-semibold text-slate-800 uppercase tracking-wider">Por Proprietário (Matrícula)</span>
                 </div>
                 <div className="max-h-48 overflow-y-auto">
                   {proprietariosMatricula.map((item, idx) => (
                     <div key={idx} onClick={() => openDialog(`Proprietário (Matrícula): ${item.name}`, `${item.count} imóveis • ${formatCurrency(item.value)}`, item.properties)}
-                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 py-2 px-3 cursor-pointer hover:bg-slate-700/30 transition-colors border-b border-slate-700/40 last:border-0">
-                      <span className="text-[11px] text-slate-300 sm:truncate sm:flex-1 sm:mr-3 break-words">{item.name}</span>
+                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 py-2 px-3 cursor-pointer hover:bg-white transition-colors border-b border-slate-200 last:border-0">
+                      <span className="text-[11px] text-slate-600 sm:truncate sm:flex-1 sm:mr-3 break-words">{item.name}</span>
                       <div className="flex items-center justify-end gap-3 shrink-0">
-                        <span className="text-[10px] font-mono text-slate-400">{item.count}</span>
-                        <span className="text-[11px] font-semibold text-slate-200 tabular-nums font-mono whitespace-nowrap">{formatCurrency(item.value)}</span>
+                        <span className="text-[10px] font-mono text-slate-500">{item.count}</span>
+                        <span className="text-[11px] font-semibold text-slate-800 tabular-nums font-mono whitespace-nowrap">{formatCurrency(item.value)}</span>
                       </div>
                     </div>
                   ))}
@@ -982,15 +982,15 @@ const Analytics = () => {
         </div>
 
         {/* ─── Ranking por Valor ─── */}
-        <div className="rounded-lg border border-slate-700/50 bg-slate-700/30 overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-700/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div className="flex items-center gap-2">
-              <BarChart3 className="h-3.5 w-3.5 text-slate-400" />
-              <h2 className="text-[11px] font-medium text-slate-300 uppercase tracking-widest">Ranking por Valor</h2>
+              <BarChart3 className="h-3.5 w-3.5 text-slate-500" />
+              <h2 className="text-[11px] font-medium text-slate-600 uppercase tracking-widest">Ranking por Valor</h2>
             </div>
             <div className="flex gap-2">
               <Select value={rankingMetric} onValueChange={(v) => setRankingMetric(v as typeof rankingMetric)}>
-                <SelectTrigger className="w-[130px] h-7 text-[10px] bg-slate-900/50 border-slate-700/50 text-slate-300">
+                <SelectTrigger className="w-[130px] h-7 text-[10px] bg-slate-900/50 border-slate-200 text-slate-600">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1002,7 +1002,7 @@ const Analytics = () => {
                 </SelectContent>
               </Select>
               <Select value={String(rankingLimit)} onValueChange={(v) => setRankingLimit(Number(v))}>
-                <SelectTrigger className="w-[70px] h-7 text-[10px] bg-slate-900/50 border-slate-700/50 text-slate-300">
+                <SelectTrigger className="w-[70px] h-7 text-[10px] bg-slate-900/50 border-slate-200 text-slate-600">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1014,34 +1014,34 @@ const Analytics = () => {
               </Select>
               <button
                 onClick={() => setRankingSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                className="px-2 py-1 rounded text-[10px] text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 transition-colors flex items-center gap-1"
+                className="px-2 py-1 rounded text-[10px] text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors flex items-center gap-1"
               >
                 {rankingSortOrder === 'desc' ? <><ArrowDown className="h-3 w-3" /> Top</> : <><ArrowUp className="h-3 w-3" /> Base</>}
               </button>
             </div>
           </div>
           {/* Mobile: Cards */}
-          <div className="sm:hidden divide-y divide-slate-700/40 max-h-[700px] overflow-y-auto">
+          <div className="sm:hidden divide-y divide-slate-200 max-h-[700px] overflow-y-auto">
             {rankedProperties.map((property, idx) => {
               const maxValue = rankedProperties[0] ? getPropertyValue(rankedProperties[0]) : 1;
               const currentValue = getPropertyValue(property);
               const barWidth = maxValue > 0 ? (currentValue / maxValue) * 100 : 0;
               return (
-                <Link key={property.id} to={`/property/${property.id}`} className="block px-3 py-2.5 active:bg-slate-700/30">
+                <Link key={property.id} to={`/property/${property.id}`} className="block px-3 py-2.5 active:bg-white">
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-[10px] font-mono text-slate-400 shrink-0">#{idx + 1}</span>
-                      <span className="text-[11px] text-slate-100 font-medium truncate">{getPropertyAddress(property)}</span>
+                      <span className="text-[10px] font-mono text-slate-500 shrink-0">#{idx + 1}</span>
+                      <span className="text-[11px] text-slate-900 font-medium truncate">{getPropertyAddress(property)}</span>
                     </div>
                     {property.alugado ? (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-medium shrink-0">Alugado</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-700 font-medium shrink-0">Alugado</span>
                     ) : (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-600/50 text-slate-400 font-medium shrink-0">Vago</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-600/50 text-slate-500 font-medium shrink-0">Vago</span>
                     )}
                   </div>
-                  <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1">
+                  <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1">
                     <span>{getTipoLabel(property.tipo_imovel)} • {property.cidade}</span>
-                    <span className="text-slate-100 font-mono tabular-nums font-semibold">{formatCurrency(currentValue)}</span>
+                    <span className="text-slate-900 font-mono tabular-nums font-semibold">{formatCurrency(currentValue)}</span>
                   </div>
                   <div className="h-1 rounded-full bg-blue-400/60" style={{ width: `${barWidth}%`, minWidth: barWidth > 0 ? '3px' : '0px' }} />
                 </Link>
@@ -1053,14 +1053,14 @@ const Analytics = () => {
           <div className="hidden sm:block overflow-x-auto max-h-[700px] overflow-y-auto">
             <table className="w-full text-xs table-fixed">
               <thead className="sticky top-0 bg-slate-700/60 z-10">
-                <tr className="border-b border-slate-700/40">
-                  <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 w-8">#</th>
-                  <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 w-[35%]">Endereço</th>
-                  <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 w-16">Tipo</th>
-                  <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 w-28">Cidade</th>
-                  <th className="text-right py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 w-28">{getRankingMetricLabel()}</th>
-                  <th className="text-center py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 w-16">Status</th>
-                  <th className="py-2 px-3 text-[10px] text-slate-400 uppercase tracking-widest" />
+                <tr className="border-b border-slate-200">
+                  <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 w-8">#</th>
+                  <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 w-[35%]">Endereço</th>
+                  <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 w-16">Tipo</th>
+                  <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 w-28">Cidade</th>
+                  <th className="text-right py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 w-28">{getRankingMetricLabel()}</th>
+                  <th className="text-center py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 w-16">Status</th>
+                  <th className="py-2 px-3 text-[10px] text-slate-500 uppercase tracking-widest" />
                 </tr>
               </thead>
               <tbody>
@@ -1069,21 +1069,21 @@ const Analytics = () => {
                   const currentValue = getPropertyValue(property);
                   const barWidth = maxValue > 0 ? (currentValue / maxValue) * 100 : 0;
                   return (
-                    <tr key={property.id} className="border-b border-slate-700/40 hover:bg-slate-700/20 transition-colors">
-                      <td className="py-1.5 px-3 text-slate-300 font-mono text-[10px]">{idx + 1}</td>
+                    <tr key={property.id} className="border-b border-slate-200 hover:bg-slate-100 transition-colors">
+                      <td className="py-1.5 px-3 text-slate-600 font-mono text-[10px]">{idx + 1}</td>
                       <td className="py-1.5 px-3">
-                        <Link to={`/property/${property.id}`} className="text-slate-200 text-[11px] hover:text-blue-400 transition-colors truncate block">
+                        <Link to={`/property/${property.id}`} className="text-slate-800 text-[11px] hover:text-blue-600 transition-colors truncate block">
                           {getPropertyAddress(property)}
                         </Link>
                       </td>
-                      <td className="py-1.5 px-3 text-[10px] text-slate-400">{getTipoLabel(property.tipo_imovel)}</td>
-                      <td className="py-1.5 px-3 text-[10px] text-slate-400 truncate">{property.cidade}</td>
-                      <td className="text-right py-1.5 px-3 font-medium text-slate-100 tabular-nums font-mono text-[11px]">{formatCurrency(currentValue)}</td>
+                      <td className="py-1.5 px-3 text-[10px] text-slate-500">{getTipoLabel(property.tipo_imovel)}</td>
+                      <td className="py-1.5 px-3 text-[10px] text-slate-500 truncate">{property.cidade}</td>
+                      <td className="text-right py-1.5 px-3 font-medium text-slate-900 tabular-nums font-mono text-[11px]">{formatCurrency(currentValue)}</td>
                       <td className="py-1.5 px-3 text-center">
                         {property.alugado ? (
-                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-medium">Alugado</span>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-700 font-medium">Alugado</span>
                         ) : (
-                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-600/50 text-slate-400 font-medium">Vago</span>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-600/50 text-slate-500 font-medium">Vago</span>
                         )}
                       </td>
                       <td className="py-1.5 px-3">
@@ -1098,38 +1098,38 @@ const Analytics = () => {
         </div>
 
         {/* ─── Pendentes de Validação ─── */}
-        <div className="rounded-lg border border-slate-700/50 bg-slate-700/30 overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-700/40 flex items-center gap-2">
+        <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-200 flex items-center gap-2">
             <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
-            <h2 className="text-[11px] font-medium text-slate-300 uppercase tracking-widest">Pendentes de Validação</h2>
+            <h2 className="text-[11px] font-medium text-slate-600 uppercase tracking-widest">Pendentes de Validação</h2>
             <span className="text-[10px] font-mono text-amber-400/80 ml-1">{naoValidadosProperties.length}</span>
           </div>
           {naoValidadosProperties.length > 0 ? (
             <>
               {/* Mobile: Cards */}
-              <div className="sm:hidden divide-y divide-slate-700/40 max-h-[500px] overflow-y-auto">
+              <div className="sm:hidden divide-y divide-slate-200 max-h-[500px] overflow-y-auto">
                 {naoValidadosProperties.map((property, index) => (
-                  <Link key={property.id} to={`/property/${property.id}`} className="block px-3 py-2.5 active:bg-slate-700/30">
+                  <Link key={property.id} to={`/property/${property.id}`} className="block px-3 py-2.5 active:bg-white">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[10px] font-mono text-slate-400 shrink-0">#{index + 1}</span>
-                        <span className="text-[11px] text-slate-100 font-medium truncate">{getPropertyAddressForSort(property)}</span>
+                        <span className="text-[10px] font-mono text-slate-500 shrink-0">#{index + 1}</span>
+                        <span className="text-[11px] text-slate-900 font-medium truncate">{getPropertyAddressForSort(property)}</span>
                       </div>
                     </div>
-                    <div className="text-[10px] text-slate-400 mb-1.5">
+                    <div className="text-[10px] text-slate-500 mb-1.5">
                       {getTipoLabel(property.tipo_imovel)} • {property.cidade} - {property.estado}
                     </div>
                     <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
                       <span className="text-slate-500">Matrícula</span>
-                      <span className="text-right font-mono text-slate-300">{property.numero_matricula || '—'}</span>
+                      <span className="text-right font-mono text-slate-600">{property.numero_matricula || '—'}</span>
                       <span className="text-slate-500">Prop. Matr.</span>
-                      <span className="text-right text-slate-300 truncate">{property.proprietario_matricula || '—'}</span>
+                      <span className="text-right text-slate-600 truncate">{property.proprietario_matricula || '—'}</span>
                       <span className="text-slate-500">Prop. Papel</span>
-                      <span className="text-right text-slate-300 truncate">{property.proprietario_papel || '—'}</span>
+                      <span className="text-right text-slate-600 truncate">{property.proprietario_papel || '—'}</span>
                       <span className="text-slate-500">Declarado</span>
-                      <span className="text-right font-mono tabular-nums text-slate-300">{formatCurrency(property.declared_value)}</span>
+                      <span className="text-right font-mono tabular-nums text-slate-600">{formatCurrency(property.declared_value)}</span>
                       <span className="text-slate-500">Mercado</span>
-                      <span className="text-right font-mono tabular-nums text-slate-100 font-medium">{formatCurrency(property.market_value || 0)}</span>
+                      <span className="text-right font-mono tabular-nums text-slate-900 font-medium">{formatCurrency(property.market_value || 0)}</span>
                     </div>
                   </Link>
                 ))}
@@ -1139,50 +1139,50 @@ const Analytics = () => {
               <div className="hidden sm:block overflow-x-auto max-h-[500px] overflow-y-auto">
                 <table className="w-full text-xs">
                   <thead className="sticky top-0 bg-slate-700/60 z-10">
-                    <tr className="border-b border-slate-700/40">
-                      <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 w-8">#</th>
-                      <th onClick={() => togglePendentesSort('endereco')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                    <tr className="border-b border-slate-200">
+                      <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 w-8">#</th>
+                      <th onClick={() => togglePendentesSort('endereco')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
                         <div className="flex items-center">Endereço{getSortIcon('endereco')}</div>
                       </th>
-                      <th onClick={() => togglePendentesSort('tipo_imovel')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                      <th onClick={() => togglePendentesSort('tipo_imovel')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
                         <div className="flex items-center">Tipo{getSortIcon('tipo_imovel')}</div>
                       </th>
-                      <th onClick={() => togglePendentesSort('cidade')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                      <th onClick={() => togglePendentesSort('cidade')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
                         <div className="flex items-center">Cidade{getSortIcon('cidade')}</div>
                       </th>
-                      <th onClick={() => togglePendentesSort('numero_matricula')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                      <th onClick={() => togglePendentesSort('numero_matricula')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
                         <div className="flex items-center">Matrícula{getSortIcon('numero_matricula')}</div>
                       </th>
-                      <th onClick={() => togglePendentesSort('proprietario_matricula')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                      <th onClick={() => togglePendentesSort('proprietario_matricula')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
                         <div className="flex items-center">Prop. Matrícula{getSortIcon('proprietario_matricula')}</div>
                       </th>
-                      <th onClick={() => togglePendentesSort('proprietario_papel')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                      <th onClick={() => togglePendentesSort('proprietario_papel')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
                         <div className="flex items-center">Prop. Papel{getSortIcon('proprietario_papel')}</div>
                       </th>
-                      <th onClick={() => togglePendentesSort('declared_value')} className="text-right py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                      <th onClick={() => togglePendentesSort('declared_value')} className="text-right py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
                         <div className="flex items-center justify-end">Declarado{getSortIcon('declared_value')}</div>
                       </th>
-                      <th onClick={() => togglePendentesSort('market_value')} className="text-right py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer hover:text-slate-200 select-none">
+                      <th onClick={() => togglePendentesSort('market_value')} className="text-right py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
                         <div className="flex items-center justify-end">Mercado{getSortIcon('market_value')}</div>
                       </th>
                     </tr>
                   </thead>
                   <tbody>
                     {naoValidadosProperties.map((property, index) => (
-                      <tr key={property.id} className="border-b border-slate-700/40 hover:bg-slate-700/20 transition-colors">
-                        <td className="py-1.5 px-3 text-slate-400 font-mono text-[10px]">{index + 1}</td>
+                      <tr key={property.id} className="border-b border-slate-200 hover:bg-slate-100 transition-colors">
+                        <td className="py-1.5 px-3 text-slate-500 font-mono text-[10px]">{index + 1}</td>
                         <td className="py-1.5 px-3">
-                          <Link to={`/property/${property.id}`} className="text-slate-200 text-[11px] hover:text-blue-400 transition-colors truncate block max-w-[200px]">
+                          <Link to={`/property/${property.id}`} className="text-slate-800 text-[11px] hover:text-blue-600 transition-colors truncate block max-w-[200px]">
                             {getPropertyAddressForSort(property)}
                           </Link>
                         </td>
-                        <td className="py-1.5 px-3 text-[10px] text-slate-400">{getTipoLabel(property.tipo_imovel)}</td>
-                        <td className="py-1.5 px-3 text-[10px] text-slate-400">{property.cidade} - {property.estado}</td>
-                        <td className="py-1.5 px-3 text-[10px] text-slate-400 font-mono">{property.numero_matricula || '—'}</td>
-                        <td className="py-1.5 px-3 text-[10px] text-slate-400 truncate max-w-[150px]">{property.proprietario_matricula || '—'}</td>
-                        <td className="py-1.5 px-3 text-[10px] text-slate-400 truncate max-w-[150px]">{property.proprietario_papel || '—'}</td>
-                        <td className="text-right py-1.5 px-3 text-[11px] text-slate-300 font-mono tabular-nums">{formatCurrency(property.declared_value)}</td>
-                        <td className="text-right py-1.5 px-3 text-[11px] text-slate-200 font-mono tabular-nums font-medium">{formatCurrency(property.market_value || 0)}</td>
+                        <td className="py-1.5 px-3 text-[10px] text-slate-500">{getTipoLabel(property.tipo_imovel)}</td>
+                        <td className="py-1.5 px-3 text-[10px] text-slate-500">{property.cidade} - {property.estado}</td>
+                        <td className="py-1.5 px-3 text-[10px] text-slate-500 font-mono">{property.numero_matricula || '—'}</td>
+                        <td className="py-1.5 px-3 text-[10px] text-slate-500 truncate max-w-[150px]">{property.proprietario_matricula || '—'}</td>
+                        <td className="py-1.5 px-3 text-[10px] text-slate-500 truncate max-w-[150px]">{property.proprietario_papel || '—'}</td>
+                        <td className="text-right py-1.5 px-3 text-[11px] text-slate-600 font-mono tabular-nums">{formatCurrency(property.declared_value)}</td>
+                        <td className="text-right py-1.5 px-3 text-[11px] text-slate-800 font-mono tabular-nums font-medium">{formatCurrency(property.market_value || 0)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1192,7 +1192,7 @@ const Analytics = () => {
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <CheckCircle2 className="h-8 w-8 text-emerald-500/60 mb-2" />
-              <p className="text-sm text-emerald-400">Todos os imóveis estão validados</p>
+              <p className="text-sm text-emerald-700">Todos os imóveis estão validados</p>
             </div>
           )}
         </div>
@@ -1226,7 +1226,7 @@ const Analytics = () => {
             {/* MOBILE: Card list (no horizontal scroll) */}
             <div className="sm:hidden h-full overflow-y-auto rounded-lg border border-slate-200 bg-white" style={{ WebkitOverflowScrolling: 'touch' }}>
               {sortedDialogProperties.length === 0 ? (
-                <div className="text-center text-slate-400 py-12 text-sm">Nenhum imóvel encontrado</div>
+                <div className="text-center text-slate-500 py-12 text-sm">Nenhum imóvel encontrado</div>
               ) : (
                 <ul className="divide-y divide-slate-100">
                   {sortedDialogProperties.map((property, index) => (
@@ -1360,7 +1360,7 @@ const Analytics = () => {
                         ))}
                         {sortedDialogProperties.length === 0 && (
                           <tr>
-                            <td colSpan={9} className="text-center text-slate-400 py-12 text-sm">
+                            <td colSpan={9} className="text-center text-slate-500 py-12 text-sm">
                               Nenhum imóvel encontrado
                             </td>
                           </tr>
@@ -1456,7 +1456,7 @@ const Analytics = () => {
                     ))}
                     {sortedDialogProperties.length === 0 && (
                       <tr>
-                        <td colSpan={14} className="text-center text-slate-400 py-12 text-sm">
+                        <td colSpan={14} className="text-center text-slate-500 py-12 text-sm">
                           Nenhum imóvel encontrado
                         </td>
                       </tr>
