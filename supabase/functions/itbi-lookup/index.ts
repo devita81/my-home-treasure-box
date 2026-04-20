@@ -407,14 +407,26 @@ serve(async (req) => {
       `[itbi-lookup] Alvo: nº ${numeroLimpo} | nome=${nomePrincipal.join(" ")} | honoríficos=${honorificos.join(" ") || "—"}`,
     );
 
-    // 1) Filtra no banco por número exato (deve reduzir muito o universo)
-    const { data: numMatches, error: numErr } = await userClient
-      .from("itbi_transactions")
-      .select(
-        "id, sql_iptu, logradouro, numero, complemento, bairro, cep, data_transacao, valor_transacao, valor_venal, area_construida, logradouro_normalizado, numero_limpo",
-      )
-      .eq("numero_limpo", numeroLimpo)
-      .limit(2000);
+    // 1) Filtra no banco por número exato — pagina para superar o limite
+    //    padrão de 1000 do PostgREST e trazer TODA a base com aquele número.
+    const PAGE = 1000;
+    let from = 0;
+    const numMatches: any[] = [];
+    while (true) {
+      const { data: page, error: pageErr } = await userClient
+        .from("itbi_transactions")
+        .select(
+          "id, sql_iptu, logradouro, numero, complemento, bairro, cep, data_transacao, valor_transacao, valor_venal, area_construida, logradouro_normalizado, numero_limpo",
+        )
+        .eq("numero_limpo", numeroLimpo)
+        .range(from, from + PAGE - 1);
+      if (pageErr) throw pageErr;
+      if (!page || page.length === 0) break;
+      numMatches.push(...page);
+      if (page.length < PAGE) break;
+      from += PAGE;
+    }
+    const numErr = null;
 
     if (numErr) throw numErr;
     console.log(`[itbi-lookup] ${numMatches?.length ?? 0} registros com número ${numeroLimpo}`);
