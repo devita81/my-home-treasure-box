@@ -625,38 +625,34 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
       const blob = doc.output('blob');
       const file = new File([blob], fileName, { type: 'application/pdf' });
 
-      // Mobile: try native share (WhatsApp, Email, Files…) — this gives a REAL .pdf file, not a URL.
-      if (isMobile && (navigator as any).canShare && (navigator as any).canShare({ files: [file] })) {
+      const triggerBlobDownload = () => {
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = fileName;
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+      };
+
+      if (isMobile && (navigator as any).canShare?.({ files: [file] })) {
         try {
           await (navigator as any).share({ files: [file], title: fileName });
           toast.success('PDF compartilhado!');
           return;
         } catch (shareErr: any) {
-          // User cancelled — don't fall back, just exit
           if (shareErr?.name === 'AbortError') return;
-          // Other share errors → fall through to blob open
         }
       }
 
-      // iOS/Android fallback: open PDF in new tab so the OS native viewer renders it
       if (isMobile) {
-        const blobUrl = URL.createObjectURL(blob);
-        const newWin = window.open(blobUrl, '_blank');
-        if (!newWin) {
-          const a = document.createElement('a');
-          a.href = blobUrl;
-          a.download = fileName;
-          a.rel = 'noopener';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-        }
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
-        toast.success('PDF aberto. Use o botão de compartilhar do navegador para salvar.');
+        triggerBlobDownload();
+        toast.success('PDF baixado com sucesso!');
         return;
       }
 
-      // Desktop: native save dialog
       doc.save(fileName);
       toast.success('Relatório PDF gerado com sucesso!');
     } catch (err) {
