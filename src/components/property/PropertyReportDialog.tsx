@@ -623,13 +623,17 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
       const isMobile = isIOS || isAndroid || /webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
 
       const blob = doc.output('blob');
-      const file = new File([blob], fileName, { type: 'application/pdf' });
+      const mobileSafeFileName = 'relatorio-imovel.pdf';
+      const mobileFile = new File([blob], mobileSafeFileName, {
+        type: 'application/pdf',
+        lastModified: Date.now(),
+      });
 
-      const triggerBlobDownload = () => {
+      const triggerBlobDownload = (downloadName: string) => {
         const blobUrl = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = blobUrl;
-        a.download = fileName;
+        a.download = downloadName;
         a.rel = 'noopener';
         document.body.appendChild(a);
         a.click();
@@ -637,18 +641,19 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
         setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
       };
 
-      if (isMobile && (navigator as any).canShare?.({ files: [file] })) {
+      if (isMobile && typeof navigator.share === 'function') {
         try {
-          await (navigator as any).share({ files: [file] });
+          await navigator.share({ files: [mobileFile] });
           toast.success('PDF compartilhado!');
           return;
         } catch (shareErr: any) {
           if (shareErr?.name === 'AbortError') return;
+          logger.warn('Native PDF share failed, falling back to download', shareErr);
         }
       }
 
       if (isMobile) {
-        triggerBlobDownload();
+        triggerBlobDownload(mobileSafeFileName);
         toast.success('PDF baixado com sucesso!');
         return;
       }
