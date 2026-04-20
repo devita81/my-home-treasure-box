@@ -1257,7 +1257,7 @@ const Analytics = () => {
                           const iptuMes = (property.iptu_value || 0) / 12;
                           const txAdm = property.taxa_administracao || 0;
                           const total = property.alugado
-                            ? aluguel - cond - txAdm
+                            ? aluguel - txAdm
                             : -(cond + iptuMes + txAdm);
                           return (
                             <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] font-mono tabular-nums text-slate-700">
@@ -1348,7 +1348,7 @@ const Analytics = () => {
                               const iptuMes = (property.iptu_value || 0) / 12;
                               const txAdm = property.taxa_administracao || 0;
                               const rowTotal = property.alugado
-                                ? aluguel - cond - txAdm
+                                ? aluguel - txAdm
                                 : -(cond + iptuMes + txAdm);
                               return (
                                 <td className={`text-right py-2 px-3 text-[11px] font-mono tabular-nums font-bold whitespace-nowrap ${rowTotal >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
@@ -1376,7 +1376,7 @@ const Analytics = () => {
                           const cond = p.valor_condominio || 0;
                           const iptuMes = (p.iptu_value || 0) / 12;
                           const txAdm = p.taxa_administracao || 0;
-                          return acc + (p.alugado ? aluguel - cond - txAdm : -(cond + iptuMes + txAdm));
+                          return acc + (p.alugado ? aluguel - txAdm : -(cond + iptuMes + txAdm));
                         }, 0);
                         return (
                           <tfoot className="sticky bottom-0 bg-blue-50 border-t-2 border-blue-300 z-10">
