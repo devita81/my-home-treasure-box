@@ -1310,6 +1310,7 @@ const Analytics = () => {
                           <SortableHeader field="valor_condominio" label="Cond." />
                           <SortableHeader field="iptu_value" label="IPTU/mês" />
                           <th className="text-right py-2 px-3 text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap">Tx Adm</th>
+                          <th className="text-right py-2 px-3 text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap">Total</th>
                         </tr>
                       </thead>
                       <tbody>
