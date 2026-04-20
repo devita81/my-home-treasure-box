@@ -218,7 +218,7 @@ ${tableLines}
 - Área Total: ${area_total ? `${area_total} m²` : 'Não informada'}
 - Quartos: ${quartos || 0} (${suites || 0} suítes)
 - Banheiros: ${banheiros || 0}
-- Vagas de Garagem: ${garagens || 0}`;
+- Vagas de Garagem: ${garagens || 0}${itbiSummary}`;
 
     const systemPrompt = `Você é um analista sênior do mercado imobiliário brasileiro, especializado em avaliação de imóveis, inteligência de mercado e análise estatística de preços por m².
 
