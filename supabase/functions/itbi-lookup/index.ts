@@ -1,5 +1,14 @@
 // itbi-lookup: consulta cache local de transações ITBI e usa GPT-4o (OpenAI)
-// para filtrar matches com confiança ≥95% e inferir valor de mercado.
+// para resolver apenas ambiguidades de HONORÍFICO no nome da rua.
+//
+// LÓGICA (2 chaves fortes apenas):
+//   1. NÚMERO do imóvel — match EXATO (filtro no banco via numero_limpo).
+//   2. NOME do logradouro — separado em [HONORÍFICO] + [NOME PRINCIPAL].
+//      O NOME PRINCIPAL precisa bater 100% (ignorando acentos/caixa).
+//      O HONORÍFICO é tolerante (Coronel ≡ Cel, Doutor ≡ Dr, etc.) e
+//      essa decisão é delegada ao LLM apenas quando houver candidatos.
+//
+// Tudo o mais (bairro, CEP, complemento) é IGNORADO no matching.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -11,161 +20,149 @@ const corsHeaders = {
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
-// Toda a lógica de normalização de logradouros (abreviações honoríficas como
-// CORONEL↔CEL, validação de "rua certa" vs ruído de trigram, etc.) é
-// delegada ao GPT-4o no prompt MATCHING_PROMPT. Aqui só fazemos a busca
-// permissiva de candidatos pelo número do imóvel.
+// === Honoríficos / tipos de via que devem ser separados do "nome principal" ===
+// Inclui tipos de via (RUA, AV, ESTRADA...) e títulos honoríficos (CORONEL, DR...).
+// Tudo aqui é tratado como prefixo descartável para extrair o NOME PRINCIPAL.
+const HONORIFIC_OR_VIA = new Set([
+  // Tipos de via
+  "R", "RUA", "AV", "AVE", "AVENIDA", "AL", "ALAMEDA", "TRAV", "TRAVESSA",
+  "EST", "ESTR", "ESTRADA", "PRC", "PRACA", "LARGO", "RODOVIA", "ROD",
+  "VIA", "VIELA", "PASSAGEM", "PSG", "ACESSO", "BECO", "LADEIRA",
+  // Honoríficos militares
+  "CORONEL", "CEL", "TENENTE", "TEN", "CAPITAO", "CAP", "MAJOR", "MAJ",
+  "GENERAL", "GAL", "GEN", "MARECHAL", "MAL", "ALMIRANTE", "ALM",
+  "BRIGADEIRO", "BRIG", "SARGENTO", "SGT", "SOLDADO",
+  // Honoríficos civis
+  "DOUTOR", "DR", "DOUTORA", "DRA", "PROFESSOR", "PROF", "PROFESSORA", "PROFA",
+  "ENGENHEIRO", "ENG", "COMENDADOR", "COMEND", "DESEMBARGADOR", "DES",
+  "MONSENHOR", "MONS", "PADRE", "PE", "PRESIDENTE", "PRES", "GOVERNADOR", "GOV",
+  "SENADOR", "SEN", "DEPUTADO", "DEP", "MINISTRO", "MIN",
+  "BARAO", "BAR", "VISCONDE", "VISC", "MARQUES", "MARQ", "DUQUE", "CONDE",
+  "DOM", "FREI", "IRMAO", "IRMA",
+  // Religiosos / topônimos
+  "SAO", "S", "SANTA", "STA", "SANTO", "STO", "NOSSA", "SENHORA", "NSRA",
+  // Conectivos
+  "DA", "DE", "DO", "DAS", "DOS", "E",
+]);
 
+// Remove acentos, pontuação e normaliza para MAIÚSCULAS sem caracteres especiais.
+function strip(s: string): string {
+  return (s ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
-const MATCHING_PROMPT = `Você é um especialista em matching de endereços e análise de valor de mercado usando a base de transações imobiliárias (ITBI) da Prefeitura de São Paulo.
+// Extrai o "núcleo" do nome do logradouro: remove tipos de via, honoríficos
+// e conectivos. O resultado é a parte que DEVE bater 100% entre alvo e candidato.
+// Ex.: "Rua Coronel Melo Oliveira" → ["MELO", "OLIVEIRA"]
+//      "R CEL MELO OLIVEIRA"        → ["MELO", "OLIVEIRA"]
+//      "AV DR ARNALDO"              → ["ARNALDO"]
+function extractCoreName(s: string): string[] {
+  const tokens = strip(s).split(" ").filter(Boolean);
+  const core = tokens.filter((t) => !HONORIFIC_OR_VIA.has(t) && !/^\d+$/.test(t));
+  return core;
+}
 
-Você receberá um endereço estruturado:
-- Tipo do Imóvel (apartamento, casa, garagem, sala comercial, etc.)
-- Nome do Logradouro
-- Número
-- Apartamento / Unidade
-- Complemento
-- Bairro
-- CEP
+// Devolve apenas a parte de honoríficos/tipo-de-via (para o LLM avaliar similaridade).
+function extractHonorificParts(s: string): string[] {
+  const tokens = strip(s).split(" ").filter(Boolean);
+  return tokens.filter((t) => HONORIFIC_OR_VIA.has(t));
+}
 
-E terá acesso a uma base contendo registros do ITBI:
-- Logradouro, Número, Complemento, Bairro, CEP
-- SQL/IPTU
-- Valor de Transação
-- Valor Venal de Referência
-- Data de Transação
-- Área Construída
+// === Prompt do LLM ===
+// O LLM agora tem UM ÚNICO trabalho: confirmar quando o NOME PRINCIPAL
+// é o mesmo e a única diferença está em honorífico/tipo de via.
+const MATCHING_PROMPT = `Você é um validador de endereços do ITBI da Prefeitura de São Paulo.
 
-OBJETIVO FINAL
-Encontrar transações do MESMO IMÓVEL (mesma unidade) com confiança ≥95% e retornar os valores negociados.
+CONTEXTO
+Você recebe:
+- Um endereço-alvo (logradouro + número).
+- Uma lista de candidatos JÁ PRÉ-FILTRADOS por número EXATO e por NOME PRINCIPAL idêntico (sem acentos).
 
-⚠️ REGRA ABSOLUTA — TIPO DO IMÓVEL (CRÍTICO)
-Um único endereço (rua + número) contém VÁRIAS UNIDADES diferentes no ITBI:
-apartamentos, garagens/vagas/box, depósitos, salas comerciais, lojas, etc.
+Seu papel é APENAS:
+1. Validar que o NOME PRINCIPAL do logradouro do candidato é o mesmo do alvo
+   (ignorando acentos/caixa). Se não for, descarte.
+2. Decidir se a parte de HONORÍFICO/TIPO DE VIA do candidato é compatível com a do alvo.
+   Trate como EQUIVALENTES (não há diferença entre):
+   - CORONEL ≡ CEL
+   - TENENTE ≡ TEN
+   - CAPITÃO ≡ CAP
+   - GENERAL ≡ GAL ≡ GEN
+   - MARECHAL ≡ MAL
+   - DOUTOR ≡ DR / DOUTORA ≡ DRA
+   - PROFESSOR ≡ PROF
+   - ENGENHEIRO ≡ ENG
+   - COMENDADOR ≡ COMEND
+   - DESEMBARGADOR ≡ DES
+   - MONSENHOR ≡ MONS
+   - PADRE ≡ PE
+   - PRESIDENTE ≡ PRES
+   - GOVERNADOR ≡ GOV
+   - SENADOR ≡ SEN
+   - DEPUTADO ≡ DEP
+   - BARÃO ≡ BAR / VISCONDE ≡ VISC / MARQUÊS ≡ MARQ
+   - SÃO ≡ S / SANTA ≡ STA / SANTO ≡ STO
+   - RUA ≡ R / AVENIDA ≡ AV / ALAMEDA ≡ AL / TRAVESSA ≡ TRAV / ESTRADA ≡ EST / PRAÇA ≡ PRC
+3. Se o candidato não tem honorífico mas o alvo tem (ou vice-versa) e o NOME PRINCIPAL bate, ACEITE.
+4. Se houver honoríficos diferentes E incompatíveis (ex.: alvo "Coronel" vs candidato "Doutor"), DESCARTE.
 
-VOCÊ DEVE FILTRAR PELO TIPO CORRETO antes de qualquer outra análise:
-
-➡️ Se o imóvel de entrada é APARTAMENTO / CASA / RESIDENCIAL:
-   - DESCARTAR todo registro cujo complemento contenha:
-     "GARAGEM", "GAR", "VAGA", "BOX", "ESTACIONAMENTO",
-     "DEPOSITO", "DEPÓSITO", "DEP", "HOBBY BOX", "CUBICULO"
-   - DESCARTAR registros com área_construída < 25 m² (típico de vaga/box)
-   - DESCARTAR registros com valor_transacao muito baixo (< R$ 50.000) em zonas nobres — sinal de vaga
-
-➡️ Se o imóvel é GARAGEM / VAGA:
-   - manter apenas registros com complemento de garagem/vaga/box
-
-➡️ Se o imóvel é COMERCIAL (sala/loja):
-   - manter apenas registros com complemento "SALA", "LOJA", "CONJ", "CONJUNTO"
-
-NUNCA misture tipos diferentes no mesmo resultado.
-
-NORMALIZAÇÃO
-Aplicar para input e base:
-- MAIÚSCULAS, remover acentos e pontuação
-- padronizar: RUA → R, AVENIDA → AV, ALAMEDA → AL
-- TRATAR ABREVIAÇÕES DE TÍTULOS HONORÍFICOS COMO EQUIVALENTES:
-  CORONEL=CEL, TENENTE=TEN, CAPITÃO=CAP, GENERAL=GAL/GEN, MARECHAL=MAL,
-  DOUTOR=DR, PROFESSOR=PROF, ENGENHEIRO=ENG, COMENDADOR=COMEND,
-  DESEMBARGADOR=DES, MONSENHOR=MONS, PADRE=PE, SÃO=S, SANTA=STA, SANTO=STO,
-  PRESIDENTE=PRES, GOVERNADOR=GOV, SENADOR=SEN, DEPUTADO=DEP, BARÃO=BAR,
-  VISCONDE=VISC, MARQUÊS=MARQ. Ex.: "Coronel Melo Oliveira" ≡ "CEL MELO OLIVEIRA".
-- extrair corretamente nome da rua, número e UNIDADE (apto/conjunto)
-
-MATCHING (após filtro de tipo)
-Score total = 100. Pesos:
-- Nome do logradouro: 60
-- Número do prédio: 35
-- Bairro: 3
-- CEP: 1
-- Complemento: 1
-
-REGRA CENTRAL:
-✔ Rua + número devem bater de forma convincente (score ≥95)
-✔ TODAS as unidades residenciais do MESMO PRÉDIO devem ser retornadas (mesmo logradouro+número, complementos AP/APTO diferentes) — elas servem como referência de mercado para o imóvel.
-✔ Se o usuário informou "apartamento", marque o match exato com flag is_unidade_exata=true e os demais como is_unidade_exata=false (mesmo prédio, outra unidade).
-
-CORTE DE QUALIDADE
-- Retornar TODOS os apartamentos do mesmo prédio com score ≥95 (mesma rua+número, tipo residencial)
-- Caso não haja nenhum: status "SEM_MATCH_CONFIAVEL"
-
-EXTRAÇÃO E AVALIAÇÃO
-Para cada match extrair: data, valor_transacao, valor_venal, área_construída.
-Classificar:
-- "CONSISTENTE" → valor_transacao próximo do venal (diferença ≤20%)
-- "POSSIVEL_SUBDECLARACAO" → valor_transacao muito abaixo do venal (>30% abaixo) — ⚠️ comum em ITBI
-- "ACIMA_REFERENCIA" → valor_transacao acima do venal
-
-CONSOLIDAÇÃO (VALOR DE MERCADO)
-- Ordenar por data desc
-- Para "valor_estimado" priorizar:
-  1. unidade exata mais recente (se houver) com classificação CONSISTENTE
-  2. caso contrário, média/mediana das transações CONSISTENTES de unidades do mesmo prédio com área similar (±20%)
-  3. ignorar transações classificadas como POSSIVEL_SUBDECLARACAO no cálculo (mas mostrar na tabela)
+REGRAS DE TIPO DE IMÓVEL (filtro adicional)
+Se o tipo do imóvel-alvo for residencial (apartamento/casa), DESCARTE candidatos cujo
+complemento contenha: GARAGEM, GAR, VAGA, BOX, ESTACIONAMENTO, DEPÓSITO, DEP, HOBBY, CUBÍCULO.
 
 OUTPUT (apenas JSON):
 {
-  "input": { "logradouro": "...", "numero": "...", "apartamento": "...", "tipo_imovel": "..." },
   "matches_encontrados": [
     {
-      "id": "uuid do registro",
-      "data": "...",
-      "logradouro_base": "...",
-      "numero_base": "...",
-      "complemento_base": "...",
-      "bairro_base": "...",
-      "sql": "...",
-      "valor_transacao": "...",
-      "valor_venal": "...",
-      "area_construida": "...",
-      "is_unidade_exata": true,
-      "classificacao_valor": "CONSISTENTE | POSSIVEL_SUBDECLARACAO | ACIMA_REFERENCIA",
-      "score": 97,
-      "justificativa": "mesmo prédio, AP 102 (unidade exata)"
+      "id": "uuid do candidato",
+      "is_unidade_exata": true | false,
+      "score": 95-100,
+      "justificativa": "honorífico equivalente: Coronel = Cel"
     }
   ],
-  "descartados_por_tipo": 0,
   "valor_referencia_mercado": {
-    "metodologia": "última transação da unidade exata | mediana de unidades similares no prédio",
-    "valor_estimado": "...",
-    "observacao": "baseado em N transações de apartamentos do mesmo prédio"
+    "metodologia": "última transação da unidade exata | mediana das transações do mesmo prédio",
+    "valor_estimado": 1234567,
+    "observacao": "baseado em N transações"
   },
   "status": "MATCH_ENCONTRADO | SEM_MATCH_CONFIAVEL"
 }
 
-REGRAS FINAIS
-- SEMPRE retornar TODOS os apartamentos do mesmo prédio (não apenas a unidade exata)
-- NUNCA retornar garagem/vaga/depósito quando o imóvel é apartamento
-- NUNCA retornar registros <95
-- Marcar a unidade exata com is_unidade_exata=true para destaque visual
-SAÍDA: APENAS JSON.`;
+Marque is_unidade_exata=true quando o número do apartamento informado bate com o complemento.
+Retorne TODOS os candidatos válidos do mesmo prédio (mesma rua+número) — eles servem de referência de mercado.
+NÃO invente registros. NÃO altere campos de valor/data. Apenas decida quem entra.`;
 
 async function filterMatchesWithGPT(input: any, candidates: any[]) {
-  const userMsg = `ENDEREÇO DE ENTRADA:
-- Tipo do Imóvel: ${input.tipo_imovel ?? 'apartamento'}
-- Logradouro: ${input.logradouro}
-- Número: ${input.numero ?? ''}
-- Apartamento/Unidade: ${input.apartamento ?? ''}
-- Complemento: ${input.complemento ?? ''}
-- Bairro: ${input.bairro ?? ''}
-- CEP: ${input.cep ?? ''}
+  const userMsg = `ENDEREÇO-ALVO:
+- Tipo do Imóvel: ${input.tipo_imovel ?? "apartamento"}
+- Logradouro completo: ${input.logradouro}
+- Nome principal extraído: ${input.nome_principal}
+- Honorífico/tipo de via: ${input.honorificos || "(nenhum)"}
+- Número: ${input.numero ?? ""}
+- Apartamento/Unidade: ${input.apartamento ?? ""}
 
-REGISTROS DA BASE (${candidates.length} candidatos):
-${JSON.stringify(candidates.map(c => ({
-  id: c.id,
-  logradouro: c.logradouro,
-  numero: c.numero,
-  complemento: c.complemento,
-  bairro: c.bairro,
-  cep: c.cep,
-  sql: c.sql_iptu,
-  area_construida: c.area_construida,
-  valor_transacao: c.valor_transacao,
-  valor_venal: c.valor_venal,
-  data: c.data_transacao,
-})), null, 2)}
+CANDIDATOS (${candidates.length}) — já filtrados por número exato e nome principal idêntico:
+${JSON.stringify(
+    candidates.map((c) => ({
+      id: c.id,
+      logradouro: c.logradouro,
+      numero: c.numero,
+      complemento: c.complemento,
+      bairro: c.bairro,
+      area_construida: c.area_construida,
+      valor_transacao: c.valor_transacao,
+      valor_venal: c.valor_venal,
+      data: c.data_transacao,
+    })),
+    null,
+    2,
+  )}
 
-Aplique PRIMEIRO o filtro de tipo (descarte garagens/vagas/depósitos se o imóvel for apartamento), depois o matching de score. Retorne APENAS o JSON especificado.`;
+Valide os honoríficos e retorne o JSON.`;
 
   const resp = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -194,8 +191,16 @@ Aplique PRIMEIRO o filtro de tipo (descarte garagens/vagas/depósitos se o imóv
   return JSON.parse(content);
 }
 
-function buildReport(property: any, matched: any[], totalCandidates: number, valorRef: any): string {
-  const fmt = (v: any) => v == null || v === '' ? 'N/D' : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v));
+function buildReport(
+  property: any,
+  matched: any[],
+  totalCandidates: number,
+  valorRef: any,
+): string {
+  const fmt = (v: any) =>
+    v == null || v === ""
+      ? "N/D"
+      : new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v));
   const declared = fmt(property.declared_value);
   const market = fmt(property.market_value);
 
@@ -203,7 +208,7 @@ function buildReport(property: any, matched: any[], totalCandidates: number, val
     return `## 🏛️ Análise ITBI — Prefeitura de São Paulo
 
 ### 📍 Endereço Analisado
-${property.rua}${property.numero ? `, ${property.numero}` : ''}${property.bairro ? ` - ${property.bairro}` : ''}, ${property.cidade}/${property.estado}
+${property.rua}${property.numero ? `, ${property.numero}` : ""}${property.bairro ? ` - ${property.bairro}` : ""}, ${property.cidade}/${property.estado}
 
 ### 💰 Valores do Imóvel
 | Indicador | Valor |
@@ -212,25 +217,22 @@ ${property.rua}${property.numero ? `, ${property.numero}` : ''}${property.bairro
 | Valor de mercado estimado | ${market} |
 
 ### 📊 Resultado da Busca
-Foram analisados **${totalCandidates} candidatos** próximos no banco ITBI da Prefeitura (50 meses, 2022-2026), mas **nenhum atingiu o limiar de confiança de 95%** para ser considerado o mesmo imóvel.
+Foram analisados **${totalCandidates} candidatos** com número exato e nome de rua idêntico, mas **nenhum passou na validação final** (honorífico incompatível ou tipo de imóvel divergente).
 
 ### ⚠️ Limitações
 - A base ITBI da Prefeitura tem defasagem de meses.
 - Nem toda transação é registrada com o endereço completo.
-- Variações de nomenclatura (R/Rua, abreviações) podem reduzir o match.
 - Este é um indicativo, não uma avaliação oficial.`;
   }
 
-  // Deduplica por (data + valor_transacao + sql_iptu) — ITBI registra 2x (comprador/vendedor)
   const seen = new Set<string>();
   const dedup = matched.filter((m) => {
-    const key = `${m.data_transacao ?? ''}|${m.valor_transacao ?? ''}|${m.sql_iptu ?? ''}|${m.numero ?? ''}|${m.complemento ?? ''}`;
+    const key = `${m.data_transacao ?? ""}|${m.valor_transacao ?? ""}|${m.sql_iptu ?? ""}|${m.numero ?? ""}|${m.complemento ?? ""}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   });
 
-  // Ordena por data desc para destacar a mais recente
   const sorted = [...dedup].sort((a, b) => {
     const da = a.data_transacao ? new Date(a.data_transacao).getTime() : 0;
     const db = b.data_transacao ? new Date(b.data_transacao).getTime() : 0;
@@ -239,38 +241,50 @@ Foram analisados **${totalCandidates} candidatos** próximos no banco ITBI da Pr
 
   const ultima = sorted[0];
   const duplicatasRemovidas = matched.length - dedup.length;
-  const valorEstimado = valorRef?.valor_estimado ? fmt(valorRef.valor_estimado) : (ultima?.valor_transacao ? fmt(ultima.valor_transacao) : 'N/D');
-  const metodologia = valorRef?.metodologia ?? 'última transação válida';
+  const valorEstimado = valorRef?.valor_estimado
+    ? fmt(valorRef.valor_estimado)
+    : ultima?.valor_transacao
+    ? fmt(ultima.valor_transacao)
+    : "N/D";
+  const metodologia = valorRef?.metodologia ?? "última transação válida";
 
   const classBadge = (c: string) => {
-    if (c === 'CONSISTENTE') return '✅ Consistente';
-    if (c === 'POSSIVEL_SUBDECLARACAO') return '⚠️ Possível subdeclaração';
-    if (c === 'ACIMA_REFERENCIA') return '📈 Acima do venal';
-    return c ?? '—';
+    if (c === "CONSISTENTE") return "✅ Consistente";
+    if (c === "POSSIVEL_SUBDECLARACAO") return "⚠️ Possível subdeclaração";
+    if (c === "ACIMA_REFERENCIA") return "📈 Acima do venal";
+    return c ?? "—";
   };
 
-  const tableRows = sorted.slice(0, 30).map(m => {
-    const data = m.data_transacao ? new Date(m.data_transacao).toLocaleDateString('pt-BR') : 'N/D';
-    const enderecoBase = `${m.logradouro ?? ''}${m.numero ? `, ${m.numero}` : ''}`.trim() || 'N/D';
-    const compl = m.complemento?.trim() || '—';
-    const complDisplay = m.is_unidade_exata ? `🎯 **${compl}**` : compl;
-    const bairro = m.bairro?.trim() || '—';
-    const sql = m.sql_iptu?.trim() || '—';
-    const area = m.area_construida ? `${Number(m.area_construida).toLocaleString('pt-BR')} m²` : '—';
-    return `| ${data} | ${enderecoBase} | ${complDisplay} | ${bairro} | ${sql} | ${area} | ${fmt(m.valor_transacao)} | ${fmt(m.valor_venal)} | ${classBadge(m.classificacao_valor)} | ${m.score}% |`;
-  }).join('\n');
+  const tableRows = sorted
+    .slice(0, 30)
+    .map((m) => {
+      const data = m.data_transacao ? new Date(m.data_transacao).toLocaleDateString("pt-BR") : "N/D";
+      const enderecoBase = `${m.logradouro ?? ""}${m.numero ? `, ${m.numero}` : ""}`.trim() || "N/D";
+      const compl = m.complemento?.trim() || "—";
+      const complDisplay = m.is_unidade_exata ? `🎯 **${compl}**` : compl;
+      const bairro = m.bairro?.trim() || "—";
+      const sql = m.sql_iptu?.trim() || "—";
+      const area = m.area_construida ? `${Number(m.area_construida).toLocaleString("pt-BR")} m²` : "—";
+      return `| ${data} | ${enderecoBase} | ${complDisplay} | ${bairro} | ${sql} | ${area} | ${fmt(m.valor_transacao)} | ${fmt(m.valor_venal)} | ${classBadge(m.classificacao_valor)} | ${m.score}% |`;
+    })
+    .join("\n");
 
   const exatas = dedup.filter((m: any) => m.is_unidade_exata).length;
   const outrasUnidades = dedup.length - exatas;
 
-  const diff = valorRef?.valor_estimado && property.declared_value
-    ? `${(((property.declared_value - Number(valorRef.valor_estimado)) / Number(valorRef.valor_estimado)) * 100).toFixed(1)}%`
-    : 'N/D';
+  const diff =
+    valorRef?.valor_estimado && property.declared_value
+      ? `${(((property.declared_value - Number(valorRef.valor_estimado)) / Number(valorRef.valor_estimado)) * 100).toFixed(1)}%`
+      : "N/D";
+
+  const aptoTxt = property.apartamento
+    ? `, ${/^ap\b|^apto\b/i.test(String(property.apartamento).trim()) ? "" : "AP "}${property.apartamento}`
+    : "";
 
   return `## 🏛️ Análise ITBI — Prefeitura de São Paulo
 
 ### 📍 Endereço Analisado
-${property.rua}${property.numero ? `, ${property.numero}` : ''}${property.apartamento ? `, ${/^ap\b|^apto\b/i.test(String(property.apartamento).trim()) ? '' : 'AP '}${property.apartamento}` : ''}${property.bairro ? ` - ${property.bairro}` : ''}, ${property.cidade}/${property.estado}
+${property.rua}${property.numero ? `, ${property.numero}` : ""}${aptoTxt}${property.bairro ? ` - ${property.bairro}` : ""}, ${property.cidade}/${property.estado}
 
 ### 💰 Comparativo de Valores
 | Indicador | Valor |
@@ -281,10 +295,10 @@ ${property.rua}${property.numero ? `, ${property.numero}` : ''}${property.aparta
 | Diferença declarado vs ITBI | ${diff} |
 
 > **Metodologia:** ${metodologia}
-${valorRef?.observacao ? `> ${valorRef.observacao}` : ''}
+${valorRef?.observacao ? `> ${valorRef.observacao}` : ""}
 
-### 📊 Transações no Mesmo Prédio (confiança ≥95%)
-${dedup.length} transação(ões) única(s) — **${exatas} da unidade exata** + ${outrasUnidades} de outras unidades do mesmo prédio (referência de mercado). ${duplicatasRemovidas > 0 ? `${duplicatasRemovidas} duplicata(s) removida(s) — ITBI registra comprador+vendedor.` : ''}
+### 📊 Transações no Mesmo Prédio
+${dedup.length} transação(ões) única(s) — **${exatas} da unidade exata** + ${outrasUnidades} de outras unidades do mesmo prédio. ${duplicatasRemovidas > 0 ? `${duplicatasRemovidas} duplicata(s) removida(s) — ITBI registra comprador+vendedor.` : ""}
 
 🎯 = unidade exata informada no cadastro
 
@@ -293,19 +307,20 @@ ${dedup.length} transação(ões) única(s) — **${exatas} da unidade exata** +
 ${tableRows}
 
 ### 🎯 Avaliação Final
-${ultima ? `Última transação registrada: **${fmt(ultima.valor_transacao)}** em ${ultima.data_transacao ? new Date(ultima.data_transacao).toLocaleDateString('pt-BR') : 'N/D'} (${classBadge(ultima.classificacao_valor)}).` : ''}
+${ultima ? `Última transação registrada: **${fmt(ultima.valor_transacao)}** em ${ultima.data_transacao ? new Date(ultima.data_transacao).toLocaleDateString("pt-BR") : "N/D"} (${classBadge(ultima.classificacao_valor)}).` : ""}
 
-${valorRef?.valor_estimado && property.declared_value
-  ? (property.declared_value > Number(valorRef.valor_estimado) * 1.1
-    ? `O valor declarado (${declared}) está **${diff} acima** da referência ITBI. Pode indicar valorização recente ou subdeclaração nas transações oficiais (prática comum).`
-    : property.declared_value < Number(valorRef.valor_estimado) * 0.9
-      ? `O valor declarado (${declared}) está **${diff} abaixo** da referência ITBI. Vale revisar a precificação.`
-      : `O valor declarado (${declared}) está **alinhado** com a referência ITBI (${valorEstimado}).`)
-  : ''}
+${
+    valorRef?.valor_estimado && property.declared_value
+      ? property.declared_value > Number(valorRef.valor_estimado) * 1.1
+        ? `O valor declarado (${declared}) está **${diff} acima** da referência ITBI. Pode indicar valorização recente ou subdeclaração nas transações oficiais.`
+        : property.declared_value < Number(valorRef.valor_estimado) * 0.9
+        ? `O valor declarado (${declared}) está **${diff} abaixo** da referência ITBI. Vale revisar a precificação.`
+        : `O valor declarado (${declared}) está **alinhado** com a referência ITBI (${valorEstimado}).`
+      : ""
+  }
 
 ### ⚠️ Limitações
-- Valores de transação ITBI tendem a ser subdeclarados em relação ao valor real de mercado.
-- O classificador (Consistente/Subdeclaração/Acima) é heurístico baseado em valor venal.
+- Valores de transação ITBI tendem a ser subdeclarados.
 - Este é um indicativo, **não uma avaliação oficial**.`;
 }
 
@@ -316,7 +331,8 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -329,7 +345,8 @@ serve(async (req) => {
     const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token);
     if (claimsErr || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -338,161 +355,173 @@ serve(async (req) => {
     const property = await req.json();
     if (!property?.rua || !property?.cidade) {
       return new Response(JSON.stringify({ error: "rua e cidade são obrigatórios" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const cidadeLower = (property.cidade ?? '').toLowerCase();
-    if (cidadeLower !== 'são paulo' && cidadeLower !== 'sao paulo') {
-      return new Response(JSON.stringify({
-        error: "A consulta ITBI está disponível apenas para imóveis em São Paulo (capital).",
-      }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const cidadeLower = (property.cidade ?? "").toLowerCase();
+    if (cidadeLower !== "são paulo" && cidadeLower !== "sao paulo") {
+      return new Response(
+        JSON.stringify({
+          error: "A consulta ITBI está disponível apenas para imóveis em São Paulo (capital).",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
-    // 1) Pré-filtro por similaridade trigram no banco
-    // Geramos VARIANTES do logradouro para lidar com abreviações comuns que
-    // o ITBI usa (ex.: "Coronel Melo Oliveira" no cadastro vs "CEL MELO OLIVEIRA"
-    // no banco da Prefeitura). A similaridade trigram do Postgres falha quando
-    // a palavra mais "pesada" muda completamente (CORONEL vs CEL).
-    const ruaVariants = buildLogradouroVariants(property.rua);
-    console.log(`[itbi-lookup] Buscando candidatos para: ${property.rua} | variantes: ${ruaVariants.join(' | ')} | nº ${property.numero}`);
-
-    const candMap = new Map<string, any>();
-    for (const variant of ruaVariants) {
-      const { data: vCand, error: vErr } = await userClient.rpc("match_itbi_candidates", {
-        p_logradouro: variant,
-        p_numero: property.numero ?? null,
-        p_bairro: property.bairro ?? null,
-        p_limit: 200,
-      });
-      if (vErr) {
-        console.error(`[itbi-lookup] Erro RPC variante "${variant}":`, vErr);
-        continue;
-      }
-      for (const c of (vCand ?? [])) {
-        if (!candMap.has(c.id)) candMap.set(c.id, c);
-      }
-      console.log(`[itbi-lookup] Variante "${variant}" → ${vCand?.length ?? 0} candidatos (acumulado: ${candMap.size})`);
+    // === CHAVE 1: NÚMERO — match EXATO ===
+    const numeroLimpo = (property.numero ?? "").toString().replace(/\D/g, "");
+    if (!numeroLimpo) {
+      return new Response(
+        JSON.stringify({
+          error: "Número do imóvel é obrigatório para a busca ITBI (chave forte).",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
-    let candList = Array.from(candMap.values());
-    console.log(`[itbi-lookup] ${candList.length} candidatos pré-filtrados (após união de variantes)`);
+    // === CHAVE 2: NOME PRINCIPAL do logradouro (sem honorífico/tipo de via) ===
+    const nomePrincipal = extractCoreName(property.rua);
+    const honorificos = extractHonorificParts(property.rua);
 
-    // Filtro anti-ruído: o trigram pode trazer ruas com nome parecido
-    // (ex.: "OLIVEIRA PINTO" quando buscamos "MELO OLIVEIRA"). Exigimos que
-    // o logradouro do candidato contenha PELO MENOS UM token significativo
-    // do logradouro consultado (ignorando R/RUA/AV/DR/CEL/etc.).
-    const alvoTokens = strongTokens(property.rua);
-    if (alvoTokens.length > 0) {
-      const before = candList.length;
-      candList = candList.filter((c: any) => {
-        const candTokens = new Set(strongTokens(c.logradouro_normalizado ?? c.logradouro ?? ''));
-        return alvoTokens.some((t) => candTokens.has(t));
-      });
-      console.log(`[itbi-lookup] Filtro tokens fortes (${alvoTokens.join(',')}): ${before - candList.length} descartados, ${candList.length} restantes`);
+    if (nomePrincipal.length === 0) {
+      return new Response(
+        JSON.stringify({
+          error: "Não foi possível extrair o nome principal do logradouro.",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
-    // Pré-filtro server-side por TIPO do imóvel — evita garagens/vagas/depósitos quando é apto
-    const tipoImovel = (property.tipo_imovel ?? '').toLowerCase();
-    const isResidencial = ['apartamento', 'casa', 'cobertura', 'kitnet', 'studio', 'sobrado', ''].some(t => tipoImovel.includes(t)) && !tipoImovel.includes('garagem') && !tipoImovel.includes('comercial');
-    const NON_RESIDENTIAL_RE = /\b(GARAGEM|GAR|VAGA|VG|BOX|ESTACIONAMENTO|DEPOSITO|DEP|HOBBY|CUBICULO)\b/i;
+    console.log(
+      `[itbi-lookup] Alvo: nº ${numeroLimpo} | nome=${nomePrincipal.join(" ")} | honoríficos=${honorificos.join(" ") || "—"}`,
+    );
 
-    let descartadosTipo = 0;
-    if (isResidencial) {
-      const before = candList.length;
-      candList = candList.filter((c: any) => {
-        const compl = (c.complemento ?? '').toString();
-        if (NON_RESIDENTIAL_RE.test(compl)) return false;
-        // descartar áreas muito pequenas (típico de vaga/box)
-        if (c.area_construida != null && Number(c.area_construida) > 0 && Number(c.area_construida) < 25) return false;
-        return true;
-      });
-      descartadosTipo = before - candList.length;
-      console.log(`[itbi-lookup] Filtro tipo residencial: ${descartadosTipo} descartados, ${candList.length} restantes`);
-    }
+    // 1) Filtra no banco por número exato (deve reduzir muito o universo)
+    const { data: numMatches, error: numErr } = await userClient
+      .from("itbi_transactions")
+      .select(
+        "id, sql_iptu, logradouro, numero, complemento, bairro, cep, data_transacao, valor_transacao, valor_venal, area_construida, logradouro_normalizado, numero_limpo",
+      )
+      .eq("numero_limpo", numeroLimpo)
+      .limit(2000);
 
-    if (candList.length === 0) {
+    if (numErr) throw numErr;
+    console.log(`[itbi-lookup] ${numMatches?.length ?? 0} registros com número ${numeroLimpo}`);
+
+    if (!numMatches || numMatches.length === 0) {
       const report = buildReport(property, [], 0, null);
-      return new Response(JSON.stringify({
-        result: report,
-        matched: [],
-        totalCandidates: 0,
-        hadData: false,
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(
+        JSON.stringify({ result: report, matched: [], totalCandidates: 0, hadData: false }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
-    // 2) GPT-4o filtra com score ≥95 e infere valor de mercado
-    console.log(`[itbi-lookup] Enviando ao GPT-4o para matching...`);
+    // 2) Filtra em memória pelo NOME PRINCIPAL exato (após remover honoríficos do candidato).
+    //    Todos os tokens do nome principal do alvo precisam estar no nome principal do candidato.
+    const nomeAlvoSet = new Set(nomePrincipal);
+    const candidatosNomeOk = numMatches.filter((c: any) => {
+      const candCore = new Set(extractCoreName(c.logradouro ?? ""));
+      // Igualdade de conjuntos: alvo ⊆ candidato e candidato ⊆ alvo
+      if (candCore.size !== nomeAlvoSet.size) return false;
+      for (const t of nomeAlvoSet) {
+        if (!candCore.has(t)) return false;
+      }
+      return true;
+    });
+
+    console.log(
+      `[itbi-lookup] ${candidatosNomeOk.length} candidatos com nome principal idêntico (${nomePrincipal.join(" ")})`,
+    );
+
+    if (candidatosNomeOk.length === 0) {
+      const report = buildReport(property, [], numMatches.length, null);
+      return new Response(
+        JSON.stringify({
+          result: report,
+          matched: [],
+          totalCandidates: numMatches.length,
+          hadData: false,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // 3) LLM valida apenas honoríficos + tipo de imóvel (residencial vs garagem/etc)
+    console.log(`[itbi-lookup] Enviando ${candidatosNomeOk.length} candidatos ao GPT-4o para validação de honorífico...`);
     const gptResult = await filterMatchesWithGPT(
       {
         tipo_imovel: property.tipo_imovel,
         logradouro: property.rua,
+        nome_principal: nomePrincipal.join(" "),
+        honorificos: honorificos.join(" "),
         numero: property.numero,
         apartamento: property.apartamento,
-        complemento: property.complemento,
-        bairro: property.bairro,
-        cep: property.cep,
       },
-      candList,
+      candidatosNomeOk,
     );
 
     const gptMatches = gptResult.matches_encontrados ?? [];
     const matchedIds = new Set(gptMatches.map((m: any) => m.id).filter(Boolean));
 
-    // ⚠️ SAFETY NET: o LLM eventualmente omite registros válidos do mesmo prédio.
-    // Forçamos a inclusão de TODOS os candidatos residenciais cujo número bate
-    // exatamente com o do imóvel-alvo (rua+número idênticos após pré-filtro).
-    const numAlvo = (property.numero ?? '').toString().replace(/[^0-9]/g, '');
-    if (numAlvo) {
-      for (const c of candList) {
-        const cNum = (c.numero ?? '').toString().replace(/[^0-9]/g, '');
-        if (cNum === numAlvo && !matchedIds.has(c.id)) {
-          matchedIds.add(c.id);
-        }
-      }
+    // Safety net: se honoríficos ficarem todos vazios em alvo e candidato, aceita todos
+    // que passaram no filtro determinístico (já é match seguro por nome+número).
+    if (honorificos.length === 0 && matchedIds.size === 0) {
+      console.log("[itbi-lookup] Safety net: alvo sem honorífico, aceitando todos os candidatos por nome+número");
+      for (const c of candidatosNomeOk) matchedIds.add(c.id);
     }
-    const aptoAlvo = (property.apartamento ?? '').toString().replace(/[^0-9]/g, '');
 
-    const matched = candList
+    const aptoAlvo = (property.apartamento ?? "").toString().replace(/[^0-9]/g, "");
+
+    const matched = candidatosNomeOk
       .filter((c: any) => matchedIds.has(c.id))
       .map((c: any) => {
         const m = gptMatches.find((x: any) => x.id === c.id) ?? {};
-        // Detecção determinística da unidade exata via número do apartamento
         let isExata = m.is_unidade_exata === true;
         if (aptoAlvo) {
-          const complNums = ((c.complemento ?? '').toString().match(/\d+/g) ?? [])[0];
-          if (complNums === aptoAlvo) isExata = true;
+          const complNum = ((c.complemento ?? "").toString().match(/\d+/g) ?? [])[0];
+          if (complNum === aptoAlvo) isExata = true;
         }
         return {
           ...c,
-          score: m.score ?? 95,
-          justificativa: m.justificativa ?? 'Mesmo prédio (rua+número idênticos)',
-          classificacao_valor: m.classificacao_valor ?? 'CONSISTENTE',
-          base_calculo: m.base_calculo,
+          score: m.score ?? 98,
+          justificativa: m.justificativa ?? "Nome principal idêntico + número exato",
+          classificacao_valor: m.classificacao_valor ?? "CONSISTENTE",
           is_unidade_exata: isExata,
         };
       });
 
-    console.log(`[itbi-lookup] ${matched.length} matches confiáveis (≥95%) [${gptMatches.length} via GPT, ${matched.length - gptMatches.length} via safety net]`);
+    console.log(`[itbi-lookup] ${matched.length} matches finais`);
 
-    const report = buildReport(property, matched, candList.length, gptResult.valor_referencia_mercado);
+    const report = buildReport(property, matched, candidatosNomeOk.length, gptResult.valor_referencia_mercado);
 
-    return new Response(JSON.stringify({
-      result: report,
-      matched,
-      totalCandidates: candList.length,
-      hadData: matched.length > 0,
-      gptStatus: gptResult.status,
-      valorReferencia: gptResult.valor_referencia_mercado,
-    }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-
+    return new Response(
+      JSON.stringify({
+        result: report,
+        matched,
+        totalCandidates: candidatosNomeOk.length,
+        hadData: matched.length > 0,
+        gptStatus: gptResult.status,
+        valorReferencia: gptResult.valor_referencia_mercado,
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   } catch (error) {
     console.error("[itbi-lookup] Erro:", error);
     const msg = error instanceof Error ? error.message : "Erro desconhecido";
     return new Response(JSON.stringify({ error: msg }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
