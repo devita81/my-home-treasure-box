@@ -230,6 +230,7 @@ const Analytics = () => {
         aluguelBruto: 0, condAlugados: 0, iptuAlugados: 0, taxaAdmAlugados: 0, receitaTotal: 0, countAlugados: 0,
         condNaoAlugados: 0, iptuNaoAlugados: 0, despesaTotal: 0, countNaoAlugados: 0,
         total: 0,
+        propertiesAlugados: [], propertiesNaoAlugados: [],
       };
       const cond = p.valor_condominio ?? 0;
       const iptuMes = (p.iptu_value ?? 0) / 12;
@@ -239,10 +240,12 @@ const Analytics = () => {
         grouped[city].iptuAlugados += iptuMes;
         grouped[city].taxaAdmAlugados += p.taxa_administracao ?? 0;
         grouped[city].countAlugados += 1;
+        grouped[city].propertiesAlugados.push(p);
       } else {
         grouped[city].condNaoAlugados += cond;
         grouped[city].iptuNaoAlugados += iptuMes;
         grouped[city].countNaoAlugados += 1;
+        grouped[city].propertiesNaoAlugados.push(p);
       }
     });
     Object.values(grouped).forEach(row => {
