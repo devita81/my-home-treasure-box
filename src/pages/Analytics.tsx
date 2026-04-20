@@ -622,8 +622,15 @@ const Analytics = () => {
           
           {/* Mobile */}
           <div className="sm:hidden divide-y divide-slate-200">
-            {cityFinancials.map((row) => (
-              <div key={row.cidade} className="px-3 py-2.5 space-y-2">
+            {cityFinancials.map((row) => {
+              const allCityProps = [...row.propertiesAlugados, ...row.propertiesNaoAlugados];
+              return (
+              <button
+                key={row.cidade}
+                type="button"
+                onClick={() => openFinancialDialog(`Imóveis em ${row.cidade}`, `${allCityProps.length} imóveis (${row.countAlugados} alugados, ${row.countNaoAlugados} vagos)`, allCityProps)}
+                className="w-full text-left px-3 py-2.5 space-y-2 active:bg-slate-50 hover:bg-slate-50/60 transition-colors"
+              >
                 <div className="text-[11px] font-semibold text-slate-800">{row.cidade}</div>
 
                 {/* Receita */}
@@ -683,32 +690,33 @@ const Analytics = () => {
                     {row.total < 0 ? '-' : ''}{formatCurrency(Math.abs(row.total))}
                   </p>
                 </div>
-              </div>
-            ))}
+              </button>
+              );
+            })}
             {/* Subtotal mobile */}
-            <div className="px-3 py-2.5 bg-blue-100 border-t-2 border-blue-300 space-y-2">
-              <div className="text-[11px] font-bold text-blue-700 uppercase">Subtotal Geral</div>
+            <div className="px-3 py-2.5 bg-slate-100 border-t-2 border-slate-300 space-y-2">
+              <div className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Subtotal Geral</div>
 
               <div className="rounded border border-emerald-300 bg-emerald-50 p-2">
                 <div className="flex items-center justify-between mb-1">
                   <p className="text-[9px] text-emerald-700 uppercase tracking-wider font-bold">Receita</p>
-                  <p className="text-[9px] text-blue-700 font-mono font-bold">{cityFinancialsTotals.countAlugados} alug.</p>
+                  <p className="text-[9px] text-slate-600 font-mono font-bold">{cityFinancialsTotals.countAlugados} alug.</p>
                 </div>
                 <div className="grid grid-cols-4 gap-1 text-center">
                   <div>
-                    <p className="text-[8px] text-blue-600 uppercase">Aluguel</p>
+                    <p className="text-[8px] text-slate-500 uppercase">Aluguel</p>
                     <p className="text-[10px] font-mono tabular-nums text-slate-900 font-semibold">{formatCurrency(cityFinancialsTotals.aluguelBruto)}</p>
                   </div>
                   <div>
-                    <p className="text-[8px] text-blue-600 uppercase">Cond</p>
+                    <p className="text-[8px] text-slate-500 uppercase">Cond</p>
                     <p className="text-[10px] font-mono tabular-nums text-slate-800">{formatCurrency(cityFinancialsTotals.condAlugados)}</p>
                   </div>
                   <div>
-                    <p className="text-[8px] text-blue-600 uppercase">IPTU</p>
+                    <p className="text-[8px] text-slate-500 uppercase">IPTU</p>
                     <p className="text-[10px] font-mono tabular-nums text-slate-800">{formatCurrency(cityFinancialsTotals.iptuAlugados)}</p>
                   </div>
                   <div>
-                    <p className="text-[8px] text-blue-600 uppercase">Tx Adm</p>
+                    <p className="text-[8px] text-slate-500 uppercase">Tx Adm</p>
                     <p className="text-[10px] font-mono tabular-nums text-slate-800">-{formatCurrency(cityFinancialsTotals.taxaAdmAlugados)}</p>
                   </div>
                 </div>
@@ -720,15 +728,15 @@ const Analytics = () => {
               <div className="rounded border border-red-300 bg-red-50 p-2">
                 <div className="flex items-center justify-between mb-1">
                   <p className="text-[9px] text-red-600 uppercase tracking-wider font-bold">Despesa</p>
-                  <p className="text-[9px] text-blue-700 font-mono font-bold">{cityFinancialsTotals.countNaoAlugados} vagos</p>
+                  <p className="text-[9px] text-slate-600 font-mono font-bold">{cityFinancialsTotals.countNaoAlugados} vagos</p>
                 </div>
                 <div className="grid grid-cols-2 gap-1 text-center">
                   <div>
-                    <p className="text-[8px] text-blue-600 uppercase">Cond</p>
+                    <p className="text-[8px] text-slate-500 uppercase">Cond</p>
                     <p className="text-[10px] font-mono tabular-nums text-slate-800">{formatCurrency(cityFinancialsTotals.condNaoAlugados)}</p>
                   </div>
                   <div>
-                    <p className="text-[8px] text-blue-600 uppercase">IPTU</p>
+                    <p className="text-[8px] text-slate-500 uppercase">IPTU</p>
                     <p className="text-[10px] font-mono tabular-nums text-slate-800">{formatCurrency(cityFinancialsTotals.iptuNaoAlugados)}</p>
                   </div>
                 </div>
@@ -738,7 +746,7 @@ const Analytics = () => {
               </div>
 
               <div className="flex items-center justify-between px-1">
-                <p className="text-[10px] text-blue-700 uppercase font-bold">Total Geral</p>
+                <p className="text-[10px] text-slate-700 uppercase font-bold tracking-wider">Total Geral</p>
                 <p className={`text-[13px] font-mono tabular-nums font-bold ${cityFinancialsTotals.total >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
                   {cityFinancialsTotals.total < 0 ? '-' : ''}{formatCurrency(Math.abs(cityFinancialsTotals.total))}
                 </p>
