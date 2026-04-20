@@ -11,6 +11,12 @@ import { logger } from '@/lib/logger';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import * as pdfjsLib from 'pdfjs-dist';
+import 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+
+// Configure pdf.js worker
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 interface PropertyReportDialogProps {
   open: boolean;
