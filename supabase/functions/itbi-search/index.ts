@@ -10,9 +10,50 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Tipos residenciais que devem descartar garagens/vagas/depósitos.
-const NON_RESIDENTIAL_RE = /\b(GARAGEM|GAR|VAGA|VG|BOX|ESTACIONAMENTO|DEPOSITO|DEP|HOBBY|CUBICULO)\b/i;
-const COMMERCIAL_RE = /\b(SALA|LOJA|CONJ|CONJUNTO|COMERCIAL|ESCRITORIO)\b/i;
+// === Heurísticas para classificação de tipo ===
+// Apartamento: complemento começa com AP / APTO / APT (mais sufixo numérico).
+const APARTMENT_RE = /^\s*(AP|APTO?|APART(AMENTO)?)\b/i;
+// Garagem / vaga / box / depósito / hobby (descartar quando busca residencial).
+const GARAGE_RE = /\b(GARAGEM|GAR|VAGA|VG|BOX|ESTACIONAMENTO|DEPOSITO|DEP|HOBBY|CUBICULO)\b/i;
+// Comercial: salas, lojas, conjuntos, escritórios.
+const COMMERCIAL_RE = /\b(SALA|SL|LOJA|LJ|CONJ|CONJUNTO|COMERCIAL|ESCRITORIO|ESCRIT|GALPAO)\b/i;
+// Casa: complemento explícito de casa/sobrado/fundos.
+const HOUSE_RE = /\b(CASA|SOBRADO|FUNDOS|FRENTE|TERREO)\b/i;
+
+// Mapeia descricao_uso_iptu (texto da Prefeitura) para uma categoria interna.
+function categoryFromUsoIptu(desc: string | null | undefined): string | null {
+  if (!desc) return null;
+  const u = desc.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (/APARTAMENTO/.test(u)) return "apartamento";
+  if (/(RESIDENCIA|CASA|SOBRADO)/.test(u)) return "casa";
+  if (/GARAGEM|VAGA|BOX|ESTACIONAMENTO/.test(u)) return "garagem";
+  if (/(LOJA|SALA|ESCRITORIO|COMERCIAL|HOTEL|GALPAO|INDUSTRIAL|ARMAZEM|OFICINA)/.test(u)) return "comercial";
+  if (/TERRENO/.test(u)) return "terreno";
+  return null;
+}
+
+// Heurística no complemento (fallback quando descricao_uso_iptu estiver vazio).
+function categoryFromComplemento(compl: string | null | undefined): string | null {
+  if (!compl || !compl.trim()) return null;
+  const c = compl.trim();
+  if (APARTMENT_RE.test(c)) return "apartamento";
+  if (GARAGE_RE.test(c)) return "garagem";
+  if (COMMERCIAL_RE.test(c)) return "comercial";
+  if (HOUSE_RE.test(c)) return "casa";
+  return null;
+}
+
+// Decide a categoria final combinando IPTU (prioridade) + complemento + área.
+function inferCategory(row: any): string | null {
+  const fromIptu = categoryFromUsoIptu(row.descricao_uso_iptu);
+  if (fromIptu) return fromIptu;
+  const fromCompl = categoryFromComplemento(row.complemento);
+  if (fromCompl) return fromCompl;
+  // Sem complemento + sem área construída => provável terreno
+  const area = row.area_construida == null ? 0 : Number(row.area_construida);
+  if ((!row.complemento || !String(row.complemento).trim()) && area === 0) return "terreno";
+  return null;
+}
 
 function normalize(s: string): string {
   return (s ?? "")
