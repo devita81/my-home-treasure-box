@@ -106,10 +106,10 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
       <div className="bg-card rounded-xl border-2 border-border shadow-md hover:shadow-lg hover:border-primary/40 transition-all overflow-hidden ring-1 ring-foreground/5">
         <div className={compact ? 'flex flex-col' : 'flex flex-col sm:flex-row'}>
           <div className={compact
-            ? 'relative w-full aspect-[4/3] overflow-hidden bg-black shrink-0'
-            : 'relative w-full sm:w-[30%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-black shrink-0'}>
+            ? 'relative isolate w-full aspect-[4/3] overflow-hidden bg-black shrink-0'
+            : 'relative isolate w-full sm:w-[30%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-black shrink-0'}>
             <div
-              className="w-full h-full cursor-pointer"
+              className="absolute inset-0 z-0 cursor-pointer"
               onClick={(e) => {
                 e.stopPropagation();
                 openMediaViewer(mediaIndex);
@@ -121,7 +121,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                   longitude={property.longitude}
                   address={address}
                   title={getAddressDisplay()}
-                  className="pointer-events-none"
+                  className="h-full w-full pointer-events-none"
                 />
               ) : isVideoUrl(photos[mediaIndex - 1]) ? (
                 <div className="w-full h-full flex items-center justify-center bg-muted">
@@ -149,17 +149,17 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               <>
                 <button
                   onClick={goPrev}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-white hover:bg-white/80 flex items-center justify-center shadow-lg transition-colors"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-30 h-8 w-8 rounded-full bg-white hover:bg-white/80 flex items-center justify-center shadow-lg transition-colors"
                 >
                   <ChevronLeft className="h-4 w-4 text-black" />
                 </button>
                 <button
                   onClick={goNext}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-white hover:bg-white/80 flex items-center justify-center shadow-lg transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-30 h-8 w-8 rounded-full bg-white hover:bg-white/80 flex items-center justify-center shadow-lg transition-colors"
                 >
                   <ChevronRight className="h-4 w-4 text-black" />
                 </button>
-                <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex gap-1">
+                <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex gap-1">
                   {Array.from({ length: Math.min(totalSlides, 10) }).map((_, i) => (
                     <button
                       key={i}
@@ -179,25 +179,37 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               </>
             )}
 
-            <div className={`absolute ${compact ? 'top-2 left-2 right-10' : 'top-3 left-3 right-12'} flex flex-wrap gap-1.5 z-10`}>
-              {property.vendido ? (
-                <Badge className={`bg-destructive text-destructive-foreground ${compact ? 'text-[9px] px-1.5 py-0' : 'text-[10px]'}`}>Vendido</Badge>
-              ) : property.alugado ? (
-                <Badge className={`bg-info text-info-foreground ${compact ? 'text-[9px] px-1.5 py-0' : 'text-[10px]'}`}>Alugado</Badge>
-              ) : (
-                <Badge className={`bg-success text-success-foreground ${compact ? 'text-[9px] px-1.5 py-0' : 'text-[10px]'}`}>Disponível</Badge>
-              )}
-              {property.validado ? (
-                <Badge variant="outline" className={`bg-card/90 border-success text-success ${compact ? 'text-[9px] px-1.5 py-0' : 'text-[10px]'}`}>
-                  <CheckCircle className={compact ? 'h-2 w-2 mr-0.5' : 'h-2.5 w-2.5 mr-0.5'} />
-                  Validado
-                </Badge>
-              ) : (
-                <Badge variant="outline" className={`bg-card/90 border-warning text-warning ${compact ? 'text-[9px] px-1.5 py-0' : 'text-[10px]'}`}>
-                  <XCircle className={compact ? 'h-2 w-2 mr-0.5' : 'h-2.5 w-2.5 mr-0.5'} />
-                  Pendente
-                </Badge>
-              )}
+            <div className="absolute inset-0 z-20 pointer-events-none">
+              <div className={`absolute ${compact ? 'top-2 left-2 right-10' : 'top-3 left-3 right-12'} flex flex-wrap gap-1.5`}>
+                {property.vendido ? (
+                  <Badge className={`bg-destructive text-destructive-foreground ${compact ? 'text-[9px] px-1.5 py-0' : 'text-[10px]'}`}>Vendido</Badge>
+                ) : property.alugado ? (
+                  <Badge className={`bg-info text-info-foreground ${compact ? 'text-[9px] px-1.5 py-0' : 'text-[10px]'}`}>Alugado</Badge>
+                ) : (
+                  <Badge className={`bg-success text-success-foreground ${compact ? 'text-[9px] px-1.5 py-0' : 'text-[10px]'}`}>Disponível</Badge>
+                )}
+                {property.validado ? (
+                  <Badge variant="outline" className={`bg-card/90 border-success text-success ${compact ? 'text-[9px] px-1.5 py-0' : 'text-[10px]'}`}>
+                    <CheckCircle className={compact ? 'h-2 w-2 mr-0.5' : 'h-2.5 w-2.5 mr-0.5'} />
+                    Validado
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className={`bg-card/90 border-warning text-warning ${compact ? 'text-[9px] px-1.5 py-0' : 'text-[10px]'}`}>
+                    <XCircle className={compact ? 'h-2 w-2 mr-0.5' : 'h-2.5 w-2.5 mr-0.5'} />
+                    Pendente
+                  </Badge>
+                )}
+              </div>
+
+              <div className={`absolute bottom-0 left-0 right-0 bg-foreground/85 backdrop-blur-sm ${compact ? 'px-2 py-1.5' : 'px-3 py-2.5'}`}>
+                <p className={`text-card font-semibold truncate ${compact ? 'text-xs' : 'text-sm'}`}>
+                  {getAddressDisplay()}
+                </p>
+                <div className={`flex items-center gap-1 text-card/70 mt-0.5 ${compact ? 'text-[10px]' : 'text-[11px]'}`}>
+                  <MapPin className={compact ? 'h-2.5 w-2.5 shrink-0' : 'h-3 w-3 shrink-0'} />
+                  <span className="truncate">{property.bairro}, {property.cidade} - {property.estado}</span>
+                </div>
+              </div>
             </div>
 
             <button
@@ -205,21 +217,11 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                 e.stopPropagation();
                 openMediaViewer(0);
               }}
-              className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-card/90 text-primary hover:bg-card transition-all shadow-sm z-10"
+              className="absolute top-2 right-2 z-30 flex h-7 w-7 items-center justify-center rounded-full bg-card/90 text-primary hover:bg-card transition-all shadow-sm"
               title="Ver mapa e fotos"
             >
               <MapPin className="h-3.5 w-3.5" />
             </button>
-
-            <div className={`absolute bottom-0 left-0 right-0 z-10 bg-foreground/85 backdrop-blur-sm ${compact ? 'px-2 py-1.5' : 'px-3 py-2.5'}`}>
-              <p className={`text-card font-semibold truncate ${compact ? 'text-xs' : 'text-sm'}`}>
-                {getAddressDisplay()}
-              </p>
-              <div className={`flex items-center gap-1 text-card/70 mt-0.5 ${compact ? 'text-[10px]' : 'text-[11px]'}`}>
-                <MapPin className={compact ? 'h-2.5 w-2.5 shrink-0' : 'h-3 w-3 shrink-0'} />
-                <span className="truncate">{property.bairro}, {property.cidade} - {property.estado}</span>
-              </div>
-            </div>
           </div>
 
           <div
@@ -491,14 +493,17 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               <span className="text-black text-lg font-bold leading-none">✕</span>
             </button>
             {mediaIndex === 0 ? (
-              <>
-                <PropertyCardMap
-                  latitude={property.latitude}
-                  longitude={property.longitude}
-                  address={address}
-                  title={`Mapa de ${getAddressDisplay()}`}
-                  interactive
-                />
+              <div className="absolute inset-0 isolate">
+                <div className="absolute inset-0 z-0">
+                  <PropertyCardMap
+                    latitude={property.latitude}
+                    longitude={property.longitude}
+                    address={address}
+                    title={`Mapa de ${getAddressDisplay()}`}
+                    className="h-full w-full"
+                    interactive
+                  />
+                </div>
 
                 <div className="absolute top-3 left-3 right-16 z-[998] flex flex-wrap gap-1.5 pointer-events-none">
                   {property.vendido ? (
@@ -528,7 +533,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                     <span className="truncate">{property.bairro}, {property.cidade} - {property.estado}</span>
                   </div>
                 </div>
-              </>
+              </div>
             ) : activePhoto ? (
               <div className="flex h-full w-full items-center justify-center bg-black">
                 {isVideoUrl(activePhoto) ? (

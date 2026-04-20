@@ -45,12 +45,18 @@ function buildGroups(list: Property[]): CidadeGroup[] {
       map.set(key, { cidade, tipo, count: 0, aluguel: 0, condominio: 0, iptuMes: 0, taxaAdm: 0, liquido: 0, properties: [] });
     }
     const g = map.get(key)!;
+    const aluguel = p.valor_aluguel ?? 0;
+    const condominio = p.valor_condominio ?? 0;
+    const iptuMes = (p.iptu_value ?? 0) / 12;
+    const taxaAdm = p.taxa_administracao ?? 0;
+    const liquido = aluguel - taxaAdm;
+
     g.count += 1;
-    g.aluguel += p.valor_aluguel ?? 0;
-    g.condominio += p.valor_condominio ?? 0;
-    g.iptuMes += (p.iptu_value ?? 0) / 12;
-    g.taxaAdm += p.taxa_administracao ?? 0;
-    g.liquido = g.aluguel - g.condominio - g.iptuMes - g.taxaAdm;
+    g.aluguel += aluguel;
+    g.condominio += condominio;
+    g.iptuMes += iptuMes;
+    g.taxaAdm += taxaAdm;
+    g.liquido += liquido;
     g.properties.push(p);
   });
 
