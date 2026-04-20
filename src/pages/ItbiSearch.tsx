@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,14 @@ interface ItbiResult {
   area_construida: number | null;
   valor_transacao: number | null;
   valor_venal: number | null;
+}
+
+interface SearchFilters {
+  tipos: string[];
+  logradouro: string;
+  numero: string;
+  bairro: string;
+  cep: string;
 }
 
 const TIPOS = [
@@ -58,6 +66,8 @@ export default function ItbiSearch() {
   const [hasSearched, setHasSearched] = useState(false);
   const [sortField, setSortField] = useState<keyof ItbiResult>('data_transacao');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [lastSubmittedFilters, setLastSubmittedFilters] = useState<SearchFilters | null>(null);
+  const latestSearchIdRef = useRef(0);
 
   const hasAnyFilter = !!(logradouro.trim() || numero.trim() || bairro.trim() || cep.trim());
 
@@ -75,7 +85,6 @@ export default function ItbiSearch() {
     arr.sort((a, b) => {
       const av = a[sortField];
       const bv = b[sortField];
-      // nulls last
       if (av == null && bv == null) return 0;
       if (av == null) return 1;
       if (bv == null) return -1;
@@ -106,46 +115,73 @@ export default function ItbiSearch() {
     return sortOrder === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
   };
 
-  // Auto-search com debounce conforme o usuário preenche
   useEffect(() => {
     if (!hasAnyFilter) {
+      latestSearchIdRef.current += 1;
       setResults([]);
       setHasSearched(false);
+      setLastSubmittedFilters(null);
+      setLoading(false);
       return;
     }
 
+    const filtersSnapshot: SearchFilters = {
+      tipos: [...tipos],
+      logradouro,
+      numero,
+      bairro,
+      cep,
+    };
+
     const timer = setTimeout(() => {
-      runSearch();
+      runSearch(filtersSnapshot);
     }, 600);
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tipos, logradouro, numero, bairro, cep]);
 
-  const runSearch = async () => {
-    if (!hasAnyFilter) return;
+  const runSearch = async (filters?: SearchFilters) => {
+    const payload: SearchFilters = filters ?? {
+      tipos: [...tipos],
+      logradouro,
+      numero,
+      bairro,
+      cep,
+    };
+
+    const hasFilter = !!(
+      payload.logradouro.trim() ||
+      payload.numero.trim() ||
+      payload.bairro.trim() ||
+      payload.cep.trim()
+    );
+
+    if (!hasFilter) return;
+
+    const searchId = ++latestSearchIdRef.current;
     setLoading(true);
+
     try {
       const { data, error } = await supabase.functions.invoke('itbi-search', {
-        body: {
-          tipos,
-          logradouro,
-          numero,
-          bairro,
-          cep,
-        },
+        body: payload,
       });
 
+      if (searchId !== latestSearchIdRef.current) return;
       if (error) throw error;
 
       setResults(data?.results ?? []);
       setHasSearched(true);
+      setLastSubmittedFilters(payload);
     } catch (err) {
+      if (searchId !== latestSearchIdRef.current) return;
       console.error(err);
       toast.error('Erro ao buscar transações ITBI');
       setResults([]);
     } finally {
-      setLoading(false);
+      if (searchId === latestSearchIdRef.current) {
+        setLoading(false);
+      }
     }
   };
 
