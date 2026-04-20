@@ -1052,7 +1052,7 @@ const Analytics = () => {
           {/* Desktop: Tabela */}
           <div className="hidden sm:block overflow-x-auto max-h-[700px] overflow-y-auto">
             <table className="w-full text-xs table-fixed">
-              <thead className="sticky top-0 bg-slate-700/60 z-10">
+              <thead className="sticky top-0 bg-slate-100 z-10">
                 <tr className="border-b border-slate-200">
                   <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 w-8">#</th>
                   <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 w-[35%]">Endereço</th>
@@ -1138,7 +1138,7 @@ const Analytics = () => {
               {/* Desktop: Tabela */}
               <div className="hidden sm:block overflow-x-auto max-h-[500px] overflow-y-auto">
                 <table className="w-full text-xs">
-                  <thead className="sticky top-0 bg-slate-700/60 z-10">
+                  <thead className="sticky top-0 bg-slate-100 z-10">
                     <tr className="border-b border-slate-200">
                       <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 w-8">#</th>
                       <th onClick={() => togglePendentesSort('endereco')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
