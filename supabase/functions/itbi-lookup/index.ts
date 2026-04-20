@@ -11,6 +11,78 @@ const corsHeaders = {
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
+// Mapa de títulos honoríficos / qualificadores comuns em logradouros de SP
+// que aparecem abreviados no ITBI da Prefeitura. Ex.: "Coronel" → "Cel".
+// Cada entrada: forma completa ↔ abreviações equivalentes.
+const HONORIFIC_PAIRS: [string, string[]][] = [
+  ["CORONEL", ["CEL"]],
+  ["TENENTE", ["TEN"]],
+  ["CAPITAO", ["CAP"]],
+  ["GENERAL", ["GAL", "GEN"]],
+  ["MARECHAL", ["MAL"]],
+  ["BRIGADEIRO", ["BRIG"]],
+  ["COMANDANTE", ["CMTE", "CMT"]],
+  ["ALMIRANTE", ["ALM"]],
+  ["SARGENTO", ["SGT"]],
+  ["SOLDADO", ["SD"]],
+  ["DOUTOR", ["DR"]],
+  ["DOUTORA", ["DRA"]],
+  ["PROFESSOR", ["PROF"]],
+  ["PROFESSORA", ["PROFA"]],
+  ["ENGENHEIRO", ["ENG"]],
+  ["ENGENHEIRA", ["ENGA"]],
+  ["ARQUITETO", ["ARQ"]],
+  ["COMENDADOR", ["COMEND", "COM"]],
+  ["DESEMBARGADOR", ["DES", "DESEMB"]],
+  ["MONSENHOR", ["MONS"]],
+  ["CARDEAL", ["CARD"]],
+  ["PADRE", ["PE"]],
+  ["FREI", ["FR"]],
+  ["IRMA", ["IR"]],
+  ["MINISTRO", ["MIN"]],
+  ["PRESIDENTE", ["PRES"]],
+  ["GOVERNADOR", ["GOV"]],
+  ["SENADOR", ["SEN"]],
+  ["DEPUTADO", ["DEP"]],
+  ["VEREADOR", ["VER"]],
+  ["EMBAIXADOR", ["EMB"]],
+  ["CONSELHEIRO", ["CONS"]],
+  ["VISCONDE", ["VISC"]],
+  ["BARAO", ["BAR"]],
+  ["MARQUES", ["MARQ"]],
+  ["DUQUE", ["DUQ"]],
+  ["SAO", ["S"]],
+  ["SANTA", ["STA"]],
+  ["SANTO", ["STO"]],
+  ["NOSSA SENHORA", ["NSA SRA", "N SRA", "NS"]],
+];
+
+// Gera variantes do nome do logradouro substituindo títulos honoríficos
+// por suas abreviações (e vice-versa) para melhorar o recall do trigram.
+function buildLogradouroVariants(rua: string): string[] {
+  if (!rua) return [];
+  const original = rua.trim();
+  const upper = original
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase();
+
+  const variants = new Set<string>([original, upper]);
+
+  for (const [full, abbrs] of HONORIFIC_PAIRS) {
+    const fullRe = new RegExp(`\\b${full}\\b`, "g");
+    if (fullRe.test(upper)) {
+      for (const ab of abbrs) variants.add(upper.replace(fullRe, ab));
+    }
+    for (const ab of abbrs) {
+      const abRe = new RegExp(`\\b${ab}\\b`, "g");
+      if (abRe.test(upper)) variants.add(upper.replace(abRe, full));
+    }
+  }
+
+  return Array.from(variants);
+}
+
 const MATCHING_PROMPT = `Você é um especialista em matching de endereços e análise de valor de mercado usando a base de transações imobiliárias (ITBI) da Prefeitura de São Paulo.
 
 Você receberá um endereço estruturado:
