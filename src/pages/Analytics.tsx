@@ -587,7 +587,7 @@ const Analytics = () => {
         <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-200 flex items-center gap-2">
             <Key className="h-3.5 w-3.5 text-slate-500" />
-            <h2 className="text-[11px] font-semibold text-blue-700 uppercase tracking-widest">Aluguel & Condomínio</h2>
+            <h2 className="text-[11px] font-semibold text-slate-700 uppercase tracking-widest">Aluguel & Condomínio</h2>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-slate-100">
             <div onClick={() => openDialog('Aluguel Recebido', `${alugadosCount} imóveis • ${formatCurrency(totalAluguelRecebido)}/mês`, alugadosProperties)} className="bg-white p-3.5 cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-emerald-400">
@@ -617,7 +617,7 @@ const Analytics = () => {
         <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-200 flex items-center gap-2">
             <Wallet className="h-3.5 w-3.5 text-slate-500" />
-            <h2 className="text-[11px] font-semibold text-blue-700 uppercase tracking-widest">Resultado Financeiro por Cidade</h2>
+            <h2 className="text-[11px] font-semibold text-slate-700 uppercase tracking-widest">Resultado Financeiro por Cidade</h2>
           </div>
           
           {/* Mobile */}
@@ -752,10 +752,10 @@ const Analytics = () => {
               <TableHeader>
                 {/* Header agrupado nível 1 */}
                 <TableRow className="border-slate-200 hover:bg-transparent">
-                  <TableHead rowSpan={2} className="text-[10px] text-blue-700 uppercase tracking-wider font-bold align-bottom">Cidade</TableHead>
+                  <TableHead rowSpan={2} className="text-[10px] text-slate-700 uppercase tracking-wider font-bold align-bottom">Cidade</TableHead>
                   <TableHead colSpan={6} className="text-[10px] text-emerald-700 uppercase tracking-wider font-bold text-center border-l border-r border-slate-200 bg-emerald-50">Receita (Alugados)</TableHead>
                   <TableHead colSpan={4} className="text-[10px] text-red-600 uppercase tracking-wider font-bold text-center border-r border-slate-200 bg-red-50">Despesa (Não Alugados)</TableHead>
-                  <TableHead rowSpan={2} className="text-[10px] text-blue-700 uppercase tracking-wider font-bold text-right align-bottom">Total Geral</TableHead>
+                  <TableHead rowSpan={2} className="text-[10px] text-slate-700 uppercase tracking-wider font-bold text-right align-bottom">Total Geral</TableHead>
                 </TableRow>
                 {/* Header agrupado nível 2 */}
                 <TableRow className="border-slate-200 hover:bg-transparent">
@@ -881,17 +881,17 @@ const Analytics = () => {
           <div className="px-4 py-3 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div className="flex items-center gap-2">
               <Users className="h-3.5 w-3.5 text-slate-500" />
-              <h2 className="text-[11px] font-semibold text-blue-700 uppercase tracking-widest">Distribuição</h2>
+              <h2 className="text-[11px] font-semibold text-slate-700 uppercase tracking-widest">Distribuição</h2>
             </div>
-            <div className="flex gap-1">
+            <div className="flex gap-1 p-0.5 rounded-md bg-slate-100 border border-slate-200">
               {(['market_value', 'declared_value', 'valor_aluguel'] as const).map(m => (
                 <button
                   key={m}
                   onClick={() => setDistributionMetric(m)}
-                  className={`px-2.5 py-1 rounded text-[10px] uppercase tracking-wider transition-colors ${
+                  className={`px-2.5 py-1 rounded text-[10px] font-medium uppercase tracking-wider transition-colors ${
                     distributionMetric === m
-                      ? 'bg-slate-600 text-slate-900'
-                      : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                      ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                   }`}
                 >
                   {m === 'market_value' ? 'Mercado' : m === 'declared_value' ? 'Declarado' : 'Aluguel'}
@@ -905,7 +905,7 @@ const Analytics = () => {
               <div className="rounded-md border border-slate-200 bg-white shadow-sm">
                 <div className="px-3 py-2 border-b-2 border-slate-200 bg-white flex items-center gap-2 rounded-t-md">
                   <Building2 className="h-3 w-3 text-primary" />
-                  <span className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider">Por Tipo</span>
+                  <span className="text-[10px] font-semibold text-slate-700 uppercase tracking-wider">Por Tipo</span>
                 </div>
                 <div className="max-h-48 overflow-y-auto">
                   {propertiesByType.map((item, idx) => (
@@ -924,7 +924,7 @@ const Analytics = () => {
               <div className="rounded-md border border-slate-200 bg-white shadow-sm">
                 <div className="px-3 py-2 border-b-2 border-slate-200 bg-white flex items-center gap-2 rounded-t-md">
                   <Home className="h-3 w-3 text-primary" />
-                  <span className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider">Por Cidade</span>
+                  <span className="text-[10px] font-semibold text-slate-700 uppercase tracking-wider">Por Cidade</span>
                 </div>
                 <div className="max-h-48 overflow-y-auto">
                   {propertiesByCity.map((item, idx) => (
@@ -943,7 +943,7 @@ const Analytics = () => {
               <div className="rounded-md border border-slate-200 bg-white shadow-sm">
                 <div className="px-3 py-2 border-b-2 border-slate-200 bg-white flex items-center gap-2 rounded-t-md">
                   <FileCheck className="h-3 w-3 text-primary" />
-                  <span className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider">Por Proprietário (Papel)</span>
+                  <span className="text-[10px] font-semibold text-slate-700 uppercase tracking-wider">Por Proprietário (Papel)</span>
                 </div>
                 <div className="max-h-48 overflow-y-auto">
                   {proprietariosPapel.map((item, idx) => (
@@ -962,7 +962,7 @@ const Analytics = () => {
               <div className="rounded-md border border-slate-200 bg-white shadow-sm">
                 <div className="px-3 py-2 border-b-2 border-slate-200 bg-white flex items-center gap-2 rounded-t-md">
                   <Users className="h-3 w-3 text-primary" />
-                  <span className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider">Por Proprietário (Matrícula)</span>
+                  <span className="text-[10px] font-semibold text-slate-700 uppercase tracking-wider">Por Proprietário (Matrícula)</span>
                 </div>
                 <div className="max-h-48 overflow-y-auto">
                   {proprietariosMatricula.map((item, idx) => (
@@ -986,11 +986,11 @@ const Analytics = () => {
           <div className="px-4 py-3 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div className="flex items-center gap-2">
               <BarChart3 className="h-3.5 w-3.5 text-slate-500" />
-              <h2 className="text-[11px] font-semibold text-blue-700 uppercase tracking-widest">Ranking por Valor</h2>
+              <h2 className="text-[11px] font-semibold text-slate-700 uppercase tracking-widest">Ranking por Valor</h2>
             </div>
             <div className="flex gap-2">
               <Select value={rankingMetric} onValueChange={(v) => setRankingMetric(v as typeof rankingMetric)}>
-                <SelectTrigger className="w-[130px] h-7 text-[10px] bg-slate-900/50 border-slate-200 text-slate-600">
+                <SelectTrigger className="w-[130px] h-7 text-[10px] font-medium bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-md shadow-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1002,7 +1002,7 @@ const Analytics = () => {
                 </SelectContent>
               </Select>
               <Select value={String(rankingLimit)} onValueChange={(v) => setRankingLimit(Number(v))}>
-                <SelectTrigger className="w-[70px] h-7 text-[10px] bg-slate-900/50 border-slate-200 text-slate-600">
+                <SelectTrigger className="w-[80px] h-7 text-[10px] font-medium bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-md shadow-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1014,7 +1014,7 @@ const Analytics = () => {
               </Select>
               <button
                 onClick={() => setRankingSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                className="px-2 py-1 rounded text-[10px] text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors flex items-center gap-1"
+                className="px-2.5 h-7 rounded-md text-[10px] font-medium bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors flex items-center gap-1 shadow-sm"
               >
                 {rankingSortOrder === 'desc' ? <><ArrowDown className="h-3 w-3" /> Top</> : <><ArrowUp className="h-3 w-3" /> Base</>}
               </button>
