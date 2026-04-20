@@ -56,8 +56,55 @@ export default function ItbiSearch() {
   const [results, setResults] = useState<ItbiResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [sortField, setSortField] = useState<keyof ItbiResult>('data_transacao');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const hasAnyFilter = !!(logradouro.trim() || numero.trim() || bairro.trim() || cep.trim());
+
+  const toggleSort = (field: keyof ItbiResult) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
+
+  const sortedResults = useMemo(() => {
+    const arr = [...results];
+    arr.sort((a, b) => {
+      const av = a[sortField];
+      const bv = b[sortField];
+      // nulls last
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+
+      let cmp = 0;
+      if (sortField === 'data_transacao') {
+        cmp = new Date(av as string).getTime() - new Date(bv as string).getTime();
+      } else if (
+        sortField === 'valor_transacao' ||
+        sortField === 'valor_venal' ||
+        sortField === 'area_construida'
+      ) {
+        cmp = Number(av) - Number(bv);
+      } else if (sortField === 'numero') {
+        const an = parseInt(String(av).replace(/\D/g, ''), 10) || 0;
+        const bn = parseInt(String(bv).replace(/\D/g, ''), 10) || 0;
+        cmp = an - bn;
+      } else {
+        cmp = String(av).localeCompare(String(bv), 'pt-BR');
+      }
+      return sortOrder === 'asc' ? cmp : -cmp;
+    });
+    return arr;
+  }, [results, sortField, sortOrder]);
+
+  const SortIcon = ({ field }: { field: keyof ItbiResult }) => {
+    if (sortField !== field) return <ArrowUpDown className="h-3 w-3 opacity-40" />;
+    return sortOrder === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
+  };
 
   // Auto-search com debounce conforme o usuário preenche
   useEffect(() => {
