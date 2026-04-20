@@ -1432,6 +1432,7 @@ const Analytics = () => {
                     )}
                   </tbody>
                 </table>
+                </div>
               )}
             </div>
           </div>
