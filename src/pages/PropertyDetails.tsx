@@ -523,7 +523,7 @@ const PropertyDetails = () => {
           </div>
 
           {/* Hero Image */}
-          <div className="relative aspect-[21/9] max-h-[320px] rounded-2xl overflow-hidden">
+          <div className="relative isolate z-0 aspect-[21/9] max-h-[320px] rounded-2xl overflow-hidden">
             {hasRealPhotos ? (
               <img
                 src={property.photos[0]}
