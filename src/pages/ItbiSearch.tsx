@@ -120,7 +120,7 @@ export default function ItbiSearch() {
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tipo, logradouro, numero, bairro, cep]);
+  }, [tipos, logradouro, numero, bairro, cep]);
 
   const runSearch = async () => {
     if (!hasAnyFilter) return;
