@@ -454,12 +454,17 @@ function ReportPreview({ property }: { property: Property }) {
       {/* Map */}
       {hasCoords && (
         <div className="px-4 pt-2">
-          <iframe
-            src={`https://www.openstreetmap.org/export/embed.html?bbox=${property.longitude! - 0.005},${property.latitude! - 0.003},${property.longitude! + 0.005},${property.latitude! + 0.003}&layer=mapnik&marker=${property.latitude},${property.longitude}`}
-            className="w-full rounded border border-border"
+          <div
+            className="relative w-full overflow-hidden rounded border border-border"
             style={{ height: 160 }}
-            title="Mapa do imóvel"
-          />
+          >
+            <iframe
+              src={`https://www.openstreetmap.org/export/embed.html?bbox=${property.longitude! - 0.005},${property.latitude! - 0.003},${property.longitude! + 0.005},${property.latitude! + 0.003}&layer=mapnik&marker=${property.latitude},${property.longitude}`}
+              className="absolute left-0 top-0 w-full"
+              style={{ height: 200 }}
+              title="Mapa do imóvel"
+            />
+          </div>
         </div>
       )}
 
