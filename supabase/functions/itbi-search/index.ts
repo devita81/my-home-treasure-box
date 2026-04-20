@@ -149,18 +149,14 @@ serve(async (req) => {
 
     let rows = data ?? [];
 
-    // === Filtro de TIPO ===
+    // === Filtro de TIPO (OR entre tipos selecionados) ===
     // Prioridade: descricao_uso_iptu > complemento > heurística por área.
     let descartados = 0;
-    if (tipo) {
+    if (tipos.length > 0) {
       const before = rows.length;
-      rows = rows.filter((r: any) => {
-        const cat = inferCategory(r);
-        const area = r.area_construida == null ? 0 : Number(r.area_construida);
-
+      const matchTipo = (tipo: string, cat: string | null, area: number): boolean => {
         if (tipo === "apartamento") {
           if (cat === "apartamento") return true;
-          // Sem sinal claro: aceita se NÃO for garagem/comercial/casa/terreno e área >= 25m²
           if (cat == null && area >= 25) return true;
           return false;
         }
@@ -172,6 +168,11 @@ serve(async (req) => {
         if (tipo === "comercial" || tipo === "sala" || tipo === "loja") return cat === "comercial";
         if (tipo === "terreno") return cat === "terreno";
         return true;
+      };
+      rows = rows.filter((r: any) => {
+        const cat = inferCategory(r);
+        const area = r.area_construida == null ? 0 : Number(r.area_construida);
+        return tipos.some((t) => matchTipo(t, cat, area));
       });
       descartados = before - rows.length;
     }
