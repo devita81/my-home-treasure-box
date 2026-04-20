@@ -1373,19 +1373,26 @@ const Analytics = () => {
                     const totalCond = sortedDialogProperties.reduce((acc, p) => acc + (p.valor_condominio || 0), 0);
                     const totalIptu = sortedDialogProperties.reduce((acc, p) => acc + ((p.iptu_value || 0) / 12), 0);
                     const totalTxAdm = sortedDialogProperties.reduce((acc, p) => acc + (p.taxa_administracao || 0), 0);
-                    const totalLiquido = totalAluguel - totalCond - totalIptu - totalTxAdm;
+                    const totalGeral = sortedDialogProperties.reduce((acc, p) => {
+                      const aluguel = p.valor_aluguel || 0;
+                      const cond = p.valor_condominio || 0;
+                      const iptuMes = (p.iptu_value || 0) / 12;
+                      const txAdm = p.taxa_administracao || 0;
+                      return acc + (p.alugado ? aluguel - cond - iptuMes - txAdm : -(cond + iptuMes + txAdm));
+                    }, 0);
                     return (
                       <div className="shrink-0 border-t-2 border-blue-300 bg-blue-50">
                         <table className="w-full text-xs">
                           <tbody>
                             <tr>
                               <td colSpan={4} className="py-2 px-3 text-[11px] font-bold text-blue-700 uppercase tracking-wider">
-                                Total · Líquido <span className={`font-mono tabular-nums ${totalLiquido >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>{totalLiquido < 0 ? '-' : ''}{formatCurrency(Math.abs(totalLiquido))}</span>
+                                Totais
                               </td>
                               <td className="text-right py-2 px-3 text-[11px] text-emerald-700 font-mono tabular-nums font-bold whitespace-nowrap">{formatCurrency(totalAluguel)}</td>
                               <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums font-bold whitespace-nowrap">-{formatCurrency(totalCond)}</td>
                               <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums font-bold whitespace-nowrap">-{formatCurrency(totalIptu)}</td>
                               <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums font-bold whitespace-nowrap">-{formatCurrency(totalTxAdm)}</td>
+                              <td className={`text-right py-2 px-3 text-[11px] font-mono tabular-nums font-bold whitespace-nowrap ${totalGeral >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>{totalGeral < 0 ? '-' : ''}{formatCurrency(Math.abs(totalGeral))}</td>
                             </tr>
                           </tbody>
                         </table>
