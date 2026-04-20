@@ -49,7 +49,9 @@ function buildGroups(list: Property[]): CidadeGroup[] {
     const condominio = p.valor_condominio ?? 0;
     const iptuMes = (p.iptu_value ?? 0) / 12;
     const taxaAdm = p.taxa_administracao ?? 0;
-    const liquido = aluguel - taxaAdm;
+    // Alugados: receita líquida = aluguel - taxa adm
+    // Não alugados: apenas custos (condomínio + IPTU/mês) como valor negativo
+    const liquido = p.alugado ? (aluguel - taxaAdm) : -(condominio + iptuMes);
 
     g.count += 1;
     g.aluguel += aluguel;
