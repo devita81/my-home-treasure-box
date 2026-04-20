@@ -1323,9 +1323,9 @@ const Analytics = () => {
                           )}
                         </td>
                         <td className="text-right py-2 px-3 text-[11px] text-slate-900 font-mono tabular-nums font-semibold whitespace-nowrap">{formatCurrency(property.valor_aluguel || 0)}</td>
-                        <td className="text-right py-2 px-3 text-[11px] text-slate-700 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.valor_condominio || 0)}</td>
-                        <td className="text-right py-2 px-3 text-[11px] text-slate-700 font-mono tabular-nums whitespace-nowrap">{formatCurrency((property.iptu_value || 0) / 12)}</td>
-                        <td className="text-right py-2 px-3 text-[11px] text-slate-700 font-mono tabular-nums whitespace-nowrap">{property.taxa_administracao ? `-${formatCurrency(property.taxa_administracao)}` : formatCurrency(0)}</td>
+                        <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums whitespace-nowrap">{(property.valor_condominio || 0) > 0 ? `-${formatCurrency(property.valor_condominio || 0)}` : formatCurrency(0)}</td>
+                        <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums whitespace-nowrap">{(property.iptu_value || 0) > 0 ? `-${formatCurrency((property.iptu_value || 0) / 12)}` : formatCurrency(0)}</td>
+                        <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums whitespace-nowrap">{property.taxa_administracao ? `-${formatCurrency(property.taxa_administracao)}` : formatCurrency(0)}</td>
                       </tr>
                     ))}
                     {sortedDialogProperties.length === 0 && (
@@ -1336,6 +1336,24 @@ const Analytics = () => {
                       </tr>
                     )}
                   </tbody>
+                  {sortedDialogProperties.length > 0 && (() => {
+                    const totalAluguel = sortedDialogProperties.reduce((acc, p) => acc + (p.valor_aluguel || 0), 0);
+                    const totalCond = sortedDialogProperties.reduce((acc, p) => acc + (p.valor_condominio || 0), 0);
+                    const totalIptu = sortedDialogProperties.reduce((acc, p) => acc + ((p.iptu_value || 0) / 12), 0);
+                    const totalTxAdm = sortedDialogProperties.reduce((acc, p) => acc + (p.taxa_administracao || 0), 0);
+                    const totalLiquido = totalAluguel - totalCond - totalIptu - totalTxAdm;
+                    return (
+                      <tfoot className="sticky bottom-0 bg-blue-50 border-t-2 border-blue-300 z-10">
+                        <tr>
+                          <td colSpan={4} className="py-2 px-3 text-[11px] font-bold text-blue-700 uppercase tracking-wider">Total · Líquido {formatCurrency(totalLiquido)}</td>
+                          <td className="text-right py-2 px-3 text-[11px] text-emerald-700 font-mono tabular-nums font-bold whitespace-nowrap">{formatCurrency(totalAluguel)}</td>
+                          <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums font-bold whitespace-nowrap">{totalCond > 0 ? `-${formatCurrency(totalCond)}` : formatCurrency(0)}</td>
+                          <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums font-bold whitespace-nowrap">{totalIptu > 0 ? `-${formatCurrency(totalIptu)}` : formatCurrency(0)}</td>
+                          <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums font-bold whitespace-nowrap">{totalTxAdm > 0 ? `-${formatCurrency(totalTxAdm)}` : formatCurrency(0)}</td>
+                        </tr>
+                      </tfoot>
+                    );
+                  })()}
                 </table>
               ) : (
                 <table className="min-w-[1600px] w-full caption-bottom text-xs">
