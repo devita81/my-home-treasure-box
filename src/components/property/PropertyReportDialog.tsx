@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { deliverPdfBlob } from '@/lib/pdf-delivery';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -617,48 +618,13 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
       const doc = await generatePropertyPDF(property);
       const fileName = buildFileName();
 
-      const ua = navigator.userAgent || '';
-      const isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
-      const isAndroid = /Android/i.test(ua);
-      const isMobile = isIOS || isAndroid || /webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
-
       const blob = doc.output('blob');
-      const mobileSafeFileName = 'relatorio-imovel.pdf';
-      const mobileFile = new File([blob], mobileSafeFileName, {
-        type: 'application/pdf',
-        lastModified: Date.now(),
-      });
+      const deliveryResult = await deliverPdfBlob(blob, fileName);
 
-      const triggerBlobDownload = (downloadName: string) => {
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = downloadName;
-        a.rel = 'noopener';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
-      };
-
-      if (isMobile && typeof navigator.share === 'function') {
-        try {
-          await navigator.share({ files: [mobileFile] });
-          toast.success('PDF compartilhado!');
-          return;
-        } catch (shareErr: any) {
-          if (shareErr?.name === 'AbortError') return;
-          logger.warn('Native PDF share failed, falling back to download', shareErr);
-        }
-      }
-
-      if (isMobile) {
-        triggerBlobDownload(mobileSafeFileName);
-        toast.success('PDF baixado com sucesso!');
+      if (deliveryResult === 'cancelled') {
         return;
       }
 
-      doc.save(fileName);
       toast.success('Relatório PDF gerado com sucesso!');
     } catch (err) {
       logger.error('PDF generation error:', err);
