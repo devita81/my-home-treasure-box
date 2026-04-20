@@ -379,6 +379,11 @@ export default function ItbiSearch() {
               </Button>
             )}
           </CardHeader>
+          {hasSearched && logradouro && (
+            <div className="px-6 -mt-2 pb-2 text-[11px] text-muted-foreground">
+              Buscando logradouro contendo: <code className="px-1 py-0.5 bg-muted rounded">{logradouro.trim()}</code>
+            </div>
+          )}
           <CardContent>
             {!hasSearched && !loading && (
               <p className="text-sm text-muted-foreground py-8 text-center">
