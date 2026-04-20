@@ -899,11 +899,11 @@ const Analytics = () => {
               ))}
             </div>
           </div>
-          <div className="p-3 sm:p-4 space-y-3 sm:space-y-4 bg-slate-900/40">
+          <div className="p-3 sm:p-4 space-y-3 sm:space-y-4 bg-transparent">
             <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
               {/* Por Tipo */}
-              <div className="rounded-md border border-slate-600/60 bg-[hsl(220_14%_93%)]/60 shadow-sm shadow-black/20">
-                <div className="px-3 py-2 border-b-2 border-slate-600/50 bg-white flex items-center gap-2 rounded-t-md">
+              <div className="rounded-md border border-slate-200 bg-white shadow-sm">
+                <div className="px-3 py-2 border-b-2 border-slate-200 bg-white flex items-center gap-2 rounded-t-md">
                   <Building2 className="h-3 w-3 text-primary" />
                   <span className="text-[10px] font-semibold text-slate-800 uppercase tracking-wider">Por Tipo</span>
                 </div>
@@ -921,8 +921,8 @@ const Analytics = () => {
                 </div>
               </div>
               {/* Por Cidade */}
-              <div className="rounded-md border border-slate-600/60 bg-[hsl(220_14%_93%)]/60 shadow-sm shadow-black/20">
-                <div className="px-3 py-2 border-b-2 border-slate-600/50 bg-white flex items-center gap-2 rounded-t-md">
+              <div className="rounded-md border border-slate-200 bg-white shadow-sm">
+                <div className="px-3 py-2 border-b-2 border-slate-200 bg-white flex items-center gap-2 rounded-t-md">
                   <Home className="h-3 w-3 text-primary" />
                   <span className="text-[10px] font-semibold text-slate-800 uppercase tracking-wider">Por Cidade</span>
                 </div>
@@ -940,8 +940,8 @@ const Analytics = () => {
                 </div>
               </div>
               {/* Por Proprietário Papel */}
-              <div className="rounded-md border border-slate-600/60 bg-[hsl(220_14%_93%)]/60 shadow-sm shadow-black/20">
-                <div className="px-3 py-2 border-b-2 border-slate-600/50 bg-white flex items-center gap-2 rounded-t-md">
+              <div className="rounded-md border border-slate-200 bg-white shadow-sm">
+                <div className="px-3 py-2 border-b-2 border-slate-200 bg-white flex items-center gap-2 rounded-t-md">
                   <FileCheck className="h-3 w-3 text-primary" />
                   <span className="text-[10px] font-semibold text-slate-800 uppercase tracking-wider">Por Proprietário (Papel)</span>
                 </div>
@@ -959,8 +959,8 @@ const Analytics = () => {
                 </div>
               </div>
               {/* Por Proprietário Matrícula */}
-              <div className="rounded-md border border-slate-600/60 bg-[hsl(220_14%_93%)]/60 shadow-sm shadow-black/20">
-                <div className="px-3 py-2 border-b-2 border-slate-600/50 bg-white flex items-center gap-2 rounded-t-md">
+              <div className="rounded-md border border-slate-200 bg-white shadow-sm">
+                <div className="px-3 py-2 border-b-2 border-slate-200 bg-white flex items-center gap-2 rounded-t-md">
                   <Users className="h-3 w-3 text-primary" />
                   <span className="text-[10px] font-semibold text-slate-800 uppercase tracking-wider">Por Proprietário (Matrícula)</span>
                 </div>
