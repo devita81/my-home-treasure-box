@@ -388,7 +388,7 @@ export default function ItbiSearch() {
               <>
                 {/* Mobile: cards */}
                 <div className="sm:hidden space-y-2">
-                  {sortedResults.slice(0, 200).map((r) => (
+                  {sortedResults.slice(0, 500).map((r) => (
                     <div key={r.id} className="border rounded-lg p-3 bg-card text-xs space-y-1">
                       <div className="flex justify-between items-start gap-2">
                         <div className="font-medium">{r.logradouro}{r.numero ? `, ${r.numero}` : ''}</div>
@@ -411,6 +411,11 @@ export default function ItbiSearch() {
                       )}
                     </div>
                   ))}
+                  {results.length > 500 && (
+                    <p className="text-xs text-muted-foreground mt-2 text-center">
+                      Mostrando os primeiros 500 resultados. Refine os filtros para ver mais.
+                    </p>
+                  )}
                 </div>
 
                 {/* Desktop: tabela */}
