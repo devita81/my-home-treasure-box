@@ -404,6 +404,31 @@ export default function ItbiSearch() {
               <>
                 {/* Mobile: cards */}
                 <div className="sm:hidden space-y-2">
+                  <div className="flex items-center gap-2 pb-1">
+                    <Label className="text-[11px] text-muted-foreground whitespace-nowrap">Ordenar:</Label>
+                    <select
+                      value={sortField}
+                      onChange={(e) => setSortField(e.target.value as keyof ItbiResult)}
+                      className="h-8 flex-1 rounded-md border border-input bg-background px-2 text-xs"
+                    >
+                      <option value="data_transacao">Data</option>
+                      <option value="valor_transacao">Valor Transação</option>
+                      <option value="valor_venal">Valor Venal</option>
+                      <option value="area_construida">Área (m²)</option>
+                      <option value="logradouro">Logradouro</option>
+                      <option value="numero">Número</option>
+                      <option value="bairro">Bairro</option>
+                    </select>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 px-2"
+                      onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                      aria-label="Inverter ordem"
+                    >
+                      {sortOrder === 'asc' ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />}
+                    </Button>
+                  </div>
                   {sortedResults.slice(0, 500).map((r) => (
                     <div key={r.id} className="border rounded-lg p-3 bg-card text-xs space-y-1">
                       <div className="flex justify-between items-start gap-2">
