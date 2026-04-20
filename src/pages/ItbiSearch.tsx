@@ -4,10 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Loader2, Database, Download, X, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Search, Loader2, Database, Download, X, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
@@ -27,7 +28,6 @@ interface ItbiResult {
 }
 
 const TIPOS = [
-  { value: 'todos', label: 'Todos os tipos' },
   { value: 'apartamento', label: 'Apartamento' },
   { value: 'casa', label: 'Casa' },
   { value: 'terreno', label: 'Terreno' },
@@ -48,7 +48,7 @@ const fmtDate = (s: string | null) => {
 };
 
 export default function ItbiSearch() {
-  const [tipo, setTipo] = useState('todos');
+  const [tipos, setTipos] = useState<string[]>([]);
   const [logradouro, setLogradouro] = useState('');
   const [numero, setNumero] = useState('');
   const [bairro, setBairro] = useState('');
@@ -120,7 +120,7 @@ export default function ItbiSearch() {
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tipo, logradouro, numero, bairro, cep]);
+  }, [tipos, logradouro, numero, bairro, cep]);
 
   const runSearch = async () => {
     if (!hasAnyFilter) return;
@@ -128,7 +128,7 @@ export default function ItbiSearch() {
     try {
       const { data, error } = await supabase.functions.invoke('itbi-search', {
         body: {
-          tipo: tipo === 'todos' ? '' : tipo,
+          tipos,
           logradouro,
           numero,
           bairro,
@@ -150,7 +150,7 @@ export default function ItbiSearch() {
   };
 
   const clearAll = () => {
-    setTipo('todos');
+    setTipos([]);
     setLogradouro('');
     setNumero('');
     setBairro('');
@@ -158,6 +158,18 @@ export default function ItbiSearch() {
     setResults([]);
     setHasSearched(false);
   };
+
+  const toggleTipo = (value: string) => {
+    setTipos((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
+    );
+  };
+
+  const tiposLabel = tipos.length === 0
+    ? 'Todos os tipos'
+    : tipos.length === 1
+    ? TIPOS.find((t) => t.value === tipos[0])?.label ?? '1 tipo'
+    : `${tipos.length} tipos selecionados`;
 
   const stats = useMemo(() => {
     if (results.length === 0) return null;
@@ -235,18 +247,48 @@ export default function ItbiSearch() {
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
             <div className="lg:col-span-2 space-y-1">
               <Label className="text-xs">Tipo</Label>
-              <Select value={tipo} onValueChange={setTipo}>
-                <SelectTrigger className="h-9">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TIPOS.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="h-9 w-full justify-between font-normal"
+                  >
+                    <span className={tipos.length === 0 ? 'text-muted-foreground' : ''}>
+                      {tiposLabel}
+                    </span>
+                    <ChevronDown className="h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-2" align="start">
+                  <div className="space-y-1">
+                    {TIPOS.map((t) => {
+                      const checked = tipos.includes(t.value);
+                      return (
+                        <label
+                          key={t.value}
+                          className="flex items-center gap-2 px-2 py-1.5 rounded-sm hover:bg-accent cursor-pointer text-sm"
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={() => toggleTipo(t.value)}
+                          />
+                          <span>{t.label}</span>
+                        </label>
+                      );
+                    })}
+                    {tipos.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-full text-xs mt-1"
+                        onClick={() => setTipos([])}
+                      >
+                        Limpar tipos
+                      </Button>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="lg:col-span-2 space-y-1">
               <Label className="text-xs">Logradouro (rua, avenida, estrada...)</Label>
