@@ -262,15 +262,21 @@ Foram analisados **${totalCandidates} candidatos** com número exato e nome de r
       const enderecoBase = `${m.logradouro ?? ""}${m.numero ? `, ${m.numero}` : ""}`.trim() || "N/D";
       const compl = m.complemento?.trim() || "—";
       const complDisplay = m.is_unidade_exata ? `🎯 **${compl}**` : compl;
-      const bairro = m.bairro?.trim() || "—";
       const sql = m.sql_iptu?.trim() || "—";
       const area = m.area_construida ? `${Number(m.area_construida).toLocaleString("pt-BR")} m²` : "—";
-      return `| ${data} | ${enderecoBase} | ${complDisplay} | ${bairro} | ${sql} | ${area} | ${fmt(m.valor_transacao)} | ${fmt(m.valor_venal)} | ${classBadge(m.classificacao_valor)} | ${m.score}% |`;
+      const naMedia = m.incluido_na_media === false
+        ? `❌ ${m.motivo_exclusao ?? "fora"}`
+        : m.incluido_na_media === true
+          ? "✅ Sim"
+          : "—";
+      return `| ${data} | ${enderecoBase} | ${complDisplay} | ${sql} | ${area} | ${fmt(m.valor_transacao)} | ${fmt(m.valor_venal)} | ${naMedia} |`;
     })
     .join("\n");
 
   const exatas = dedup.filter((m: any) => m.is_unidade_exata).length;
   const outrasUnidades = dedup.length - exatas;
+  const incluidasNaMedia = matched.filter((m: any) => m.incluido_na_media === true).length;
+  const excluidasOutlier = matched.filter((m: any) => m.incluido_na_media === false && (m.motivo_exclusao ?? "").startsWith("outlier")).length;
 
   const diff =
     valorRef?.valor_estimado && property.declared_value
@@ -298,12 +304,13 @@ ${property.rua}${property.numero ? `, ${property.numero}` : ""}${aptoTxt}${prope
 ${valorRef?.observacao ? `> ${valorRef.observacao}` : ""}
 
 ### 📊 Transações no Mesmo Prédio
-${dedup.length} transação(ões) única(s) — **${exatas} da unidade exata** + ${outrasUnidades} de outras unidades do mesmo prédio. ${duplicatasRemovidas > 0 ? `${duplicatasRemovidas} duplicata(s) removida(s) — ITBI registra comprador+vendedor.` : ""}
+${dedup.length} transação(ões) única(s) — **${exatas} da unidade exata** + ${outrasUnidades} de outras unidades. ${duplicatasRemovidas > 0 ? `${duplicatasRemovidas} duplicata(s) removida(s) — ITBI registra comprador+vendedor.` : ""}
+**${incluidasNaMedia} entraram no cálculo da média final** | ${excluidasOutlier} descartada(s) como outlier (±30%).
 
-🎯 = unidade exata informada no cadastro
+🎯 = unidade exata informada no cadastro · ✅ = entrou na média · ❌ = descartada
 
-| Data | Endereço | Compl. | Bairro | SQL/IPTU | Área | Valor Transação | Valor Venal | Classificação | Confiança |
-|------|----------|--------|--------|----------|------|-----------------|-------------|---------------|-----------|
+| Data | Endereço | Compl. | SQL/IPTU | Área | Valor Transação | Valor Venal | Na média? |
+|------|----------|--------|----------|------|-----------------|-------------|-----------|
 ${tableRows}
 
 ### 🎯 Avaliação Final
@@ -520,15 +527,25 @@ serve(async (req) => {
     // 2) Tira a média de TODAS as transações válidas
     // 3) Remove outliers (±30% da média inicial)
     // 4) Recalcula a média sobre o que sobrou
+    // Marca cada match com incluido_na_media para o relatório.
     const seenKeys = new Set<string>();
     const valoresValidos: number[] = [];
     for (const m of matched) {
       const v = Number(m.valor_transacao);
-      if (!v || v <= 0) continue;
+      if (!v || v <= 0) {
+        m.incluido_na_media = false;
+        m.motivo_exclusao = "sem valor de transação";
+        continue;
+      }
       const key = `${m.data_transacao ?? ""}|${m.valor_transacao ?? ""}|${m.sql_iptu ?? ""}|${m.numero ?? ""}|${m.complemento ?? ""}`;
-      if (seenKeys.has(key)) continue;
+      if (seenKeys.has(key)) {
+        m.incluido_na_media = false;
+        m.motivo_exclusao = "duplicata (comprador/vendedor)";
+        continue;
+      }
       seenKeys.add(key);
       valoresValidos.push(v);
+      m.incluido_na_media = true; // provisório — pode virar outlier abaixo
     }
 
     let valorReferencia: { metodologia: string; valor_estimado: number | null; observacao: string } | null = null;
@@ -538,8 +555,21 @@ serve(async (req) => {
       const max = mediaInicial * 1.3;
       const semOutliers = valoresValidos.filter((v) => v >= min && v <= max);
       const removidos = valoresValidos.length - semOutliers.length;
-      const baseFinal = semOutliers.length > 0 ? semOutliers : valoresValidos;
+      // Só desclassifica como outlier se ainda restam transações na amostra após o corte
+      const aplicarCorte = semOutliers.length > 0;
+      const baseFinal = aplicarCorte ? semOutliers : valoresValidos;
       const mediaFinal = baseFinal.reduce((a, b) => a + b, 0) / baseFinal.length;
+
+      if (aplicarCorte) {
+        for (const m of matched) {
+          if (!m.incluido_na_media) continue;
+          const v = Number(m.valor_transacao);
+          if (v < min || v > max) {
+            m.incluido_na_media = false;
+            m.motivo_exclusao = `outlier (>30% da média ${Math.round(mediaInicial).toLocaleString("pt-BR")})`;
+          }
+        }
+      }
 
       valorReferencia = {
         metodologia: "média das transações do mesmo prédio, descartando outliers além de ±30% da média inicial",
