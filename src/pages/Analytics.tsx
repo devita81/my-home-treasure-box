@@ -557,7 +557,7 @@ const Analytics = () => {
         <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-200 flex items-center gap-2">
             <Receipt className="h-3.5 w-3.5 text-slate-500" />
-            <h2 className="text-[11px] font-semibold text-blue-700 uppercase tracking-widest">Resumo de IPTU</h2>
+            <h2 className="text-[11px] font-semibold text-slate-700 uppercase tracking-widest">Resumo de IPTU</h2>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-slate-100">
             <div onClick={() => openDialog('IPTU Pago', `${iptuPagoCount} imóveis • Total: ${formatCurrency(iptuPagoValue)}`, iptuPagoProperties)} className="bg-white p-3.5 cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-emerald-400">
