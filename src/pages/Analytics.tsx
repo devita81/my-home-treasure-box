@@ -1238,10 +1238,10 @@ const Analytics = () => {
                       >
                         <div className="flex items-start justify-between gap-2 mb-1.5">
                           <div className="min-w-0 flex-1">
-                            <p className="text-[12px] font-semibold text-slate-900 truncate" title={getPropertyAddress(property)}>
+                            <p className="text-[12px] font-semibold text-slate-900 truncate uppercase" title={getPropertyAddress(property)}>
                               {getPropertyAddress(property)}
                             </p>
-                            <p className="text-[10px] text-slate-500 truncate">
+                            <p className="text-[10px] text-slate-500 truncate uppercase">
                               {getTipoLabel(property.tipo_imovel)} • {property.cidade} - {property.estado}
                             </p>
                           </div>
@@ -1322,15 +1322,15 @@ const Analytics = () => {
                             <td className="py-2 px-3 max-w-[260px]">
                               <Link
                                 to={`/property/${property.id}`}
-                                className="text-slate-900 hover:text-blue-600 block truncate text-[11px] font-medium"
+                                className="text-slate-900 hover:text-blue-600 block truncate text-[11px] font-medium uppercase"
                                 onClick={closeDialog}
                                 title={getPropertyAddress(property)}
                               >
                                 {getPropertyAddress(property)}
                               </Link>
                             </td>
-                            <td className="py-2 px-3 text-[10px] text-slate-600">{getTipoLabel(property.tipo_imovel)}</td>
-                            <td className="py-2 px-3 text-[10px] text-slate-600 whitespace-nowrap">{property.cidade} - {property.estado}</td>
+                            <td className="py-2 px-3 text-[10px] text-slate-600 uppercase">{getTipoLabel(property.tipo_imovel)}</td>
+                            <td className="py-2 px-3 text-[10px] text-slate-600 whitespace-nowrap uppercase">{property.cidade} - {property.estado}</td>
                             <td className="py-2 px-3 text-center">
                               {property.alugado ? (
                                 <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
