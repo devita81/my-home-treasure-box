@@ -388,7 +388,7 @@ export default function ItbiSearch() {
               <>
                 {/* Mobile: cards */}
                 <div className="sm:hidden space-y-2">
-                  {sortedResults.slice(0, 200).map((r) => (
+                  {sortedResults.slice(0, 500).map((r) => (
                     <div key={r.id} className="border rounded-lg p-3 bg-card text-xs space-y-1">
                       <div className="flex justify-between items-start gap-2">
                         <div className="font-medium">{r.logradouro}{r.numero ? `, ${r.numero}` : ''}</div>
