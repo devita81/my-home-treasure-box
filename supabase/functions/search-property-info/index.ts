@@ -75,7 +75,126 @@ serve(async (req) => {
     const address = `${rua}${numero ? `, ${numero}` : ''}, ${bairro}, ${cidade} - ${estado}`;
     const searchAddress = `${rua} ${bairro} ${cidade} ${estado}`;
     const tipoForSearch = tipo_imovel || 'apartamento';
-    
+
+    // ===== ITBI (apenas São Paulo capital) — busca + tratamento de outliers via IQR =====
+    let itbiSummary = '';
+    const cidadeLower = (cidade ?? '').toString().toLowerCase().trim();
+    const isSaoPaulo = cidadeLower === 'são paulo' || cidadeLower === 'sao paulo';
+    if (isSaoPaulo) {
+      try {
+        const { data: candidates, error: rpcErr } = await supabaseClient.rpc('match_itbi_candidates', {
+          p_logradouro: rua,
+          p_numero: numero ?? null,
+          p_bairro: bairro ?? null,
+          p_limit: 200,
+        });
+
+        if (rpcErr) {
+          console.warn('ITBI rpc error:', rpcErr.message);
+        } else if (candidates && candidates.length > 0) {
+          // Filtro de tipo: se for residencial, descartar garagens/vagas/depósitos e áreas <25m²
+          const tipoLower = (tipo_imovel ?? '').toLowerCase();
+          const isResidencial = !tipoLower.includes('garagem') && !tipoLower.includes('comercial') && !tipoLower.includes('terreno');
+          const NON_RESIDENTIAL_RE = /\b(GARAGEM|GAR|VAGA|VG|BOX|ESTACIONAMENTO|DEPOSITO|DEP|HOBBY|CUBICULO)\b/i;
+
+          let filtered = candidates as any[];
+          if (isResidencial) {
+            filtered = filtered.filter((c: any) => {
+              const compl = (c.complemento ?? '').toString();
+              if (NON_RESIDENTIAL_RE.test(compl)) return false;
+              if (c.area_construida != null && Number(c.area_construida) > 0 && Number(c.area_construida) < 25) return false;
+              return true;
+            });
+          }
+
+          // Deduplica (ITBI registra comprador+vendedor) e mantém apenas registros com valor_transacao válido
+          const seen = new Set<string>();
+          const dedup = filtered.filter((c: any) => {
+            if (!c.valor_transacao || Number(c.valor_transacao) <= 0) return false;
+            const key = `${c.data_transacao ?? ''}|${c.valor_transacao}|${c.sql_iptu ?? ''}|${c.numero ?? ''}|${c.complemento ?? ''}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+
+          // Calcula R$/m² para cada transação válida (precisa de área)
+          const withPpsm = dedup
+            .map((c: any) => {
+              const valor = Number(c.valor_transacao);
+              const area = Number(c.area_construida);
+              return {
+                ...c,
+                _ppsm: area > 0 ? valor / area : null,
+              };
+            });
+
+          const ppsmValues = withPpsm
+            .map((c: any) => c._ppsm)
+            .filter((v: number | null) => v !== null && Number.isFinite(v) && v > 1000) as number[];
+
+          // Tratamento de outliers via IQR (1.5 × IQR)
+          const sorted = [...ppsmValues].sort((a, b) => a - b);
+          const quantile = (arr: number[], q: number) => {
+            if (arr.length === 0) return null;
+            const pos = (arr.length - 1) * q;
+            const base = Math.floor(pos);
+            const rest = pos - base;
+            return arr[base + 1] !== undefined ? arr[base] + rest * (arr[base + 1] - arr[base]) : arr[base];
+          };
+          const q1 = quantile(sorted, 0.25);
+          const q3 = quantile(sorted, 0.75);
+          const median = quantile(sorted, 0.5);
+          const iqr = q1 != null && q3 != null ? q3 - q1 : 0;
+          const lowerFence = q1 != null ? q1 - 1.5 * iqr : -Infinity;
+          const upperFence = q3 != null ? q3 + 1.5 * iqr : Infinity;
+
+          const inliers = withPpsm.filter((c: any) => c._ppsm != null && c._ppsm >= lowerFence && c._ppsm <= upperFence);
+          const outliersCount = withPpsm.filter((c: any) => c._ppsm != null).length - inliers.length;
+
+          // Top 10 transações inliers mais recentes
+          const recent = [...inliers]
+            .sort((a, b) => {
+              const da = a.data_transacao ? new Date(a.data_transacao).getTime() : 0;
+              const db = b.data_transacao ? new Date(b.data_transacao).getTime() : 0;
+              return db - da;
+            })
+            .slice(0, 10);
+
+          const fmtBRL = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v);
+
+          if (recent.length > 0) {
+            const tableLines = recent.map((c: any) => {
+              const data = c.data_transacao ? new Date(c.data_transacao).toLocaleDateString('pt-BR') : 'N/D';
+              const compl = (c.complemento ?? '—').toString().slice(0, 25);
+              const area = c.area_construida ? `${Number(c.area_construida).toFixed(0)}m²` : '—';
+              const ppsm = c._ppsm ? fmtBRL(c._ppsm) : '—';
+              return `  • ${data} | ${compl} | ${area} | ${fmtBRL(Number(c.valor_transacao))} | ${ppsm}/m²`;
+            }).join('\n');
+
+            const inlierPpsm = inliers.map((c: any) => c._ppsm).filter((v: any) => v != null) as number[];
+            const avg = inlierPpsm.length ? inlierPpsm.reduce((a, b) => a + b, 0) / inlierPpsm.length : null;
+
+            itbiSummary = `
+
+**🏛️ DADOS REAIS ITBI — Prefeitura de São Paulo (use como ÂNCORA principal):**
+- Total de transações encontradas no mesmo prédio (rua + número, tipo compatível): ${dedup.length}
+- Outliers descartados via IQR (1.5×): ${outliersCount}
+- Transações válidas (inliers): ${inliers.length}
+- R$/m² mediano (ITBI): ${median ? fmtBRL(median) : 'N/D'}
+- R$/m² médio (ITBI, sem outliers): ${avg ? fmtBRL(avg) : 'N/D'}
+- Faixa interquartil (Q1–Q3): ${q1 ? fmtBRL(q1) : 'N/D'} – ${q3 ? fmtBRL(q3) : 'N/D'}
+
+Últimas transações (data | complemento | área | valor | R$/m²):
+${tableLines}
+
+⚠️ ATENÇÃO: valores ITBI tendem a ser **subdeclarados** em ~10–25% vs. preço real de mercado anunciado. Use o R$/m² mediano ITBI como **piso/âncora**, e ajuste para cima conforme prática de mercado e os anúncios em portais.`;
+          }
+        }
+      } catch (e) {
+        console.warn('ITBI lookup falhou (seguindo sem):', e instanceof Error ? e.message : e);
+      }
+    }
+
     // Build pre-made search URLs
     const zapVenda = `https://www.bing.com/search?q=site:zapimoveis.com.br+${encodeURIComponent(searchAddress)}+${encodeURIComponent(tipoForSearch)}+venda`;
     const zapAluguel = `https://www.bing.com/search?q=site:zapimoveis.com.br+${encodeURIComponent(searchAddress)}+${encodeURIComponent(tipoForSearch)}+aluguel`;
