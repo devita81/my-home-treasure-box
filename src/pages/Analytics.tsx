@@ -1251,14 +1251,27 @@ const Analytics = () => {
                             <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Vago</span>
                           )}
                         </div>
-                        {dialogState.mode === 'financial' ? (
-                          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] font-mono tabular-nums text-slate-700">
-                            <div className="flex justify-between"><span className="text-slate-500">Aluguel</span><span className="font-semibold text-slate-900">{formatCurrency(property.valor_aluguel || 0)}</span></div>
-                            <div className="flex justify-between"><span className="text-slate-500">Cond.</span><span>{formatCurrency(property.valor_condominio || 0)}</span></div>
-                            <div className="flex justify-between"><span className="text-slate-500">IPTU/mês</span><span>{formatCurrency((property.iptu_value || 0) / 12)}</span></div>
-                            <div className="flex justify-between"><span className="text-slate-500">Tx Adm</span><span>{formatCurrency(property.taxa_administracao || 0)}</span></div>
-                          </div>
-                        ) : (
+                        {dialogState.mode === 'financial' ? (() => {
+                          const aluguel = property.valor_aluguel || 0;
+                          const cond = property.valor_condominio || 0;
+                          const iptuMes = (property.iptu_value || 0) / 12;
+                          const txAdm = property.taxa_administracao || 0;
+                          const total = property.alugado
+                            ? aluguel - cond - iptuMes - txAdm
+                            : -(cond + iptuMes + txAdm);
+                          return (
+                            <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] font-mono tabular-nums text-slate-700">
+                              <div className="flex justify-between"><span className="text-slate-500">Aluguel</span><span className="font-semibold text-slate-900">{formatCurrency(aluguel)}</span></div>
+                              <div className="flex justify-between"><span className="text-slate-500">Cond.</span><span className="text-red-600">-{formatCurrency(cond)}</span></div>
+                              <div className="flex justify-between"><span className="text-slate-500">IPTU/mês</span><span className="text-red-600">-{formatCurrency(iptuMes)}</span></div>
+                              <div className="flex justify-between"><span className="text-slate-500">Tx Adm</span><span className="text-red-600">-{formatCurrency(txAdm)}</span></div>
+                              <div className="col-span-2 flex justify-between border-t border-slate-200 pt-1 mt-0.5">
+                                <span className="text-slate-700 font-semibold">{property.alugado ? 'Líquido' : 'Despesas'}</span>
+                                <span className={`font-bold ${total >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>{total < 0 ? '-' : ''}{formatCurrency(Math.abs(total))}</span>
+                              </div>
+                            </div>
+                          );
+                        })() : (
                           <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] font-mono tabular-nums text-slate-700">
                             <div className="flex justify-between"><span className="text-slate-500">Mercado</span><span className="font-semibold text-slate-900">{formatCurrency(property.market_value || 0)}</span></div>
                             <div className="flex justify-between"><span className="text-slate-500">Declar.</span><span>{formatCurrency(property.declared_value)}</span></div>
