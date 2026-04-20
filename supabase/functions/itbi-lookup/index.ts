@@ -522,12 +522,10 @@ serve(async (req) => {
 
     console.log(`[itbi-lookup] ${matched.length} matches finais`);
 
-    // === Cálculo determinístico do Valor de Referência ITBI ===
-    // 1) Deduplica (ITBI registra comprador + vendedor)
-    // 2) Tira a média de TODAS as transações válidas
-    // 3) Remove outliers (±30% da média inicial)
-    // 4) Recalcula a média sobre o que sobrou
-    // Marca cada match com incluido_na_media para o relatório.
+    // === Cálculo determinístico do Valor de Referência ITBI (3 etapas) ===
+    // 1) Deduplica (ITBI registra comprador + vendedor) e tira média geral
+    // 2) Remove outliers ±60% da média geral → recalcula média
+    // 3) Remove outliers ±30% da média da etapa 2 → média final
     const seenKeys = new Set<string>();
     const valoresValidos: number[] = [];
     for (const m of matched) {
@@ -545,39 +543,63 @@ serve(async (req) => {
       }
       seenKeys.add(key);
       valoresValidos.push(v);
-      m.incluido_na_media = true; // provisório — pode virar outlier abaixo
+      m.incluido_na_media = true; // provisório
     }
 
     let valorReferencia: { metodologia: string; valor_estimado: number | null; observacao: string } | null = null;
     if (valoresValidos.length > 0) {
-      const mediaInicial = valoresValidos.reduce((a, b) => a + b, 0) / valoresValidos.length;
-      const min = mediaInicial * 0.7;
-      const max = mediaInicial * 1.3;
-      const semOutliers = valoresValidos.filter((v) => v >= min && v <= max);
-      const removidos = valoresValidos.length - semOutliers.length;
-      // Só desclassifica como outlier se ainda restam transações na amostra após o corte
-      const aplicarCorte = semOutliers.length > 0;
-      const baseFinal = aplicarCorte ? semOutliers : valoresValidos;
-      const mediaFinal = baseFinal.reduce((a, b) => a + b, 0) / baseFinal.length;
+      const fmtBR = (n: number) => Math.round(n).toLocaleString("pt-BR");
 
-      if (aplicarCorte) {
+      // Etapa 1: média geral
+      const media1 = valoresValidos.reduce((a, b) => a + b, 0) / valoresValidos.length;
+
+      // Etapa 2: corte ±60% sobre media1
+      const min2 = media1 * 0.4;
+      const max2 = media1 * 1.6;
+      const aposCorte60 = valoresValidos.filter((v) => v >= min2 && v <= max2);
+      const removidos60 = valoresValidos.length - aposCorte60.length;
+      const aplicar60 = aposCorte60.length > 0;
+      const baseEtapa2 = aplicar60 ? aposCorte60 : valoresValidos;
+      const media2 = baseEtapa2.reduce((a, b) => a + b, 0) / baseEtapa2.length;
+
+      if (aplicar60) {
         for (const m of matched) {
           if (!m.incluido_na_media) continue;
           const v = Number(m.valor_transacao);
-          if (v < min || v > max) {
+          if (v < min2 || v > max2) {
             m.incluido_na_media = false;
-            m.motivo_exclusao = `outlier (>30% da média ${Math.round(mediaInicial).toLocaleString("pt-BR")})`;
+            m.motivo_exclusao = `outlier ±60% (média geral R$ ${fmtBR(media1)})`;
+          }
+        }
+      }
+
+      // Etapa 3: corte ±30% sobre media2
+      const min3 = media2 * 0.7;
+      const max3 = media2 * 1.3;
+      const aposCorte30 = baseEtapa2.filter((v) => v >= min3 && v <= max3);
+      const removidos30 = baseEtapa2.length - aposCorte30.length;
+      const aplicar30 = aposCorte30.length > 0;
+      const baseFinal = aplicar30 ? aposCorte30 : baseEtapa2;
+      const mediaFinal = baseFinal.reduce((a, b) => a + b, 0) / baseFinal.length;
+
+      if (aplicar30) {
+        for (const m of matched) {
+          if (!m.incluido_na_media) continue;
+          const v = Number(m.valor_transacao);
+          if (v < min3 || v > max3) {
+            m.incluido_na_media = false;
+            m.motivo_exclusao = `outlier ±30% (média etapa 2 R$ ${fmtBR(media2)})`;
           }
         }
       }
 
       valorReferencia = {
-        metodologia: "média das transações do mesmo prédio, descartando outliers além de ±30% da média inicial",
+        metodologia: "3 etapas: média geral → remove ±60% → nova média → remove ±30% → média final",
         valor_estimado: Math.round(mediaFinal),
-        observacao: `${valoresValidos.length} transação(ões) analisada(s), ${removidos} outlier(s) removido(s), média final sobre ${baseFinal.length}`,
+        observacao: `${valoresValidos.length} transação(ões) | etapa 1: R$ ${fmtBR(media1)} | etapa 2: R$ ${fmtBR(media2)} (-${removidos60} outlier ±60%) | etapa 3: R$ ${fmtBR(mediaFinal)} (-${removidos30} outlier ±30%) | base final: ${baseFinal.length} transação(ões)`,
       };
       console.log(
-        `[itbi-lookup] Valor referência: média inicial=${Math.round(mediaInicial)} | sem ${removidos} outliers → ${Math.round(mediaFinal)}`,
+        `[itbi-lookup] Etapa 1=${Math.round(media1)} | Etapa 2=${Math.round(media2)} (-${removidos60}) | Etapa 3=${Math.round(mediaFinal)} (-${removidos30})`,
       );
     }
 
