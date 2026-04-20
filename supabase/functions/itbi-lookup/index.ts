@@ -11,6 +11,78 @@ const corsHeaders = {
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
+// Mapa de títulos honoríficos / qualificadores comuns em logradouros de SP
+// que aparecem abreviados no ITBI da Prefeitura. Ex.: "Coronel" → "Cel".
+// Cada entrada: forma completa ↔ abreviações equivalentes.
+const HONORIFIC_PAIRS: [string, string[]][] = [
+  ["CORONEL", ["CEL"]],
+  ["TENENTE", ["TEN"]],
+  ["CAPITAO", ["CAP"]],
+  ["GENERAL", ["GAL", "GEN"]],
+  ["MARECHAL", ["MAL"]],
+  ["BRIGADEIRO", ["BRIG"]],
+  ["COMANDANTE", ["CMTE", "CMT"]],
+  ["ALMIRANTE", ["ALM"]],
+  ["SARGENTO", ["SGT"]],
+  ["SOLDADO", ["SD"]],
+  ["DOUTOR", ["DR"]],
+  ["DOUTORA", ["DRA"]],
+  ["PROFESSOR", ["PROF"]],
+  ["PROFESSORA", ["PROFA"]],
+  ["ENGENHEIRO", ["ENG"]],
+  ["ENGENHEIRA", ["ENGA"]],
+  ["ARQUITETO", ["ARQ"]],
+  ["COMENDADOR", ["COMEND", "COM"]],
+  ["DESEMBARGADOR", ["DES", "DESEMB"]],
+  ["MONSENHOR", ["MONS"]],
+  ["CARDEAL", ["CARD"]],
+  ["PADRE", ["PE"]],
+  ["FREI", ["FR"]],
+  ["IRMA", ["IR"]],
+  ["MINISTRO", ["MIN"]],
+  ["PRESIDENTE", ["PRES"]],
+  ["GOVERNADOR", ["GOV"]],
+  ["SENADOR", ["SEN"]],
+  ["DEPUTADO", ["DEP"]],
+  ["VEREADOR", ["VER"]],
+  ["EMBAIXADOR", ["EMB"]],
+  ["CONSELHEIRO", ["CONS"]],
+  ["VISCONDE", ["VISC"]],
+  ["BARAO", ["BAR"]],
+  ["MARQUES", ["MARQ"]],
+  ["DUQUE", ["DUQ"]],
+  ["SAO", ["S"]],
+  ["SANTA", ["STA"]],
+  ["SANTO", ["STO"]],
+  ["NOSSA SENHORA", ["NSA SRA", "N SRA", "NS"]],
+];
+
+// Gera variantes do nome do logradouro substituindo títulos honoríficos
+// por suas abreviações (e vice-versa) para melhorar o recall do trigram.
+function buildLogradouroVariants(rua: string): string[] {
+  if (!rua) return [];
+  const original = rua.trim();
+  const upper = original
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase();
+
+  const variants = new Set<string>([original, upper]);
+
+  for (const [full, abbrs] of HONORIFIC_PAIRS) {
+    const fullRe = new RegExp(`\\b${full}\\b`, "g");
+    if (fullRe.test(upper)) {
+      for (const ab of abbrs) variants.add(upper.replace(fullRe, ab));
+    }
+    for (const ab of abbrs) {
+      const abRe = new RegExp(`\\b${ab}\\b`, "g");
+      if (abRe.test(upper)) variants.add(upper.replace(abRe, full));
+    }
+  }
+
+  return Array.from(variants);
+}
+
 const MATCHING_PROMPT = `Você é um especialista em matching de endereços e análise de valor de mercado usando a base de transações imobiliárias (ITBI) da Prefeitura de São Paulo.
 
 Você receberá um endereço estruturado:
@@ -58,6 +130,12 @@ NORMALIZAÇÃO
 Aplicar para input e base:
 - MAIÚSCULAS, remover acentos e pontuação
 - padronizar: RUA → R, AVENIDA → AV, ALAMEDA → AL
+- TRATAR ABREVIAÇÕES DE TÍTULOS HONORÍFICOS COMO EQUIVALENTES:
+  CORONEL=CEL, TENENTE=TEN, CAPITÃO=CAP, GENERAL=GAL/GEN, MARECHAL=MAL,
+  DOUTOR=DR, PROFESSOR=PROF, ENGENHEIRO=ENG, COMENDADOR=COMEND,
+  DESEMBARGADOR=DES, MONSENHOR=MONS, PADRE=PE, SÃO=S, SANTA=STA, SANTO=STO,
+  PRESIDENTE=PRES, GOVERNADOR=GOV, SENADOR=SEN, DEPUTADO=DEP, BARÃO=BAR,
+  VISCONDE=VISC, MARQUÊS=MARQ. Ex.: "Coronel Melo Oliveira" ≡ "CEL MELO OLIVEIRA".
 - extrair corretamente nome da rua, número e UNIDADE (apto/conjunto)
 
 MATCHING (após filtro de tipo)
@@ -340,17 +418,33 @@ serve(async (req) => {
     }
 
     // 1) Pré-filtro por similaridade trigram no banco
-    console.log(`[itbi-lookup] Buscando candidatos para: ${property.rua}, ${property.numero}`);
-    const { data: candidates, error: rpcErr } = await userClient.rpc("match_itbi_candidates", {
-      p_logradouro: property.rua,
-      p_numero: property.numero ?? null,
-      p_bairro: property.bairro ?? null,
-      p_limit: 200,
-    });
+    // Geramos VARIANTES do logradouro para lidar com abreviações comuns que
+    // o ITBI usa (ex.: "Coronel Melo Oliveira" no cadastro vs "CEL MELO OLIVEIRA"
+    // no banco da Prefeitura). A similaridade trigram do Postgres falha quando
+    // a palavra mais "pesada" muda completamente (CORONEL vs CEL).
+    const ruaVariants = buildLogradouroVariants(property.rua);
+    console.log(`[itbi-lookup] Buscando candidatos para: ${property.rua} | variantes: ${ruaVariants.join(' | ')} | nº ${property.numero}`);
 
-    if (rpcErr) throw rpcErr;
-    let candList = candidates ?? [];
-    console.log(`[itbi-lookup] ${candList.length} candidatos pré-filtrados`);
+    const candMap = new Map<string, any>();
+    for (const variant of ruaVariants) {
+      const { data: vCand, error: vErr } = await userClient.rpc("match_itbi_candidates", {
+        p_logradouro: variant,
+        p_numero: property.numero ?? null,
+        p_bairro: property.bairro ?? null,
+        p_limit: 200,
+      });
+      if (vErr) {
+        console.error(`[itbi-lookup] Erro RPC variante "${variant}":`, vErr);
+        continue;
+      }
+      for (const c of (vCand ?? [])) {
+        if (!candMap.has(c.id)) candMap.set(c.id, c);
+      }
+      console.log(`[itbi-lookup] Variante "${variant}" → ${vCand?.length ?? 0} candidatos (acumulado: ${candMap.size})`);
+    }
+
+    let candList = Array.from(candMap.values());
+    console.log(`[itbi-lookup] ${candList.length} candidatos pré-filtrados (após união de variantes)`);
 
     // Pré-filtro server-side por TIPO do imóvel — evita garagens/vagas/depósitos quando é apto
     const tipoImovel = (property.tipo_imovel ?? '').toLowerCase();
