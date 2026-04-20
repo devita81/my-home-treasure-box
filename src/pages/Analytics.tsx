@@ -1257,7 +1257,7 @@ const Analytics = () => {
                           const iptuMes = (property.iptu_value || 0) / 12;
                           const txAdm = property.taxa_administracao || 0;
                           const total = property.alugado
-                            ? aluguel - cond - iptuMes - txAdm
+                            ? aluguel - cond - txAdm
                             : -(cond + iptuMes + txAdm);
                           return (
                             <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] font-mono tabular-nums text-slate-700">
@@ -1348,7 +1348,7 @@ const Analytics = () => {
                               const iptuMes = (property.iptu_value || 0) / 12;
                               const txAdm = property.taxa_administracao || 0;
                               const rowTotal = property.alugado
-                                ? aluguel - cond - iptuMes - txAdm
+                                ? aluguel - cond - txAdm
                                 : -(cond + iptuMes + txAdm);
                               return (
                                 <td className={`text-right py-2 px-3 text-[11px] font-mono tabular-nums font-bold whitespace-nowrap ${rowTotal >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
@@ -1366,24 +1366,20 @@ const Analytics = () => {
                           </tr>
                         )}
                       </tbody>
-                    </table>
-                  </div>
-                  {sortedDialogProperties.length > 0 && (() => {
-                    const totalAluguel = sortedDialogProperties.reduce((acc, p) => acc + (p.valor_aluguel || 0), 0);
-                    const totalCond = sortedDialogProperties.reduce((acc, p) => acc + (p.valor_condominio || 0), 0);
-                    const totalIptu = sortedDialogProperties.reduce((acc, p) => acc + ((p.iptu_value || 0) / 12), 0);
-                    const totalTxAdm = sortedDialogProperties.reduce((acc, p) => acc + (p.taxa_administracao || 0), 0);
-                    const totalGeral = sortedDialogProperties.reduce((acc, p) => {
-                      const aluguel = p.valor_aluguel || 0;
-                      const cond = p.valor_condominio || 0;
-                      const iptuMes = (p.iptu_value || 0) / 12;
-                      const txAdm = p.taxa_administracao || 0;
-                      return acc + (p.alugado ? aluguel - cond - iptuMes - txAdm : -(cond + iptuMes + txAdm));
-                    }, 0);
-                    return (
-                      <div className="shrink-0 border-t-2 border-blue-300 bg-blue-50">
-                        <table className="w-full text-xs">
-                          <tbody>
+                      {sortedDialogProperties.length > 0 && (() => {
+                        const totalAluguel = sortedDialogProperties.reduce((acc, p) => acc + (p.valor_aluguel || 0), 0);
+                        const totalCond = sortedDialogProperties.reduce((acc, p) => acc + (p.valor_condominio || 0), 0);
+                        const totalIptu = sortedDialogProperties.reduce((acc, p) => acc + ((p.iptu_value || 0) / 12), 0);
+                        const totalTxAdm = sortedDialogProperties.reduce((acc, p) => acc + (p.taxa_administracao || 0), 0);
+                        const totalGeral = sortedDialogProperties.reduce((acc, p) => {
+                          const aluguel = p.valor_aluguel || 0;
+                          const cond = p.valor_condominio || 0;
+                          const iptuMes = (p.iptu_value || 0) / 12;
+                          const txAdm = p.taxa_administracao || 0;
+                          return acc + (p.alugado ? aluguel - cond - txAdm : -(cond + iptuMes + txAdm));
+                        }, 0);
+                        return (
+                          <tfoot className="sticky bottom-0 bg-blue-50 border-t-2 border-blue-300 z-10">
                             <tr>
                               <td colSpan={4} className="py-2 px-3 text-[11px] font-bold text-blue-700 uppercase tracking-wider">
                                 Totais
@@ -1394,11 +1390,11 @@ const Analytics = () => {
                               <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums font-bold whitespace-nowrap">-{formatCurrency(totalTxAdm)}</td>
                               <td className={`text-right py-2 px-3 text-[11px] font-mono tabular-nums font-bold whitespace-nowrap ${totalGeral >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>{totalGeral < 0 ? '-' : ''}{formatCurrency(Math.abs(totalGeral))}</td>
                             </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    );
-                  })()}
+                          </tfoot>
+                        );
+                      })()}
+                    </table>
+                  </div>
                 </>
               ) : (
                 <div className="flex-1 min-h-0 overflow-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
