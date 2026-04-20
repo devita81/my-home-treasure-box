@@ -1,4 +1,4 @@
-import { Home, BarChart3, PlusCircle, LogOut, Sparkles } from 'lucide-react';
+import { Home, BarChart3, PlusCircle, LogOut, Sparkles, Database } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,6 +15,7 @@ export function Header() {
 
   const navItems = [
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+    { path: '/itbi-search', label: 'ITBI', icon: Database },
   ];
 
   const handleLogout = async () => {
@@ -49,7 +50,7 @@ export function Header() {
               <nav className="flex items-center gap-1">
                 {navItems.map((item) => {
                   const isActive = location.pathname === item.path;
-                  const isAnalytics = item.path === '/analytics';
+                  const isHighlighted = item.path === '/analytics' || item.path === '/itbi-search';
                   return (
                     <Link
                       key={item.path}
@@ -58,7 +59,7 @@ export function Header() {
                         'flex items-center justify-center h-9 w-9 sm:h-9 sm:w-auto sm:gap-2 sm:px-4 rounded-lg text-sm font-medium transition-all duration-200',
                         isActive
                           ? 'bg-primary text-primary-foreground'
-                          : isAnalytics
+                          : isHighlighted
                             ? 'bg-primary/10 text-primary hover:bg-primary/20 ring-1 ring-primary/30'
                             : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                       )}
