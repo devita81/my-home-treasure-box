@@ -78,6 +78,7 @@ interface DialogState {
   title: string;
   subtitle: string;
   properties: Property[];
+  mode?: 'default' | 'financial';
 }
 
 const Analytics = () => {
@@ -93,7 +94,8 @@ const Analytics = () => {
     isOpen: false,
     title: '',
     subtitle: '',
-    properties: []
+    properties: [],
+    mode: 'default',
   });
   const [dialogSortField, setDialogSortField] = useState<SortField>('declared_value');
   const [dialogSortOrder, setDialogSortOrder] = useState<SortOrder>('desc');
@@ -111,13 +113,19 @@ const Analytics = () => {
   };
 
   const openDialog = (title: string, subtitle: string, props: Property[]) => {
-    setDialogState({ isOpen: true, title, subtitle, properties: props });
+    setDialogState({ isOpen: true, title, subtitle, properties: props, mode: 'default' });
     setDialogSortField('declared_value');
     setDialogSortOrder('desc');
   };
 
+  const openFinancialDialog = (title: string, subtitle: string, props: Property[]) => {
+    setDialogState({ isOpen: true, title, subtitle, properties: props, mode: 'financial' });
+    setDialogSortField('valor_aluguel');
+    setDialogSortOrder('desc');
+  };
+
   const closeDialog = () => {
-    setDialogState({ isOpen: false, title: '', subtitle: '', properties: [] });
+    setDialogState({ isOpen: false, title: '', subtitle: '', properties: [], mode: 'default' });
   };
 
   const toggleDialogSort = (field: SortField) => {
