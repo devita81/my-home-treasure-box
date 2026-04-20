@@ -16,6 +16,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "./pages/Unsubscribe";
 import ItbiAdmin from "./pages/ItbiAdmin";
+import ItbiSearch from "./pages/ItbiSearch";
 import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
                 <Route path="/property/:id" element={<ProtectedRoute><PropertyDetails /></ProtectedRoute>} />
                 <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
                 <Route path="/admin/itbi" element={<ProtectedRoute><ItbiAdmin /></ProtectedRoute>} />
+                <Route path="/itbi-search" element={<ProtectedRoute><ItbiSearch /></ProtectedRoute>} />
                 <Route path="/unsubscribe" element={<Unsubscribe />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
