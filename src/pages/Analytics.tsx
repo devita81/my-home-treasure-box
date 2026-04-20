@@ -514,7 +514,7 @@ const Analytics = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[hsl(220_14%_93%)]">
+    <div className="min-h-screen bg-slate-300">
       <Header />
 
       <div className="container px-3 sm:px-4 pt-3 flex items-center justify-between gap-2">
