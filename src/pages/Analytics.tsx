@@ -1282,60 +1282,64 @@ const Analytics = () => {
             </div>
 
             {/* DESKTOP: Table with horizontal scroll */}
-            <div className="hidden sm:block rounded-lg border border-slate-200 h-full bg-white overflow-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="hidden sm:flex flex-col rounded-lg border border-slate-200 h-full bg-white overflow-hidden">
               {dialogState.mode === 'financial' ? (
-                <table className="w-full caption-bottom text-xs">
-                  <thead className="sticky top-0 bg-slate-100 backdrop-blur-sm z-10">
-                    <tr className="border-b border-slate-200">
-                      <SortableHeader field="rua" label="Endereço" />
-                      <SortableHeader field="tipo_imovel" label="Tipo" />
-                      <SortableHeader field="cidade" label="Cidade" />
-                      <SortableHeader field="alugado" label="Status" />
-                      <SortableHeader field="valor_aluguel" label="Aluguel" />
-                      <SortableHeader field="valor_condominio" label="Cond." />
-                      <SortableHeader field="iptu_value" label="IPTU/mês" />
-                      <th className="text-right py-2 px-3 text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap">Tx Adm</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sortedDialogProperties.map((property, index) => (
-                      <tr
-                        key={property.id}
-                        className={`border-b border-slate-100 hover:bg-blue-50/50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}`}
-                      >
-                        <td className="py-2 px-3 max-w-[260px]">
-                          <Link
-                            to={`/property/${property.id}`}
-                            className="text-slate-900 hover:text-blue-600 block truncate text-[11px] font-medium"
-                            onClick={closeDialog}
-                            title={getPropertyAddress(property)}
+                <>
+                  <div className="flex-1 min-h-0 overflow-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+                    <table className="w-full caption-bottom text-xs">
+                      <thead className="sticky top-0 bg-slate-100 backdrop-blur-sm z-10">
+                        <tr className="border-b border-slate-200">
+                          <SortableHeader field="rua" label="Endereço" />
+                          <SortableHeader field="tipo_imovel" label="Tipo" />
+                          <SortableHeader field="cidade" label="Cidade" />
+                          <SortableHeader field="alugado" label="Status" />
+                          <SortableHeader field="valor_aluguel" label="Aluguel" />
+                          <SortableHeader field="valor_condominio" label="Cond." />
+                          <SortableHeader field="iptu_value" label="IPTU/mês" />
+                          <th className="text-right py-2 px-3 text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap">Tx Adm</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sortedDialogProperties.map((property, index) => (
+                          <tr
+                            key={property.id}
+                            className={`border-b border-slate-100 hover:bg-blue-50/50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}`}
                           >
-                            {getPropertyAddress(property)}
-                          </Link>
-                        </td>
-                        <td className="py-2 px-3 text-[10px] text-slate-600">{getTipoLabel(property.tipo_imovel)}</td>
-                        <td className="py-2 px-3 text-[10px] text-slate-600 whitespace-nowrap">{property.cidade} - {property.estado}</td>
-                        <td className="py-2 px-3 text-center">
-                          {property.alugado ? (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
-                          ) : (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Vago</span>
-                          )}
-                        </td>
-                        <td className="text-right py-2 px-3 text-[11px] text-slate-900 font-mono tabular-nums font-semibold whitespace-nowrap">{formatCurrency(property.valor_aluguel || 0)}</td>
-                        <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums whitespace-nowrap">{(property.valor_condominio || 0) > 0 ? `-${formatCurrency(property.valor_condominio || 0)}` : formatCurrency(0)}</td>
-                        <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums whitespace-nowrap">{(property.iptu_value || 0) > 0 ? `-${formatCurrency((property.iptu_value || 0) / 12)}` : formatCurrency(0)}</td>
-                        <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums whitespace-nowrap">{property.taxa_administracao ? `-${formatCurrency(property.taxa_administracao)}` : formatCurrency(0)}</td>
-                      </tr>
-                    ))}
-                    {sortedDialogProperties.length === 0 && (
-                      <tr>
-                        <td colSpan={8} className="text-center text-slate-400 py-12 text-sm">
-                          Nenhum imóvel encontrado
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
+                            <td className="py-2 px-3 max-w-[260px]">
+                              <Link
+                                to={`/property/${property.id}`}
+                                className="text-slate-900 hover:text-blue-600 block truncate text-[11px] font-medium"
+                                onClick={closeDialog}
+                                title={getPropertyAddress(property)}
+                              >
+                                {getPropertyAddress(property)}
+                              </Link>
+                            </td>
+                            <td className="py-2 px-3 text-[10px] text-slate-600">{getTipoLabel(property.tipo_imovel)}</td>
+                            <td className="py-2 px-3 text-[10px] text-slate-600 whitespace-nowrap">{property.cidade} - {property.estado}</td>
+                            <td className="py-2 px-3 text-center">
+                              {property.alugado ? (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
+                              ) : (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Vago</span>
+                              )}
+                            </td>
+                            <td className="text-right py-2 px-3 text-[11px] text-slate-900 font-mono tabular-nums font-semibold whitespace-nowrap">{formatCurrency(property.valor_aluguel || 0)}</td>
+                            <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums whitespace-nowrap">-{formatCurrency(property.valor_condominio || 0)}</td>
+                            <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums whitespace-nowrap">-{formatCurrency((property.iptu_value || 0) / 12)}</td>
+                            <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums whitespace-nowrap">-{formatCurrency(property.taxa_administracao || 0)}</td>
+                          </tr>
+                        ))}
+                        {sortedDialogProperties.length === 0 && (
+                          <tr>
+                            <td colSpan={8} className="text-center text-slate-400 py-12 text-sm">
+                              Nenhum imóvel encontrado
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                   {sortedDialogProperties.length > 0 && (() => {
                     const totalAluguel = sortedDialogProperties.reduce((acc, p) => acc + (p.valor_aluguel || 0), 0);
                     const totalCond = sortedDialogProperties.reduce((acc, p) => acc + (p.valor_condominio || 0), 0);
@@ -1343,19 +1347,26 @@ const Analytics = () => {
                     const totalTxAdm = sortedDialogProperties.reduce((acc, p) => acc + (p.taxa_administracao || 0), 0);
                     const totalLiquido = totalAluguel - totalCond - totalIptu - totalTxAdm;
                     return (
-                      <tfoot className="sticky bottom-0 bg-blue-50 border-t-2 border-blue-300 z-10">
-                        <tr>
-                          <td colSpan={4} className="py-2 px-3 text-[11px] font-bold text-blue-700 uppercase tracking-wider">Total · Líquido {formatCurrency(totalLiquido)}</td>
-                          <td className="text-right py-2 px-3 text-[11px] text-emerald-700 font-mono tabular-nums font-bold whitespace-nowrap">{formatCurrency(totalAluguel)}</td>
-                          <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums font-bold whitespace-nowrap">{totalCond > 0 ? `-${formatCurrency(totalCond)}` : formatCurrency(0)}</td>
-                          <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums font-bold whitespace-nowrap">{totalIptu > 0 ? `-${formatCurrency(totalIptu)}` : formatCurrency(0)}</td>
-                          <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums font-bold whitespace-nowrap">{totalTxAdm > 0 ? `-${formatCurrency(totalTxAdm)}` : formatCurrency(0)}</td>
-                        </tr>
-                      </tfoot>
+                      <div className="shrink-0 border-t-2 border-blue-300 bg-blue-50">
+                        <table className="w-full text-xs">
+                          <tbody>
+                            <tr>
+                              <td colSpan={4} className="py-2 px-3 text-[11px] font-bold text-blue-700 uppercase tracking-wider">
+                                Total · Líquido <span className={`font-mono tabular-nums ${totalLiquido >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>{totalLiquido < 0 ? '-' : ''}{formatCurrency(Math.abs(totalLiquido))}</span>
+                              </td>
+                              <td className="text-right py-2 px-3 text-[11px] text-emerald-700 font-mono tabular-nums font-bold whitespace-nowrap">{formatCurrency(totalAluguel)}</td>
+                              <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums font-bold whitespace-nowrap">-{formatCurrency(totalCond)}</td>
+                              <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums font-bold whitespace-nowrap">-{formatCurrency(totalIptu)}</td>
+                              <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums font-bold whitespace-nowrap">-{formatCurrency(totalTxAdm)}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
                     );
                   })()}
-                </table>
+                </>
               ) : (
+                <div className="flex-1 min-h-0 overflow-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
                 <table className="min-w-[1600px] w-full caption-bottom text-xs">
                   <thead className="sticky top-0 bg-slate-100 backdrop-blur-sm z-10">
                     <tr className="border-b border-slate-200">
