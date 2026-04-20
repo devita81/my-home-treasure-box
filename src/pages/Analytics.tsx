@@ -1342,11 +1342,25 @@ const Analytics = () => {
                             <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums whitespace-nowrap">-{formatCurrency(property.valor_condominio || 0)}</td>
                             <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums whitespace-nowrap">-{formatCurrency((property.iptu_value || 0) / 12)}</td>
                             <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums whitespace-nowrap">-{formatCurrency(property.taxa_administracao || 0)}</td>
+                            {(() => {
+                              const aluguel = property.valor_aluguel || 0;
+                              const cond = property.valor_condominio || 0;
+                              const iptuMes = (property.iptu_value || 0) / 12;
+                              const txAdm = property.taxa_administracao || 0;
+                              const rowTotal = property.alugado
+                                ? aluguel - cond - iptuMes - txAdm
+                                : -(cond + iptuMes + txAdm);
+                              return (
+                                <td className={`text-right py-2 px-3 text-[11px] font-mono tabular-nums font-bold whitespace-nowrap ${rowTotal >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+                                  {rowTotal < 0 ? '-' : ''}{formatCurrency(Math.abs(rowTotal))}
+                                </td>
+                              );
+                            })()}
                           </tr>
                         ))}
                         {sortedDialogProperties.length === 0 && (
                           <tr>
-                            <td colSpan={8} className="text-center text-slate-400 py-12 text-sm">
+                            <td colSpan={9} className="text-center text-slate-400 py-12 text-sm">
                               Nenhum imóvel encontrado
                             </td>
                           </tr>
