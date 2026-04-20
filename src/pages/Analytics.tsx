@@ -1257,7 +1257,7 @@ const Analytics = () => {
                           const iptuMes = (property.iptu_value || 0) / 12;
                           const txAdm = property.taxa_administracao || 0;
                           const total = property.alugado
-                            ? aluguel - cond - txAdm
+                            ? aluguel - txAdm
                             : -(cond + iptuMes + txAdm);
                           return (
                             <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] font-mono tabular-nums text-slate-700">
