@@ -114,14 +114,13 @@ serve(async (req) => {
     let query = userClient
       .from("itbi_transactions")
       .select(
-        "id, data_transacao, logradouro, numero, complemento, bairro, cep, sql_iptu, area_construida, valor_transacao, valor_venal, ano_referencia, mes_referencia",
+        "id, data_transacao, logradouro, numero, complemento, bairro, cep, sql_iptu, area_construida, valor_transacao, valor_venal, ano_referencia, mes_referencia, descricao_uso_iptu, descricao_padrao_iptu",
       )
       .order("data_transacao", { ascending: false, nullsFirst: false })
       .limit(500);
 
     if (logradouro) {
       const norm = normalize(logradouro);
-      // Remove prefixos comuns para melhorar match
       const cleaned = norm.replace(/^(R|RUA|AV|AVENIDA|AL|ALAMEDA|TRAV|TRAVESSA|EST|ESTRADA|PRC|PRACA|LARGO)\s+/i, "");
       query = query.ilike("logradouro_normalizado", `%${cleaned}%`);
     }
@@ -142,27 +141,31 @@ serve(async (req) => {
 
     let rows = data ?? [];
 
-    // Filtro de TIPO (server-side, baseado no complemento)
+    // === Filtro de TIPO ===
+    // Prioridade: descricao_uso_iptu > complemento > heurística por área.
     let descartados = 0;
-    if (tipo === "apartamento" || tipo === "casa" || tipo === "residencial") {
+    if (tipo) {
       const before = rows.length;
       rows = rows.filter((r: any) => {
-        const compl = (r.complemento ?? "").toString();
-        if (NON_RESIDENTIAL_RE.test(compl)) return false;
-        if (r.area_construida != null && Number(r.area_construida) > 0 && Number(r.area_construida) < 25) return false;
+        const cat = inferCategory(r);
+        const area = r.area_construida == null ? 0 : Number(r.area_construida);
+
+        if (tipo === "apartamento") {
+          if (cat === "apartamento") return true;
+          // Sem sinal claro: aceita se NÃO for garagem/comercial/casa/terreno e área >= 25m²
+          if (cat == null && area >= 25) return true;
+          return false;
+        }
+        if (tipo === "casa") return cat === "casa";
+        if (tipo === "residencial") {
+          return cat === "apartamento" || cat === "casa" || (cat == null && area >= 25);
+        }
+        if (tipo === "garagem" || tipo === "vaga") return cat === "garagem";
+        if (tipo === "comercial" || tipo === "sala" || tipo === "loja") return cat === "comercial";
+        if (tipo === "terreno") return cat === "terreno";
         return true;
       });
       descartados = before - rows.length;
-    } else if (tipo === "garagem" || tipo === "vaga") {
-      rows = rows.filter((r: any) => NON_RESIDENTIAL_RE.test((r.complemento ?? "").toString()));
-    } else if (tipo === "comercial" || tipo === "sala" || tipo === "loja") {
-      rows = rows.filter((r: any) => COMMERCIAL_RE.test((r.complemento ?? "").toString()));
-    } else if (tipo === "terreno") {
-      // Terrenos: sem complemento ou com área_construida nula/zero
-      rows = rows.filter((r: any) => {
-        const compl = (r.complemento ?? "").toString().trim();
-        return !compl && (!r.area_construida || Number(r.area_construida) === 0);
-      });
     }
 
     // Deduplicação (ITBI registra comprador + vendedor)
