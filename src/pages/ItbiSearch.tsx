@@ -150,7 +150,7 @@ export default function ItbiSearch() {
   };
 
   const clearAll = () => {
-    setTipo('todos');
+    setTipos([]);
     setLogradouro('');
     setNumero('');
     setBairro('');
@@ -158,6 +158,18 @@ export default function ItbiSearch() {
     setResults([]);
     setHasSearched(false);
   };
+
+  const toggleTipo = (value: string) => {
+    setTipos((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
+    );
+  };
+
+  const tiposLabel = tipos.length === 0
+    ? 'Todos os tipos'
+    : tipos.length === 1
+    ? TIPOS.find((t) => t.value === tipos[0])?.label ?? '1 tipo'
+    : `${tipos.length} tipos selecionados`;
 
   const stats = useMemo(() => {
     if (results.length === 0) return null;
