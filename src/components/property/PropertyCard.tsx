@@ -211,17 +211,15 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               <MapPin className="h-3.5 w-3.5" />
             </button>
 
-            {!compact && (
-              <div className="absolute bottom-0 left-0 right-0 z-10 bg-foreground/85 backdrop-blur-sm px-3 py-2.5">
-                <p className="text-card font-semibold text-sm truncate">
-                  {getAddressDisplay()}
-                </p>
-                <div className="flex items-center gap-1 text-card/70 text-[11px] mt-0.5">
-                  <MapPin className="h-3 w-3 shrink-0" />
-                  <span className="truncate">{property.bairro}, {property.cidade} - {property.estado}</span>
-                </div>
+            <div className={`absolute bottom-0 left-0 right-0 z-10 bg-foreground/85 backdrop-blur-sm ${compact ? 'px-2 py-1.5' : 'px-3 py-2.5'}`}>
+              <p className={`text-card font-semibold truncate ${compact ? 'text-xs' : 'text-sm'}`}>
+                {getAddressDisplay()}
+              </p>
+              <div className={`flex items-center gap-1 text-card/70 mt-0.5 ${compact ? 'text-[10px]' : 'text-[11px]'}`}>
+                <MapPin className={compact ? 'h-2.5 w-2.5 shrink-0' : 'h-3 w-3 shrink-0'} />
+                <span className="truncate">{property.bairro}, {property.cidade} - {property.estado}</span>
               </div>
-            )}
+            </div>
           </div>
 
           <div
