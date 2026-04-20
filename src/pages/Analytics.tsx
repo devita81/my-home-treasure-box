@@ -199,6 +199,47 @@ const Analytics = () => {
     ? Math.round((alugadosCount / properties.length) * 100) 
     : 0;
 
+  // ==================== RESULTADO FINANCEIRO POR CIDADE ====================
+  interface CityFinancialRow {
+    cidade: string;
+    receitaAlugados: number;
+    despesaNaoAlugados: number;
+    total: number;
+    countAlugados: number;
+    countNaoAlugados: number;
+  }
+
+  const cityFinancials = useMemo((): CityFinancialRow[] => {
+    const grouped: Record<string, CityFinancialRow> = {};
+    properties.forEach(p => {
+      const city = `${p.cidade} - ${p.estado}`;
+      if (!grouped[city]) grouped[city] = { cidade: city, receitaAlugados: 0, despesaNaoAlugados: 0, total: 0, countAlugados: 0, countNaoAlugados: 0 };
+      if (p.alugado) {
+        const liquido = (p.valor_aluguel ?? 0) - (p.taxa_administracao ?? 0);
+        grouped[city].receitaAlugados += liquido;
+        grouped[city].countAlugados += 1;
+      } else {
+        const despesa = (p.valor_condominio ?? 0) + ((p.iptu_value ?? 0) / 12);
+        grouped[city].despesaNaoAlugados += despesa;
+        grouped[city].countNaoAlugados += 1;
+      }
+    });
+    Object.values(grouped).forEach(row => {
+      row.total = row.receitaAlugados - row.despesaNaoAlugados;
+    });
+    return Object.values(grouped).sort((a, b) => b.total - a.total);
+  }, [properties]);
+
+  const cityFinancialsTotals = useMemo(() => {
+    return cityFinancials.reduce((acc, row) => ({
+      receitaAlugados: acc.receitaAlugados + row.receitaAlugados,
+      despesaNaoAlugados: acc.despesaNaoAlugados + row.despesaNaoAlugados,
+      total: acc.total + row.total,
+      countAlugados: acc.countAlugados + row.countAlugados,
+      countNaoAlugados: acc.countNaoAlugados + row.countNaoAlugados,
+    }), { receitaAlugados: 0, despesaNaoAlugados: 0, total: 0, countAlugados: 0, countNaoAlugados: 0 });
+  }, [cityFinancials]);
+
   // ==================== GROUPED DATA ====================
   const getPropertyValueByMetric = (p: Property, metric: 'declared_value' | 'market_value' | 'valor_aluguel') => {
     switch (metric) {
