@@ -1402,7 +1402,8 @@ const Analytics = () => {
                       </tr>
                     )}
                   </tbody>
-              </table>
+                </table>
+              )}
             </div>
           </div>
         </DialogContent>
