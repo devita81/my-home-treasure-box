@@ -8,6 +8,7 @@ import { logger } from '@/lib/logger';
 import { FileText, Upload, Trash2, Eye, Loader2, Download, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { PdfCanvasViewer } from './PdfCanvasViewer';
+import { deliverPdfBlob, isMobileBrowser } from '@/lib/pdf-delivery';
 
 interface PropertyDocument {
   id: string;
@@ -59,6 +60,11 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
 
     pdfFileUrlRef.current = nextUrl;
     setPdfFileUrl(nextUrl);
+  };
+
+  const getDownloadFileName = (fileName: string) => {
+    const trimmed = fileName.trim();
+    return /\.pdf$/i.test(trimmed) ? trimmed : `${trimmed}.pdf`;
   };
 
   const resetPdfState = () => {
@@ -218,15 +224,8 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
 
       if (error) throw error;
 
-      const pdfBlob = new Blob([data], { type: 'application/pdf' });
-      const url = URL.createObjectURL(pdfBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = doc.file_name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      const result = await deliverPdfBlob(data, getDownloadFileName(doc.file_name));
+      if (result === 'cancelled') return;
     } catch (error) {
       logger.error('Error downloading document:', error);
       toast.error('Erro ao baixar documento');
@@ -235,6 +234,11 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
 
   const handleOpenInNewTab = async () => {
     try {
+      if (isMobileBrowser() && viewingDoc) {
+        await handleDownload(viewingDoc);
+        return;
+      }
+
       if (pdfFileUrl) {
         window.open(pdfFileUrl, '_blank', 'noopener,noreferrer');
         return;
@@ -438,7 +442,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
                   <div className="flex gap-2">
                     <Button onClick={handleOpenInNewTab} variant="outline" className="gap-2">
                       <ExternalLink className="h-4 w-4" />
-                      Nova aba
+                      {isMobileBrowser() ? 'Compartilhar PDF' : 'Nova aba'}
                     </Button>
                     <Button onClick={() => handleDownload(viewingDoc)} className="gap-2">
                       <Download className="h-4 w-4" />

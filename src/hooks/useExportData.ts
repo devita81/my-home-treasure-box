@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { logger } from '@/lib/logger';
+import { deliverPdfBlob } from '@/lib/pdf-delivery';
 
 interface ExportColumn {
   key: string;
@@ -189,42 +190,11 @@ export function useExportData() {
       // Filename
       const fileName = `${title.replace(/[^a-zA-Z0-9áéíóúâêîôûãõçÁÉÍÓÚÂÊÎÔÛÃÕÇ ]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
 
-      // Mobile-friendly delivery: Web Share API with real .pdf file,
-      // fallback to blob anchor download (avoids the "blob:" URL viewer issue on iOS/PWA).
-      const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
-
       const blob = doc.output('blob');
-      const file = new File([blob], fileName, { type: 'application/pdf' });
+      const deliveryResult = await deliverPdfBlob(blob, fileName);
 
-      if (
-        isMobile &&
-        typeof navigator !== 'undefined' &&
-        (navigator as any).canShare &&
-        (navigator as any).canShare({ files: [file] })
-      ) {
-        try {
-          await (navigator as any).share({ files: [file], title: fileName });
-          toast.success(`PDF gerado (${properties.length} imóveis)`);
-          return;
-        } catch (shareErr: any) {
-          if (shareErr?.name === 'AbortError') return;
-          // fall through to download fallback
-        }
-      }
-
-      if (isMobile) {
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = fileName;
-        a.rel = 'noopener';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
-      } else {
-        doc.save(fileName);
+      if (deliveryResult === 'cancelled') {
+        return;
       }
 
       toast.success(`Exportado ${properties.length} imóveis para PDF`);
