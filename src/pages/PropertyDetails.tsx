@@ -206,8 +206,13 @@ const renderMarkdownTable = (tableLines: string[], hasItbi = false) => {
   let mobile = `<div class="my-4 ${mobileShowClass} space-y-2.5">`;
   rows.forEach((row) => {
     const titleCell = row[0] || '—';
+    const titlePlain = titleCell.replace(/<[^>]+>/g, '').trim();
+    const rowSource = resolveSourceLabel(titlePlain, hasItbi);
     mobile += '<div class="rounded-lg border border-border bg-card/80 shadow-sm p-3">';
-    mobile += `<div class="text-[12px] font-semibold text-foreground mb-2 break-words">${titleCell}</div>`;
+    mobile += `<div class="text-[12px] font-semibold text-foreground mb-1 break-words">${titleCell}</div>`;
+    if (rowSource) {
+      mobile += `<div class="mb-2">${renderSourceBadgeHtml(rowSource)}</div>`;
+    }
     mobile += '<dl class="space-y-1.5">';
     for (let i = 1; i < row.length; i++) {
       const cell = row[i] || '—';
