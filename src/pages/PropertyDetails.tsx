@@ -116,7 +116,33 @@ const isCompactMetricCell = (text: string) => {
   return /^(R\$\s?[\d\.]+(?:,\d+)?(?:\/m²|\/m2)?)$/.test(value) || /^(\d+[\d\.,]*\s?(?:m²|m2|%|anos?)?)$/.test(value);
 };
 
-const renderMarkdownTable = (tableLines: string[]) => {
+// Resolve a "fonte" (origem dos dados) para uma linha da tabela
+// com base no título da primeira coluna e no contexto global (se há ITBI).
+const resolveSourceLabel = (rowTitlePlain: string, hasItbi: boolean): { label: string; tone: 'itbi' | 'ai' } | null => {
+  const t = rowTitlePlain.toLowerCase();
+  if (!t) return null;
+  if (t.includes('valor de venda')) {
+    return hasItbi
+      ? { label: 'Fonte: ITBI Prefeitura SP (transações reais)', tone: 'itbi' }
+      : { label: 'Fonte: Estimativa IA (comparáveis de mercado)', tone: 'ai' };
+  }
+  if (t.includes('aluguel')) {
+    return { label: 'Fonte: Estimativa IA (comparáveis de mercado)', tone: 'ai' };
+  }
+  if (t.includes('preço por m') || t.includes('preco por m')) {
+    return { label: 'Fonte: Estimativa IA (comparáveis de mercado)', tone: 'ai' };
+  }
+  return null;
+};
+
+const renderSourceBadgeHtml = (src: { label: string; tone: 'itbi' | 'ai' }) => {
+  const cls = src.tone === 'itbi'
+    ? 'bg-amber-100 text-amber-900 border-amber-300'
+    : 'bg-primary/10 text-primary border-primary/30';
+  return `<span class="mt-1 inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-[0.06em] ${cls}">${src.label}</span>`;
+};
+
+const renderMarkdownTable = (tableLines: string[], hasItbi = false) => {
   const getCells = (line: string) => line.split('|').slice(1, -1).map((cell) => formatInlineMarkdown(cell.trim()));
   const headers = getCells(tableLines[0]);
   const rows = tableLines.slice(2).map(getCells).filter((row) => row.some(Boolean));
