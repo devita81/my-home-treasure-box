@@ -262,8 +262,14 @@ export type Database = {
       }
       properties: {
         Row: {
+          ai_aluguel_max: number | null
+          ai_aluguel_med: number | null
+          ai_aluguel_min: number | null
           ai_market_estimate: string | null
           ai_market_estimate_updated_at: string | null
+          ai_venda_max: number | null
+          ai_venda_med: number | null
+          ai_venda_min: number | null
           alugado: boolean | null
           ano_construcao: number | null
           apartamento: string | null
@@ -309,8 +315,14 @@ export type Database = {
           vendido: boolean | null
         }
         Insert: {
+          ai_aluguel_max?: number | null
+          ai_aluguel_med?: number | null
+          ai_aluguel_min?: number | null
           ai_market_estimate?: string | null
           ai_market_estimate_updated_at?: string | null
+          ai_venda_max?: number | null
+          ai_venda_med?: number | null
+          ai_venda_min?: number | null
           alugado?: boolean | null
           ano_construcao?: number | null
           apartamento?: string | null
@@ -356,8 +368,14 @@ export type Database = {
           vendido?: boolean | null
         }
         Update: {
+          ai_aluguel_max?: number | null
+          ai_aluguel_med?: number | null
+          ai_aluguel_min?: number | null
           ai_market_estimate?: string | null
           ai_market_estimate_updated_at?: string | null
+          ai_venda_max?: number | null
+          ai_venda_med?: number | null
+          ai_venda_min?: number | null
           alugado?: boolean | null
           ano_construcao?: number | null
           apartamento?: string | null
