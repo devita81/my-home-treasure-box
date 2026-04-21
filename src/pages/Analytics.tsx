@@ -1210,7 +1210,7 @@ const Analytics = () => {
 
       {/* ==================== DRILL-DOWN DIALOG ==================== */}
       <Dialog open={dialogState.isOpen} onOpenChange={(open) => !open && closeDialog()}>
-        <DialogContent className="!grid-cols-1 w-[100vw] max-w-[100vw] sm:max-w-6xl sm:w-[calc(100vw-2rem)] h-[100dvh] sm:h-[85vh] max-h-[100dvh] sm:max-h-[85vh] overflow-hidden flex flex-col p-0 gap-0 bg-white border-0 sm:border border-slate-200 rounded-none sm:rounded-lg left-0 right-0 translate-x-0 sm:left-[50%] sm:translate-x-[-50%] top-0 translate-y-0 sm:top-[50%] sm:translate-y-[-50%] [&>button.absolute]:top-[max(1rem,calc(env(safe-area-inset-top)+0.5rem))] [&>button.absolute]:right-3 [&>button.absolute]:z-20 [&>button.absolute]:bg-background/80 [&>button.absolute]:backdrop-blur-sm [&>button.absolute]:rounded-full [&>button.absolute]:p-1.5">
+        <DialogContent className="!grid-cols-1 inset-x-0 w-auto max-w-none sm:max-w-6xl sm:w-[calc(100vw-2rem)] h-[100dvh] sm:h-[85vh] max-h-[100dvh] sm:max-h-[85vh] overflow-hidden flex flex-col p-0 gap-0 bg-white border-0 sm:border border-slate-200 rounded-none sm:rounded-lg left-0 right-0 translate-x-0 sm:left-[50%] sm:translate-x-[-50%] top-0 translate-y-0 sm:top-[50%] sm:translate-y-[-50%] [&>button.absolute]:top-[max(1rem,calc(env(safe-area-inset-top)+0.5rem))] [&>button.absolute]:right-3 [&>button.absolute]:z-20 [&>button.absolute]:bg-background/80 [&>button.absolute]:backdrop-blur-sm [&>button.absolute]:rounded-full [&>button.absolute]:p-1.5">
           <DialogHeader
             className="px-3 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-slate-200 shrink-0"
             style={{ paddingTop: 'max(1rem, calc(env(safe-area-inset-top) + 0.5rem))' }}

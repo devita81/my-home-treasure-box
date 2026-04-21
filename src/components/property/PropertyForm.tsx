@@ -198,8 +198,8 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="flex items-center justify-between">
+    <form onSubmit={handleSubmit} className="min-w-0 space-y-6 overflow-x-hidden">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Button type="button" variant="ghost" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar
@@ -220,7 +220,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="estado">Estado *</Label>
                 <Select
@@ -265,7 +265,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="numero">Número</Label>
                 <Input
@@ -284,7 +284,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="complemento">Complemento</Label>
                 <Input
@@ -335,7 +335,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="declared_value">Valor Declarado</Label>
                 <CurrencyInput
@@ -372,7 +372,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="valor_aluguel">Valor Aluguel</Label>
                 <CurrencyInput
@@ -411,7 +411,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="numero_matricula">Número da Matrícula</Label>
                 <Input
@@ -439,8 +439,8 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2 col-span-2">
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="proprietario_matricula">Proprietário (Matrícula)</Label>
                 <Input
                   id="proprietario_matricula"
@@ -461,8 +461,8 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2 col-span-2">
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="proprietario_matricula_ii">Proprietário (Matrícula II)</Label>
                 <Input
                   id="proprietario_matricula_ii"
@@ -517,7 +517,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="quartos">Quartos</Label>
                 <Input
@@ -540,7 +540,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="suites">Suítes</Label>
                 <Input
@@ -563,7 +563,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="metragem">Área Útil (m²)</Label>
                 <Input
@@ -679,7 +679,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <Label htmlFor="observacao">Notas e observações sobre o imóvel</Label>
                 <Button
                   type="button"
