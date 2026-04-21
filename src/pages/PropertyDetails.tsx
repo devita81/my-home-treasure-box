@@ -47,6 +47,27 @@ interface MarketEstimates {
   aluguelMax: string | null;
 }
 
+// Converte "R$ 1.510.200" / "R$ 6.000,50" / "R$ 9.580/m²" em número (1510200, 6000.5, 9580)
+const parseCurrencyToNumber = (raw: string | null | undefined): number | null => {
+  if (!raw) return null;
+  const cleaned = raw.replace(/R\$|\/m²|\/m2|\s/gi, '').trim();
+  if (!cleaned) return null;
+  // BRL: ponto = milhar, vírgula = decimal -> remove pontos, troca vírgula por ponto
+  const normalized = cleaned.replace(/\./g, '').replace(',', '.');
+  const num = parseFloat(normalized);
+  return Number.isFinite(num) ? num : null;
+};
+
+const formatBRLCompact = (value: number | null | undefined): string => {
+  if (value === null || value === undefined) return '—';
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+};
+
 const parseEstimatesFromResult = (result: string): MarketEstimates => {
   const estimates: MarketEstimates = {
     vendaMin: null, vendaMed: null, vendaMax: null,
@@ -291,19 +312,40 @@ const PropertyDetails = () => {
     const loadEstimate = async () => {
       const { data, error } = await (supabase as any)
         .from('properties')
-        .select('ai_market_estimate')
+        .select('ai_market_estimate, ai_venda_min, ai_venda_med, ai_venda_max, ai_aluguel_min, ai_aluguel_med, ai_aluguel_max')
         .eq('id', id)
         .maybeSingle();
 
-      if (!error && data?.ai_market_estimate) {
+      if (error || !data) return;
+
+      // Preferir colunas estruturadas (numéricas) — sempre exibe se existirem
+      const hasStructured =
+        data.ai_venda_min != null || data.ai_venda_med != null || data.ai_venda_max != null ||
+        data.ai_aluguel_min != null || data.ai_aluguel_med != null || data.ai_aluguel_max != null;
+
+      if (hasStructured) {
+        setEstimates({
+          vendaMin: formatBRLCompact(data.ai_venda_min),
+          vendaMed: formatBRLCompact(data.ai_venda_med),
+          vendaMax: formatBRLCompact(data.ai_venda_max),
+          aluguelMin: formatBRLCompact(data.ai_aluguel_min),
+          aluguelMed: formatBRLCompact(data.ai_aluguel_med),
+          aluguelMax: formatBRLCompact(data.ai_aluguel_max),
+        });
+      }
+
+      if (data.ai_market_estimate) {
         setSearchResult(data.ai_market_estimate);
-        setEstimates(parseEstimatesFromResult(data.ai_market_estimate));
+        // Se não temos estruturado, derivar do markdown (compat com registros antigos)
+        if (!hasStructured) {
+          setEstimates(parseEstimatesFromResult(data.ai_market_estimate));
+        }
         return;
       }
 
       // Fallback: migrar do localStorage legado se existir
       const saved = localStorage.getItem(`market-estimates-${id}`);
-      if (saved) {
+      if (saved && !hasStructured) {
         try {
           setEstimates(JSON.parse(saved));
         } catch { /* ignore */ }
@@ -347,9 +389,28 @@ const PropertyDetails = () => {
         setSearchResult(data.result);
         setDialogOpen(true);
 
-        // Parse estimates and persist full report to DB (overwrite previous)
+        // Parse estimates and persist full report + structured numeric columns
         const parsed = parseEstimatesFromResult(data.result);
-        setEstimates(parsed);
+
+        // Convert para números p/ persistir nas colunas dedicadas
+        const numeric = {
+          ai_venda_min: parseCurrencyToNumber(parsed.vendaMin),
+          ai_venda_med: parseCurrencyToNumber(parsed.vendaMed),
+          ai_venda_max: parseCurrencyToNumber(parsed.vendaMax),
+          ai_aluguel_min: parseCurrencyToNumber(parsed.aluguelMin),
+          ai_aluguel_med: parseCurrencyToNumber(parsed.aluguelMed),
+          ai_aluguel_max: parseCurrencyToNumber(parsed.aluguelMax),
+        };
+
+        // UI usa os valores formatados a partir dos números (consistente com o que foi salvo)
+        setEstimates({
+          vendaMin: formatBRLCompact(numeric.ai_venda_min),
+          vendaMed: formatBRLCompact(numeric.ai_venda_med),
+          vendaMax: formatBRLCompact(numeric.ai_venda_max),
+          aluguelMin: formatBRLCompact(numeric.ai_aluguel_min),
+          aluguelMed: formatBRLCompact(numeric.ai_aluguel_med),
+          aluguelMax: formatBRLCompact(numeric.ai_aluguel_max),
+        });
 
         if (id) {
           const { error: updateError } = await (supabase as any)
@@ -357,6 +418,7 @@ const PropertyDetails = () => {
             .update({
               ai_market_estimate: data.result,
               ai_market_estimate_updated_at: new Date().toISOString(),
+              ...numeric,
             })
             .eq('id', id);
 
