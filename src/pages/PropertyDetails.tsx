@@ -175,6 +175,8 @@ const renderMarkdownTable = (tableLines: string[], hasItbi = false) => {
 
   rows.forEach((row, rowIdx) => {
     const zebra = rowIdx % 2 === 1 ? 'bg-muted/30' : '';
+    const rowTitlePlain = (row[0] || '').replace(/<[^>]+>/g, '').trim();
+    const rowSource = resolveSourceLabel(rowTitlePlain, hasItbi);
     desktop += `<tr class="border-b border-border/40 last:border-b-0 ${zebra} hover:bg-accent/40 transition-colors">`;
     row.forEach((cell, index) => {
       const plainText = cell.replace(/<[^>]+>/g, '').trim();
@@ -190,7 +192,10 @@ const renderMarkdownTable = (tableLines: string[], hasItbi = false) => {
           : isMetric
             ? 'font-semibold text-foreground'
             : 'text-foreground';
-      desktop += `<td class="px-3 py-2.5 align-middle ${alignClass} ${toneClass}">${cell || '—'}</td>`;
+      const titleSourceBadge = index === 0 && rowSource
+        ? `<div class="mt-1 whitespace-normal">${renderSourceBadgeHtml(rowSource)}</div>`
+        : '';
+      desktop += `<td class="px-3 py-2.5 align-middle ${alignClass} ${toneClass}">${cell || '—'}${titleSourceBadge}</td>`;
     });
     desktop += '</tr>';
   });
