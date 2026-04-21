@@ -312,19 +312,40 @@ const PropertyDetails = () => {
     const loadEstimate = async () => {
       const { data, error } = await (supabase as any)
         .from('properties')
-        .select('ai_market_estimate')
+        .select('ai_market_estimate, ai_venda_min, ai_venda_med, ai_venda_max, ai_aluguel_min, ai_aluguel_med, ai_aluguel_max')
         .eq('id', id)
         .maybeSingle();
 
-      if (!error && data?.ai_market_estimate) {
+      if (error || !data) return;
+
+      // Preferir colunas estruturadas (numéricas) — sempre exibe se existirem
+      const hasStructured =
+        data.ai_venda_min != null || data.ai_venda_med != null || data.ai_venda_max != null ||
+        data.ai_aluguel_min != null || data.ai_aluguel_med != null || data.ai_aluguel_max != null;
+
+      if (hasStructured) {
+        setEstimates({
+          vendaMin: formatBRLCompact(data.ai_venda_min),
+          vendaMed: formatBRLCompact(data.ai_venda_med),
+          vendaMax: formatBRLCompact(data.ai_venda_max),
+          aluguelMin: formatBRLCompact(data.ai_aluguel_min),
+          aluguelMed: formatBRLCompact(data.ai_aluguel_med),
+          aluguelMax: formatBRLCompact(data.ai_aluguel_max),
+        });
+      }
+
+      if (data.ai_market_estimate) {
         setSearchResult(data.ai_market_estimate);
-        setEstimates(parseEstimatesFromResult(data.ai_market_estimate));
+        // Se não temos estruturado, derivar do markdown (compat com registros antigos)
+        if (!hasStructured) {
+          setEstimates(parseEstimatesFromResult(data.ai_market_estimate));
+        }
         return;
       }
 
       // Fallback: migrar do localStorage legado se existir
       const saved = localStorage.getItem(`market-estimates-${id}`);
-      if (saved) {
+      if (saved && !hasStructured) {
         try {
           setEstimates(JSON.parse(saved));
         } catch { /* ignore */ }
