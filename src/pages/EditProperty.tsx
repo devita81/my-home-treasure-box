@@ -37,10 +37,10 @@ const EditProperty = () => {
     }
 
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen overflow-x-hidden bg-background">
         <Header />
-        <main className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
+        <main className="container mx-auto overflow-x-hidden px-4 py-8">
+          <div className="mx-auto max-w-4xl min-w-0 overflow-x-hidden">
             <div className="mb-8">
               <h1 className="font-display text-3xl font-bold">Editar Imóvel</h1>
               <p className="text-muted-foreground mt-2">Carregando...</p>
@@ -52,11 +52,11 @@ const EditProperty = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen overflow-x-hidden bg-background">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
+      <main className="container mx-auto overflow-x-hidden px-4 py-8">
+        <div className="mx-auto max-w-4xl min-w-0 overflow-x-hidden">
           <div className="mb-8">
             <h1 className="font-display text-3xl font-bold">Editar Imóvel</h1>
             <p className="text-muted-foreground mt-2">
