@@ -137,7 +137,7 @@ const resolveSourceLabel = (rowTitlePlain: string, hasItbi: boolean): { label: s
 
 const renderSourceBadgeHtml = (src: { label: string; tone: 'itbi' | 'ai' }) => {
   const cls = src.tone === 'itbi'
-    ? 'bg-amber-100 text-amber-900 border-amber-300'
+    ? 'bg-warning/15 text-warning-foreground border-warning/40'
     : 'bg-primary/10 text-primary border-primary/30';
   return `<span class="mt-1 inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-[0.06em] ${cls}">${src.label}</span>`;
 };
