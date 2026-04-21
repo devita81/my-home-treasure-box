@@ -694,8 +694,11 @@ const Analytics = () => {
               );
             })}
             {/* Subtotal mobile */}
-            <div className="px-3 py-2.5 bg-slate-100 border-t-2 border-slate-300 space-y-2">
-              <div className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Subtotal Geral</div>
+            <div className="px-3 py-3 bg-slate-900 text-slate-100 border-t-4 border-primary border-l-4 border-l-primary space-y-2 shadow-inner">
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-3 w-1 rounded-sm bg-primary" />
+                <div className="text-[11px] font-bold text-slate-100 uppercase tracking-[0.18em]">Subtotal Geral</div>
+              </div>
 
               <div className="rounded border border-emerald-300 bg-emerald-50 p-2">
                 <div className="flex items-center justify-between mb-1">
