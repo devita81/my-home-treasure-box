@@ -241,16 +241,6 @@
     border: 3px solid hsl(var(--primary-foreground));
     box-shadow: 0 4px 12px hsl(var(--foreground) / 0.18);
   }
-  .leaflet-container {
-    background: hsl(var(--muted));
-    font: inherit;
-    z-index: 0;
-  }
-  .leaflet-pane,
-  .leaflet-top,
-  .leaflet-bottom {
-    z-index: 0 !important;
-  }
   .leaflet-control-attribution,
   .leaflet-control-container .leaflet-bottom,
   .leaflet-control-container .leaflet-top {
