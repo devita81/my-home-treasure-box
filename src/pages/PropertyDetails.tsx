@@ -242,6 +242,11 @@ const renderMarkdownTable = (tableLines: string[], hasItbi = false) => {
 };
 
 const convertMarkdownToHtml = (markdown: string): string => {
+  // Detecta se a análise foi ancorada em dados reais do ITBI da Prefeitura de SP.
+  // Quando há ITBI, o "Valor de Venda" da tabela vem de transações reais;
+  // caso contrário, todos os valores são estimativas da IA.
+  const hasItbi = /DADOS REAIS ITBI|ancorad[oa] em\s+\d+\s+transaç[õo]es ITBI|transaç[õo]es ITBI tratadas/i.test(markdown);
+
   const lines = markdown.split('\n');
   const blocks: string[] = [];
   let index = 0;
@@ -266,7 +271,7 @@ const convertMarkdownToHtml = (markdown: string): string => {
         tableLines.push(current);
         index += 1;
       }
-      blocks.push(renderMarkdownTable(tableLines));
+      blocks.push(renderMarkdownTable(tableLines, hasItbi));
       continue;
     }
 
