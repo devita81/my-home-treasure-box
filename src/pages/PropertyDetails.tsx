@@ -389,9 +389,28 @@ const PropertyDetails = () => {
         setSearchResult(data.result);
         setDialogOpen(true);
 
-        // Parse estimates and persist full report to DB (overwrite previous)
+        // Parse estimates and persist full report + structured numeric columns
         const parsed = parseEstimatesFromResult(data.result);
-        setEstimates(parsed);
+
+        // Convert para números p/ persistir nas colunas dedicadas
+        const numeric = {
+          ai_venda_min: parseCurrencyToNumber(parsed.vendaMin),
+          ai_venda_med: parseCurrencyToNumber(parsed.vendaMed),
+          ai_venda_max: parseCurrencyToNumber(parsed.vendaMax),
+          ai_aluguel_min: parseCurrencyToNumber(parsed.aluguelMin),
+          ai_aluguel_med: parseCurrencyToNumber(parsed.aluguelMed),
+          ai_aluguel_max: parseCurrencyToNumber(parsed.aluguelMax),
+        };
+
+        // UI usa os valores formatados a partir dos números (consistente com o que foi salvo)
+        setEstimates({
+          vendaMin: formatBRLCompact(numeric.ai_venda_min),
+          vendaMed: formatBRLCompact(numeric.ai_venda_med),
+          vendaMax: formatBRLCompact(numeric.ai_venda_max),
+          aluguelMin: formatBRLCompact(numeric.ai_aluguel_min),
+          aluguelMed: formatBRLCompact(numeric.ai_aluguel_med),
+          aluguelMax: formatBRLCompact(numeric.ai_aluguel_max),
+        });
 
         if (id) {
           const { error: updateError } = await (supabase as any)
@@ -399,6 +418,7 @@ const PropertyDetails = () => {
             .update({
               ai_market_estimate: data.result,
               ai_market_estimate_updated_at: new Date().toISOString(),
+              ...numeric,
             })
             .eq('id', id);
 
