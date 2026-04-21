@@ -47,6 +47,27 @@ interface MarketEstimates {
   aluguelMax: string | null;
 }
 
+// Converte "R$ 1.510.200" / "R$ 6.000,50" / "R$ 9.580/m²" em número (1510200, 6000.5, 9580)
+const parseCurrencyToNumber = (raw: string | null | undefined): number | null => {
+  if (!raw) return null;
+  const cleaned = raw.replace(/R\$|\/m²|\/m2|\s/gi, '').trim();
+  if (!cleaned) return null;
+  // BRL: ponto = milhar, vírgula = decimal -> remove pontos, troca vírgula por ponto
+  const normalized = cleaned.replace(/\./g, '').replace(',', '.');
+  const num = parseFloat(normalized);
+  return Number.isFinite(num) ? num : null;
+};
+
+const formatBRLCompact = (value: number | null | undefined): string => {
+  if (value === null || value === undefined) return '—';
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+};
+
 const parseEstimatesFromResult = (result: string): MarketEstimates => {
   const estimates: MarketEstimates = {
     vendaMin: null, vendaMed: null, vendaMax: null,
