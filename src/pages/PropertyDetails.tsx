@@ -116,7 +116,33 @@ const isCompactMetricCell = (text: string) => {
   return /^(R\$\s?[\d\.]+(?:,\d+)?(?:\/m²|\/m2)?)$/.test(value) || /^(\d+[\d\.,]*\s?(?:m²|m2|%|anos?)?)$/.test(value);
 };
 
-const renderMarkdownTable = (tableLines: string[]) => {
+// Resolve a "fonte" (origem dos dados) para uma linha da tabela
+// com base no título da primeira coluna e no contexto global (se há ITBI).
+const resolveSourceLabel = (rowTitlePlain: string, hasItbi: boolean): { label: string; tone: 'itbi' | 'ai' } | null => {
+  const t = rowTitlePlain.toLowerCase();
+  if (!t) return null;
+  if (t.includes('valor de venda')) {
+    return hasItbi
+      ? { label: 'Fonte: ITBI Prefeitura SP (transações reais)', tone: 'itbi' }
+      : { label: 'Fonte: Estimativa IA (comparáveis de mercado)', tone: 'ai' };
+  }
+  if (t.includes('aluguel')) {
+    return { label: 'Fonte: Estimativa IA (comparáveis de mercado)', tone: 'ai' };
+  }
+  if (t.includes('preço por m') || t.includes('preco por m')) {
+    return { label: 'Fonte: Estimativa IA (comparáveis de mercado)', tone: 'ai' };
+  }
+  return null;
+};
+
+const renderSourceBadgeHtml = (src: { label: string; tone: 'itbi' | 'ai' }) => {
+  const cls = src.tone === 'itbi'
+    ? 'bg-warning/15 text-warning-foreground border-warning/40'
+    : 'bg-primary/10 text-primary border-primary/30';
+  return `<span class="mt-1 inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-[0.06em] ${cls}">${src.label}</span>`;
+};
+
+const renderMarkdownTable = (tableLines: string[], hasItbi = false) => {
   const getCells = (line: string) => line.split('|').slice(1, -1).map((cell) => formatInlineMarkdown(cell.trim()));
   const headers = getCells(tableLines[0]);
   const rows = tableLines.slice(2).map(getCells).filter((row) => row.some(Boolean));
@@ -149,6 +175,8 @@ const renderMarkdownTable = (tableLines: string[]) => {
 
   rows.forEach((row, rowIdx) => {
     const zebra = rowIdx % 2 === 1 ? 'bg-muted/30' : '';
+    const rowTitlePlain = (row[0] || '').replace(/<[^>]+>/g, '').trim();
+    const rowSource = resolveSourceLabel(rowTitlePlain, hasItbi);
     desktop += `<tr class="border-b border-border/40 last:border-b-0 ${zebra} hover:bg-accent/40 transition-colors">`;
     row.forEach((cell, index) => {
       const plainText = cell.replace(/<[^>]+>/g, '').trim();
@@ -164,7 +192,10 @@ const renderMarkdownTable = (tableLines: string[]) => {
           : isMetric
             ? 'font-semibold text-foreground'
             : 'text-foreground';
-      desktop += `<td class="px-3 py-2.5 align-middle ${alignClass} ${toneClass}">${cell || '—'}</td>`;
+      const titleSourceBadge = index === 0 && rowSource
+        ? `<div class="mt-1 whitespace-normal">${renderSourceBadgeHtml(rowSource)}</div>`
+        : '';
+      desktop += `<td class="px-3 py-2.5 align-middle ${alignClass} ${toneClass}">${cell || '—'}${titleSourceBadge}</td>`;
     });
     desktop += '</tr>';
   });
@@ -175,8 +206,13 @@ const renderMarkdownTable = (tableLines: string[]) => {
   let mobile = `<div class="my-4 ${mobileShowClass} space-y-2.5">`;
   rows.forEach((row) => {
     const titleCell = row[0] || '—';
+    const titlePlain = titleCell.replace(/<[^>]+>/g, '').trim();
+    const rowSource = resolveSourceLabel(titlePlain, hasItbi);
     mobile += '<div class="rounded-lg border border-border bg-card/80 shadow-sm p-3">';
-    mobile += `<div class="text-[12px] font-semibold text-foreground mb-2 break-words">${titleCell}</div>`;
+    mobile += `<div class="text-[12px] font-semibold text-foreground mb-1 break-words">${titleCell}</div>`;
+    if (rowSource) {
+      mobile += `<div class="mb-2">${renderSourceBadgeHtml(rowSource)}</div>`;
+    }
     mobile += '<dl class="space-y-1.5">';
     for (let i = 1; i < row.length; i++) {
       const cell = row[i] || '—';
@@ -206,6 +242,11 @@ const renderMarkdownTable = (tableLines: string[]) => {
 };
 
 const convertMarkdownToHtml = (markdown: string): string => {
+  // Detecta se a análise foi ancorada em dados reais do ITBI da Prefeitura de SP.
+  // Quando há ITBI, o "Valor de Venda" da tabela vem de transações reais;
+  // caso contrário, todos os valores são estimativas da IA.
+  const hasItbi = /DADOS REAIS ITBI|ancorad[oa] em\s+\d+\s+transaç[õo]es ITBI|transaç[õo]es ITBI tratadas/i.test(markdown);
+
   const lines = markdown.split('\n');
   const blocks: string[] = [];
   let index = 0;
@@ -230,7 +271,7 @@ const convertMarkdownToHtml = (markdown: string): string => {
         tableLines.push(current);
         index += 1;
       }
-      blocks.push(renderMarkdownTable(tableLines));
+      blocks.push(renderMarkdownTable(tableLines, hasItbi));
       continue;
     }
 
