@@ -545,13 +545,13 @@ const PropertyDetails = () => {
   const hasEstimates = estimates.vendaMin || estimates.aluguelMin;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen overflow-x-hidden bg-background">
       <Header />
       
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto space-y-6">
+      <main className="container mx-auto overflow-x-hidden px-4 py-8">
+        <div className="mx-auto max-w-6xl min-w-0 space-y-6 overflow-x-hidden">
           {/* Header Actions */}
-          <div className="flex items-center justify-between">
+          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <Button
               variant="outline"
               onClick={() => {
@@ -561,22 +561,22 @@ const PropertyDetails = () => {
                   navigate('/');
                 }
               }}
-              className="border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 font-semibold shadow-sm"
+              className="w-full justify-center border-primary/30 bg-primary/5 font-semibold text-primary shadow-sm hover:bg-primary/10 sm:w-auto"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar
             </Button>
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
               <Button
                 variant="outline"
                 onClick={() => setReportOpen(true)}
-                className="gap-1.5 bg-background border-red-700/40 hover:bg-red-50 hover:border-red-700/60 shadow-sm"
+                className="w-full justify-center gap-1.5 border-red-700/40 bg-background shadow-sm hover:border-red-700/60 hover:bg-red-50 sm:w-auto"
               >
                 <FileText className="h-4 w-4 text-red-700" />
                 <span className="font-medium text-red-800">Relatório PDF</span>
               </Button>
-              <Link to={`/edit/${property.id}`}>
-                <Button>
+              <Link to={`/edit/${property.id}`} className="w-full sm:w-auto">
+                <Button className="w-full justify-center sm:w-auto">
                   <Edit className="h-4 w-4 mr-2" />
                   Editar
                 </Button>
@@ -903,11 +903,11 @@ const PropertyDetails = () => {
                 Use o ChatGPT para análise de mercado automatizada ou chat livre sobre este imóvel.
               </p>
               
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <Button
                   onClick={estimatePropertyValue}
                   disabled={isSearching}
-                  className="gap-2"
+                  className="w-full justify-center gap-2 sm:w-auto"
                   size="lg"
                 >
                   {isSearching ? (
@@ -922,7 +922,7 @@ const PropertyDetails = () => {
                   onClick={lookupItbi}
                   disabled={isLoadingItbi}
                   variant="outline"
-                  className="gap-2 border-blue-700/40 bg-blue-50 hover:bg-blue-100 text-blue-900"
+                  className="w-full justify-center gap-2 border-blue-700/40 bg-blue-50 text-blue-900 hover:bg-blue-100 sm:w-auto"
                   size="lg"
                   title="Consulta transações ITBI da Prefeitura de São Paulo"
                 >
@@ -937,7 +937,7 @@ const PropertyDetails = () => {
                 <Button
                   onClick={() => setChatOpen(true)}
                   variant="outline"
-                  className="gap-2"
+                  className="w-full justify-center gap-2 sm:w-auto"
                   size="lg"
                 >
                   <MessageSquare className="h-4 w-4" />
@@ -960,10 +960,10 @@ const PropertyDetails = () => {
                 Compare valores de imóveis similares neste endereço em sites de referência do mercado imobiliário.
               </p>
               
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <Button
                   variant="outline"
-                  className="gap-2"
+                  className="w-full justify-center gap-2 sm:w-auto"
                   onClick={() => {
                     const tipoImovel = property.tipo_imovel || 'imovel';
                     const endereco = `${property.rua} ${property.numero || ''} ${property.bairro} ${property.cidade}`.trim();
@@ -984,7 +984,7 @@ const PropertyDetails = () => {
 
                 <Button
                   variant="outline"
-                  className="gap-2"
+                  className="w-full justify-center gap-2 sm:w-auto"
                   onClick={() => {
                     const tipoImovel = property.tipo_imovel || 'imovel';
                     const endereco = `${property.rua} ${property.numero || ''} ${property.bairro} ${property.cidade}`.trim();
@@ -1010,7 +1010,7 @@ const PropertyDetails = () => {
           <DocumentUpload propertyId={property.id} mode="view" />
 
           {/* Timestamps */}
-          <div className="flex items-center justify-center gap-6 py-4 text-sm text-muted-foreground">
+          <div className="flex flex-col items-center justify-center gap-2 py-4 text-center text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-6">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               <span>Criado em {formatDate(property.created_at)}</span>
