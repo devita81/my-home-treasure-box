@@ -266,3 +266,28 @@
     .scroll-x-fade::after { display: none; }
   }
 }
+
+/* Leaflet z-index containment — kept OUTSIDE @layer so it always
+   overrides leaflet.css (imported as a plain stylesheet, which would
+   otherwise win the cascade against utility-layer rules). Without
+   this, Leaflet panes (z-index 200-700) can render above the sticky
+   header (z-50). isolation:isolate caps the entire map's stacking
+   context to its own root. */
+.leaflet-container {
+  z-index: 0 !important;
+  isolation: isolate;
+  background: hsl(var(--muted));
+  font: inherit;
+}
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom,
+.leaflet-tile-pane,
+.leaflet-overlay-pane,
+.leaflet-shadow-pane,
+.leaflet-marker-pane,
+.leaflet-tooltip-pane,
+.leaflet-popup-pane,
+.leaflet-map-pane {
+  z-index: 1 !important;
+}
