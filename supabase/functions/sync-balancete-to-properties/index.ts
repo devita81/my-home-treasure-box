@@ -103,13 +103,12 @@ Deno.serve(async (req) => {
           changes.push("condominio");
         }
       }
-      // IPTU: balancete grava mensal negativo; properties usa valor anual.
-      // Convertemos: valor mensal absoluto * 12.
+      // IPTU: balancete grava mensal negativo (1 parcela de 10).
+      // Properties passa a guardar o valor mensal direto (sem multiplicar por 12).
       if (last.iptu != null && Number(last.iptu) !== 0) {
-        const mensal = Math.abs(Number(last.iptu));
-        const anual = Math.round(mensal * 12 * 100) / 100;
-        if (anual !== Number(p.iptu_value ?? 0)) {
-          patch.iptu_value = anual;
+        const mensal = Math.round(Math.abs(Number(last.iptu)) * 100) / 100;
+        if (mensal !== Number(p.iptu_value ?? 0)) {
+          patch.iptu_value = mensal;
           changes.push("iptu");
         }
       }
