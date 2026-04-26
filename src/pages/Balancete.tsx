@@ -921,6 +921,99 @@ function MobileAmount({ label, value, tone, strong }: { label: string; value: nu
   );
 }
 
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1">
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} />
+      {label}
+    </span>
+  );
+}
+
+function AvgRow({ label, value, tone, bold }: { label: string; value: number; tone: 'positive' | 'negative'; bold?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-2 min-w-0">
+      <span className={cn('text-muted-foreground truncate', bold && 'font-semibold text-foreground')}>{label}</span>
+      <span className={cn(
+        'tabular-nums whitespace-nowrap shrink-0',
+        bold ? 'font-bold' : 'font-semibold',
+        tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+      )}>
+        {fmtBRL(value)}
+      </span>
+    </div>
+  );
+}
+
+function YearAggTable({ rows }: { rows: BalanceteRow[] }) {
+  const byYear = new Map<number, { receita: number; despesa: number; liquido: number; meses: number }>();
+  rows.forEach(r => {
+    const cur = byYear.get(r.ano) ?? { receita: 0, despesa: 0, liquido: 0, meses: 0 };
+    cur.receita += Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
+    cur.despesa += Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas);
+    cur.liquido += r.liquido;
+    cur.meses += 1;
+    byYear.set(r.ano, cur);
+  });
+  const years = Array.from(byYear.entries()).sort((a, b) => a[0] - b[0]);
+  if (!years.length) return <p className="text-[10px] text-muted-foreground text-center py-4">Sem dados.</p>;
+  return (
+    <div className="rounded-md border bg-card overflow-hidden">
+      <div className="grid grid-cols-[2.6rem_1fr_1fr_1fr] gap-1 px-1.5 py-1 bg-muted/40 text-[8px] uppercase tracking-wide text-muted-foreground font-semibold">
+        <span>Ano</span>
+        <span className="text-right">Rec.</span>
+        <span className="text-right">Desp.</span>
+        <span className="text-right">Líq.</span>
+      </div>
+      {years.map(([ano, agg], idx) => (
+        <div key={ano} className={cn('grid grid-cols-[2.6rem_1fr_1fr_1fr] gap-1 px-1.5 py-1 items-center text-[10px] tabular-nums', idx > 0 && 'border-t')}>
+          <span className="font-semibold">{ano}<span className="text-muted-foreground text-[8px] ml-0.5">·{agg.meses}m</span></span>
+          <span className="text-right text-emerald-600 dark:text-emerald-400 truncate">{fmtBRL(agg.receita)}</span>
+          <span className="text-right text-red-600 dark:text-red-400 truncate">{fmtBRL(agg.despesa)}</span>
+          <span className={cn('text-right font-semibold truncate', agg.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}>{fmtBRL(agg.liquido)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CategoryAggTable({ totals }: { totals: { aluguel: number; condominio: number; iptu: number; taxa: number; outras: number; reembolso: number; liquido: number } }) {
+  const items: Array<{ label: string; value: number; tone: 'positive' | 'negative' }> = [
+    { label: 'Aluguel', value: totals.aluguel, tone: 'positive' },
+    { label: 'Reembolsos', value: totals.reembolso, tone: 'positive' },
+    { label: 'Condomínio', value: totals.condominio, tone: 'negative' },
+    { label: 'IPTU', value: totals.iptu, tone: 'negative' },
+    { label: 'Taxa adm.', value: totals.taxa, tone: 'negative' },
+    { label: 'Outras desp.', value: totals.outras, tone: 'negative' },
+  ].filter(i => i.value !== 0);
+  if (!items.length) return <p className="text-[10px] text-muted-foreground text-center py-4">Sem dados.</p>;
+  const totalAbs = items.reduce((s, i) => s + Math.abs(i.value), 0) || 1;
+  return (
+    <div className="rounded-md border bg-card overflow-hidden">
+      {items.map((i, idx) => {
+        const pct = (Math.abs(i.value) / totalAbs) * 100;
+        return (
+          <div key={i.label} className={cn('px-2 py-1.5 min-w-0', idx > 0 && 'border-t')}>
+            <div className="flex items-center justify-between gap-2 min-w-0">
+              <span className="text-[10px] text-muted-foreground truncate">{i.label}</span>
+              <span className={cn(
+                'text-[10px] font-semibold tabular-nums whitespace-nowrap shrink-0',
+                i.tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+              )}>{fmtBRL(i.value)}</span>
+            </div>
+            <div className="mt-1 h-1 rounded-full bg-muted overflow-hidden">
+              <div
+                className={cn('h-full', i.tone === 'positive' ? 'bg-emerald-500' : 'bg-red-500')}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function MonthDrilldownTable({
   row,
   onOpenFull,
