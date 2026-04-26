@@ -71,14 +71,106 @@ function buildPropertiesContext(properties: Property[]): string {
 ${lines.join('\n\n')}`;
 }
 
+const MONTH_ABBR = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+
+function buildBalanceteContext(rows: BalanceteLite[]): string {
+  if (!rows.length) return 'Nenhum lançamento de balancete registrado.';
+
+  const fmt = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const periodLabel = (ano: number, mes: number) => `${MONTH_ABBR[mes - 1]}/${String(ano).slice(-2)}`;
+
+  // Totais consolidados por mês (toda a carteira)
+  const monthly = new Map<string, { ano: number; mes: number; receita: number; despesa: number; liquido: number; imoveis: Set<string> }>();
+  for (const r of rows) {
+    const key = `${r.ano}-${String(r.mes).padStart(2, '0')}`;
+    if (!monthly.has(key)) monthly.set(key, { ano: r.ano, mes: r.mes, receita: 0, despesa: 0, liquido: 0, imoveis: new Set() });
+    const acc = monthly.get(key)!;
+    const aluguel = r.aluguel ?? 0;
+    const reembC = r.reembolso_condominio ?? 0;
+    const reembI = r.reembolso_iptu ?? 0;
+    const reembO = r.reembolso_outras_despesas ?? 0;
+    const cond = r.condominio ?? 0;
+    const iptu = r.iptu ?? 0;
+    const taxa = r.taxa_administracao ?? 0;
+    const outras = r.outras_despesas ?? 0;
+    acc.receita += Math.max(0, aluguel) + Math.max(0, reembC) + Math.max(0, reembI) + Math.max(0, reembO);
+    acc.despesa += Math.min(0, cond) + Math.min(0, iptu) + Math.min(0, taxa) + Math.min(0, outras);
+    acc.liquido += r.liquido ?? 0;
+    const pid = r.property_id ?? `${r.rua ?? ''}-${r.numero ?? ''}-${r.apartamento ?? ''}`;
+    if (aluguel > 0) acc.imoveis.add(pid);
+  }
+  const monthlySorted = Array.from(monthly.values()).sort((a, b) => a.ano - b.ano || a.mes - b.mes);
+  const monthlyLines = monthlySorted.map(m =>
+    `  ${periodLabel(m.ano, m.mes)}: receita ${fmt(m.receita)} | despesa ${fmt(m.despesa)} | líquido ${fmt(m.liquido)} | imóveis ativos: ${m.imoveis.size}`
+  );
+
+  // Lançamentos por imóvel x mês (resumo)
+  type PMKey = string;
+  const perPropMonth = new Map<PMKey, { addr: string; ano: number; mes: number; aluguel: number; liquido: number; locatario: string | null }>();
+  for (const r of rows) {
+    const addr = `${r.rua ?? ''}${r.numero ? ', ' + r.numero : ''}${r.apartamento ? ' Ap ' + r.apartamento : ''}`.trim() || '(sem endereço)';
+    const pid = r.property_id ?? addr;
+    const k = `${pid}|${r.ano}-${String(r.mes).padStart(2, '0')}`;
+    if (!perPropMonth.has(k)) perPropMonth.set(k, { addr, ano: r.ano, mes: r.mes, aluguel: 0, liquido: 0, locatario: r.locatario ?? null });
+    const acc = perPropMonth.get(k)!;
+    acc.aluguel += r.aluguel ?? 0;
+    acc.liquido += r.liquido ?? 0;
+    if (!acc.locatario && r.locatario) acc.locatario = r.locatario;
+  }
+
+  // Agrupa por imóvel para output legível (somente últimos 24 meses para não estourar contexto)
+  const cutoff = monthlySorted.length > 24 ? monthlySorted.slice(-24) : monthlySorted;
+  const cutoffSet = new Set(cutoff.map(m => `${m.ano}-${String(m.mes).padStart(2, '0')}`));
+
+  const byProp = new Map<string, { addr: string; entries: { ano: number; mes: number; aluguel: number; liquido: number; locatario: string | null }[] }>();
+  for (const v of perPropMonth.values()) {
+    if (!cutoffSet.has(`${v.ano}-${String(v.mes).padStart(2, '0')}`)) continue;
+    const key = v.addr;
+    if (!byProp.has(key)) byProp.set(key, { addr: v.addr, entries: [] });
+    byProp.get(key)!.entries.push({ ano: v.ano, mes: v.mes, aluguel: v.aluguel, liquido: v.liquido, locatario: v.locatario });
+  }
+
+  const propLines: string[] = [];
+  for (const { addr, entries } of byProp.values()) {
+    entries.sort((a, b) => a.ano - b.ano || a.mes - b.mes);
+    const inner = entries.map(e => `${periodLabel(e.ano, e.mes)} aluguel=${fmt(e.aluguel)} líquido=${fmt(e.liquido)}${e.locatario ? ` (loc: ${e.locatario})` : ''}`).join('; ');
+    propLines.push(`- ${addr}: ${inner}`);
+  }
+
+  return `BALANCETE — TOTAIS MENSAIS DA CARTEIRA (todos os meses):
+${monthlyLines.join('\n')}
+
+BALANCETE POR IMÓVEL — últimos ${cutoff.length} meses (mais recentes):
+${propLines.join('\n')}`;
+}
+
 export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogProps) => {
   const { properties } = useProperties();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [balanceteRows, setBalanceteRows] = useState<BalanceteLite[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const propertiesContext = useMemo(() => buildPropertiesContext(properties), [properties]);
+  // Carrega balancete uma vez quando o diálogo abre
+  useEffect(() => {
+    if (!open || balanceteRows.length > 0) return;
+    (async () => {
+      const { data } = await supabase
+        .from('property_balancete')
+        .select('property_id, rua, numero, apartamento, ano, mes, aluguel, condominio, iptu, taxa_administracao, outras_despesas, reembolso_condominio, reembolso_iptu, reembolso_outras_despesas, liquido, locatario, alugado')
+        .order('ano', { ascending: true })
+        .order('mes', { ascending: true })
+        .limit(5000);
+      if (data) setBalanceteRows(data as BalanceteLite[]);
+    })();
+  }, [open, balanceteRows.length]);
+
+  const propertiesContext = useMemo(() => {
+    const base = buildPropertiesContext(properties);
+    const bal = buildBalanceteContext(balanceteRows);
+    return `${base}\n\n${bal}`;
+  }, [properties, balanceteRows]);
 
   useEffect(() => {
     if (scrollRef.current) {
