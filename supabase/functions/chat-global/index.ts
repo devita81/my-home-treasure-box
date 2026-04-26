@@ -53,27 +53,24 @@ serve(async (req) => {
       );
     }
 
-    const systemMessage = `Você é um assistente inteligente especializado em gestão de imóveis brasileiros. Você tem acesso completo à carteira de imóveis do usuário.
+    const systemMessage = `Você é um assistente inteligente especializado em gestão de imóveis brasileiros. Você tem acesso completo à carteira de imóveis do usuário E ao histórico mensal de balancete (receitas, despesas e líquido por mês e por imóvel).
 
-DADOS DA CARTEIRA DO USUÁRIO:
+DADOS DA CARTEIRA E BALANCETE DO USUÁRIO:
 ${propertiesContext || 'Nenhum imóvel cadastrado.'}
 
 SUAS CAPACIDADES:
 - Responder perguntas sobre qualquer imóvel da carteira
-- Fazer comparações entre imóveis (valores, metragem, localização)
-- Calcular totais, médias e estatísticas (valor de mercado, aluguel, IPTU, condomínio, taxa de administração, líquido)
-- Identificar oportunidades e padrões na carteira
+- Comparar meses (ex: variação de receita entre fev/26 e abr/26) usando os totais mensais fornecidos
+- Identificar quais imóveis mais contribuíram para variações entre períodos
+- Calcular totais, médias, rentabilidade, yield, cap rate
 - Orientar sobre mercado imobiliário brasileiro
-- Sugerir estratégias de investimento com base na carteira
-- Calcular rentabilidade, yield, cap rate
-- Responder sobre documentação, matrícula, IPTU, escritura
 
-REGRAS:
-- Responda SEMPRE em português brasileiro
-- Seja preciso com números e valores
-- Use formato de moeda brasileira (R$)
-- Quando fizer cálculos, mostre o passo a passo
-- Se não tiver informação suficiente, diga claramente`;
+REGRAS CRÍTICAS:
+- Use SEMPRE os dados de BALANCETE quando a pergunta envolver receitas/despesas/líquido por mês — NÃO invente "não tenho histórico"
+- Quando comparar meses, mostre receita do mês A, receita do mês B, diferença absoluta e %, e quais imóveis explicam a variação
+- Responda em português brasileiro, valores em R$ (BRL)
+- Mostre passo a passo dos cálculos
+- Se faltar dado específico, diga exatamente o que falta`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
