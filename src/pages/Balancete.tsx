@@ -587,8 +587,9 @@ export default function Balancete() {
             </div>
           </DialogHeader>
 
-          <div className="md:hidden px-2.5 py-2 space-y-2 min-w-0 overflow-hidden">
-            <div className="grid grid-cols-3 rounded-md border bg-card overflow-hidden">
+          <div className="md:hidden min-w-0 overflow-hidden flex flex-col" style={{ maxHeight: 'calc(100dvh - 6rem)' }}>
+            {/* Totais sempre visíveis */}
+            <div className="grid grid-cols-3 border-b bg-card shrink-0">
               <MobileTotalCell label="Receita" value={drilldownTotals.aluguel + drilldownTotals.reembolso} tone="positive" />
               <MobileTotalCell
                 label="Despesa"
@@ -598,19 +599,66 @@ export default function Balancete() {
               <MobileTotalCell label="Líquido" value={drilldownTotals.liquido} tone={drilldownTotals.liquido >= 0 ? 'positive' : 'negative'} />
             </div>
 
-            <div className="space-y-1">
-              {drilldownRows.map(r => (
-                <MobileHistoryRow
-                  key={r.id}
-                  row={r}
-                  onClick={() => {
-                    if (!drilldown) return;
-                    setMonthDrilldown({ key: drilldown.key, label: drilldown.label, ano: r.ano, mes: r.mes });
-                    setDrilldown(null);
-                  }}
-                />
-              ))}
-            </div>
+            <Tabs defaultValue="grafico" className="flex flex-col min-h-0 flex-1">
+              <TabsList className="grid grid-cols-4 h-8 mx-2 mt-2 shrink-0">
+                <TabsTrigger value="grafico" className="text-[10px] px-1">Gráfico</TabsTrigger>
+                <TabsTrigger value="anos" className="text-[10px] px-1">Anos</TabsTrigger>
+                <TabsTrigger value="categorias" className="text-[10px] px-1">Categ.</TabsTrigger>
+                <TabsTrigger value="meses" className="text-[10px] px-1">Meses</TabsTrigger>
+              </TabsList>
+
+              <div className="flex-1 min-h-0 overflow-y-auto px-2.5 pb-3 pt-2">
+                <TabsContent value="grafico" className="mt-0 space-y-2">
+                  <div className="rounded-md border bg-card p-1.5">
+                    <div className="h-[210px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart data={drilldownSeries} margin={{ top: 6, right: 4, left: 0, bottom: 4 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="label" tick={{ fontSize: 9 }} interval="preserveStartEnd" />
+                          <YAxis tick={{ fontSize: 9 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} width={32} />
+                          <Tooltip content={<MoneyTooltip />} />
+                          <Bar dataKey="receita" name="Receita" fill={CATEGORY_COLORS.aluguel} radius={[2, 2, 0, 0]} />
+                          <Bar dataKey="despesa" name="Despesa" fill={CATEGORY_COLORS.condominio} radius={[2, 2, 0, 0]} />
+                          <Line type="monotone" dataKey="liquido" name="Líquido" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 2 }} />
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="flex items-center justify-center gap-3 pt-1 text-[9px] text-muted-foreground">
+                      <LegendDot color={CATEGORY_COLORS.aluguel} label="Receita" />
+                      <LegendDot color={CATEGORY_COLORS.condominio} label="Despesa" />
+                      <LegendDot color="hsl(var(--primary))" label="Líquido" />
+                    </div>
+                  </div>
+                  <div className="rounded-md border bg-card p-2 text-[10px] space-y-1">
+                    <div className="font-semibold text-[10px] uppercase tracking-wide text-muted-foreground">Médias mensais</div>
+                    <AvgRow label="Receita média" value={drilldownRows.length ? (drilldownTotals.aluguel + drilldownTotals.reembolso) / drilldownRows.length : 0} tone="positive" />
+                    <AvgRow label="Despesa média" value={drilldownRows.length ? (drilldownTotals.condominio + drilldownTotals.iptu + drilldownTotals.taxa + drilldownTotals.outras) / drilldownRows.length : 0} tone="negative" />
+                    <AvgRow label="Líquido médio" value={drilldownRows.length ? drilldownTotals.liquido / drilldownRows.length : 0} tone={drilldownTotals.liquido >= 0 ? 'positive' : 'negative'} bold />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="anos" className="mt-0">
+                  <YearAggTable rows={drilldownRows} />
+                </TabsContent>
+
+                <TabsContent value="categorias" className="mt-0">
+                  <CategoryAggTable totals={drilldownTotals} />
+                </TabsContent>
+
+                <TabsContent value="meses" className="mt-0 space-y-1">
+                  {drilldownRows.map(r => (
+                    <MobileHistoryRow
+                      key={r.id}
+                      row={r}
+                      onClick={() => {
+                        if (!drilldown) return;
+                        setMonthDrilldown({ key: drilldown.key, label: drilldown.label, ano: r.ano, mes: r.mes });
+                      }}
+                    />
+                  ))}
+                </TabsContent>
+              </div>
+            </Tabs>
           </div>
 
           <div className="hidden md:block px-2.5 sm:px-6 py-3 sm:py-4 space-y-3 sm:space-y-4 min-w-0 overflow-hidden">
