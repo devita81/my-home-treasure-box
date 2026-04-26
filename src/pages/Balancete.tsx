@@ -60,6 +60,43 @@ function formatPropertyLabel(r: BalanceteRow) {
   return addr || cidade || 'SEM ENDEREÇO';
 }
 
+const STREET_ABBREVIATIONS: Array<[RegExp, string]> = [
+  [/\bAVENIDA\b/gi, 'AV.'],
+  [/\bRUA\b/gi, 'R.'],
+  [/\bALAMEDA\b/gi, 'AL.'],
+  [/\bTRAVESSA\b/gi, 'TV.'],
+  [/\bRODOVIA\b/gi, 'ROD.'],
+  [/\bESTRADA\b/gi, 'ESTR.'],
+  [/\bPRAÇA\b/gi, 'PÇ.'],
+  [/\bPRACA\b/gi, 'PÇ.'],
+  [/\bLARGO\b/gi, 'LG.'],
+  [/\bPADRE\b/gi, 'PE.'],
+  [/\bPROFESSOR\b/gi, 'PROF.'],
+  [/\bPROFESSORA\b/gi, 'PROFA.'],
+  [/\bDOUTOR\b/gi, 'DR.'],
+  [/\bDOUTORA\b/gi, 'DRA.'],
+  [/\bPRESIDENTE\b/gi, 'PRES.'],
+  [/\bENGENHEIRO\b/gi, 'ENG.'],
+  [/\bMARECHAL\b/gi, 'MAL.'],
+  [/\bGENERAL\b/gi, 'GEN.'],
+  [/\bCORONEL\b/gi, 'CEL.'],
+  [/\bCAPITÃO\b/gi, 'CAP.'],
+  [/\bCAPITAO\b/gi, 'CAP.'],
+  [/\bCOMENDADOR\b/gi, 'COMEND.'],
+  [/\bDESEMBARGADOR\b/gi, 'DES.'],
+  [/\bMINISTRO\b/gi, 'MIN.'],
+  [/\bSANTO\b/gi, 'STO.'],
+  [/\bSANTA\b/gi, 'STA.'],
+  [/\bSÃO\b/gi, 'S.'],
+  [/\bSAO\b/gi, 'S.'],
+];
+
+function abbreviateStreet(label: string): string {
+  let out = label;
+  for (const [re, rep] of STREET_ABBREVIATIONS) out = out.replace(re, rep);
+  return out.replace(/\s+/g, ' ').trim();
+}
+
 function propertyKey(r: BalanceteRow) {
   return r.property_id ?? `__sem__${formatAddress(r)}`;
 }
@@ -572,7 +609,8 @@ export default function Balancete() {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <DialogTitle className="text-[12px] sm:text-base font-display truncate pr-8 leading-tight">
-                  {drilldown?.label}
+                  <span className="md:hidden">{drilldown ? abbreviateStreet(drilldown.label) : ''}</span>
+                  <span className="hidden md:inline">{drilldown?.label}</span>
                 </DialogTitle>
                 <p className="text-[11px] text-muted-foreground mt-0.5">
                   Histórico mensal • {drilldownRows.length} registros
