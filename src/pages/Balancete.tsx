@@ -798,13 +798,35 @@ export default function Balancete() {
             transform: 'none',
           }}
         >
-          <DialogHeader className="px-3 pt-3 pb-2 sticky top-0 bg-background z-10 border-b">
-            <DialogTitle className="text-[13px] font-display text-center">
-              {monthDrilldown ? `${MONTHS[monthDrilldown.mes - 1]}/${monthDrilldown.ano}` : ''}
+          <DialogHeader className="px-3 pt-3 pb-2.5 sticky top-0 bg-gradient-to-b from-background to-background/95 backdrop-blur z-10 border-b">
+            <DialogTitle className="sr-only">
+              {monthDrilldown ? `${MONTHS[monthDrilldown.mes - 1]}/${monthDrilldown.ano} - ${monthDrilldown.label}` : ''}
             </DialogTitle>
-            <p className="text-[10px] text-muted-foreground text-center truncate px-6">
-              {monthDrilldown?.label}
-            </p>
+            {monthDrilldown && (() => {
+              const parts = monthDrilldown.label.split('•').map(s => s.trim());
+              const cidade = parts.length > 1 ? parts[0] : '';
+              const enderecoFull = parts.length > 1 ? parts.slice(1).join(' • ') : monthDrilldown.label;
+              const endereco = abbreviateStreet(enderecoFull);
+              return (
+                <div className="min-w-0 pr-8">
+                  {/* Linha 1: Mês/Ano em destaque */}
+                  <div className="flex items-baseline gap-1.5 mb-1.5">
+                    <span className="h-1 w-1 rounded-full bg-primary" />
+                    <span className="text-[9px] uppercase tracking-widest font-semibold text-muted-foreground">
+                      {cidade || 'Período'}
+                    </span>
+                    <span className="text-muted-foreground/40 text-[9px]">·</span>
+                    <span className="text-[10px] font-semibold text-primary">
+                      {MONTHS[monthDrilldown.mes - 1]}/{monthDrilldown.ano}
+                    </span>
+                  </div>
+                  {/* Linha 2: Endereço em destaque */}
+                  <div className="text-[12px] font-semibold leading-tight break-words">
+                    {endereco}
+                  </div>
+                </div>
+              );
+            })()}
           </DialogHeader>
 
           <div className="px-3 py-3 min-w-0 overflow-hidden">
