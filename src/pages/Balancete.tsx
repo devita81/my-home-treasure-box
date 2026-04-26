@@ -151,22 +151,80 @@ export default function Balancete() {
   // Pivot: imóvel x mês (líquido)
   const pivot = useMemo(() => {
     const months = timeSeries.map(t => t.key);
-    const byKey = new Map<string, { key: string; label: string; values: Record<string, number>; total: number }>();
+    const byKey = new Map<string, { key: string; label: string; values: Record<string, number>; total: number; hasValues: boolean }>();
     filtered.forEach(r => {
       const k = propertyKey(r);
-      const lbl = formatAddress(r) || 'Sem endereço';
-      if (!byKey.has(k)) byKey.set(k, { key: k, label: lbl, values: {}, total: 0 });
+      const lbl = formatPropertyLabel(r);
+      if (!byKey.has(k)) byKey.set(k, { key: k, label: lbl, values: {}, total: 0, hasValues: false });
       const acc = byKey.get(k)!;
       const mk = `${r.ano}-${String(r.mes).padStart(2, '0')}`;
       acc.values[mk] = (acc.values[mk] || 0) + r.liquido;
       acc.total += r.liquido;
+      if (r.liquido !== 0) acc.hasValues = true;
+    });
+    const sortedRows = Array.from(byKey.values()).sort((a, b) => {
+      // Imóveis com valores primeiro
+      if (a.hasValues !== b.hasValues) return a.hasValues ? -1 : 1;
+      return b.total - a.total;
+    });
+    // Subtotais por mês e geral
+    const monthTotals: Record<string, number> = {};
+    let grandTotal = 0;
+    sortedRows.forEach(row => {
+      months.forEach(mk => {
+        monthTotals[mk] = (monthTotals[mk] || 0) + (row.values[mk] || 0);
+      });
+      grandTotal += row.total;
     });
     return {
       months,
       monthLabels: timeSeries.map(t => t.label),
-      rows: Array.from(byKey.values()).sort((a, b) => b.total - a.total),
+      rows: sortedRows,
+      monthTotals,
+      grandTotal,
     };
   }, [filtered, timeSeries]);
+
+  // KPIs agrupados por ano (para visão expansível)
+  const kpisByYear = useMemo(() => {
+    const map = new Map<number, { ano: number; receita: number; despesa: number; liquido: number; imoveis: Set<string> }>();
+    filtered.forEach(r => {
+      if (!map.has(r.ano)) map.set(r.ano, { ano: r.ano, receita: 0, despesa: 0, liquido: 0, imoveis: new Set() });
+      const acc = map.get(r.ano)!;
+      acc.receita += Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
+      acc.despesa += Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas);
+      acc.liquido += r.liquido;
+      if (r.aluguel > 0) acc.imoveis.add(propertyKey(r));
+    });
+    return Array.from(map.values())
+      .map(y => ({ ano: y.ano, receita: y.receita, despesa: y.despesa, liquido: y.liquido, imoveisAtivos: y.imoveis.size }))
+      .sort((a, b) => b.ano - a.ano);
+  }, [filtered]);
+
+  // Stacked categories por mês (gráfico empilhado)
+  const stackedByMonth = useMemo(() => {
+    const map = new Map<string, any>();
+    filtered.forEach(r => {
+      const key = `${r.ano}-${String(r.mes).padStart(2, '0')}`;
+      if (!map.has(key)) {
+        map.set(key, {
+          key, ano: r.ano, mes: r.mes,
+          aluguel: 0, reembolsos: 0,
+          condominio: 0, iptu: 0, taxa: 0, outras: 0,
+        });
+      }
+      const acc = map.get(key)!;
+      acc.aluguel += Math.max(0, r.aluguel);
+      acc.reembolsos += Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
+      acc.condominio += Math.min(0, r.condominio);
+      acc.iptu += Math.min(0, r.iptu);
+      acc.taxa += Math.min(0, r.taxa_administracao);
+      acc.outras += Math.min(0, r.outras_despesas);
+    });
+    return Array.from(map.values())
+      .sort((a, b) => a.ano - b.ano || a.mes - b.mes)
+      .map(d => ({ ...d, label: `${MONTHS[d.mes - 1]}/${String(d.ano).slice(2)}` }));
+  }, [filtered]);
 
   // Drill-down detail
   const drilldownRows = useMemo(() => {
