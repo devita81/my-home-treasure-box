@@ -547,6 +547,16 @@ export default function Balancete() {
                 </div>
               </button>
             ))}
+            {/* Subtotal geral mobile */}
+            <div className="flex items-center justify-between gap-2 p-3 rounded-lg border-2 bg-muted/40 mt-2">
+              <div className="text-xs font-semibold uppercase tracking-wide">Subtotal geral</div>
+              <div className={cn(
+                'text-sm font-bold tabular-nums',
+                pivot.grandTotal >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+              )}>
+                {fmtBRL(pivot.grandTotal)}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </main>
