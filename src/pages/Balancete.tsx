@@ -559,13 +559,12 @@ export default function Balancete() {
       {/* Drill-down dialog */}
       <Dialog open={!!drilldown} onOpenChange={(o) => !o && setDrilldown(null)}>
         <DialogContent
-          className="max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 gap-0"
+          className="max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 gap-0 w-[calc(100dvw-1.5rem)] max-w-[calc(100dvw-1.5rem)] sm:max-w-3xl"
           style={{
             left: '0.75rem',
             right: '0.75rem',
             top: '4vh',
-            width: 'auto',
-            maxWidth: '48rem',
+            width: 'calc(100dvw - 1.5rem)',
             transform: 'none',
           }}
         >
@@ -588,9 +587,9 @@ export default function Balancete() {
             </div>
           </DialogHeader>
 
-          <div className="px-4 sm:px-6 py-4 space-y-4">
+          <div className="px-2.5 sm:px-6 py-3 sm:py-4 space-y-3 sm:space-y-4 min-w-0 overflow-hidden">
             {/* Totals */}
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2 min-w-0 overflow-hidden">
               <MiniStat label="Receita" value={drilldownTotals.aluguel + drilldownTotals.reembolso} tone="positive" />
               <MiniStat
                 label="Despesa"
@@ -601,7 +600,7 @@ export default function Balancete() {
             </div>
 
             {/* Chart */}
-            <div className="rounded-lg border bg-card p-2">
+            <div className="rounded-lg border bg-card p-2 min-w-0 overflow-hidden">
               <div className="h-[220px] sm:h-[260px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <ComposedChart data={drilldownSeries} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
@@ -621,7 +620,7 @@ export default function Balancete() {
             {/* Detail list */}
             <div className="space-y-2">
               {drilldownRows.map(r => (
-                <div key={r.id} className="rounded-lg border bg-card p-3">
+                <div key={r.id} className="rounded-lg border bg-card p-2.5 sm:p-3 min-w-0 overflow-hidden">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="text-[10px] px-2 py-0 h-5">
@@ -643,7 +642,7 @@ export default function Balancete() {
                       Locatário: <span className="text-foreground">{r.locatario}</span>
                     </div>
                   )}
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1 text-[10px] sm:text-[11px] min-w-0 overflow-hidden">
                     <Line2 label="Aluguel" value={r.aluguel} positive />
                     <Line2 label="Taxa adm." value={r.taxa_administracao} />
                     <Line2 label="Condomínio" value={r.condominio} />
