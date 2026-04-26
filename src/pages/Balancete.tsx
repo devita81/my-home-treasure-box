@@ -117,6 +117,7 @@ export default function Balancete() {
   const [monthFilter, setMonthFilter] = useState<string>('all');
   const [drilldown, setDrilldown] = useState<{ key: string; label: string } | null>(null);
   const [monthDrilldown, setMonthDrilldown] = useState<{ key: string; label: string; ano: number; mes: number } | null>(null);
+  const [yearMonthDrilldown, setYearMonthDrilldown] = useState<{ ano: number; mes: number } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -225,17 +226,18 @@ export default function Balancete() {
 
   // KPIs agrupados por ano (para visão expansível)
   const kpisByYear = useMemo(() => {
-    const map = new Map<number, { ano: number; receita: number; despesa: number; liquido: number; imoveis: Set<string> }>();
+    const map = new Map<number, { ano: number; receita: number; despesa: number; liquido: number; imoveis: Set<string>; meses: Record<number, number> }>();
     filtered.forEach(r => {
-      if (!map.has(r.ano)) map.set(r.ano, { ano: r.ano, receita: 0, despesa: 0, liquido: 0, imoveis: new Set() });
+      if (!map.has(r.ano)) map.set(r.ano, { ano: r.ano, receita: 0, despesa: 0, liquido: 0, imoveis: new Set(), meses: {} });
       const acc = map.get(r.ano)!;
       acc.receita += Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
       acc.despesa += Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas);
       acc.liquido += r.liquido;
+      acc.meses[r.mes] = (acc.meses[r.mes] || 0) + r.liquido;
       if (r.aluguel > 0) acc.imoveis.add(propertyKey(r));
     });
     return Array.from(map.values())
-      .map(y => ({ ano: y.ano, receita: y.receita, despesa: y.despesa, liquido: y.liquido, imoveisAtivos: y.imoveis.size }))
+      .map(y => ({ ano: y.ano, receita: y.receita, despesa: y.despesa, liquido: y.liquido, imoveisAtivos: y.imoveis.size, meses: y.meses }))
       .sort((a, b) => b.ano - a.ano);
   }, [filtered]);
 
@@ -304,6 +306,33 @@ export default function Balancete() {
     ) ?? null;
   }, [monthDrilldown, rows]);
 
+  // Year+Month drill-down: lista de TODOS os imóveis daquele mês/ano
+  const yearMonthRows = useMemo(() => {
+    if (!yearMonthDrilldown) return [];
+    return rows
+      .filter(r => r.ano === yearMonthDrilldown.ano && r.mes === yearMonthDrilldown.mes)
+      .map(r => ({
+        key: propertyKey(r),
+        label: formatPropertyLabel(r),
+        liquido: r.liquido,
+        receita: Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas),
+        despesa: Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas),
+        alugado: !!r.alugado,
+      }))
+      .sort((a, b) => b.liquido - a.liquido);
+  }, [yearMonthDrilldown, rows]);
+
+  const yearMonthTotals = useMemo(() => {
+    return yearMonthRows.reduce(
+      (acc, r) => ({
+        receita: acc.receita + r.receita,
+        despesa: acc.despesa + r.despesa,
+        liquido: acc.liquido + r.liquido,
+      }),
+      { receita: 0, despesa: 0, liquido: 0 }
+    );
+  }, [yearMonthRows]);
+
   return (
     <div
       className="min-h-screen bg-background"
@@ -351,7 +380,12 @@ export default function Balancete() {
         </div>
 
         {/* KPIs por ano (expansíveis) */}
-        <YearlyKpis years={kpisByYear} loading={loading} totals={kpis} />
+        <YearlyKpis
+          years={kpisByYear}
+          loading={loading}
+          totals={kpis}
+          onOpenMonth={(ano, mes) => setYearMonthDrilldown({ ano, mes })}
+        />
 
         {/* Charts */}
         <Tabs defaultValue="trend" className="w-full">
@@ -847,6 +881,127 @@ export default function Balancete() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Year+Month drill-down: lista de imóveis daquele mês/ano */}
+      <Dialog open={!!yearMonthDrilldown} onOpenChange={(o) => !o && setYearMonthDrilldown(null)}>
+        <DialogContent
+          className="max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 gap-0 w-[calc(100dvw-1.5rem)] max-w-[calc(100dvw-1.5rem)] sm:max-w-md"
+          style={{
+            left: '0.75rem',
+            right: '0.75rem',
+            top: '4vh',
+            width: 'calc(100dvw - 1.5rem)',
+            transform: 'none',
+          }}
+        >
+          <DialogHeader className="px-3 pt-3 pb-2.5 sticky top-0 bg-gradient-to-b from-background to-background/95 backdrop-blur z-10 border-b">
+            <DialogTitle className="sr-only">
+              {yearMonthDrilldown ? `Imóveis em ${MONTHS[yearMonthDrilldown.mes - 1]}/${yearMonthDrilldown.ano}` : ''}
+            </DialogTitle>
+            {yearMonthDrilldown && (
+              <div className="min-w-0 pr-8">
+                <div className="flex items-baseline gap-1.5 mb-1.5">
+                  <span className="h-1 w-1 rounded-full bg-primary" />
+                  <span className="text-[9px] uppercase tracking-widest font-semibold text-muted-foreground">
+                    Período
+                  </span>
+                  <span className="text-muted-foreground/40 text-[9px]">·</span>
+                  <span className="text-[10px] font-semibold text-primary">
+                    {MONTHS[yearMonthDrilldown.mes - 1]}/{yearMonthDrilldown.ano}
+                  </span>
+                </div>
+                <div className="text-[13px] font-semibold leading-tight">
+                  Imóveis em {MONTHS[yearMonthDrilldown.mes - 1]}/{yearMonthDrilldown.ano}
+                </div>
+                <div className="text-[10px] text-muted-foreground mt-0.5">
+                  {yearMonthRows.length} {yearMonthRows.length === 1 ? 'imóvel' : 'imóveis'} • toque para detalhes
+                </div>
+              </div>
+            )}
+          </DialogHeader>
+
+          <div className="px-3 py-3 min-w-0 overflow-hidden space-y-2">
+            {yearMonthRows.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-6">
+                Sem dados para este mês.
+              </p>
+            ) : (
+              <>
+                {/* Resumo */}
+                <div className="grid grid-cols-3 gap-1.5 mb-2">
+                  <div className="rounded-md bg-card border p-2">
+                    <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-medium">Receita</div>
+                    <div className="text-[11px] font-semibold tabular-nums text-emerald-600 dark:text-emerald-400 mt-0.5">
+                      {fmtBRL(yearMonthTotals.receita)}
+                    </div>
+                  </div>
+                  <div className="rounded-md bg-card border p-2">
+                    <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-medium">Despesa</div>
+                    <div className="text-[11px] font-semibold tabular-nums text-red-600 dark:text-red-400 mt-0.5">
+                      {fmtBRL(yearMonthTotals.despesa)}
+                    </div>
+                  </div>
+                  <div className="rounded-md bg-card border p-2">
+                    <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-medium">Líquido</div>
+                    <div className={cn(
+                      'text-[11px] font-semibold tabular-nums mt-0.5',
+                      yearMonthTotals.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+                    )}>
+                      {fmtBRL(yearMonthTotals.liquido)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lista de imóveis */}
+                {yearMonthRows.map((r, idx) => (
+                  <button
+                    key={`${r.key}-${idx}`}
+                    type="button"
+                    onClick={() => {
+                      if (!yearMonthDrilldown) return;
+                      setMonthDrilldown({
+                        key: r.key,
+                        label: r.label,
+                        ano: yearMonthDrilldown.ano,
+                        mes: yearMonthDrilldown.mes,
+                      });
+                      setYearMonthDrilldown(null);
+                    }}
+                    className="w-full flex items-center gap-2 p-2.5 rounded-md border bg-card hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[11px] font-medium truncate">{r.label}</div>
+                      <div className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                        {r.alugado && (
+                          <Badge className="text-[9px] px-1.5 py-0 h-4 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/15">
+                            Alugado
+                          </Badge>
+                        )}
+                        <span>R {fmtBRL(r.receita)}</span>
+                        <span>•</span>
+                        <span>D {fmtBRL(r.despesa)}</span>
+                      </div>
+                    </div>
+                    <div
+                      className={cn(
+                        'text-xs font-semibold tabular-nums shrink-0',
+                        r.liquido > 0
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : r.liquido < 0
+                          ? 'text-red-600 dark:text-red-400'
+                          : 'text-muted-foreground'
+                      )}
+                    >
+                      {fmtBRL(r.liquido)}
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </button>
+                ))}
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -1242,10 +1397,12 @@ function YearlyKpis({
   years,
   loading,
   totals,
+  onOpenMonth,
 }: {
-  years: { ano: number; receita: number; despesa: number; liquido: number; imoveisAtivos: number }[];
+  years: { ano: number; receita: number; despesa: number; liquido: number; imoveisAtivos: number; meses: Record<number, number> }[];
   loading: boolean;
   totals: { receita: number; despesa: number; liquido: number; imoveisAtivos: number };
+  onOpenMonth: (ano: number, mes: number) => void;
 }) {
   // Default: expandir o ano mais recente
   const [expanded, setExpanded] = useState<Set<number>>(() =>
@@ -1312,6 +1469,7 @@ function YearlyKpis({
       {/* Cards por ano */}
       {years.map(y => {
         const isOpen = expanded.has(y.ano);
+        const mesesCount = Object.values(y.meses).filter(v => v !== 0).length;
         return (
           <Card key={y.ano} className="overflow-hidden">
             <button
@@ -1331,7 +1489,9 @@ function YearlyKpis({
                   {y.ano}
                 </div>
                 <div className="ml-auto flex items-center gap-3 sm:gap-5 text-[11px] sm:text-xs flex-wrap justify-end">
-                  <span className="hidden sm:inline text-muted-foreground">{y.imoveisAtivos} imóveis</span>
+                  <span className="hidden sm:inline text-muted-foreground">
+                    {y.imoveisAtivos} imóveis • {mesesCount} {mesesCount === 1 ? 'mês' : 'meses'}
+                  </span>
                   <span className={cn('font-bold tabular-nums', y.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}>
                     {fmtBRL(y.liquido)}
                   </span>
@@ -1340,11 +1500,61 @@ function YearlyKpis({
             </button>
 
             {isOpen && (
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 px-3 sm:px-4 pb-3 sm:pb-4 border-t pt-3">
-                <KpiCard label="Receita" value={y.receita} icon={TrendingUp} tone="positive" loading={false} />
-                <KpiCard label="Despesa" value={y.despesa} icon={TrendingDown} tone="negative" loading={false} />
-                <KpiCard label="Líquido" value={y.liquido} icon={Wallet} tone={y.liquido >= 0 ? 'positive' : 'negative'} loading={false} />
-                <KpiCard label="Imóveis ativos" value={y.imoveisAtivos} icon={HomeIcon} tone="neutral" loading={false} isCount />
+              <div className="border-t bg-muted/20 px-2 py-2 space-y-2">
+                {/* Resumo Receita / Despesa */}
+                <div className="grid grid-cols-2 gap-2 px-1">
+                  <div className="rounded-md bg-card border p-2">
+                    <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-medium">Receita</div>
+                    <div className="text-xs sm:text-sm font-semibold tabular-nums text-emerald-600 dark:text-emerald-400 mt-0.5">
+                      {fmtBRL(y.receita)}
+                    </div>
+                  </div>
+                  <div className="rounded-md bg-card border p-2">
+                    <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-medium">Despesa</div>
+                    <div className="text-xs sm:text-sm font-semibold tabular-nums text-red-600 dark:text-red-400 mt-0.5">
+                      {fmtBRL(y.despesa)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Grade de meses (Jan..Dez) */}
+                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-1 p-1">
+                  {Array.from({ length: 12 }).map((_, i) => {
+                    const mes = i + 1;
+                    const v = y.meses[mes] ?? null;
+                    const empty = v === null || v === 0;
+                    return (
+                      <button
+                        key={mes}
+                        type="button"
+                        disabled={empty}
+                        onClick={() => onOpenMonth(y.ano, mes)}
+                        className={cn(
+                          'rounded px-2 py-1.5 flex flex-col items-start justify-center min-h-[44px] text-left transition-colors',
+                          empty
+                            ? 'bg-muted/40 cursor-default'
+                            : 'bg-card border hover:bg-muted/40 active:bg-muted/60 cursor-pointer'
+                        )}
+                      >
+                        <div className="text-[9px] uppercase tracking-wide text-muted-foreground">
+                          {MONTHS[i]}
+                        </div>
+                        <div
+                          className={cn(
+                            'text-[11px] font-semibold tabular-nums leading-tight mt-0.5',
+                            empty
+                              ? 'text-muted-foreground/50'
+                              : v! > 0
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-red-600 dark:text-red-400'
+                          )}
+                        >
+                          {empty ? '—' : fmtBRL(v!)}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </Card>
