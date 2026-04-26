@@ -661,7 +661,7 @@ export default function Balancete() {
       {/* Month-level drill-down dialog */}
       <Dialog open={!!monthDrilldown} onOpenChange={(o) => !o && setMonthDrilldown(null)}>
         <DialogContent
-          className="max-w-md w-[calc(100vw-1rem)] max-h-[92vh] overflow-y-auto p-0 gap-0"
+          className="max-w-md w-[calc(100vw-1rem)] max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 gap-0"
           style={{
             paddingTop: 'env(safe-area-inset-top)',
             paddingBottom: 'env(safe-area-inset-bottom)',
