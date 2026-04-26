@@ -581,6 +581,7 @@ export default function Balancete() {
                   <Area type="monotone" dataKey="receita" name="Receita" stroke={CATEGORY_COLORS.aluguel} strokeWidth={2} fill="url(#recArea)" />
                   <Area type="monotone" dataKey="despesa" name="Despesa" stroke={CATEGORY_COLORS.condominio} strokeWidth={2} fill="url(#despArea)" />
                   <Area type="monotone" dataKey="liquido" name="Líquido" stroke="hsl(var(--primary))" strokeWidth={2.5} fill="transparent" dot={{ r: 2 }} />
+                  <Line type="monotone" dataKey="aluguel" name="Aluguel" stroke="hsl(217 91% 60%)" strokeWidth={2} dot={{ r: 2 }} />
                 </AreaChart>
               </ResponsiveChart>
             </ChartCard>
