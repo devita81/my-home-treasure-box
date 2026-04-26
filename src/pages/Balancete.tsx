@@ -978,14 +978,14 @@ function YearAggTable({ rows }: { rows: BalanceteRow[] }) {
 }
 
 function CategoryAggTable({ totals }: { totals: { aluguel: number; condominio: number; iptu: number; taxa: number; outras: number; reembolso: number; liquido: number } }) {
-  const items: Array<{ label: string; value: number; tone: 'positive' | 'negative' }> = [
-    { label: 'Aluguel', value: totals.aluguel, tone: 'positive' },
-    { label: 'Reembolsos', value: totals.reembolso, tone: 'positive' },
-    { label: 'Condomínio', value: totals.condominio, tone: 'negative' },
-    { label: 'IPTU', value: totals.iptu, tone: 'negative' },
-    { label: 'Taxa adm.', value: totals.taxa, tone: 'negative' },
-    { label: 'Outras desp.', value: totals.outras, tone: 'negative' },
-  ].filter(i => i.value !== 0);
+  const items = ([
+    { label: 'Aluguel', value: totals.aluguel, tone: 'positive' as const },
+    { label: 'Reembolsos', value: totals.reembolso, tone: 'positive' as const },
+    { label: 'Condomínio', value: totals.condominio, tone: 'negative' as const },
+    { label: 'IPTU', value: totals.iptu, tone: 'negative' as const },
+    { label: 'Taxa adm.', value: totals.taxa, tone: 'negative' as const },
+    { label: 'Outras desp.', value: totals.outras, tone: 'negative' as const },
+  ]).filter(i => i.value !== 0);
   if (!items.length) return <p className="text-[10px] text-muted-foreground text-center py-4">Sem dados.</p>;
   const totalAbs = items.reduce((s, i) => s + Math.abs(i.value), 0) || 1;
   return (
