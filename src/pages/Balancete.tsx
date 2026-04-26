@@ -784,6 +784,139 @@ function MiniStat({ label, value, tone }: { label: string; value: number; tone: 
   );
 }
 
+function MonthDrilldownTable({
+  row,
+  onOpenFull,
+}: {
+  row: BalanceteRow;
+  onOpenFull: () => void;
+}) {
+  const receita =
+    Math.max(0, row.aluguel) +
+    Math.max(0, row.reembolso_condominio) +
+    Math.max(0, row.reembolso_iptu) +
+    Math.max(0, row.reembolso_outras_despesas);
+  const despesa =
+    Math.min(0, row.condominio) +
+    Math.min(0, row.iptu) +
+    Math.min(0, row.taxa_administracao) +
+    Math.min(0, row.outras_despesas);
+
+  const items: { label: string; value: number; positive: boolean; section: 'r' | 'd' }[] = [
+    { label: 'Aluguel', value: row.aluguel, positive: true, section: 'r' },
+    { label: 'Reemb. condomínio', value: row.reembolso_condominio, positive: true, section: 'r' },
+    { label: 'Reemb. IPTU', value: row.reembolso_iptu, positive: true, section: 'r' },
+    { label: 'Reemb. outras', value: row.reembolso_outras_despesas, positive: true, section: 'r' },
+    { label: 'Condomínio', value: row.condominio, positive: false, section: 'd' },
+    { label: 'IPTU', value: row.iptu, positive: false, section: 'd' },
+    { label: 'Taxa adm.', value: row.taxa_administracao, positive: false, section: 'd' },
+    { label: 'Outras despesas', value: row.outras_despesas, positive: false, section: 'd' },
+  ].filter((i) => i.value !== 0);
+
+  const receitaItems = items.filter((i) => i.section === 'r');
+  const despesaItems = items.filter((i) => i.section === 'd');
+
+  return (
+    <div className="w-full max-w-full min-w-0 overflow-hidden space-y-3">
+      {/* Resumo em 3 linhas (sem mini-cards) */}
+      <div className="rounded-md border bg-card overflow-hidden">
+        <SummaryRow label="Receita" value={receita} tone="positive" />
+        <div className="border-t" />
+        <SummaryRow label="Despesa" value={despesa} tone="negative" />
+        <div className="border-t" />
+        <SummaryRow label="Líquido" value={row.liquido} tone={row.liquido >= 0 ? 'positive' : 'negative'} bold />
+      </div>
+
+      {/* Status / locatário */}
+      {(row.alugado || row.locatario) && (
+        <div className="flex items-center gap-1.5 text-[10px] min-w-0">
+          {row.alugado && (
+            <Badge className="text-[9px] px-1.5 py-0 h-4 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/15 shrink-0">
+              Alugado
+            </Badge>
+          )}
+          {row.locatario && (
+            <span className="text-muted-foreground truncate min-w-0">
+              {row.locatario}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Detalhes */}
+      {receitaItems.length > 0 && (
+        <div className="rounded-md border overflow-hidden">
+          <div className="bg-emerald-500/10 px-2 py-1 text-[9px] uppercase tracking-wide font-semibold text-emerald-700 dark:text-emerald-400">
+            Receitas
+          </div>
+          {receitaItems.map((i, idx) => (
+            <DetailRow key={i.label} label={i.label} value={i.value} positive={i.positive} divider={idx > 0} />
+          ))}
+        </div>
+      )}
+
+      {despesaItems.length > 0 && (
+        <div className="rounded-md border overflow-hidden">
+          <div className="bg-red-500/10 px-2 py-1 text-[9px] uppercase tracking-wide font-semibold text-red-700 dark:text-red-400">
+            Despesas
+          </div>
+          {despesaItems.map((i, idx) => (
+            <DetailRow key={i.label} label={i.label} value={i.value} positive={i.positive} divider={idx > 0} />
+          ))}
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={onOpenFull}
+        className="w-full flex items-center justify-center gap-1 py-1.5 px-2 rounded-md text-[10px] font-medium text-primary hover:bg-primary/5 active:bg-primary/10 transition-colors border"
+      >
+        <span className="truncate">Ver histórico completo</span>
+        <ChevronRight className="h-3 w-3 shrink-0" />
+      </button>
+    </div>
+  );
+}
+
+function SummaryRow({
+  label, value, tone, bold,
+}: { label: string; value: number; tone: 'positive' | 'negative'; bold?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-2 px-2 py-1.5 min-w-0">
+      <span className={cn('text-[10px] uppercase tracking-wide text-muted-foreground truncate', bold && 'font-semibold text-foreground')}>
+        {label}
+      </span>
+      <span
+        className={cn(
+          'text-[11px] tabular-nums whitespace-nowrap shrink-0',
+          bold ? 'font-bold' : 'font-semibold',
+          tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+        )}
+      >
+        {fmtBRL(value)}
+      </span>
+    </div>
+  );
+}
+
+function DetailRow({
+  label, value, positive, divider,
+}: { label: string; value: number; positive: boolean; divider?: boolean }) {
+  return (
+    <div className={cn('flex items-center justify-between gap-2 px-2 py-1.5 min-w-0', divider && 'border-t')}>
+      <span className="text-[10px] text-muted-foreground truncate min-w-0">{label}</span>
+      <span
+        className={cn(
+          'text-[11px] font-medium tabular-nums whitespace-nowrap shrink-0',
+          positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+        )}
+      >
+        {fmtBRL(value)}
+      </span>
+    </div>
+  );
+}
+
 function Line2({ label, value, positive }: { label: string; value: number; positive?: boolean }) {
   if (value === 0) return null;
   return (
