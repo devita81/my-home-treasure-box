@@ -1405,7 +1405,7 @@ function YearlyKpis({
   totals,
   onOpenMonth,
 }: {
-  years: { ano: number; receita: number; despesa: number; liquido: number; imoveisAtivos: number; meses: Record<number, number> }[];
+  years: { ano: number; receita: number; despesa: number; liquido: number; imoveisAtivos: number; meses: Record<number, { receita: number; despesa: number; liquido: number }> }[];
   loading: boolean;
   totals: { receita: number; despesa: number; liquido: number; imoveisAtivos: number };
   onOpenMonth: (ano: number, mes: number) => void;
