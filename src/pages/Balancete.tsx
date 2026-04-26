@@ -596,6 +596,105 @@ export default function Balancete() {
           </TabsContent>
         </Tabs>
 
+        {/* Filtros independentes + ordenação (afetam KPIs, gráficos e tabela) */}
+        <Card>
+          <CardContent className="p-3 sm:p-4 space-y-3">
+            {/* Linha 1: busca genérica */}
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar em cidade, bairro, rua, locatário, tipo, mês…"
+                className="h-9 pl-8 pr-8 text-xs"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label="Limpar busca"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Linha 2: filtros independentes em cascata */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <Select value={cidadeFilter} onValueChange={setCidadeFilter}>
+                <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Cidade" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas cidades</SelectItem>
+                  {cidadeOptions.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={bairroFilter} onValueChange={setBairroFilter} disabled={bairroOptions.length === 0}>
+                <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Bairro" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos bairros</SelectItem>
+                  {bairroOptions.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={tipoFilter} onValueChange={setTipoFilter} disabled={tipoOptions.length === 0}>
+                <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Tipo" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos tipos</SelectItem>
+                  {tipoOptions.map(t => (
+                    <SelectItem key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {(search || cidadeFilter !== 'all' || bairroFilter !== 'all' || tipoFilter !== 'all') ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 text-xs"
+                  onClick={() => {
+                    setSearch('');
+                    setCidadeFilter('all');
+                    setBairroFilter('all');
+                    setTipoFilter('all');
+                  }}
+                >
+                  <X className="h-3.5 w-3.5 mr-1" /> Limpar
+                </Button>
+              ) : (
+                <div className="hidden sm:block" />
+              )}
+            </div>
+
+            {/* Linha 3: ordenação */}
+            <div className="flex items-center gap-2 pt-1 border-t">
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground shrink-0">
+                <ArrowUpDown className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Ordenar imóveis por</span>
+                <span className="sm:hidden">Ordenar</span>
+              </div>
+              <Select value={sortField} onValueChange={(v) => setSortField(v as SortField)}>
+                <SelectTrigger className="h-9 text-xs flex-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cidade">Cidade</SelectItem>
+                  <SelectItem value="rua">Rua</SelectItem>
+                  <SelectItem value="receita">Receita</SelectItem>
+                  <SelectItem value="despesa">Despesa</SelectItem>
+                  <SelectItem value="liquido">Líquido</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 px-2.5 text-xs shrink-0"
+                onClick={() => setSortOrder(o => (o === 'asc' ? 'desc' : 'asc'))}
+                title={sortOrder === 'asc' ? 'Crescente' : 'Decrescente'}
+              >
+                {sortOrder === 'asc' ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />}
+                <span className="hidden sm:inline ml-1">{sortOrder === 'asc' ? 'Crescente' : 'Decrescente'}</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Pivot table — desktop */}
         <Card className="hidden md:block">
           <CardHeader className="pb-2">
