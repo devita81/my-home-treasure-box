@@ -352,6 +352,53 @@ export default function Balancete() {
             </ChartCard>
           </TabsContent>
 
+          <TabsContent value="stacked" className="mt-3">
+            <ChartCard title="Receitas e despesas empilhadas" subtitle="Composição mensal por categoria">
+              <ResponsiveChart>
+                <BarChart data={stackedByMonth} margin={{ top: 8, right: 12, left: 0, bottom: 8 }} stackOffset="sign">
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                  <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} width={42} />
+                  <Tooltip content={<MoneyTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Bar dataKey="aluguel" stackId="r" name="Aluguel" fill={CATEGORY_COLORS.aluguel} />
+                  <Bar dataKey="reembolsos" stackId="r" name="Reembolsos" fill={CATEGORY_COLORS.reembolso} />
+                  <Bar dataKey="condominio" stackId="d" name="Condomínio" fill={CATEGORY_COLORS.condominio} />
+                  <Bar dataKey="iptu" stackId="d" name="IPTU" fill={CATEGORY_COLORS.iptu} />
+                  <Bar dataKey="taxa" stackId="d" name="Taxa Adm." fill={CATEGORY_COLORS.taxa} />
+                  <Bar dataKey="outras" stackId="d" name="Outras" fill={CATEGORY_COLORS.outras} />
+                </BarChart>
+              </ResponsiveChart>
+            </ChartCard>
+          </TabsContent>
+
+          <TabsContent value="area" className="mt-3">
+            <ChartCard title="Área cumulativa de receita e despesa" subtitle="Visão suavizada do fluxo financeiro">
+              <ResponsiveChart>
+                <AreaChart data={timeSeries} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
+                  <defs>
+                    <linearGradient id="recArea" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={CATEGORY_COLORS.aluguel} stopOpacity={0.4} />
+                      <stop offset="100%" stopColor={CATEGORY_COLORS.aluguel} stopOpacity={0.02} />
+                    </linearGradient>
+                    <linearGradient id="despArea" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={CATEGORY_COLORS.condominio} stopOpacity={0.4} />
+                      <stop offset="100%" stopColor={CATEGORY_COLORS.condominio} stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                  <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} width={42} />
+                  <Tooltip content={<MoneyTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Area type="monotone" dataKey="receita" name="Receita" stroke={CATEGORY_COLORS.aluguel} strokeWidth={2} fill="url(#recArea)" />
+                  <Area type="monotone" dataKey="despesa" name="Despesa" stroke={CATEGORY_COLORS.condominio} strokeWidth={2} fill="url(#despArea)" />
+                  <Line type="monotone" dataKey="liquido" name="Líquido" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ r: 2 }} />
+                </AreaChart>
+              </ResponsiveChart>
+            </ChartCard>
+          </TabsContent>
+
           <TabsContent value="categories" className="mt-3">
             <ChartCard title="Distribuição por categoria" subtitle="Receitas e despesas agregadas no período">
               <ResponsiveChart>
