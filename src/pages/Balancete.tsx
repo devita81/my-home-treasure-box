@@ -226,14 +226,20 @@ export default function Balancete() {
 
   // KPIs agrupados por ano (para visão expansível)
   const kpisByYear = useMemo(() => {
-    const map = new Map<number, { ano: number; receita: number; despesa: number; liquido: number; imoveis: Set<string>; meses: Record<number, number> }>();
+    type MesAgg = { receita: number; despesa: number; liquido: number };
+    const map = new Map<number, { ano: number; receita: number; despesa: number; liquido: number; imoveis: Set<string>; meses: Record<number, MesAgg> }>();
     filtered.forEach(r => {
       if (!map.has(r.ano)) map.set(r.ano, { ano: r.ano, receita: 0, despesa: 0, liquido: 0, imoveis: new Set(), meses: {} });
       const acc = map.get(r.ano)!;
-      acc.receita += Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
-      acc.despesa += Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas);
+      const rec = Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
+      const desp = Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas);
+      acc.receita += rec;
+      acc.despesa += desp;
       acc.liquido += r.liquido;
-      acc.meses[r.mes] = (acc.meses[r.mes] || 0) + r.liquido;
+      if (!acc.meses[r.mes]) acc.meses[r.mes] = { receita: 0, despesa: 0, liquido: 0 };
+      acc.meses[r.mes].receita += rec;
+      acc.meses[r.mes].despesa += desp;
+      acc.meses[r.mes].liquido += r.liquido;
       if (r.aluguel > 0) acc.imoveis.add(propertyKey(r));
     });
     return Array.from(map.values())
