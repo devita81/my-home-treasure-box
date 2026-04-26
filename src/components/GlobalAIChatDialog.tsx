@@ -220,7 +220,7 @@ const ResponsiveTable = ({ children }: { children: any }) => {
         })}
       </div>
       {/* Desktop: tabela tradicional */}
-      <div className="hidden sm:block my-2 -mx-1 overflow-x-auto rounded-md border border-border bg-background">
+      <div className="hidden sm:block my-2 -mx-1 overflow-x-auto rounded-md border border-border bg-card text-card-foreground">
         <table className="w-full border-collapse text-[11px]">{children}</table>
       </div>
     </>
