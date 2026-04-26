@@ -219,14 +219,15 @@ export default function Balancete() {
 
   // Time series — receitas vs despesas por mês
   const timeSeries = useMemo(() => {
-    const map = new Map<string, { key: string; ano: number; mes: number; receita: number; despesa: number; liquido: number }>();
+    const map = new Map<string, { key: string; ano: number; mes: number; receita: number; despesa: number; liquido: number; aluguel: number }>();
     filtered.forEach(r => {
       const key = `${r.ano}-${String(r.mes).padStart(2, '0')}`;
-      if (!map.has(key)) map.set(key, { key, ano: r.ano, mes: r.mes, receita: 0, despesa: 0, liquido: 0 });
+      if (!map.has(key)) map.set(key, { key, ano: r.ano, mes: r.mes, receita: 0, despesa: 0, liquido: 0, aluguel: 0 });
       const acc = map.get(key)!;
       acc.receita += Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
       acc.despesa += Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas);
       acc.liquido += r.liquido;
+      acc.aluguel += Math.max(0, r.aluguel);
     });
     return Array.from(map.values())
       .sort((a, b) => a.ano - b.ano || a.mes - b.mes)
