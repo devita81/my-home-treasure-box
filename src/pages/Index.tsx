@@ -9,10 +9,11 @@ import { StatsOverview } from '@/components/stats/StatsOverview';
 import { MetragemStats } from '@/components/stats/MetragemStats';
 import { CustosReceitasStats } from '@/components/stats/CustosReceitasStats';
 import { Header } from '@/components/layout/Header';
-import { Home, PlusCircle, AlertTriangle } from 'lucide-react';
+import { Home, PlusCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,11 +26,11 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const Index = () => {
-  const { getFilteredProperties, deleteProperty, duplicateProperty, loading } = useProperties();
+  const { getFilteredProperties, deleteProperty, duplicateProperty, refreshProperties, loading } = useProperties();
   const filteredProperties = getFilteredProperties();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [density, setDensity] = useGridDensity(1);
-  
+  const [syncing, setSyncing] = useState(false);
 
   const gridColsClass = density === 1 ? 'grid-cols-1' : 'grid-cols-2';
   const isCompact = density === 2;
@@ -52,6 +53,31 @@ const Index = () => {
 
   const handleDuplicate = async (id: string) => {
     await duplicateProperty(id);
+  };
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-balancete-to-properties');
+      if (error) throw error;
+      const updated = data?.updated ?? 0;
+      const skipped = data?.skipped ?? 0;
+      if (updated > 0) {
+        toast.success(`${updated} imóvel(is) atualizado(s) a partir do balancete.`, {
+          description: skipped > 0 ? `${skipped} sem alteração.` : undefined,
+        });
+        await refreshProperties();
+      } else {
+        toast.info('Nenhuma atualização necessária.', {
+          description: 'Todos os valores já estão sincronizados.',
+        });
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Erro desconhecido';
+      toast.error('Falha ao sincronizar', { description: msg });
+    } finally {
+      setSyncing(false);
+    }
   };
 
   return (
