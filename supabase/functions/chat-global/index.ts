@@ -82,7 +82,7 @@ REGRAS:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-5',
+        model: 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: systemMessage },
           ...messages,
