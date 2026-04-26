@@ -559,13 +559,12 @@ export default function Balancete() {
       {/* Drill-down dialog */}
       <Dialog open={!!drilldown} onOpenChange={(o) => !o && setDrilldown(null)}>
         <DialogContent
-          className="max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 gap-0"
+          className="max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 gap-0 w-[calc(100dvw-1.5rem)] max-w-[calc(100dvw-1.5rem)] sm:max-w-3xl"
           style={{
             left: '0.75rem',
             right: '0.75rem',
             top: '4vh',
-            width: 'auto',
-            maxWidth: '48rem',
+            width: 'calc(100dvw - 1.5rem)',
             transform: 'none',
           }}
         >
@@ -588,9 +587,9 @@ export default function Balancete() {
             </div>
           </DialogHeader>
 
-          <div className="px-4 sm:px-6 py-4 space-y-4">
+          <div className="px-2.5 sm:px-6 py-3 sm:py-4 space-y-3 sm:space-y-4 min-w-0 overflow-hidden">
             {/* Totals */}
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2 min-w-0 overflow-hidden">
               <MiniStat label="Receita" value={drilldownTotals.aluguel + drilldownTotals.reembolso} tone="positive" />
               <MiniStat
                 label="Despesa"
@@ -601,7 +600,7 @@ export default function Balancete() {
             </div>
 
             {/* Chart */}
-            <div className="rounded-lg border bg-card p-2">
+            <div className="rounded-lg border bg-card p-2 min-w-0 overflow-hidden">
               <div className="h-[220px] sm:h-[260px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <ComposedChart data={drilldownSeries} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
@@ -621,7 +620,7 @@ export default function Balancete() {
             {/* Detail list */}
             <div className="space-y-2">
               {drilldownRows.map(r => (
-                <div key={r.id} className="rounded-lg border bg-card p-3">
+                <div key={r.id} className="rounded-lg border bg-card p-2.5 sm:p-3 min-w-0 overflow-hidden">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="text-[10px] px-2 py-0 h-5">
@@ -643,7 +642,7 @@ export default function Balancete() {
                       Locatário: <span className="text-foreground">{r.locatario}</span>
                     </div>
                   )}
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1 text-[10px] sm:text-[11px] min-w-0 overflow-hidden">
                     <Line2 label="Aluguel" value={r.aluguel} positive />
                     <Line2 label="Taxa adm." value={r.taxa_administracao} />
                     <Line2 label="Condomínio" value={r.condominio} />
@@ -663,13 +662,12 @@ export default function Balancete() {
       {/* Month-level drill-down dialog */}
       <Dialog open={!!monthDrilldown} onOpenChange={(o) => !o && setMonthDrilldown(null)}>
         <DialogContent
-          className="max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 gap-0"
+          className="max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 gap-0 w-[calc(100dvw-1.5rem)] max-w-[calc(100dvw-1.5rem)] sm:max-w-md"
           style={{
             left: '0.75rem',
             right: '0.75rem',
             top: '4vh',
-            width: 'auto',
-            maxWidth: '28rem',
+            width: 'calc(100dvw - 1.5rem)',
             transform: 'none',
           }}
         >
@@ -692,11 +690,11 @@ export default function Balancete() {
             </div>
           </DialogHeader>
 
-          <div className="px-3 py-4 space-y-4 min-w-0 overflow-hidden">
+          <div className="px-2.5 sm:px-3 py-3 sm:py-4 space-y-3 sm:space-y-4 min-w-0 overflow-hidden">
             {monthDrilldownRow ? (
               <>
                 {/* Totals do mês */}
-                <div className="grid grid-cols-3 gap-2 min-w-0 overflow-hidden">
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2 min-w-0 overflow-hidden">
                   <MiniStat
                     label="Receita"
                     value={
@@ -741,7 +739,7 @@ export default function Balancete() {
                 )}
 
                 {/* Receitas */}
-                <div className="rounded-lg border bg-card p-3 space-y-1.5 min-w-0 overflow-hidden">
+                <div className="rounded-lg border bg-card p-2.5 sm:p-3 space-y-1.5 min-w-0 overflow-hidden">
                   <div className="text-[10px] uppercase tracking-wide font-semibold text-emerald-600 dark:text-emerald-400 mb-1 truncate">
                     Receitas
                   </div>
@@ -752,7 +750,7 @@ export default function Balancete() {
                 </div>
 
                 {/* Despesas */}
-                <div className="rounded-lg border bg-card p-3 space-y-1.5 min-w-0 overflow-hidden">
+                <div className="rounded-lg border bg-card p-2.5 sm:p-3 space-y-1.5 min-w-0 overflow-hidden">
                   <div className="text-[10px] uppercase tracking-wide font-semibold text-red-600 dark:text-red-400 mb-1 truncate">
                     Despesas
                   </div>
@@ -858,10 +856,10 @@ function MoneyTooltip({ active, payload, label }: any) {
 
 function MiniStat({ label, value, tone }: { label: string; value: number; tone: 'positive' | 'negative' }) {
   return (
-    <div className="rounded-lg border bg-card p-2 min-w-0 overflow-hidden">
-      <div className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wide truncate">{label}</div>
+    <div className="rounded-lg border bg-card p-1.5 sm:p-2 min-w-0 overflow-hidden">
+      <div className="text-[8px] sm:text-[10px] text-muted-foreground uppercase truncate">{label}</div>
       <div className={cn(
-        'text-[11px] sm:text-xs font-semibold tabular-nums mt-0.5 truncate leading-tight',
+        'text-[9px] sm:text-xs font-semibold tabular-nums mt-0.5 truncate leading-tight',
         tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
       )}>
         {fmtBRL(value)}
@@ -873,7 +871,7 @@ function MiniStat({ label, value, tone }: { label: string; value: number; tone: 
 function Line2({ label, value, positive }: { label: string; value: number; positive?: boolean }) {
   if (value === 0) return null;
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,6.75rem)] items-baseline gap-2 min-w-0 overflow-hidden">
+    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,5.6rem)] sm:grid-cols-[minmax(0,1fr)_minmax(0,6.75rem)] items-baseline gap-1.5 sm:gap-2 min-w-0 overflow-hidden">
       <span className="text-muted-foreground truncate min-w-0">{label}</span>
       <span className={cn(
         'tabular-nums min-w-0 truncate text-right leading-tight',
