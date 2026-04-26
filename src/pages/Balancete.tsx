@@ -983,11 +983,16 @@ function PropertyAccordionRow({
                     const v = row.values[mk] ?? null;
                     const empty = v === null || v === 0;
                     return (
-                      <div
+                      <button
                         key={mk}
+                        type="button"
+                        disabled={empty}
+                        onClick={() => onOpenMonthDrilldown(yearBlock.ano, mes)}
                         className={cn(
-                          'rounded px-2 py-1.5 flex flex-col items-start justify-center min-h-[44px]',
-                          empty ? 'bg-muted/40' : 'bg-card border'
+                          'rounded px-2 py-1.5 flex flex-col items-start justify-center min-h-[44px] text-left transition-colors',
+                          empty
+                            ? 'bg-muted/40 cursor-default'
+                            : 'bg-card border hover:bg-muted/40 active:bg-muted/60 cursor-pointer'
                         )}
                       >
                         <div className="text-[9px] uppercase tracking-wide text-muted-foreground">
@@ -1005,7 +1010,7 @@ function PropertyAccordionRow({
                         >
                           {empty ? '—' : fmtBRL(v!)}
                         </div>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
