@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, TrendingDown, Wallet, Home as HomeIcon, X, ChevronRight, ChevronDown } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, Wallet, Home as HomeIcon, X, ChevronRight, ChevronDown, Search, ArrowUpDown, ArrowUp, ArrowDown, Filter } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { Header } from '@/components/layout/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -112,34 +113,100 @@ const CATEGORY_COLORS = {
 
 export default function Balancete() {
   const [rows, setRows] = useState<BalanceteRow[]>([]);
+  const [propertyTypes, setPropertyTypes] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [yearFilter, setYearFilter] = useState<string>('all');
   const [monthFilter, setMonthFilter] = useState<string>('all');
+  const [search, setSearch] = useState<string>('');
+  const [cidadeFilter, setCidadeFilter] = useState<string>('all');
+  const [bairroFilter, setBairroFilter] = useState<string>('all');
+  const [tipoFilter, setTipoFilter] = useState<string>('all');
+  type SortField = 'cidade' | 'rua' | 'receita' | 'despesa' | 'liquido';
+  const [sortField, setSortField] = useState<SortField>('liquido');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [drilldown, setDrilldown] = useState<{ key: string; label: string } | null>(null);
   const [monthDrilldown, setMonthDrilldown] = useState<{ key: string; label: string; ano: number; mes: number } | null>(null);
   const [yearMonthDrilldown, setYearMonthDrilldown] = useState<{ ano: number; mes: number } | null>(null);
 
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase
-        .from('property_balancete')
-        .select('*')
-        .order('ano', { ascending: false })
-        .order('mes', { ascending: false });
-      if (!error && data) setRows(data as BalanceteRow[]);
+      const [balRes, propRes] = await Promise.all([
+        supabase
+          .from('property_balancete')
+          .select('*')
+          .order('ano', { ascending: false })
+          .order('mes', { ascending: false }),
+        supabase.from('properties').select('id, tipo_imovel'),
+      ]);
+      if (!balRes.error && balRes.data) setRows(balRes.data as BalanceteRow[]);
+      if (!propRes.error && propRes.data) {
+        const map: Record<string, string> = {};
+        for (const p of propRes.data as Array<{ id: string; tipo_imovel: string | null }>) {
+          if (p.tipo_imovel) map[p.id] = p.tipo_imovel;
+        }
+        setPropertyTypes(map);
+      }
       setLoading(false);
     })();
   }, []);
 
   const years = useMemo(() => Array.from(new Set(rows.map(r => r.ano))).sort((a, b) => b - a), [rows]);
 
+  // Listas independentes (cidade → bairro em cascata) baseadas em rows
+  const cidadeOptions = useMemo(() => {
+    return Array.from(new Set(rows.map(r => (r.cidade ?? '').trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [rows]);
+  const bairroOptions = useMemo(() => {
+    return Array.from(
+      new Set(
+        rows
+          .filter(r => cidadeFilter === 'all' || (r.cidade ?? '').trim() === cidadeFilter)
+          .map(r => (r.bairro ?? '').trim())
+          .filter(Boolean),
+      ),
+    ).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [rows, cidadeFilter]);
+  const tipoOptions = useMemo(() => {
+    return Array.from(
+      new Set(
+        rows
+          .filter(r => cidadeFilter === 'all' || (r.cidade ?? '').trim() === cidadeFilter)
+          .filter(r => bairroFilter === 'all' || (r.bairro ?? '').trim() === bairroFilter)
+          .map(r => (r.property_id ? propertyTypes[r.property_id] : '') || '')
+          .filter(Boolean),
+      ),
+    ).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [rows, propertyTypes, cidadeFilter, bairroFilter]);
+
+  // Reset cascata
+  useEffect(() => { setBairroFilter('all'); }, [cidadeFilter]);
+  useEffect(() => {
+    if (tipoFilter !== 'all' && !tipoOptions.includes(tipoFilter)) setTipoFilter('all');
+  }, [tipoOptions, tipoFilter]);
+
   const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
     return rows.filter(r => {
       if (yearFilter !== 'all' && r.ano !== Number(yearFilter)) return false;
       if (monthFilter !== 'all' && r.mes !== Number(monthFilter)) return false;
+      if (cidadeFilter !== 'all' && (r.cidade ?? '').trim() !== cidadeFilter) return false;
+      if (bairroFilter !== 'all' && (r.bairro ?? '').trim() !== bairroFilter) return false;
+      if (tipoFilter !== 'all') {
+        const t = r.property_id ? propertyTypes[r.property_id] : '';
+        if (t !== tipoFilter) return false;
+      }
+      if (q) {
+        const haystack = [
+          r.cidade, r.bairro, r.rua, r.numero, r.apartamento, r.complemento,
+          r.locatario, r.periodo_contrato,
+          r.property_id ? propertyTypes[r.property_id] : '',
+          String(r.ano), MONTHS[r.mes - 1],
+        ].filter(Boolean).join(' ').toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
       return true;
     });
-  }, [rows, yearFilter, monthFilter]);
+  }, [rows, yearFilter, monthFilter, cidadeFilter, bairroFilter, tipoFilter, search, propertyTypes]);
 
   // KPIs
   const kpis = useMemo(() => {
@@ -187,24 +254,46 @@ export default function Balancete() {
     ].filter(c => c.value > 0);
   }, [filtered]);
 
-  // Pivot: imóvel x mês (líquido)
+  // Pivot: imóvel x mês (líquido) — com receita/despesa por linha p/ ordenação
   const pivot = useMemo(() => {
     const months = timeSeries.map(t => t.key);
-    const byKey = new Map<string, { key: string; label: string; values: Record<string, number>; total: number; hasValues: boolean }>();
+    type PivotRow = {
+      key: string; label: string; cidade: string; rua: string;
+      values: Record<string, number>;
+      total: number; receita: number; despesa: number; hasValues: boolean;
+    };
+    const byKey = new Map<string, PivotRow>();
     filtered.forEach(r => {
       const k = propertyKey(r);
       const lbl = formatPropertyLabel(r);
-      if (!byKey.has(k)) byKey.set(k, { key: k, label: lbl, values: {}, total: 0, hasValues: false });
+      if (!byKey.has(k)) {
+        byKey.set(k, {
+          key: k, label: lbl,
+          cidade: (r.cidade ?? '').toString(),
+          rua: (r.rua ?? '').toString(),
+          values: {}, total: 0, receita: 0, despesa: 0, hasValues: false,
+        });
+      }
       const acc = byKey.get(k)!;
       const mk = `${r.ano}-${String(r.mes).padStart(2, '0')}`;
       acc.values[mk] = (acc.values[mk] || 0) + r.liquido;
       acc.total += r.liquido;
+      acc.receita += Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
+      acc.despesa += Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas);
       if (r.liquido !== 0) acc.hasValues = true;
     });
+    const mult = sortOrder === 'asc' ? 1 : -1;
     const sortedRows = Array.from(byKey.values()).sort((a, b) => {
-      // Imóveis com valores primeiro
+      // Imóveis com valores sempre primeiro (independente da ordenação)
       if (a.hasValues !== b.hasValues) return a.hasValues ? -1 : 1;
-      return b.total - a.total;
+      switch (sortField) {
+        case 'cidade': return mult * a.cidade.localeCompare(b.cidade, 'pt-BR') || mult * a.rua.localeCompare(b.rua, 'pt-BR');
+        case 'rua': return mult * a.rua.localeCompare(b.rua, 'pt-BR');
+        case 'receita': return mult * (a.receita - b.receita);
+        case 'despesa': return mult * (a.despesa - b.despesa);
+        case 'liquido':
+        default: return mult * (a.total - b.total);
+      }
     });
     // Subtotais por mês e geral
     const monthTotals: Record<string, number> = {};
@@ -222,7 +311,7 @@ export default function Balancete() {
       monthTotals,
       grandTotal,
     };
-  }, [filtered, timeSeries]);
+  }, [filtered, timeSeries, sortField, sortOrder]);
 
   // KPIs agrupados por ano (para visão expansível)
   const kpisByYear = useMemo(() => {
@@ -506,6 +595,105 @@ export default function Balancete() {
             </ChartCard>
           </TabsContent>
         </Tabs>
+
+        {/* Filtros independentes + ordenação (afetam KPIs, gráficos e tabela) */}
+        <Card>
+          <CardContent className="p-3 sm:p-4 space-y-3">
+            {/* Linha 1: busca genérica */}
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar em cidade, bairro, rua, locatário, tipo, mês…"
+                className="h-9 pl-8 pr-8 text-xs"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label="Limpar busca"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Linha 2: filtros independentes em cascata */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <Select value={cidadeFilter} onValueChange={setCidadeFilter}>
+                <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Cidade" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas cidades</SelectItem>
+                  {cidadeOptions.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={bairroFilter} onValueChange={setBairroFilter} disabled={bairroOptions.length === 0}>
+                <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Bairro" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos bairros</SelectItem>
+                  {bairroOptions.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={tipoFilter} onValueChange={setTipoFilter} disabled={tipoOptions.length === 0}>
+                <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Tipo" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos tipos</SelectItem>
+                  {tipoOptions.map(t => (
+                    <SelectItem key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {(search || cidadeFilter !== 'all' || bairroFilter !== 'all' || tipoFilter !== 'all') ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 text-xs"
+                  onClick={() => {
+                    setSearch('');
+                    setCidadeFilter('all');
+                    setBairroFilter('all');
+                    setTipoFilter('all');
+                  }}
+                >
+                  <X className="h-3.5 w-3.5 mr-1" /> Limpar
+                </Button>
+              ) : (
+                <div className="hidden sm:block" />
+              )}
+            </div>
+
+            {/* Linha 3: ordenação */}
+            <div className="flex items-center gap-2 pt-1 border-t">
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground shrink-0">
+                <ArrowUpDown className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Ordenar imóveis por</span>
+                <span className="sm:hidden">Ordenar</span>
+              </div>
+              <Select value={sortField} onValueChange={(v) => setSortField(v as SortField)}>
+                <SelectTrigger className="h-9 text-xs flex-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cidade">Cidade</SelectItem>
+                  <SelectItem value="rua">Rua</SelectItem>
+                  <SelectItem value="receita">Receita</SelectItem>
+                  <SelectItem value="despesa">Despesa</SelectItem>
+                  <SelectItem value="liquido">Líquido</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 px-2.5 text-xs shrink-0"
+                onClick={() => setSortOrder(o => (o === 'asc' ? 'desc' : 'asc'))}
+                title={sortOrder === 'asc' ? 'Crescente' : 'Decrescente'}
+              >
+                {sortOrder === 'asc' ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />}
+                <span className="hidden sm:inline ml-1">{sortOrder === 'asc' ? 'Crescente' : 'Decrescente'}</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Pivot table — desktop */}
         <Card className="hidden md:block">
