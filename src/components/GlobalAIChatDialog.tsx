@@ -5,9 +5,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sparkles, Send, Loader2, Bot, User } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { supabase } from '@/integrations/supabase/client';
 import { useProperties } from '@/contexts/PropertyContext';
 import { Property } from '@/types/property';
+import { streamChat } from '@/lib/ai-stream';
 
 type Message = { role: 'user' | 'assistant'; content: string };
 
@@ -75,62 +75,15 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
     setIsLoading(true);
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
-      if (!token) throw new Error('Não autenticado');
-
-      const resp = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-global`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({
-            messages: newMessages,
-            propertiesContext,
-          }),
-        }
-      );
-
-      if (!resp.ok) {
-        const errData = await resp.json().catch(() => ({}));
-        throw new Error(errData.error || 'Erro na resposta da IA');
-      }
-
-      if (!resp.body) throw new Error('No response body');
-
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
       let assistantContent = '';
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        let newlineIdx: number;
-        while ((newlineIdx = buffer.indexOf('\n')) !== -1) {
-          let line = buffer.slice(0, newlineIdx);
-          buffer = buffer.slice(newlineIdx + 1);
-          if (line.endsWith('\r')) line = line.slice(0, -1);
-          if (!line.startsWith('data: ')) continue;
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === '[DONE]') break;
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const delta = parsed.choices?.[0]?.delta?.content;
-            if (delta) {
-              assistantContent += delta;
-              setMessages([...newMessages, { role: 'assistant', content: assistantContent }]);
-            }
-          } catch { /* partial json */ }
-        }
-      }
-
+      await streamChat({
+        endpoint: 'chat-global',
+        body: { messages: newMessages, propertiesContext },
+        onDelta: (chunk) => {
+          assistantContent += chunk;
+          setMessages([...newMessages, { role: 'assistant', content: assistantContent }]);
+        },
+      });
       if (!assistantContent) {
         setMessages([...newMessages, { role: 'assistant', content: 'Sem resposta da IA.' }]);
       }
