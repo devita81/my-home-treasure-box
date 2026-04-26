@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, TrendingDown, Wallet, Home as HomeIcon, X, ChevronRight } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, Wallet, Home as HomeIcon, X, ChevronRight, ChevronDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Header } from '@/components/layout/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, ComposedChart,
+  AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   XAxis, YAxis, Tooltip, Legend, CartesianGrid,
 } from 'recharts';
 import { cn } from '@/lib/utils';
@@ -50,6 +51,13 @@ const fmtBRLFull = (v: number) => v.toLocaleString('pt-BR', { style: 'currency',
 function formatAddress(r: BalanceteRow) {
   const parts = [r.rua, r.numero, r.apartamento].filter(Boolean);
   return parts.join(', ').toUpperCase();
+}
+
+function formatPropertyLabel(r: BalanceteRow) {
+  const addr = formatAddress(r);
+  const cidade = r.cidade ? r.cidade.toUpperCase() : '';
+  if (cidade && addr) return `${cidade} • ${addr}`;
+  return addr || cidade || 'SEM ENDEREÇO';
 }
 
 function propertyKey(r: BalanceteRow) {
@@ -143,22 +151,80 @@ export default function Balancete() {
   // Pivot: imóvel x mês (líquido)
   const pivot = useMemo(() => {
     const months = timeSeries.map(t => t.key);
-    const byKey = new Map<string, { key: string; label: string; values: Record<string, number>; total: number }>();
+    const byKey = new Map<string, { key: string; label: string; values: Record<string, number>; total: number; hasValues: boolean }>();
     filtered.forEach(r => {
       const k = propertyKey(r);
-      const lbl = formatAddress(r) || 'Sem endereço';
-      if (!byKey.has(k)) byKey.set(k, { key: k, label: lbl, values: {}, total: 0 });
+      const lbl = formatPropertyLabel(r);
+      if (!byKey.has(k)) byKey.set(k, { key: k, label: lbl, values: {}, total: 0, hasValues: false });
       const acc = byKey.get(k)!;
       const mk = `${r.ano}-${String(r.mes).padStart(2, '0')}`;
       acc.values[mk] = (acc.values[mk] || 0) + r.liquido;
       acc.total += r.liquido;
+      if (r.liquido !== 0) acc.hasValues = true;
+    });
+    const sortedRows = Array.from(byKey.values()).sort((a, b) => {
+      // Imóveis com valores primeiro
+      if (a.hasValues !== b.hasValues) return a.hasValues ? -1 : 1;
+      return b.total - a.total;
+    });
+    // Subtotais por mês e geral
+    const monthTotals: Record<string, number> = {};
+    let grandTotal = 0;
+    sortedRows.forEach(row => {
+      months.forEach(mk => {
+        monthTotals[mk] = (monthTotals[mk] || 0) + (row.values[mk] || 0);
+      });
+      grandTotal += row.total;
     });
     return {
       months,
       monthLabels: timeSeries.map(t => t.label),
-      rows: Array.from(byKey.values()).sort((a, b) => b.total - a.total),
+      rows: sortedRows,
+      monthTotals,
+      grandTotal,
     };
   }, [filtered, timeSeries]);
+
+  // KPIs agrupados por ano (para visão expansível)
+  const kpisByYear = useMemo(() => {
+    const map = new Map<number, { ano: number; receita: number; despesa: number; liquido: number; imoveis: Set<string> }>();
+    filtered.forEach(r => {
+      if (!map.has(r.ano)) map.set(r.ano, { ano: r.ano, receita: 0, despesa: 0, liquido: 0, imoveis: new Set() });
+      const acc = map.get(r.ano)!;
+      acc.receita += Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
+      acc.despesa += Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas);
+      acc.liquido += r.liquido;
+      if (r.aluguel > 0) acc.imoveis.add(propertyKey(r));
+    });
+    return Array.from(map.values())
+      .map(y => ({ ano: y.ano, receita: y.receita, despesa: y.despesa, liquido: y.liquido, imoveisAtivos: y.imoveis.size }))
+      .sort((a, b) => b.ano - a.ano);
+  }, [filtered]);
+
+  // Stacked categories por mês (gráfico empilhado)
+  const stackedByMonth = useMemo(() => {
+    const map = new Map<string, any>();
+    filtered.forEach(r => {
+      const key = `${r.ano}-${String(r.mes).padStart(2, '0')}`;
+      if (!map.has(key)) {
+        map.set(key, {
+          key, ano: r.ano, mes: r.mes,
+          aluguel: 0, reembolsos: 0,
+          condominio: 0, iptu: 0, taxa: 0, outras: 0,
+        });
+      }
+      const acc = map.get(key)!;
+      acc.aluguel += Math.max(0, r.aluguel);
+      acc.reembolsos += Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
+      acc.condominio += Math.min(0, r.condominio);
+      acc.iptu += Math.min(0, r.iptu);
+      acc.taxa += Math.min(0, r.taxa_administracao);
+      acc.outras += Math.min(0, r.outras_despesas);
+    });
+    return Array.from(map.values())
+      .sort((a, b) => a.ano - b.ano || a.mes - b.mes)
+      .map(d => ({ ...d, label: `${MONTHS[d.mes - 1]}/${String(d.ano).slice(2)}` }));
+  }, [filtered]);
 
   // Drill-down detail
   const drilldownRows = useMemo(() => {
@@ -238,19 +304,16 @@ export default function Balancete() {
           </div>
         </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-          <KpiCard label="Receita" value={kpis.receita} icon={TrendingUp} tone="positive" loading={loading} />
-          <KpiCard label="Despesa" value={kpis.despesa} icon={TrendingDown} tone="negative" loading={loading} />
-          <KpiCard label="Líquido" value={kpis.liquido} icon={Wallet} tone={kpis.liquido >= 0 ? 'positive' : 'negative'} loading={loading} />
-          <KpiCard label="Imóveis ativos" value={kpis.imoveisAtivos} icon={HomeIcon} tone="neutral" loading={loading} isCount />
-        </div>
+        {/* KPIs por ano (expansíveis) */}
+        <YearlyKpis years={kpisByYear} loading={loading} totals={kpis} />
 
         {/* Charts */}
         <Tabs defaultValue="trend" className="w-full">
-          <TabsList className="grid grid-cols-3 w-full sm:w-auto sm:inline-flex h-9">
+          <TabsList className="grid grid-cols-5 w-full sm:w-auto sm:inline-flex h-9">
             <TabsTrigger value="trend" className="text-xs">Tendência</TabsTrigger>
             <TabsTrigger value="bars" className="text-xs">Mensal</TabsTrigger>
+            <TabsTrigger value="stacked" className="text-xs">Empilhado</TabsTrigger>
+            <TabsTrigger value="area" className="text-xs">Área</TabsTrigger>
             <TabsTrigger value="categories" className="text-xs">Categorias</TabsTrigger>
           </TabsList>
 
@@ -285,6 +348,53 @@ export default function Balancete() {
                     ))}
                   </Bar>
                 </BarChart>
+              </ResponsiveChart>
+            </ChartCard>
+          </TabsContent>
+
+          <TabsContent value="stacked" className="mt-3">
+            <ChartCard title="Receitas e despesas empilhadas" subtitle="Composição mensal por categoria">
+              <ResponsiveChart>
+                <BarChart data={stackedByMonth} margin={{ top: 8, right: 12, left: 0, bottom: 8 }} stackOffset="sign">
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                  <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} width={42} />
+                  <Tooltip content={<MoneyTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Bar dataKey="aluguel" stackId="r" name="Aluguel" fill={CATEGORY_COLORS.aluguel} />
+                  <Bar dataKey="reembolsos" stackId="r" name="Reembolsos" fill={CATEGORY_COLORS.reembolso} />
+                  <Bar dataKey="condominio" stackId="d" name="Condomínio" fill={CATEGORY_COLORS.condominio} />
+                  <Bar dataKey="iptu" stackId="d" name="IPTU" fill={CATEGORY_COLORS.iptu} />
+                  <Bar dataKey="taxa" stackId="d" name="Taxa Adm." fill={CATEGORY_COLORS.taxa} />
+                  <Bar dataKey="outras" stackId="d" name="Outras" fill={CATEGORY_COLORS.outras} />
+                </BarChart>
+              </ResponsiveChart>
+            </ChartCard>
+          </TabsContent>
+
+          <TabsContent value="area" className="mt-3">
+            <ChartCard title="Área cumulativa de receita e despesa" subtitle="Visão suavizada do fluxo financeiro">
+              <ResponsiveChart>
+                <AreaChart data={timeSeries} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
+                  <defs>
+                    <linearGradient id="recArea" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={CATEGORY_COLORS.aluguel} stopOpacity={0.4} />
+                      <stop offset="100%" stopColor={CATEGORY_COLORS.aluguel} stopOpacity={0.02} />
+                    </linearGradient>
+                    <linearGradient id="despArea" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={CATEGORY_COLORS.condominio} stopOpacity={0.4} />
+                      <stop offset="100%" stopColor={CATEGORY_COLORS.condominio} stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                  <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} width={42} />
+                  <Tooltip content={<MoneyTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Area type="monotone" dataKey="receita" name="Receita" stroke={CATEGORY_COLORS.aluguel} strokeWidth={2} fill="url(#recArea)" />
+                  <Area type="monotone" dataKey="despesa" name="Despesa" stroke={CATEGORY_COLORS.condominio} strokeWidth={2} fill="url(#despArea)" />
+                  <Area type="monotone" dataKey="liquido" name="Líquido" stroke="hsl(var(--primary))" strokeWidth={2.5} fill="transparent" dot={{ r: 2 }} />
+                </AreaChart>
               </ResponsiveChart>
             </ChartCard>
           </TabsContent>
@@ -367,6 +477,36 @@ export default function Balancete() {
                         </TableCell>
                       </TableRow>
                     ))}
+                    {/* Subtotal geral */}
+                    <TableRow className="bg-muted/40 hover:bg-muted/40 border-t-2">
+                      <TableCell className="sticky left-0 bg-muted/40 z-10 font-semibold text-xs uppercase tracking-wide">
+                        Subtotal geral
+                      </TableCell>
+                      {pivot.months.map(mk => {
+                        const v = pivot.monthTotals[mk] || 0;
+                        return (
+                          <TableCell
+                            key={mk}
+                            className={cn(
+                              'text-right text-[11px] font-semibold tabular-nums whitespace-nowrap',
+                              v > 0 && 'text-emerald-600 dark:text-emerald-400',
+                              v < 0 && 'text-red-600 dark:text-red-400',
+                              v === 0 && 'text-muted-foreground/60'
+                            )}
+                          >
+                            {v === 0 ? '—' : fmtBRL(v)}
+                          </TableCell>
+                        );
+                      })}
+                      <TableCell
+                        className={cn(
+                          'text-right text-xs font-bold tabular-nums',
+                          pivot.grandTotal >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+                        )}
+                      >
+                        {fmtBRL(pivot.grandTotal)}
+                      </TableCell>
+                    </TableRow>
                   </TableBody>
                 </Table>
               </div>
@@ -407,6 +547,16 @@ export default function Balancete() {
                 </div>
               </button>
             ))}
+            {/* Subtotal geral mobile */}
+            <div className="flex items-center justify-between gap-2 p-3 rounded-lg border-2 bg-muted/40 mt-2">
+              <div className="text-xs font-semibold uppercase tracking-wide">Subtotal geral</div>
+              <div className={cn(
+                'text-sm font-bold tabular-nums',
+                pivot.grandTotal >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+              )}>
+                {fmtBRL(pivot.grandTotal)}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </main>
@@ -609,6 +759,122 @@ function Line2({ label, value, positive }: { label: string; value: number; posit
       )}>
         {fmtBRL(value)}
       </span>
+    </div>
+  );
+}
+
+function YearlyKpis({
+  years,
+  loading,
+  totals,
+}: {
+  years: { ano: number; receita: number; despesa: number; liquido: number; imoveisAtivos: number }[];
+  loading: boolean;
+  totals: { receita: number; despesa: number; liquido: number; imoveisAtivos: number };
+}) {
+  // Default: expandir o ano mais recente
+  const [expanded, setExpanded] = useState<Set<number>>(() =>
+    years.length > 0 ? new Set([years[0].ano]) : new Set()
+  );
+
+  // Auto-expandir ano mais recente quando os dados carregam
+  useEffect(() => {
+    if (years.length > 0 && expanded.size === 0) {
+      setExpanded(new Set([years[0].ano]));
+    }
+  }, [years]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const toggle = (ano: number) => {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      if (next.has(ano)) next.delete(ano);
+      else next.add(ano);
+      return next;
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+        {[0, 1, 2, 3].map(i => (
+          <Card key={i}><CardContent className="p-4"><div className="h-12 animate-pulse bg-muted rounded" /></CardContent></Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (years.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-4 text-xs text-muted-foreground text-center">
+          Nenhum dado para o filtro selecionado.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {/* Total acumulado */}
+      <Card className="bg-muted/30 border-dashed">
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="text-[10px] sm:text-xs uppercase tracking-wide font-semibold text-muted-foreground">
+              Total acumulado ({years.length} {years.length === 1 ? 'ano' : 'anos'})
+            </div>
+            <div className="flex items-center gap-3 sm:gap-5 text-[11px] sm:text-xs flex-wrap">
+              <span className="text-emerald-600 dark:text-emerald-400 font-semibold tabular-nums">{fmtBRL(totals.receita)}</span>
+              <span className="text-red-600 dark:text-red-400 font-semibold tabular-nums">{fmtBRL(totals.despesa)}</span>
+              <span className={cn('font-bold tabular-nums', totals.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}>
+                {fmtBRL(totals.liquido)}
+              </span>
+              <span className="text-muted-foreground hidden sm:inline">• {totals.imoveisAtivos} imóveis</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Cards por ano */}
+      {years.map(y => {
+        const isOpen = expanded.has(y.ano);
+        return (
+          <Card key={y.ano} className="overflow-hidden">
+            <button
+              type="button"
+              onClick={() => toggle(y.ano)}
+              className="w-full text-left hover:bg-muted/40 active:bg-muted/60 transition-colors"
+              aria-expanded={isOpen}
+            >
+              <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4">
+                <ChevronDown
+                  className={cn(
+                    'h-4 w-4 text-muted-foreground transition-transform shrink-0',
+                    !isOpen && '-rotate-90'
+                  )}
+                />
+                <div className="text-base sm:text-lg font-display font-semibold tabular-nums shrink-0">
+                  {y.ano}
+                </div>
+                <div className="ml-auto flex items-center gap-3 sm:gap-5 text-[11px] sm:text-xs flex-wrap justify-end">
+                  <span className="hidden sm:inline text-muted-foreground">{y.imoveisAtivos} imóveis</span>
+                  <span className={cn('font-bold tabular-nums', y.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}>
+                    {fmtBRL(y.liquido)}
+                  </span>
+                </div>
+              </div>
+            </button>
+
+            {isOpen && (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 px-3 sm:px-4 pb-3 sm:pb-4 border-t pt-3">
+                <KpiCard label="Receita" value={y.receita} icon={TrendingUp} tone="positive" loading={false} />
+                <KpiCard label="Despesa" value={y.despesa} icon={TrendingDown} tone="negative" loading={false} />
+                <KpiCard label="Líquido" value={y.liquido} icon={Wallet} tone={y.liquido >= 0 ? 'positive' : 'negative'} loading={false} />
+                <KpiCard label="Imóveis ativos" value={y.imoveisAtivos} icon={HomeIcon} tone="neutral" loading={false} isCount />
+              </div>
+            )}
+          </Card>
+        );
+      })}
     </div>
   );
 }
