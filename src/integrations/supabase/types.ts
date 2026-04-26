@@ -422,6 +422,104 @@ export type Database = {
         }
         Relationships: []
       }
+      property_balancete: {
+        Row: {
+          alugado: boolean | null
+          aluguel: number | null
+          ano: number
+          apartamento: string | null
+          bairro: string | null
+          cidade: string | null
+          complemento: string | null
+          condominio: number | null
+          cpf_locador: string | null
+          created_at: string
+          external_id: string | null
+          id: string
+          iptu: number | null
+          liquido: number | null
+          locatario: string | null
+          mes: number
+          numero: string | null
+          outras_despesas: number | null
+          periodo_contrato: string | null
+          property_id: string | null
+          reembolso_condominio: number | null
+          reembolso_iptu: number | null
+          reembolso_outras_despesas: number | null
+          rua: string | null
+          taxa_administracao: number | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          alugado?: boolean | null
+          aluguel?: number | null
+          ano: number
+          apartamento?: string | null
+          bairro?: string | null
+          cidade?: string | null
+          complemento?: string | null
+          condominio?: number | null
+          cpf_locador?: string | null
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          iptu?: number | null
+          liquido?: number | null
+          locatario?: string | null
+          mes: number
+          numero?: string | null
+          outras_despesas?: number | null
+          periodo_contrato?: string | null
+          property_id?: string | null
+          reembolso_condominio?: number | null
+          reembolso_iptu?: number | null
+          reembolso_outras_despesas?: number | null
+          rua?: string | null
+          taxa_administracao?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          alugado?: boolean | null
+          aluguel?: number | null
+          ano?: number
+          apartamento?: string | null
+          bairro?: string | null
+          cidade?: string | null
+          complemento?: string | null
+          condominio?: number | null
+          cpf_locador?: string | null
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          iptu?: number | null
+          liquido?: number | null
+          locatario?: string | null
+          mes?: number
+          numero?: string | null
+          outras_despesas?: number | null
+          periodo_contrato?: string | null
+          property_id?: string | null
+          reembolso_condominio?: number | null
+          reembolso_iptu?: number | null
+          reembolso_outras_despesas?: number | null
+          rua?: string | null
+          taxa_administracao?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_balancete_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       property_documents: {
         Row: {
           created_at: string

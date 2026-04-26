@@ -12,6 +12,7 @@ import AddProperty from "./pages/AddProperty";
 import EditProperty from "./pages/EditProperty";
 import PropertyDetails from "./pages/PropertyDetails";
 import Analytics from "./pages/Analytics";
+import Balancete from "./pages/Balancete";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "./pages/Unsubscribe";
@@ -43,6 +44,7 @@ const App = () => (
                 <Route path="/edit/:id" element={<ProtectedRoute><EditProperty /></ProtectedRoute>} />
                 <Route path="/property/:id" element={<ProtectedRoute><PropertyDetails /></ProtectedRoute>} />
                 <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+                <Route path="/balancete" element={<ProtectedRoute><Balancete /></ProtectedRoute>} />
                 <Route path="/admin/itbi" element={<ProtectedRoute><ItbiAdmin /></ProtectedRoute>} />
                 <Route path="/itbi-search" element={<ProtectedRoute><ItbiSearch /></ProtectedRoute>} />
                 <Route path="/unsubscribe" element={<Unsubscribe />} />

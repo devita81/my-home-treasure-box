@@ -1,4 +1,4 @@
-import { Home, BarChart3, PlusCircle, LogOut, Sparkles, Database } from 'lucide-react';
+import { Home, BarChart3, PlusCircle, LogOut, Sparkles, Database, Wallet } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,6 +15,7 @@ export function Header() {
 
   const navItems = [
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+    { path: '/balancete', label: 'Balancete', icon: Wallet },
     { path: '/itbi-search', label: 'ITBI', icon: Database },
   ];
 
@@ -50,7 +51,7 @@ export function Header() {
               <nav className="flex items-center gap-1">
                 {navItems.map((item) => {
                   const isActive = location.pathname === item.path;
-                  const isHighlighted = item.path === '/analytics' || item.path === '/itbi-search';
+                  const isHighlighted = item.path === '/analytics' || item.path === '/itbi-search' || item.path === '/balancete';
                   return (
                     <Link
                       key={item.path}
