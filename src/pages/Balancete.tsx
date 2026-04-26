@@ -504,7 +504,7 @@ export default function Balancete() {
           <TabsContent value="trend" className="mt-3">
             <ChartCard title="Receita vs Despesa (colunas)" subtitle="Evolução mensal — gire o celular para mais detalhes">
               <ResponsiveChart>
-                <BarChart data={timeSeries} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
+                <ComposedChart data={timeSeries} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
                   <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} width={42} />
@@ -513,7 +513,8 @@ export default function Balancete() {
                   <Bar dataKey="receita" fill={CATEGORY_COLORS.aluguel} name="Receita" radius={[2, 2, 0, 0]} />
                   <Bar dataKey="despesa" fill={CATEGORY_COLORS.condominio} name="Despesa" radius={[2, 2, 0, 0]} />
                   <Bar dataKey="liquido" fill="hsl(var(--primary))" name="Líquido" radius={[2, 2, 0, 0]} />
-                </BarChart>
+                  <Line type="monotone" dataKey="aluguel" name="Aluguel" stroke="hsl(217 91% 60%)" strokeWidth={2} dot={{ r: 2 }} />
+                </ComposedChart>
               </ResponsiveChart>
             </ChartCard>
           </TabsContent>
