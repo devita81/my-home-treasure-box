@@ -537,6 +537,9 @@ export default function Balancete() {
                 row={r}
                 months={pivot.months}
                 onOpenDrilldown={() => setDrilldown({ key: r.key, label: r.label })}
+                onOpenMonthDrilldown={(ano, mes) =>
+                  setMonthDrilldown({ key: r.key, label: r.label, ano, mes })
+                }
               />
             ))}
             {/* Subtotal geral mobile */}
