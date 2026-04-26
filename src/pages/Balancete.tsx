@@ -856,10 +856,10 @@ function MoneyTooltip({ active, payload, label }: any) {
 
 function MiniStat({ label, value, tone }: { label: string; value: number; tone: 'positive' | 'negative' }) {
   return (
-    <div className="rounded-lg border bg-card p-1.5 sm:p-2 min-w-0 overflow-hidden">
-      <div className="text-[8px] sm:text-[10px] text-muted-foreground uppercase truncate">{label}</div>
+    <div className="rounded-md border bg-card px-1 py-1 sm:p-2 w-full max-w-full min-w-0 overflow-hidden">
+      <div className="text-[7px] sm:text-[10px] leading-none text-muted-foreground uppercase truncate">{label}</div>
       <div className={cn(
-        'text-[9px] sm:text-xs font-semibold tabular-nums mt-0.5 truncate leading-tight',
+        'text-[8px] sm:text-xs font-semibold tabular-nums mt-0.5 truncate leading-none',
         tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
       )}>
         {fmtBRL(value)}
