@@ -762,3 +762,119 @@ function Line2({ label, value, positive }: { label: string; value: number; posit
     </div>
   );
 }
+
+function YearlyKpis({
+  years,
+  loading,
+  totals,
+}: {
+  years: { ano: number; receita: number; despesa: number; liquido: number; imoveisAtivos: number }[];
+  loading: boolean;
+  totals: { receita: number; despesa: number; liquido: number; imoveisAtivos: number };
+}) {
+  // Default: expandir o ano mais recente
+  const [expanded, setExpanded] = useState<Set<number>>(() =>
+    years.length > 0 ? new Set([years[0].ano]) : new Set()
+  );
+
+  // Auto-expandir ano mais recente quando os dados carregam
+  useEffect(() => {
+    if (years.length > 0 && expanded.size === 0) {
+      setExpanded(new Set([years[0].ano]));
+    }
+  }, [years]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const toggle = (ano: number) => {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      if (next.has(ano)) next.delete(ano);
+      else next.add(ano);
+      return next;
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+        {[0, 1, 2, 3].map(i => (
+          <Card key={i}><CardContent className="p-4"><div className="h-12 animate-pulse bg-muted rounded" /></CardContent></Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (years.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-4 text-xs text-muted-foreground text-center">
+          Nenhum dado para o filtro selecionado.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {/* Total acumulado */}
+      <Card className="bg-muted/30 border-dashed">
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="text-[10px] sm:text-xs uppercase tracking-wide font-semibold text-muted-foreground">
+              Total acumulado ({years.length} {years.length === 1 ? 'ano' : 'anos'})
+            </div>
+            <div className="flex items-center gap-3 sm:gap-5 text-[11px] sm:text-xs flex-wrap">
+              <span className="text-emerald-600 dark:text-emerald-400 font-semibold tabular-nums">{fmtBRL(totals.receita)}</span>
+              <span className="text-red-600 dark:text-red-400 font-semibold tabular-nums">{fmtBRL(totals.despesa)}</span>
+              <span className={cn('font-bold tabular-nums', totals.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}>
+                {fmtBRL(totals.liquido)}
+              </span>
+              <span className="text-muted-foreground hidden sm:inline">• {totals.imoveisAtivos} imóveis</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Cards por ano */}
+      {years.map(y => {
+        const isOpen = expanded.has(y.ano);
+        return (
+          <Card key={y.ano} className="overflow-hidden">
+            <button
+              type="button"
+              onClick={() => toggle(y.ano)}
+              className="w-full text-left hover:bg-muted/40 active:bg-muted/60 transition-colors"
+              aria-expanded={isOpen}
+            >
+              <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4">
+                <ChevronDown
+                  className={cn(
+                    'h-4 w-4 text-muted-foreground transition-transform shrink-0',
+                    !isOpen && '-rotate-90'
+                  )}
+                />
+                <div className="text-base sm:text-lg font-display font-semibold tabular-nums shrink-0">
+                  {y.ano}
+                </div>
+                <div className="ml-auto flex items-center gap-3 sm:gap-5 text-[11px] sm:text-xs flex-wrap justify-end">
+                  <span className="hidden sm:inline text-muted-foreground">{y.imoveisAtivos} imóveis</span>
+                  <span className={cn('font-bold tabular-nums', y.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}>
+                    {fmtBRL(y.liquido)}
+                  </span>
+                </div>
+              </div>
+            </button>
+
+            {isOpen && (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 px-3 sm:px-4 pb-3 sm:pb-4 border-t pt-3">
+                <KpiCard label="Receita" value={y.receita} icon={TrendingUp} tone="positive" loading={false} />
+                <KpiCard label="Despesa" value={y.despesa} icon={TrendingDown} tone="negative" loading={false} />
+                <KpiCard label="Líquido" value={y.liquido} icon={Wallet} tone={y.liquido >= 0 ? 'positive' : 'negative'} loading={false} />
+                <KpiCard label="Imóveis ativos" value={y.imoveisAtivos} icon={HomeIcon} tone="neutral" loading={false} isCount />
+              </div>
+            )}
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
