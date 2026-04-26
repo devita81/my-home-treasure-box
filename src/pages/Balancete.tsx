@@ -559,7 +559,7 @@ export default function Balancete() {
       {/* Drill-down dialog */}
       <Dialog open={!!drilldown} onOpenChange={(o) => !o && setDrilldown(null)}>
         <DialogContent
-          className="max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 gap-0 w-[calc(100dvw-1.5rem)] max-w-[calc(100dvw-1.5rem)] sm:max-w-3xl"
+          className="max-h-[calc(100dvh-1.5rem)] md:max-h-[92vh] overflow-hidden md:overflow-y-auto p-0 gap-0 w-[calc(100dvw-1.5rem)] max-w-[calc(100dvw-1.5rem)] sm:max-w-3xl"
           style={{
             left: '0.75rem',
             right: '0.75rem',
@@ -568,10 +568,10 @@ export default function Balancete() {
             transform: 'none',
           }}
         >
-          <DialogHeader className="px-4 sm:px-6 pt-4 pb-3 sticky top-0 bg-background z-10 border-b">
+          <DialogHeader className="px-3 sm:px-6 pt-3 sm:pt-4 pb-2 sm:pb-3 sticky top-0 bg-background z-10 border-b">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <DialogTitle className="text-sm sm:text-base font-display truncate pr-8">
+                <DialogTitle className="text-[12px] sm:text-base font-display truncate pr-8 leading-tight">
                   {drilldown?.label}
                 </DialogTitle>
                 <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -587,7 +587,33 @@ export default function Balancete() {
             </div>
           </DialogHeader>
 
-          <div className="px-2.5 sm:px-6 py-3 sm:py-4 space-y-3 sm:space-y-4 min-w-0 overflow-hidden">
+          <div className="md:hidden px-2.5 py-2 space-y-2 min-w-0 overflow-hidden">
+            <div className="grid grid-cols-3 rounded-md border bg-card overflow-hidden">
+              <MobileTotalCell label="Receita" value={drilldownTotals.aluguel + drilldownTotals.reembolso} tone="positive" />
+              <MobileTotalCell
+                label="Despesa"
+                value={drilldownTotals.condominio + drilldownTotals.iptu + drilldownTotals.taxa + drilldownTotals.outras}
+                tone="negative"
+              />
+              <MobileTotalCell label="Líquido" value={drilldownTotals.liquido} tone={drilldownTotals.liquido >= 0 ? 'positive' : 'negative'} />
+            </div>
+
+            <div className="space-y-1">
+              {drilldownRows.map(r => (
+                <MobileHistoryRow
+                  key={r.id}
+                  row={r}
+                  onClick={() => {
+                    if (!drilldown) return;
+                    setMonthDrilldown({ key: drilldown.key, label: drilldown.label, ano: r.ano, mes: r.mes });
+                    setDrilldown(null);
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="hidden md:block px-2.5 sm:px-6 py-3 sm:py-4 space-y-3 sm:space-y-4 min-w-0 overflow-hidden">
             {/* Totals */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-2 w-full max-w-full min-w-0 overflow-hidden">
               <MiniStat label="Receita" value={drilldownTotals.aluguel + drilldownTotals.reembolso} tone="positive" />
