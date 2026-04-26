@@ -609,7 +609,8 @@ export default function Balancete() {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <DialogTitle className="text-[12px] sm:text-base font-display truncate pr-8 leading-tight">
-                  {drilldown?.label}
+                  <span className="md:hidden">{drilldown ? abbreviateStreet(drilldown.label) : ''}</span>
+                  <span className="hidden md:inline">{drilldown?.label}</span>
                 </DialogTitle>
                 <p className="text-[11px] text-muted-foreground mt-0.5">
                   Histórico mensal • {drilldownRows.length} registros
