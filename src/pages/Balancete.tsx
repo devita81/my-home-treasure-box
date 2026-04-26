@@ -404,18 +404,18 @@ export default function Balancete() {
           </TabsList>
 
           <TabsContent value="trend" className="mt-3">
-            <ChartCard title="Receita vs Despesa (linha)" subtitle="Evolução mensal — gire o celular para mais detalhes">
+            <ChartCard title="Receita vs Despesa (colunas)" subtitle="Evolução mensal — gire o celular para mais detalhes">
               <ResponsiveChart>
-                <LineChart data={timeSeries} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
+                <BarChart data={timeSeries} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
                   <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} width={42} />
                   <Tooltip content={<MoneyTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Line type="monotone" dataKey="receita" stroke={CATEGORY_COLORS.aluguel} strokeWidth={2} dot={{ r: 2 }} name="Receita" />
-                  <Line type="monotone" dataKey="despesa" stroke={CATEGORY_COLORS.condominio} strokeWidth={2} dot={{ r: 2 }} name="Despesa" />
-                  <Line type="monotone" dataKey="liquido" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ r: 3 }} name="Líquido" />
-                </LineChart>
+                  <Bar dataKey="receita" fill={CATEGORY_COLORS.aluguel} name="Receita" radius={[2, 2, 0, 0]} />
+                  <Bar dataKey="despesa" fill={CATEGORY_COLORS.condominio} name="Despesa" radius={[2, 2, 0, 0]} />
+                  <Bar dataKey="liquido" fill="hsl(var(--primary))" name="Líquido" radius={[2, 2, 0, 0]} />
+                </BarChart>
               </ResponsiveChart>
             </ChartCard>
           </TabsContent>
@@ -705,15 +705,15 @@ export default function Balancete() {
                   <div className="rounded-md border bg-card p-1.5">
                     <div className="h-[210px] w-full">
                       <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={drilldownSeries} margin={{ top: 6, right: 4, left: 0, bottom: 4 }}>
+                        <BarChart data={drilldownSeries} margin={{ top: 6, right: 4, left: 0, bottom: 4 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                           <XAxis dataKey="label" tick={{ fontSize: 9 }} interval="preserveStartEnd" />
                           <YAxis tick={{ fontSize: 9 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} width={32} />
                           <Tooltip content={<MoneyTooltip />} />
                           <Bar dataKey="receita" name="Receita" fill={CATEGORY_COLORS.aluguel} radius={[2, 2, 0, 0]} />
                           <Bar dataKey="despesa" name="Despesa" fill={CATEGORY_COLORS.condominio} radius={[2, 2, 0, 0]} />
-                          <Line type="monotone" dataKey="liquido" name="Líquido" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 2 }} />
-                        </ComposedChart>
+                          <Bar dataKey="liquido" name="Líquido" fill="hsl(var(--primary))" radius={[2, 2, 0, 0]} />
+                        </BarChart>
                       </ResponsiveContainer>
                     </div>
                     <div className="flex items-center justify-center gap-3 pt-1 text-[9px] text-muted-foreground">
@@ -770,7 +770,7 @@ export default function Balancete() {
             <div className="rounded-lg border bg-card p-2 min-w-0 overflow-hidden">
               <div className="h-[220px] sm:h-[260px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={drilldownSeries} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
+                  <BarChart data={drilldownSeries} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
                     <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} width={42} />
@@ -778,8 +778,8 @@ export default function Balancete() {
                     <Legend wrapperStyle={{ fontSize: 11 }} />
                     <Bar dataKey="receita" name="Receita" fill={CATEGORY_COLORS.aluguel} radius={[2, 2, 0, 0]} />
                     <Bar dataKey="despesa" name="Despesa" fill={CATEGORY_COLORS.condominio} radius={[2, 2, 0, 0]} />
-                    <Line type="monotone" dataKey="liquido" name="Líquido" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ r: 3 }} />
-                  </ComposedChart>
+                    <Bar dataKey="liquido" name="Líquido" fill="hsl(var(--primary))" radius={[2, 2, 0, 0]} />
+                  </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
