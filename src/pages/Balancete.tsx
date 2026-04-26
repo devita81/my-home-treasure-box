@@ -883,10 +883,12 @@ function PropertyAccordionRow({
   row,
   months,
   onOpenDrilldown,
+  onOpenMonthDrilldown,
 }: {
   row: { key: string; label: string; values: Record<string, number>; total: number; hasValues: boolean };
   months: string[];
   onOpenDrilldown: () => void;
+  onOpenMonthDrilldown: (ano: number, mes: number) => void;
 }) {
   const [open, setOpen] = useState(false);
 
