@@ -47,7 +47,7 @@ function buildGroups(list: Property[]): CidadeGroup[] {
     const g = map.get(key)!;
     const aluguel = p.valor_aluguel ?? 0;
     const condominio = p.valor_condominio ?? 0;
-    const iptuMes = (p.iptu_value ?? 0) / 12;
+    const iptuMes = p.iptu_value ?? 0;
     const taxaAdm = p.taxa_administracao ?? 0;
     // Alugados: receita líquida = aluguel - taxa adm
     // Não alugados: apenas custos (condomínio + IPTU/mês) como valor negativo
@@ -378,7 +378,7 @@ export function CustosReceitasStats() {
                 </thead>
                 <tbody>
                   {dialog.properties.map((p) => {
-                    const iptuMes = (p.iptu_value ?? 0) / 12;
+                    const iptuMes = p.iptu_value ?? 0;
                     const taxaAdm = p.taxa_administracao ?? 0;
                     const aluguel = p.valor_aluguel ?? 0;
                     const condominio = p.valor_condominio ?? 0;
@@ -410,12 +410,12 @@ export function CustosReceitasStats() {
                   {dialog.properties.length > 1 && (() => {
                     const totAluguel = dialog.properties.reduce((s, p) => s + (p.valor_aluguel ?? 0), 0);
                     const totCond = dialog.properties.reduce((s, p) => s + (p.valor_condominio ?? 0), 0);
-                    const totIptu = dialog.properties.reduce((s, p) => s + ((p.iptu_value ?? 0) / 12), 0);
+                    const totIptu = dialog.properties.reduce((s, p) => s + (p.iptu_value ?? 0), 0);
                     const totAdm = dialog.properties.reduce((s, p) => s + (p.taxa_administracao ?? 0), 0);
                     const totLiq = dialog.properties.reduce((s, p) => {
                       const al = p.valor_aluguel ?? 0;
                       const cd = p.valor_condominio ?? 0;
-                      const ip = (p.iptu_value ?? 0) / 12;
+                      const ip = p.iptu_value ?? 0;
                       const tx = p.taxa_administracao ?? 0;
                       return s + (p.alugado ? (al - tx) : -(cd + ip));
                     }, 0);

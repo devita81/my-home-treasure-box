@@ -50,7 +50,7 @@ function buildPropertiesContext(properties: Property[]): string {
   Metragem: ${p.metragem ?? 0}m² | Área total: ${p.area_total ?? 0}m² | Área comum: ${p.area_comum ?? 0}m²
   Valor mercado: ${fmt(p.market_value)} | Valor declarado: ${fmt(p.declared_value)}
   Alugado: ${p.alugado ? 'Sim' : 'Não'} | Aluguel: ${fmt(p.valor_aluguel)} | Inquilino: ${p.inquilino || 'N/A'}
-  Condomínio: ${fmt(p.valor_condominio)} | IPTU anual: ${fmt(p.iptu_value)} | IPTU pago: ${p.iptu_pago ? 'Sim' : 'Não'}
+  Condomínio: ${fmt(p.valor_condominio)} | IPTU mensal: ${fmt(p.iptu_value)} | IPTU pago: ${p.iptu_pago ? 'Sim' : 'Não'}
   Taxa Adm: ${fmt(p.taxa_administracao)}
   Proprietário papel: ${p.proprietario_papel || 'N/A'}
   Proprietário matrícula: ${p.proprietario_matricula || 'N/A'} (${p.percentual_proprietario_matricula ?? 100}%)
