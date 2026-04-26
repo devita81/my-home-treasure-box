@@ -8,8 +8,29 @@ import ReactMarkdown from 'react-markdown';
 import { useProperties } from '@/contexts/PropertyContext';
 import { Property } from '@/types/property';
 import { streamChat } from '@/lib/ai-stream';
+import { supabase } from '@/integrations/supabase/client';
 
 type Message = { role: 'user' | 'assistant'; content: string };
+
+type BalanceteLite = {
+  property_id: string | null;
+  rua: string | null;
+  numero: string | null;
+  apartamento: string | null;
+  ano: number;
+  mes: number;
+  aluguel: number | null;
+  condominio: number | null;
+  iptu: number | null;
+  taxa_administracao: number | null;
+  outras_despesas: number | null;
+  reembolso_condominio: number | null;
+  reembolso_iptu: number | null;
+  reembolso_outras_despesas: number | null;
+  liquido: number | null;
+  locatario: string | null;
+  alugado: boolean | null;
+};
 
 interface GlobalAIChatDialogProps {
   open: boolean;
