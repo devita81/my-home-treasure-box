@@ -898,7 +898,7 @@ function PropertyAccordionRow({
     <div className="rounded-lg border bg-card overflow-hidden">
       <button
         type="button"
-        onClick={() => setOpen(o => !o)}
+        onClick={() => { setOpen(o => !o); onOpenDrilldown(); }}
         className="w-full flex items-center gap-2 p-3 text-left hover:bg-muted/40 active:bg-muted/60 transition-colors"
         aria-expanded={open}
       >
