@@ -355,7 +355,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="iptu_value">Valor IPTU (anual)</Label>
+              <Label htmlFor="iptu_value">Valor IPTU (mensal)</Label>
               <CurrencyInput
                 id="iptu_value"
                 value={formData.iptu_value}

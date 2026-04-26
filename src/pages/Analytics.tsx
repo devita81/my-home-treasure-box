@@ -1265,7 +1265,7 @@ const Analytics = () => {
                         {dialogState.mode === 'financial' ? (() => {
                           const aluguel = property.valor_aluguel || 0;
                           const cond = property.valor_condominio || 0;
-                          const iptuMes = (property.iptu_value || 0) / 12;
+                          const iptuMes = property.iptu_value || 0;
                           const txAdm = property.taxa_administracao || 0;
                           const total = property.alugado
                             ? aluguel - txAdm
@@ -1319,7 +1319,7 @@ const Analytics = () => {
                           <SortableHeader field="alugado" label="Status" />
                           <SortableHeader field="valor_aluguel" label="Aluguel" />
                           <SortableHeader field="valor_condominio" label="Cond." />
-                          <SortableHeader field="iptu_value" label="IPTU/mês" />
+                          <SortableHeader field="iptu_value" label="IPTU" />
                           <th className="text-right py-2 px-3 text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap">Tx Adm</th>
                           <th className="text-right py-2 px-3 text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap">Total</th>
                         </tr>
@@ -1351,12 +1351,12 @@ const Analytics = () => {
                             </td>
                             <td className="text-right py-2 px-3 text-[11px] text-slate-900 font-mono tabular-nums font-semibold whitespace-nowrap">{formatCurrency(property.valor_aluguel || 0)}</td>
                             <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums whitespace-nowrap">-{formatCurrency(property.valor_condominio || 0)}</td>
-                            <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums whitespace-nowrap">-{formatCurrency((property.iptu_value || 0) / 12)}</td>
+                            <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums whitespace-nowrap">-{formatCurrency(property.iptu_value || 0)}</td>
                             <td className="text-right py-2 px-3 text-[11px] text-red-600 font-mono tabular-nums whitespace-nowrap">-{formatCurrency(property.taxa_administracao || 0)}</td>
                             {(() => {
                               const aluguel = property.valor_aluguel || 0;
                               const cond = property.valor_condominio || 0;
-                              const iptuMes = (property.iptu_value || 0) / 12;
+                              const iptuMes = property.iptu_value || 0;
                               const txAdm = property.taxa_administracao || 0;
                               const rowTotal = property.alugado
                                 ? aluguel - txAdm
@@ -1380,12 +1380,12 @@ const Analytics = () => {
                       {sortedDialogProperties.length > 0 && (() => {
                         const totalAluguel = sortedDialogProperties.reduce((acc, p) => acc + (p.valor_aluguel || 0), 0);
                         const totalCond = sortedDialogProperties.reduce((acc, p) => acc + (p.valor_condominio || 0), 0);
-                        const totalIptu = sortedDialogProperties.reduce((acc, p) => acc + ((p.iptu_value || 0) / 12), 0);
+                        const totalIptu = sortedDialogProperties.reduce((acc, p) => acc + (p.iptu_value || 0), 0);
                         const totalTxAdm = sortedDialogProperties.reduce((acc, p) => acc + (p.taxa_administracao || 0), 0);
                         const totalGeral = sortedDialogProperties.reduce((acc, p) => {
                           const aluguel = p.valor_aluguel || 0;
                           const cond = p.valor_condominio || 0;
-                          const iptuMes = (p.iptu_value || 0) / 12;
+                          const iptuMes = p.iptu_value || 0;
                           const txAdm = p.taxa_administracao || 0;
                           return acc + (p.alugado ? aluguel - txAdm : -(cond + iptuMes + txAdm));
                         }, 0);

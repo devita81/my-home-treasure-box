@@ -338,7 +338,7 @@ async function generatePropertyPDF(property: Property): Promise<jsPDF> {
 
   // --- FINANCIAL TABLE (IPTU + Condomínio only) ---
   const finData: string[][] = [];
-  if (property.iptu_value) finData.push(['IPTU Anual', formatCurrency(property.iptu_value)]);
+  if (property.iptu_value) finData.push(['IPTU Mensal', formatCurrency(property.iptu_value)]);
   if (property.valor_condominio) finData.push(['Condomínio Mensal', formatCurrency(property.valor_condominio)]);
   if (property.valor_aluguel) finData.push(['Aluguel Mensal', formatCurrency(property.valor_aluguel)]);
   if (property.taxa_administracao) finData.push(['Taxa de Administração', formatCurrency(property.taxa_administracao)]);
@@ -479,7 +479,7 @@ function ReportPreview({ property }: { property: Property }) {
   if (property.ano_construcao) charRows.push(['Ano de Construção', String(property.ano_construcao)]);
 
   const finRows: [string, string][] = [];
-  if (property.iptu_value) finRows.push(['IPTU Anual', formatCurrency(property.iptu_value)]);
+  if (property.iptu_value) finRows.push(['IPTU Mensal', formatCurrency(property.iptu_value)]);
   if (property.valor_condominio) finRows.push(['Condomínio Mensal', formatCurrency(property.valor_condominio)]);
   if (property.valor_aluguel) finRows.push(['Aluguel Mensal', formatCurrency(property.valor_aluguel)]);
   if (property.taxa_administracao) finRows.push(['Taxa de Administração', formatCurrency(property.taxa_administracao)]);

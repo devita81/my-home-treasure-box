@@ -766,7 +766,7 @@ const PropertyDetails = () => {
               </CardHeader>
               <CardContent className="space-y-1.5">
                 <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
-                  <span className="text-[11px] text-muted-foreground">IPTU (anual)</span>
+                  <span className="text-[11px] text-muted-foreground">IPTU (mensal)</span>
                   <div className="flex items-center gap-2">
                     <span className="font-normal text-[11px]">{formatCurrency(property.iptu_value) || '—'}</span>
                     {property.iptu_pago ? (
