@@ -587,8 +587,9 @@ export default function Balancete() {
             </div>
           </DialogHeader>
 
-          <div className="md:hidden px-2.5 py-2 space-y-2 min-w-0 overflow-hidden">
-            <div className="grid grid-cols-3 rounded-md border bg-card overflow-hidden">
+          <div className="md:hidden min-w-0 overflow-hidden flex flex-col" style={{ maxHeight: 'calc(100dvh - 6rem)' }}>
+            {/* Totais sempre visíveis */}
+            <div className="grid grid-cols-3 border-b bg-card shrink-0">
               <MobileTotalCell label="Receita" value={drilldownTotals.aluguel + drilldownTotals.reembolso} tone="positive" />
               <MobileTotalCell
                 label="Despesa"
@@ -598,19 +599,66 @@ export default function Balancete() {
               <MobileTotalCell label="Líquido" value={drilldownTotals.liquido} tone={drilldownTotals.liquido >= 0 ? 'positive' : 'negative'} />
             </div>
 
-            <div className="space-y-1">
-              {drilldownRows.map(r => (
-                <MobileHistoryRow
-                  key={r.id}
-                  row={r}
-                  onClick={() => {
-                    if (!drilldown) return;
-                    setMonthDrilldown({ key: drilldown.key, label: drilldown.label, ano: r.ano, mes: r.mes });
-                    setDrilldown(null);
-                  }}
-                />
-              ))}
-            </div>
+            <Tabs defaultValue="grafico" className="flex flex-col min-h-0 flex-1">
+              <TabsList className="grid grid-cols-4 h-8 mx-2 mt-2 shrink-0">
+                <TabsTrigger value="grafico" className="text-[10px] px-1">Gráfico</TabsTrigger>
+                <TabsTrigger value="anos" className="text-[10px] px-1">Anos</TabsTrigger>
+                <TabsTrigger value="categorias" className="text-[10px] px-1">Categ.</TabsTrigger>
+                <TabsTrigger value="meses" className="text-[10px] px-1">Meses</TabsTrigger>
+              </TabsList>
+
+              <div className="flex-1 min-h-0 overflow-y-auto px-2.5 pb-3 pt-2">
+                <TabsContent value="grafico" className="mt-0 space-y-2">
+                  <div className="rounded-md border bg-card p-1.5">
+                    <div className="h-[210px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart data={drilldownSeries} margin={{ top: 6, right: 4, left: 0, bottom: 4 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="label" tick={{ fontSize: 9 }} interval="preserveStartEnd" />
+                          <YAxis tick={{ fontSize: 9 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} width={32} />
+                          <Tooltip content={<MoneyTooltip />} />
+                          <Bar dataKey="receita" name="Receita" fill={CATEGORY_COLORS.aluguel} radius={[2, 2, 0, 0]} />
+                          <Bar dataKey="despesa" name="Despesa" fill={CATEGORY_COLORS.condominio} radius={[2, 2, 0, 0]} />
+                          <Line type="monotone" dataKey="liquido" name="Líquido" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 2 }} />
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="flex items-center justify-center gap-3 pt-1 text-[9px] text-muted-foreground">
+                      <LegendDot color={CATEGORY_COLORS.aluguel} label="Receita" />
+                      <LegendDot color={CATEGORY_COLORS.condominio} label="Despesa" />
+                      <LegendDot color="hsl(var(--primary))" label="Líquido" />
+                    </div>
+                  </div>
+                  <div className="rounded-md border bg-card p-2 text-[10px] space-y-1">
+                    <div className="font-semibold text-[10px] uppercase tracking-wide text-muted-foreground">Médias mensais</div>
+                    <AvgRow label="Receita média" value={drilldownRows.length ? (drilldownTotals.aluguel + drilldownTotals.reembolso) / drilldownRows.length : 0} tone="positive" />
+                    <AvgRow label="Despesa média" value={drilldownRows.length ? (drilldownTotals.condominio + drilldownTotals.iptu + drilldownTotals.taxa + drilldownTotals.outras) / drilldownRows.length : 0} tone="negative" />
+                    <AvgRow label="Líquido médio" value={drilldownRows.length ? drilldownTotals.liquido / drilldownRows.length : 0} tone={drilldownTotals.liquido >= 0 ? 'positive' : 'negative'} bold />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="anos" className="mt-0">
+                  <YearAggTable rows={drilldownRows} />
+                </TabsContent>
+
+                <TabsContent value="categorias" className="mt-0">
+                  <CategoryAggTable totals={drilldownTotals} />
+                </TabsContent>
+
+                <TabsContent value="meses" className="mt-0 space-y-1">
+                  {drilldownRows.map(r => (
+                    <MobileHistoryRow
+                      key={r.id}
+                      row={r}
+                      onClick={() => {
+                        if (!drilldown) return;
+                        setMonthDrilldown({ key: drilldown.key, label: drilldown.label, ano: r.ano, mes: r.mes });
+                      }}
+                    />
+                  ))}
+                </TabsContent>
+              </div>
+            </Tabs>
           </div>
 
           <div className="hidden md:block px-2.5 sm:px-6 py-3 sm:py-4 space-y-3 sm:space-y-4 min-w-0 overflow-hidden">
@@ -869,6 +917,99 @@ function MobileAmount({ label, value, tone, strong }: { label: string; value: nu
       )}>
         {fmtBRL(value)}
       </div>
+    </div>
+  );
+}
+
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1">
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} />
+      {label}
+    </span>
+  );
+}
+
+function AvgRow({ label, value, tone, bold }: { label: string; value: number; tone: 'positive' | 'negative'; bold?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-2 min-w-0">
+      <span className={cn('text-muted-foreground truncate', bold && 'font-semibold text-foreground')}>{label}</span>
+      <span className={cn(
+        'tabular-nums whitespace-nowrap shrink-0',
+        bold ? 'font-bold' : 'font-semibold',
+        tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+      )}>
+        {fmtBRL(value)}
+      </span>
+    </div>
+  );
+}
+
+function YearAggTable({ rows }: { rows: BalanceteRow[] }) {
+  const byYear = new Map<number, { receita: number; despesa: number; liquido: number; meses: number }>();
+  rows.forEach(r => {
+    const cur = byYear.get(r.ano) ?? { receita: 0, despesa: 0, liquido: 0, meses: 0 };
+    cur.receita += Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
+    cur.despesa += Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas);
+    cur.liquido += r.liquido;
+    cur.meses += 1;
+    byYear.set(r.ano, cur);
+  });
+  const years = Array.from(byYear.entries()).sort((a, b) => a[0] - b[0]);
+  if (!years.length) return <p className="text-[10px] text-muted-foreground text-center py-4">Sem dados.</p>;
+  return (
+    <div className="rounded-md border bg-card overflow-hidden">
+      <div className="grid grid-cols-[2.6rem_1fr_1fr_1fr] gap-1 px-1.5 py-1 bg-muted/40 text-[8px] uppercase tracking-wide text-muted-foreground font-semibold">
+        <span>Ano</span>
+        <span className="text-right">Rec.</span>
+        <span className="text-right">Desp.</span>
+        <span className="text-right">Líq.</span>
+      </div>
+      {years.map(([ano, agg], idx) => (
+        <div key={ano} className={cn('grid grid-cols-[2.6rem_1fr_1fr_1fr] gap-1 px-1.5 py-1 items-center text-[10px] tabular-nums', idx > 0 && 'border-t')}>
+          <span className="font-semibold">{ano}<span className="text-muted-foreground text-[8px] ml-0.5">·{agg.meses}m</span></span>
+          <span className="text-right text-emerald-600 dark:text-emerald-400 truncate">{fmtBRL(agg.receita)}</span>
+          <span className="text-right text-red-600 dark:text-red-400 truncate">{fmtBRL(agg.despesa)}</span>
+          <span className={cn('text-right font-semibold truncate', agg.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}>{fmtBRL(agg.liquido)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CategoryAggTable({ totals }: { totals: { aluguel: number; condominio: number; iptu: number; taxa: number; outras: number; reembolso: number; liquido: number } }) {
+  const items = ([
+    { label: 'Aluguel', value: totals.aluguel, tone: 'positive' as const },
+    { label: 'Reembolsos', value: totals.reembolso, tone: 'positive' as const },
+    { label: 'Condomínio', value: totals.condominio, tone: 'negative' as const },
+    { label: 'IPTU', value: totals.iptu, tone: 'negative' as const },
+    { label: 'Taxa adm.', value: totals.taxa, tone: 'negative' as const },
+    { label: 'Outras desp.', value: totals.outras, tone: 'negative' as const },
+  ]).filter(i => i.value !== 0);
+  if (!items.length) return <p className="text-[10px] text-muted-foreground text-center py-4">Sem dados.</p>;
+  const totalAbs = items.reduce((s, i) => s + Math.abs(i.value), 0) || 1;
+  return (
+    <div className="rounded-md border bg-card overflow-hidden">
+      {items.map((i, idx) => {
+        const pct = (Math.abs(i.value) / totalAbs) * 100;
+        return (
+          <div key={i.label} className={cn('px-2 py-1.5 min-w-0', idx > 0 && 'border-t')}>
+            <div className="flex items-center justify-between gap-2 min-w-0">
+              <span className="text-[10px] text-muted-foreground truncate">{i.label}</span>
+              <span className={cn(
+                'text-[10px] font-semibold tabular-nums whitespace-nowrap shrink-0',
+                i.tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+              )}>{fmtBRL(i.value)}</span>
+            </div>
+            <div className="mt-1 h-1 rounded-full bg-muted overflow-hidden">
+              <div
+                className={cn('h-full', i.tone === 'positive' ? 'bg-emerald-500' : 'bg-red-500')}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
