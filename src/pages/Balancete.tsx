@@ -605,24 +605,39 @@ export default function Balancete() {
             transform: 'none',
           }}
         >
-          <DialogHeader className="px-3 sm:px-6 pt-3 sm:pt-4 pb-2 sm:pb-3 sticky top-0 bg-background z-10 border-b">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <DialogTitle className="text-[12px] sm:text-base font-display truncate pr-8 leading-tight">
-                  <span className="md:hidden">{drilldown ? abbreviateStreet(drilldown.label) : ''}</span>
-                  <span className="hidden md:inline">{drilldown?.label}</span>
-                </DialogTitle>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  Histórico mensal • {drilldownRows.length} registros
-                </p>
-              </div>
-              <DialogClose
-                className="rounded-full h-8 w-8 inline-flex items-center justify-center hover:bg-muted shrink-0 transition-colors"
-                aria-label="Fechar"
-              >
-                <X className="h-4 w-4" />
-              </DialogClose>
-            </div>
+          <DialogHeader className="px-3 sm:px-6 pt-3 sm:pt-4 pb-2.5 sm:pb-3 sticky top-0 bg-gradient-to-b from-background to-background/95 backdrop-blur z-10 border-b">
+            <DialogTitle className="sr-only">{drilldown?.label}</DialogTitle>
+            {drilldown && (() => {
+              const parts = drilldown.label.split('•').map(s => s.trim());
+              const cidade = parts.length > 1 ? parts[0] : '';
+              const enderecoFull = parts.length > 1 ? parts.slice(1).join(' • ') : drilldown.label;
+              const endereco = abbreviateStreet(enderecoFull);
+              return (
+                <div className="min-w-0 pr-8">
+                  {cidade && (
+                    <div className="flex items-center gap-1.5 mb-1 min-w-0">
+                      <span className="h-1 w-1 rounded-full bg-primary shrink-0" />
+                      <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.12em] font-semibold text-muted-foreground truncate">
+                        {cidade}
+                      </span>
+                    </div>
+                  )}
+                  <div className="text-[13px] sm:text-base font-display font-semibold leading-tight truncate text-foreground">
+                    {endereco}
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-1 text-[10px] text-muted-foreground">
+                    <span className="inline-flex items-center gap-1">
+                      <span className="h-1 w-1 rounded-full bg-muted-foreground/60" />
+                      Histórico mensal
+                    </span>
+                    <span className="text-muted-foreground/40">·</span>
+                    <span className="font-medium text-foreground/70 tabular-nums">
+                      {drilldownRows.length} {drilldownRows.length === 1 ? 'registro' : 'registros'}
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
           </DialogHeader>
 
           <div className="md:hidden min-w-0 overflow-hidden flex flex-col" style={{ maxHeight: 'calc(100dvh - 6rem)' }}>
