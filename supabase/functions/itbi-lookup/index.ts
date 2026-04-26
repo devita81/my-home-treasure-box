@@ -482,7 +482,7 @@ serve(async (req) => {
     //    Se o alvo é residencial, descarta candidatos cujo complemento indica garagem/depósito.
     const tipoAlvo = (property.tipo_imovel ?? "apartamento").toLowerCase();
     const ehResidencial = !["garagem", "vaga", "comercial", "terreno"].some((t) => tipoAlvo.includes(t));
-    const PADROES_NAO_RESIDENCIAL = /\b(GARAGEM|GAR|VAGA|BOX|ESTACIONAMENTO|DEP[OÓ]SITO|DEP|HOBBY|CUB[IÍ]CULO)\b/;
+    const PADROES_NAO_RESIDENCIAL = /\b(GARAGEM|GAR|VAGA|VAGAS|VG|VGS|BOX|ESTACIONAMENTO|DEP[OÓ]SITO|DEP|HOBBY|CUB[IÍ]CULO|JIRAU)\b/;
 
     const aptoAlvo = (property.apartamento ?? "").toString().replace(/[^0-9]/g, "");
 
