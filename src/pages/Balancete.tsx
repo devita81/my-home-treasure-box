@@ -515,37 +515,20 @@ export default function Balancete() {
           </CardContent>
         </Card>
 
-        {/* Mobile cards */}
+        {/* Mobile cards — accordion estilo "rentabilidade histórica" */}
         <Card className="md:hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Imóveis</CardTitle>
-            <p className="text-xs text-muted-foreground">Toque para ver o histórico</p>
+            <p className="text-xs text-muted-foreground">Toque para expandir os meses • toque em um mês para ver detalhes</p>
           </CardHeader>
           <CardContent className="space-y-2 px-3 pb-3">
             {pivot.rows.map(r => (
-              <button
+              <PropertyAccordionRow
                 key={r.key}
-                onClick={() => setDrilldown({ key: r.key, label: r.label })}
-                className="w-full flex items-center justify-between gap-2 p-3 rounded-lg border bg-card hover:bg-muted/50 active:scale-[0.99] transition-all text-left"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs font-medium truncate">{r.label}</div>
-                  <div className="text-[10px] text-muted-foreground mt-0.5">
-                    {Object.values(r.values).filter(v => v !== 0).length} meses
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <div
-                    className={cn(
-                      'text-xs font-semibold tabular-nums',
-                      r.total > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
-                    )}
-                  >
-                    {fmtBRL(r.total)}
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </button>
+                row={r}
+                months={pivot.months}
+                onOpenDrilldown={() => setDrilldown({ key: r.key, label: r.label })}
+              />
             ))}
             {/* Subtotal geral mobile */}
             <div className="flex items-center justify-between gap-2 p-3 rounded-lg border-2 bg-muted/40 mt-2">
@@ -875,6 +858,144 @@ function YearlyKpis({
           </Card>
         );
       })}
+    </div>
+  );
+}
+
+/* ---------- PropertyAccordionRow ----------
+   Cards expansíveis estilo "rentabilidade histórica":
+   - Header: cidade • endereço, total acumulado, # de meses
+   - Expand: grade 3 colunas com líquido por mês; CTA abre drill-down
+*/
+function PropertyAccordionRow({
+  row,
+  months,
+  onOpenDrilldown,
+}: {
+  row: { key: string; label: string; values: Record<string, number>; total: number; hasValues: boolean };
+  months: string[];
+  onOpenDrilldown: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const monthsCount = Object.values(row.values).filter(v => v !== 0).length;
+
+  const byYear = useMemo(() => {
+    const map = new Map<number, { mes: number; key: string }[]>();
+    months.forEach(mk => {
+      const [yStr, mStr] = mk.split('-');
+      const y = Number(yStr);
+      const m = Number(mStr);
+      if (!map.has(y)) map.set(y, []);
+      map.get(y)!.push({ mes: m, key: mk });
+    });
+    return Array.from(map.entries())
+      .sort((a, b) => b[0] - a[0])
+      .map(([ano, list]) => ({ ano, meses: list.sort((a, b) => a.mes - b.mes) }));
+  }, [months]);
+
+  return (
+    <div className="rounded-lg border bg-card overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center gap-2 p-3 text-left hover:bg-muted/40 active:bg-muted/60 transition-colors"
+        aria-expanded={open}
+      >
+        <ChevronDown
+          className={cn(
+            'h-4 w-4 text-muted-foreground transition-transform shrink-0',
+            !open && '-rotate-90'
+          )}
+        />
+        <div className="min-w-0 flex-1">
+          <div className="text-xs font-medium truncate">{row.label}</div>
+          <div className="text-[10px] text-muted-foreground mt-0.5">
+            {monthsCount} {monthsCount === 1 ? 'mês' : 'meses'}
+          </div>
+        </div>
+        <div
+          className={cn(
+            'text-xs font-semibold tabular-nums shrink-0',
+            row.total > 0
+              ? 'text-emerald-600 dark:text-emerald-400'
+              : row.total < 0
+              ? 'text-red-600 dark:text-red-400'
+              : 'text-muted-foreground'
+          )}
+        >
+          {fmtBRL(row.total)}
+        </div>
+      </button>
+
+      {open && (
+        <div className="border-t bg-muted/20 px-2 py-2 space-y-2">
+          {byYear.map(yearBlock => {
+            const yearTotal = yearBlock.meses.reduce((s, m) => s + (row.values[m.key] || 0), 0);
+            return (
+              <div key={yearBlock.ano} className="rounded-md bg-background border">
+                <div className="flex items-center justify-between px-2.5 py-1.5 border-b">
+                  <div className="text-xs font-semibold tabular-nums">{yearBlock.ano}</div>
+                  <div
+                    className={cn(
+                      'text-[11px] font-semibold tabular-nums',
+                      yearTotal > 0
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : yearTotal < 0
+                        ? 'text-red-600 dark:text-red-400'
+                        : 'text-muted-foreground'
+                    )}
+                  >
+                    {yearTotal === 0 ? '—' : fmtBRL(yearTotal)}
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-1 p-1.5">
+                  {Array.from({ length: 12 }).map((_, i) => {
+                    const mes = i + 1;
+                    const mk = `${yearBlock.ano}-${String(mes).padStart(2, '0')}`;
+                    const v = row.values[mk] ?? null;
+                    const empty = v === null || v === 0;
+                    return (
+                      <div
+                        key={mk}
+                        className={cn(
+                          'rounded px-2 py-1.5 flex flex-col items-start justify-center min-h-[44px]',
+                          empty ? 'bg-muted/40' : 'bg-card border'
+                        )}
+                      >
+                        <div className="text-[9px] uppercase tracking-wide text-muted-foreground">
+                          {MONTHS[i]}
+                        </div>
+                        <div
+                          className={cn(
+                            'text-[11px] font-semibold tabular-nums leading-tight mt-0.5',
+                            empty
+                              ? 'text-muted-foreground/50'
+                              : v! > 0
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-red-600 dark:text-red-400'
+                          )}
+                        >
+                          {empty ? '—' : fmtBRL(v!)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+
+          <button
+            type="button"
+            onClick={onOpenDrilldown}
+            className="w-full flex items-center justify-center gap-1 py-2 rounded-md text-[11px] font-medium text-primary hover:bg-primary/5 active:bg-primary/10 transition-colors"
+          >
+            Ver detalhes do imóvel
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
