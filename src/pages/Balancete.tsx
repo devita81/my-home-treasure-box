@@ -304,19 +304,16 @@ export default function Balancete() {
           </div>
         </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-          <KpiCard label="Receita" value={kpis.receita} icon={TrendingUp} tone="positive" loading={loading} />
-          <KpiCard label="Despesa" value={kpis.despesa} icon={TrendingDown} tone="negative" loading={loading} />
-          <KpiCard label="Líquido" value={kpis.liquido} icon={Wallet} tone={kpis.liquido >= 0 ? 'positive' : 'negative'} loading={loading} />
-          <KpiCard label="Imóveis ativos" value={kpis.imoveisAtivos} icon={HomeIcon} tone="neutral" loading={loading} isCount />
-        </div>
+        {/* KPIs por ano (expansíveis) */}
+        <YearlyKpis years={kpisByYear} loading={loading} totals={kpis} />
 
         {/* Charts */}
         <Tabs defaultValue="trend" className="w-full">
-          <TabsList className="grid grid-cols-3 w-full sm:w-auto sm:inline-flex h-9">
+          <TabsList className="grid grid-cols-5 w-full sm:w-auto sm:inline-flex h-9">
             <TabsTrigger value="trend" className="text-xs">Tendência</TabsTrigger>
             <TabsTrigger value="bars" className="text-xs">Mensal</TabsTrigger>
+            <TabsTrigger value="stacked" className="text-xs">Empilhado</TabsTrigger>
+            <TabsTrigger value="area" className="text-xs">Área</TabsTrigger>
             <TabsTrigger value="categories" className="text-xs">Categorias</TabsTrigger>
           </TabsList>
 
