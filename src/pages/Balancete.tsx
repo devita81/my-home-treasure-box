@@ -916,6 +916,85 @@ export default function Balancete() {
                     <AvgRow label="Despesa média" value={drilldownRows.length ? (drilldownTotals.condominio + drilldownTotals.iptu + drilldownTotals.taxa + drilldownTotals.outras) / drilldownRows.length : 0} tone="negative" />
                     <AvgRow label="Líquido médio" value={drilldownRows.length ? drilldownTotals.liquido / drilldownRows.length : 0} tone={drilldownTotals.liquido >= 0 ? 'positive' : 'negative'} bold />
                   </div>
+
+                  {/* Detalhamento do último mês */}
+                  {drilldownRows.length > 0 && (() => {
+                    const last = drilldownRows[drilldownRows.length - 1];
+                    const receita =
+                      Math.max(0, last.aluguel) +
+                      Math.max(0, last.reembolso_condominio) +
+                      Math.max(0, last.reembolso_iptu) +
+                      Math.max(0, last.reembolso_outras_despesas);
+                    const despesa =
+                      Math.min(0, last.condominio) +
+                      Math.min(0, last.iptu) +
+                      Math.min(0, last.taxa_administracao) +
+                      Math.min(0, last.outras_despesas);
+                    const items: Array<{ label: string; value: number; tone: 'positive' | 'negative' }> = [];
+                    if (last.aluguel) items.push({ label: 'Aluguel', value: last.aluguel, tone: 'positive' });
+                    if (last.reembolso_condominio) items.push({ label: 'Reemb. condomínio', value: last.reembolso_condominio, tone: 'positive' });
+                    if (last.reembolso_iptu) items.push({ label: 'Reemb. IPTU', value: last.reembolso_iptu, tone: 'positive' });
+                    if (last.reembolso_outras_despesas) items.push({ label: 'Reemb. outras', value: last.reembolso_outras_despesas, tone: 'positive' });
+                    if (last.condominio) items.push({ label: 'Condomínio', value: last.condominio, tone: 'negative' });
+                    if (last.iptu) items.push({ label: 'IPTU', value: last.iptu, tone: 'negative' });
+                    if (last.taxa_administracao) items.push({ label: 'Taxa adm.', value: last.taxa_administracao, tone: 'negative' });
+                    if (last.outras_despesas) items.push({ label: 'Outras despesas', value: last.outras_despesas, tone: 'negative' });
+                    return (
+                      <div className="rounded-md border bg-card p-2 text-[10px] space-y-1">
+                        <div className="flex items-center justify-between">
+                          <div className="font-semibold text-[10px] uppercase tracking-wide text-muted-foreground">
+                            Último mês • {MONTHS[last.mes - 1]}/{String(last.ano).slice(2)}
+                          </div>
+                          {last.alugado && (
+                            <Badge variant="secondary" className="h-4 px-1.5 text-[9px]">Alugado</Badge>
+                          )}
+                        </div>
+                        {last.locatario && (
+                          <div className="text-[10px] text-muted-foreground truncate">
+                            Locatário: {last.locatario}
+                          </div>
+                        )}
+                        <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 pt-0.5">
+                          {items.map((it, i) => (
+                            <div key={i} className="flex items-center justify-between gap-1">
+                              <span className="text-muted-foreground truncate">{it.label}</span>
+                              <span
+                                className={cn(
+                                  'tabular-nums font-medium whitespace-nowrap',
+                                  it.tone === 'positive'
+                                    ? 'text-emerald-600 dark:text-emerald-400'
+                                    : 'text-red-600 dark:text-red-400'
+                                )}
+                              >
+                                {fmtBRLFull(it.value)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex items-center justify-between pt-1 mt-1 border-t">
+                          <span className="text-[10px] text-muted-foreground">Receita</span>
+                          <span className="tabular-nums font-semibold text-emerald-600 dark:text-emerald-400">{fmtBRLFull(receita)}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-muted-foreground">Despesa</span>
+                          <span className="tabular-nums font-semibold text-red-600 dark:text-red-400">{fmtBRLFull(despesa)}</span>
+                        </div>
+                        <div className="flex items-center justify-between pt-0.5 border-t">
+                          <span className="text-[10px] font-semibold">Líquido</span>
+                          <span
+                            className={cn(
+                              'tabular-nums font-bold',
+                              last.liquido >= 0
+                                ? 'text-emerald-600 dark:text-emerald-400'
+                                : 'text-red-600 dark:text-red-400'
+                            )}
+                          >
+                            {fmtBRLFull(last.liquido)}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </TabsContent>
 
                 <TabsContent value="anos" className="mt-0">
