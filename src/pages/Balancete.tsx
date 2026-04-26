@@ -219,14 +219,15 @@ export default function Balancete() {
 
   // Time series — receitas vs despesas por mês
   const timeSeries = useMemo(() => {
-    const map = new Map<string, { key: string; ano: number; mes: number; receita: number; despesa: number; liquido: number }>();
+    const map = new Map<string, { key: string; ano: number; mes: number; receita: number; despesa: number; liquido: number; aluguel: number }>();
     filtered.forEach(r => {
       const key = `${r.ano}-${String(r.mes).padStart(2, '0')}`;
-      if (!map.has(key)) map.set(key, { key, ano: r.ano, mes: r.mes, receita: 0, despesa: 0, liquido: 0 });
+      if (!map.has(key)) map.set(key, { key, ano: r.ano, mes: r.mes, receita: 0, despesa: 0, liquido: 0, aluguel: 0 });
       const acc = map.get(key)!;
       acc.receita += Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
       acc.despesa += Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas);
       acc.liquido += r.liquido;
+      acc.aluguel += Math.max(0, r.aluguel);
     });
     return Array.from(map.values())
       .sort((a, b) => a.ano - b.ano || a.mes - b.mes)
@@ -503,7 +504,7 @@ export default function Balancete() {
           <TabsContent value="trend" className="mt-3">
             <ChartCard title="Receita vs Despesa (colunas)" subtitle="Evolução mensal — gire o celular para mais detalhes">
               <ResponsiveChart>
-                <BarChart data={timeSeries} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
+                <ComposedChart data={timeSeries} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
                   <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} width={42} />
@@ -512,7 +513,8 @@ export default function Balancete() {
                   <Bar dataKey="receita" fill={CATEGORY_COLORS.aluguel} name="Receita" radius={[2, 2, 0, 0]} />
                   <Bar dataKey="despesa" fill={CATEGORY_COLORS.condominio} name="Despesa" radius={[2, 2, 0, 0]} />
                   <Bar dataKey="liquido" fill="hsl(var(--primary))" name="Líquido" radius={[2, 2, 0, 0]} />
-                </BarChart>
+                  <Line type="monotone" dataKey="aluguel" name="Aluguel" stroke="hsl(217 91% 60%)" strokeWidth={2} dot={{ r: 2 }} />
+                </ComposedChart>
               </ResponsiveChart>
             </ChartCard>
           </TabsContent>
@@ -520,17 +522,19 @@ export default function Balancete() {
           <TabsContent value="bars" className="mt-3">
             <ChartCard title="Líquido por mês" subtitle="Barras acima/abaixo de zero">
               <ResponsiveChart>
-                <BarChart data={timeSeries} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
+                <ComposedChart data={timeSeries} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
                   <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} width={42} />
                   <Tooltip content={<MoneyTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Bar dataKey="liquido" name="Líquido" radius={[3, 3, 0, 0]}>
                     {timeSeries.map((d, i) => (
                       <Cell key={i} fill={d.liquido >= 0 ? CATEGORY_COLORS.aluguel : CATEGORY_COLORS.condominio} />
                     ))}
                   </Bar>
-                </BarChart>
+                  <Line type="monotone" dataKey="aluguel" name="Aluguel" stroke="hsl(217 91% 60%)" strokeWidth={2} dot={{ r: 2 }} />
+                </ComposedChart>
               </ResponsiveChart>
             </ChartCard>
           </TabsContent>
@@ -577,6 +581,7 @@ export default function Balancete() {
                   <Area type="monotone" dataKey="receita" name="Receita" stroke={CATEGORY_COLORS.aluguel} strokeWidth={2} fill="url(#recArea)" />
                   <Area type="monotone" dataKey="despesa" name="Despesa" stroke={CATEGORY_COLORS.condominio} strokeWidth={2} fill="url(#despArea)" />
                   <Area type="monotone" dataKey="liquido" name="Líquido" stroke="hsl(var(--primary))" strokeWidth={2.5} fill="transparent" dot={{ r: 2 }} />
+                  <Line type="monotone" dataKey="aluguel" name="Aluguel" stroke="hsl(217 91% 60%)" strokeWidth={2} dot={{ r: 2 }} />
                 </AreaChart>
               </ResponsiveChart>
             </ChartCard>
