@@ -306,6 +306,33 @@ export default function Balancete() {
     ) ?? null;
   }, [monthDrilldown, rows]);
 
+  // Year+Month drill-down: lista de TODOS os imóveis daquele mês/ano
+  const yearMonthRows = useMemo(() => {
+    if (!yearMonthDrilldown) return [];
+    return rows
+      .filter(r => r.ano === yearMonthDrilldown.ano && r.mes === yearMonthDrilldown.mes)
+      .map(r => ({
+        key: propertyKey(r),
+        label: formatPropertyLabel(r),
+        liquido: r.liquido,
+        receita: Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas),
+        despesa: Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas),
+        alugado: !!r.alugado,
+      }))
+      .sort((a, b) => b.liquido - a.liquido);
+  }, [yearMonthDrilldown, rows]);
+
+  const yearMonthTotals = useMemo(() => {
+    return yearMonthRows.reduce(
+      (acc, r) => ({
+        receita: acc.receita + r.receita,
+        despesa: acc.despesa + r.despesa,
+        liquido: acc.liquido + r.liquido,
+      }),
+      { receita: 0, despesa: 0, liquido: 0 }
+    );
+  }, [yearMonthRows]);
+
   return (
     <div
       className="min-h-screen bg-background"
