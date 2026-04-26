@@ -739,7 +739,7 @@ export default function Balancete() {
                 )}
 
                 {/* Receitas */}
-                <div className="rounded-lg border bg-card p-2.5 sm:p-3 space-y-1.5 min-w-0 overflow-hidden">
+                <div className="rounded-lg border bg-card p-2.5 sm:p-3 space-y-1.5 w-full max-w-[21rem] mx-auto min-w-0 overflow-hidden">
                   <div className="text-[10px] uppercase tracking-wide font-semibold text-emerald-600 dark:text-emerald-400 mb-1 truncate">
                     Receitas
                   </div>
@@ -750,7 +750,7 @@ export default function Balancete() {
                 </div>
 
                 {/* Despesas */}
-                <div className="rounded-lg border bg-card p-2.5 sm:p-3 space-y-1.5 min-w-0 overflow-hidden">
+                <div className="rounded-lg border bg-card p-2.5 sm:p-3 space-y-1.5 w-full max-w-[21rem] mx-auto min-w-0 overflow-hidden">
                   <div className="text-[10px] uppercase tracking-wide font-semibold text-red-600 dark:text-red-400 mb-1 truncate">
                     Despesas
                   </div>
