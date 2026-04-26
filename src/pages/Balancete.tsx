@@ -662,13 +662,12 @@ export default function Balancete() {
       {/* Month-level drill-down dialog */}
       <Dialog open={!!monthDrilldown} onOpenChange={(o) => !o && setMonthDrilldown(null)}>
         <DialogContent
-          className="max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 gap-0"
+          className="max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 gap-0 w-[calc(100dvw-1.5rem)] max-w-[calc(100dvw-1.5rem)] sm:max-w-md"
           style={{
             left: '0.75rem',
             right: '0.75rem',
             top: '4vh',
-            width: 'auto',
-            maxWidth: '28rem',
+            width: 'calc(100dvw - 1.5rem)',
             transform: 'none',
           }}
         >
@@ -691,11 +690,11 @@ export default function Balancete() {
             </div>
           </DialogHeader>
 
-          <div className="px-3 py-4 space-y-4 min-w-0 overflow-hidden">
+          <div className="px-2.5 sm:px-3 py-3 sm:py-4 space-y-3 sm:space-y-4 min-w-0 overflow-hidden">
             {monthDrilldownRow ? (
               <>
                 {/* Totals do mês */}
-                <div className="grid grid-cols-3 gap-2 min-w-0 overflow-hidden">
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2 min-w-0 overflow-hidden">
                   <MiniStat
                     label="Receita"
                     value={
@@ -740,7 +739,7 @@ export default function Balancete() {
                 )}
 
                 {/* Receitas */}
-                <div className="rounded-lg border bg-card p-3 space-y-1.5 min-w-0 overflow-hidden">
+                <div className="rounded-lg border bg-card p-2.5 sm:p-3 space-y-1.5 min-w-0 overflow-hidden">
                   <div className="text-[10px] uppercase tracking-wide font-semibold text-emerald-600 dark:text-emerald-400 mb-1 truncate">
                     Receitas
                   </div>
@@ -751,7 +750,7 @@ export default function Balancete() {
                 </div>
 
                 {/* Despesas */}
-                <div className="rounded-lg border bg-card p-3 space-y-1.5 min-w-0 overflow-hidden">
+                <div className="rounded-lg border bg-card p-2.5 sm:p-3 space-y-1.5 min-w-0 overflow-hidden">
                   <div className="text-[10px] uppercase tracking-wide font-semibold text-red-600 dark:text-red-400 mb-1 truncate">
                     Despesas
                   </div>
