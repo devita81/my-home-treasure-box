@@ -254,24 +254,46 @@ export default function Balancete() {
     ].filter(c => c.value > 0);
   }, [filtered]);
 
-  // Pivot: imóvel x mês (líquido)
+  // Pivot: imóvel x mês (líquido) — com receita/despesa por linha p/ ordenação
   const pivot = useMemo(() => {
     const months = timeSeries.map(t => t.key);
-    const byKey = new Map<string, { key: string; label: string; values: Record<string, number>; total: number; hasValues: boolean }>();
+    type PivotRow = {
+      key: string; label: string; cidade: string; rua: string;
+      values: Record<string, number>;
+      total: number; receita: number; despesa: number; hasValues: boolean;
+    };
+    const byKey = new Map<string, PivotRow>();
     filtered.forEach(r => {
       const k = propertyKey(r);
       const lbl = formatPropertyLabel(r);
-      if (!byKey.has(k)) byKey.set(k, { key: k, label: lbl, values: {}, total: 0, hasValues: false });
+      if (!byKey.has(k)) {
+        byKey.set(k, {
+          key: k, label: lbl,
+          cidade: (r.cidade ?? '').toString(),
+          rua: (r.rua ?? '').toString(),
+          values: {}, total: 0, receita: 0, despesa: 0, hasValues: false,
+        });
+      }
       const acc = byKey.get(k)!;
       const mk = `${r.ano}-${String(r.mes).padStart(2, '0')}`;
       acc.values[mk] = (acc.values[mk] || 0) + r.liquido;
       acc.total += r.liquido;
+      acc.receita += Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
+      acc.despesa += Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas);
       if (r.liquido !== 0) acc.hasValues = true;
     });
+    const mult = sortOrder === 'asc' ? 1 : -1;
     const sortedRows = Array.from(byKey.values()).sort((a, b) => {
-      // Imóveis com valores primeiro
+      // Imóveis com valores sempre primeiro (independente da ordenação)
       if (a.hasValues !== b.hasValues) return a.hasValues ? -1 : 1;
-      return b.total - a.total;
+      switch (sortField) {
+        case 'cidade': return mult * a.cidade.localeCompare(b.cidade, 'pt-BR') || mult * a.rua.localeCompare(b.rua, 'pt-BR');
+        case 'rua': return mult * a.rua.localeCompare(b.rua, 'pt-BR');
+        case 'receita': return mult * (a.receita - b.receita);
+        case 'despesa': return mult * (a.despesa - b.despesa);
+        case 'liquido':
+        default: return mult * (a.total - b.total);
+      }
     });
     // Subtotais por mês e geral
     const monthTotals: Record<string, number> = {};
@@ -289,7 +311,7 @@ export default function Balancete() {
       monthTotals,
       grandTotal,
     };
-  }, [filtered, timeSeries]);
+  }, [filtered, timeSeries, sortField, sortOrder]);
 
   // KPIs agrupados por ano (para visão expansível)
   const kpisByYear = useMemo(() => {
