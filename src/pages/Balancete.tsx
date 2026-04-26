@@ -259,6 +259,14 @@ export default function Balancete() {
     );
   }, [drilldownRows]);
 
+  // Month-level drill-down (todos os custos/receitas do mês específico)
+  const monthDrilldownRow = useMemo(() => {
+    if (!monthDrilldown) return null;
+    return rows.find(
+      r => propertyKey(r) === monthDrilldown.key && r.ano === monthDrilldown.ano && r.mes === monthDrilldown.mes
+    ) ?? null;
+  }, [monthDrilldown, rows]);
+
   return (
     <div
       className="min-h-screen bg-background"
