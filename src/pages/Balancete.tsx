@@ -522,17 +522,19 @@ export default function Balancete() {
           <TabsContent value="bars" className="mt-3">
             <ChartCard title="Líquido por mês" subtitle="Barras acima/abaixo de zero">
               <ResponsiveChart>
-                <BarChart data={timeSeries} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
+                <ComposedChart data={timeSeries} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
                   <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} width={42} />
                   <Tooltip content={<MoneyTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Bar dataKey="liquido" name="Líquido" radius={[3, 3, 0, 0]}>
                     {timeSeries.map((d, i) => (
                       <Cell key={i} fill={d.liquido >= 0 ? CATEGORY_COLORS.aluguel : CATEGORY_COLORS.condominio} />
                     ))}
                   </Bar>
-                </BarChart>
+                  <Line type="monotone" dataKey="aluguel" name="Aluguel" stroke="hsl(217 91% 60%)" strokeWidth={2} dot={{ r: 2 }} />
+                </ComposedChart>
               </ResponsiveChart>
             </ChartCard>
           </TabsContent>
