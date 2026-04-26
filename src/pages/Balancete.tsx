@@ -802,7 +802,8 @@ function MonthDrilldownTable({
     Math.min(0, row.taxa_administracao) +
     Math.min(0, row.outras_despesas);
 
-  const items: { label: string; value: number; positive: boolean; section: 'r' | 'd' }[] = [
+  type Item = { label: string; value: number; positive: boolean; section: 'r' | 'd' };
+  const items: Item[] = ([
     { label: 'Aluguel', value: row.aluguel, positive: true, section: 'r' },
     { label: 'Reemb. condomínio', value: row.reembolso_condominio, positive: true, section: 'r' },
     { label: 'Reemb. IPTU', value: row.reembolso_iptu, positive: true, section: 'r' },
@@ -811,7 +812,7 @@ function MonthDrilldownTable({
     { label: 'IPTU', value: row.iptu, positive: false, section: 'd' },
     { label: 'Taxa adm.', value: row.taxa_administracao, positive: false, section: 'd' },
     { label: 'Outras despesas', value: row.outras_despesas, positive: false, section: 'd' },
-  ].filter((i) => i.value !== 0);
+  ] as Item[]).filter((i) => i.value !== 0);
 
   const receitaItems = items.filter((i) => i.section === 'r');
   const despesaItems = items.filter((i) => i.section === 'd');
