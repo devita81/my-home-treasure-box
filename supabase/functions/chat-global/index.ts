@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -37,9 +37,9 @@ serve(async (req) => {
       );
     }
 
-    if (!OPENAI_API_KEY) {
+    if (!LOVABLE_API_KEY) {
       return new Response(
-        JSON.stringify({ error: 'OpenAI API key não configurada' }),
+        JSON.stringify({ error: 'Chave da IA não configurada' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -75,14 +75,14 @@ REGRAS:
 - Quando fizer cálculos, mostre o passo a passo
 - Se não tiver informação suficiente, diga claramente`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'openai/gpt-5',
         messages: [
           { role: 'system', content: systemMessage },
           ...messages,
@@ -93,17 +93,17 @@ REGRAS:
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI error:', response.status, errorText);
+      console.error('AI Gateway error:', response.status, errorText);
 
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns instantes.' }),
+          JSON.stringify({ error: 'Limite de requisições excedido. Aguarde alguns instantes e tente novamente.' }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: 'Créditos insuficientes. Verifique sua conta OpenAI.' }),
+          JSON.stringify({ error: 'Créditos da IA esgotados. Adicione créditos em Configurações > Workspace > Uso.' }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
