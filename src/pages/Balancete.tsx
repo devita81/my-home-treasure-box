@@ -881,6 +881,127 @@ export default function Balancete() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Year+Month drill-down: lista de imóveis daquele mês/ano */}
+      <Dialog open={!!yearMonthDrilldown} onOpenChange={(o) => !o && setYearMonthDrilldown(null)}>
+        <DialogContent
+          className="max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 gap-0 w-[calc(100dvw-1.5rem)] max-w-[calc(100dvw-1.5rem)] sm:max-w-md"
+          style={{
+            left: '0.75rem',
+            right: '0.75rem',
+            top: '4vh',
+            width: 'calc(100dvw - 1.5rem)',
+            transform: 'none',
+          }}
+        >
+          <DialogHeader className="px-3 pt-3 pb-2.5 sticky top-0 bg-gradient-to-b from-background to-background/95 backdrop-blur z-10 border-b">
+            <DialogTitle className="sr-only">
+              {yearMonthDrilldown ? `Imóveis em ${MONTHS[yearMonthDrilldown.mes - 1]}/${yearMonthDrilldown.ano}` : ''}
+            </DialogTitle>
+            {yearMonthDrilldown && (
+              <div className="min-w-0 pr-8">
+                <div className="flex items-baseline gap-1.5 mb-1.5">
+                  <span className="h-1 w-1 rounded-full bg-primary" />
+                  <span className="text-[9px] uppercase tracking-widest font-semibold text-muted-foreground">
+                    Período
+                  </span>
+                  <span className="text-muted-foreground/40 text-[9px]">·</span>
+                  <span className="text-[10px] font-semibold text-primary">
+                    {MONTHS[yearMonthDrilldown.mes - 1]}/{yearMonthDrilldown.ano}
+                  </span>
+                </div>
+                <div className="text-[13px] font-semibold leading-tight">
+                  Imóveis em {MONTHS[yearMonthDrilldown.mes - 1]}/{yearMonthDrilldown.ano}
+                </div>
+                <div className="text-[10px] text-muted-foreground mt-0.5">
+                  {yearMonthRows.length} {yearMonthRows.length === 1 ? 'imóvel' : 'imóveis'} • toque para detalhes
+                </div>
+              </div>
+            )}
+          </DialogHeader>
+
+          <div className="px-3 py-3 min-w-0 overflow-hidden space-y-2">
+            {yearMonthRows.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-6">
+                Sem dados para este mês.
+              </p>
+            ) : (
+              <>
+                {/* Resumo */}
+                <div className="grid grid-cols-3 gap-1.5 mb-2">
+                  <div className="rounded-md bg-card border p-2">
+                    <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-medium">Receita</div>
+                    <div className="text-[11px] font-semibold tabular-nums text-emerald-600 dark:text-emerald-400 mt-0.5">
+                      {fmtBRL(yearMonthTotals.receita)}
+                    </div>
+                  </div>
+                  <div className="rounded-md bg-card border p-2">
+                    <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-medium">Despesa</div>
+                    <div className="text-[11px] font-semibold tabular-nums text-red-600 dark:text-red-400 mt-0.5">
+                      {fmtBRL(yearMonthTotals.despesa)}
+                    </div>
+                  </div>
+                  <div className="rounded-md bg-card border p-2">
+                    <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-medium">Líquido</div>
+                    <div className={cn(
+                      'text-[11px] font-semibold tabular-nums mt-0.5',
+                      yearMonthTotals.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+                    )}>
+                      {fmtBRL(yearMonthTotals.liquido)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lista de imóveis */}
+                {yearMonthRows.map((r, idx) => (
+                  <button
+                    key={`${r.key}-${idx}`}
+                    type="button"
+                    onClick={() => {
+                      if (!yearMonthDrilldown) return;
+                      setMonthDrilldown({
+                        key: r.key,
+                        label: r.label,
+                        ano: yearMonthDrilldown.ano,
+                        mes: yearMonthDrilldown.mes,
+                      });
+                      setYearMonthDrilldown(null);
+                    }}
+                    className="w-full flex items-center gap-2 p-2.5 rounded-md border bg-card hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[11px] font-medium truncate">{r.label}</div>
+                      <div className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                        {r.alugado && (
+                          <Badge className="text-[9px] px-1.5 py-0 h-4 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/15">
+                            Alugado
+                          </Badge>
+                        )}
+                        <span>R {fmtBRL(r.receita)}</span>
+                        <span>•</span>
+                        <span>D {fmtBRL(r.despesa)}</span>
+                      </div>
+                    </div>
+                    <div
+                      className={cn(
+                        'text-xs font-semibold tabular-nums shrink-0',
+                        r.liquido > 0
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : r.liquido < 0
+                          ? 'text-red-600 dark:text-red-400'
+                          : 'text-muted-foreground'
+                      )}
+                    >
+                      {fmtBRL(r.liquido)}
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </button>
+                ))}
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
