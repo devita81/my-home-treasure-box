@@ -152,13 +152,61 @@ export default function Balancete() {
 
   const years = useMemo(() => Array.from(new Set(rows.map(r => r.ano))).sort((a, b) => b - a), [rows]);
 
+  // Listas independentes (cidade → bairro em cascata) baseadas em rows
+  const cidadeOptions = useMemo(() => {
+    return Array.from(new Set(rows.map(r => (r.cidade ?? '').trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [rows]);
+  const bairroOptions = useMemo(() => {
+    return Array.from(
+      new Set(
+        rows
+          .filter(r => cidadeFilter === 'all' || (r.cidade ?? '').trim() === cidadeFilter)
+          .map(r => (r.bairro ?? '').trim())
+          .filter(Boolean),
+      ),
+    ).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [rows, cidadeFilter]);
+  const tipoOptions = useMemo(() => {
+    return Array.from(
+      new Set(
+        rows
+          .filter(r => cidadeFilter === 'all' || (r.cidade ?? '').trim() === cidadeFilter)
+          .filter(r => bairroFilter === 'all' || (r.bairro ?? '').trim() === bairroFilter)
+          .map(r => (r.property_id ? propertyTypes[r.property_id] : '') || '')
+          .filter(Boolean),
+      ),
+    ).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [rows, propertyTypes, cidadeFilter, bairroFilter]);
+
+  // Reset cascata
+  useEffect(() => { setBairroFilter('all'); }, [cidadeFilter]);
+  useEffect(() => {
+    if (tipoFilter !== 'all' && !tipoOptions.includes(tipoFilter)) setTipoFilter('all');
+  }, [tipoOptions, tipoFilter]);
+
   const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
     return rows.filter(r => {
       if (yearFilter !== 'all' && r.ano !== Number(yearFilter)) return false;
       if (monthFilter !== 'all' && r.mes !== Number(monthFilter)) return false;
+      if (cidadeFilter !== 'all' && (r.cidade ?? '').trim() !== cidadeFilter) return false;
+      if (bairroFilter !== 'all' && (r.bairro ?? '').trim() !== bairroFilter) return false;
+      if (tipoFilter !== 'all') {
+        const t = r.property_id ? propertyTypes[r.property_id] : '';
+        if (t !== tipoFilter) return false;
+      }
+      if (q) {
+        const haystack = [
+          r.cidade, r.bairro, r.rua, r.numero, r.apartamento, r.complemento,
+          r.locatario, r.periodo_contrato,
+          r.property_id ? propertyTypes[r.property_id] : '',
+          String(r.ano), MONTHS[r.mes - 1],
+        ].filter(Boolean).join(' ').toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
       return true;
     });
-  }, [rows, yearFilter, monthFilter]);
+  }, [rows, yearFilter, monthFilter, cidadeFilter, bairroFilter, tipoFilter, search, propertyTypes]);
 
   // KPIs
   const kpis = useMemo(() => {
