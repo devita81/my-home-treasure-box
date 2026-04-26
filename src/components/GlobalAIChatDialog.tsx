@@ -351,10 +351,10 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
                               <ResponsiveTable>{children}</ResponsiveTable>
                             ),
                             thead: ({ node, ...props }) => (
-                              <thead className="bg-muted/80" {...props} />
+                              <thead className="bg-card border-b border-border" {...props} />
                             ),
                             tr: ({ node, ...props }) => (
-                              <tr className="border-b border-border last:border-0 even:bg-muted/30" {...props} />
+                              <tr className="border-b border-border last:border-0 bg-card" {...props} />
                             ),
                             th: ({ node, ...props }) => (
                               <th className="border-r border-border last:border-0 px-2 py-1.5 text-left font-semibold text-foreground whitespace-nowrap" {...props} />
