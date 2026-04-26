@@ -257,9 +257,11 @@ export default function Balancete() {
   // Pivot: imóvel x mês (líquido) — com receita/despesa por linha p/ ordenação
   const pivot = useMemo(() => {
     const months = timeSeries.map(t => t.key);
+    type MonthAgg = { receita: number; despesa: number; liquido: number };
     type PivotRow = {
       key: string; label: string; cidade: string; rua: string;
       values: Record<string, number>;
+      monthly: Record<string, MonthAgg>;
       total: number; receita: number; despesa: number; hasValues: boolean;
     };
     const byKey = new Map<string, PivotRow>();
@@ -271,15 +273,21 @@ export default function Balancete() {
           key: k, label: lbl,
           cidade: (r.cidade ?? '').toString(),
           rua: (r.rua ?? '').toString(),
-          values: {}, total: 0, receita: 0, despesa: 0, hasValues: false,
+          values: {}, monthly: {}, total: 0, receita: 0, despesa: 0, hasValues: false,
         });
       }
       const acc = byKey.get(k)!;
       const mk = `${r.ano}-${String(r.mes).padStart(2, '0')}`;
+      const recRow = Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
+      const despRow = Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas);
       acc.values[mk] = (acc.values[mk] || 0) + r.liquido;
+      if (!acc.monthly[mk]) acc.monthly[mk] = { receita: 0, despesa: 0, liquido: 0 };
+      acc.monthly[mk].receita += recRow;
+      acc.monthly[mk].despesa += despRow;
+      acc.monthly[mk].liquido += r.liquido;
       acc.total += r.liquido;
-      acc.receita += Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
-      acc.despesa += Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas);
+      acc.receita += recRow;
+      acc.despesa += despRow;
       if (r.liquido !== 0) acc.hasValues = true;
     });
     const mult = sortOrder === 'asc' ? 1 : -1;
