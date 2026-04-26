@@ -1785,7 +1785,7 @@ function PropertyAccordionRow({
   onOpenDrilldown,
   onOpenMonthDrilldown,
 }: {
-  row: { key: string; label: string; values: Record<string, number>; total: number; hasValues: boolean };
+  row: { key: string; label: string; cidade?: string; rua?: string; values: Record<string, number>; total: number; hasValues: boolean };
   months: string[];
   onOpenDrilldown: () => void;
   onOpenMonthDrilldown: (ano: number, mes: number) => void;
@@ -1793,6 +1793,17 @@ function PropertyAccordionRow({
   const [open, setOpen] = useState(false);
 
   const monthsCount = Object.values(row.values).filter(v => v !== 0).length;
+
+  // Divide o label em "cidade" (linha 1, menor) e "endereço" (linha 2)
+  const { cityLine, addrLine } = useMemo(() => {
+    const cidade = (row.cidade ?? '').toString().toUpperCase().trim();
+    const full = row.label.toUpperCase();
+    if (cidade && full.startsWith(cidade)) {
+      const rest = full.slice(cidade.length).replace(/^\s*•\s*/, '').trim();
+      return { cityLine: cidade, addrLine: rest || full };
+    }
+    return { cityLine: cidade, addrLine: full };
+  }, [row.label, row.cidade]);
 
   const byYear = useMemo(() => {
     const map = new Map<number, { mes: number; key: string }[]>();
@@ -1815,7 +1826,7 @@ function PropertyAccordionRow({
         <button
           type="button"
           onClick={() => setOpen(o => !o)}
-          className="flex items-center justify-center px-3 hover:bg-muted/40 active:bg-muted/60 transition-colors border-r"
+          className="flex items-center justify-center px-2.5 hover:bg-muted/40 active:bg-muted/60 transition-colors border-r"
           aria-expanded={open}
           aria-label={open ? 'Recolher meses' : 'Expandir meses'}
         >
@@ -1831,27 +1842,36 @@ function PropertyAccordionRow({
         <button
           type="button"
           onClick={onOpenDrilldown}
-          className="flex-1 flex items-center gap-2 p-3 text-left hover:bg-muted/40 active:bg-muted/60 transition-colors min-w-0"
+          className="flex-1 flex items-start gap-2 p-2.5 text-left hover:bg-muted/40 active:bg-muted/60 transition-colors min-w-0"
         >
           <div className="min-w-0 flex-1">
-            <div className="text-xs font-medium truncate">{row.label}</div>
-            <div className="text-[10px] text-muted-foreground mt-0.5">
+            {cityLine && (
+              <div className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground leading-tight">
+                {cityLine}
+              </div>
+            )}
+            <div className="text-[10px] font-medium leading-snug break-words">
+              {addrLine}
+            </div>
+            <div className="text-[9px] text-muted-foreground mt-0.5">
               {monthsCount} {monthsCount === 1 ? 'mês' : 'meses'} • toque para detalhes
             </div>
           </div>
-          <div
-            className={cn(
-              'text-xs font-semibold tabular-nums shrink-0',
-              row.total > 0
-                ? 'text-emerald-600 dark:text-emerald-400'
-                : row.total < 0
-                ? 'text-red-600 dark:text-red-400'
-                : 'text-muted-foreground'
-            )}
-          >
-            {fmtBRL(row.total)}
+          <div className="flex flex-col items-end gap-0.5 shrink-0 pt-0.5">
+            <div
+              className={cn(
+                'text-[11px] font-semibold tabular-nums whitespace-nowrap',
+                row.total > 0
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : row.total < 0
+                  ? 'text-red-600 dark:text-red-400'
+                  : 'text-muted-foreground'
+              )}
+            >
+              {fmtBRL(row.total)}
+            </div>
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
-          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
         </button>
       </div>
 
