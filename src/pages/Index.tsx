@@ -9,10 +9,11 @@ import { StatsOverview } from '@/components/stats/StatsOverview';
 import { MetragemStats } from '@/components/stats/MetragemStats';
 import { CustosReceitasStats } from '@/components/stats/CustosReceitasStats';
 import { Header } from '@/components/layout/Header';
-import { Home, PlusCircle, AlertTriangle } from 'lucide-react';
+import { Home, PlusCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,11 +26,11 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const Index = () => {
-  const { getFilteredProperties, deleteProperty, duplicateProperty, loading } = useProperties();
+  const { getFilteredProperties, deleteProperty, duplicateProperty, refreshProperties, loading } = useProperties();
   const filteredProperties = getFilteredProperties();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [density, setDensity] = useGridDensity(1);
-  
+  const [syncing, setSyncing] = useState(false);
 
   const gridColsClass = density === 1 ? 'grid-cols-1' : 'grid-cols-2';
   const isCompact = density === 2;
@@ -54,6 +55,31 @@ const Index = () => {
     await duplicateProperty(id);
   };
 
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-balancete-to-properties');
+      if (error) throw error;
+      const updated = data?.updated ?? 0;
+      const skipped = data?.skipped ?? 0;
+      if (updated > 0) {
+        toast.success(`${updated} imóvel(is) atualizado(s) a partir do balancete.`, {
+          description: skipped > 0 ? `${skipped} sem alteração.` : undefined,
+        });
+        await refreshProperties();
+      } else {
+        toast.info('Nenhuma atualização necessária.', {
+          description: 'Todos os valores já estão sincronizados.',
+        });
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Erro desconhecido';
+      toast.error('Falha ao sincronizar', { description: msg });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -65,8 +91,8 @@ const Index = () => {
         <PropertyFilters />
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between gap-3 rounded-lg border bg-card px-3 py-2.5 sm:px-4 sm:py-3 shadow-sm">
-            <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center justify-between gap-2 rounded-lg border bg-card px-3 py-2.5 sm:px-4 sm:py-3 shadow-sm">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               <div className="hidden sm:flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 shrink-0">
                 <Home className="h-4 w-4 text-primary" />
               </div>
@@ -78,7 +104,18 @@ const Index = () => {
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleSync}
+                disabled={syncing}
+                title="Atualizar valores (aluguel, IPTU, condomínio, taxa adm) com base no último mês do balancete"
+                className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm"
+              >
+                <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''} sm:mr-1.5`} />
+                <span className="hidden sm:inline">{syncing ? 'Sincronizando...' : 'Sincronizar'}</span>
+              </Button>
               <GridDensitySelector value={density} onChange={setDensity} />
               <Link to="/add" className="shrink-0">
                 <Button size="sm" className="h-8 sm:h-9 px-2.5 sm:px-4 text-xs sm:text-sm">
