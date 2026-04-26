@@ -199,7 +199,7 @@ const ResponsiveTable = ({ children }: { children: any }) => {
         {bodyRows.map((row, i) => {
           const cells = getCells(row);
           return (
-            <div key={i} className="rounded-md border border-border bg-background p-2 shadow-sm">
+            <div key={i} className="rounded-md border border-border bg-card text-card-foreground p-2 shadow-sm">
               {cells.map((cell, j) => {
                 const label = headers[j] || `Campo ${j + 1}`;
                 const value = extractText(cell).trim();
@@ -220,7 +220,7 @@ const ResponsiveTable = ({ children }: { children: any }) => {
         })}
       </div>
       {/* Desktop: tabela tradicional */}
-      <div className="hidden sm:block my-2 -mx-1 overflow-x-auto rounded-md border border-border bg-background">
+      <div className="hidden sm:block my-2 -mx-1 overflow-x-auto rounded-md border border-border bg-card text-card-foreground">
         <table className="w-full border-collapse text-[11px]">{children}</table>
       </div>
     </>
@@ -351,10 +351,10 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
                               <ResponsiveTable>{children}</ResponsiveTable>
                             ),
                             thead: ({ node, ...props }) => (
-                              <thead className="bg-muted/80" {...props} />
+                              <thead className="bg-card border-b border-border" {...props} />
                             ),
                             tr: ({ node, ...props }) => (
-                              <tr className="border-b border-border last:border-0 even:bg-muted/30" {...props} />
+                              <tr className="border-b border-border last:border-0 bg-card" {...props} />
                             ),
                             th: ({ node, ...props }) => (
                               <th className="border-r border-border last:border-0 px-2 py-1.5 text-left font-semibold text-foreground whitespace-nowrap" {...props} />
