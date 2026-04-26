@@ -896,37 +896,50 @@ function PropertyAccordionRow({
 
   return (
     <div className="rounded-lg border bg-card overflow-hidden">
-      <button
-        type="button"
-        onClick={() => { setOpen(o => !o); onOpenDrilldown(); }}
-        className="w-full flex items-center gap-2 p-3 text-left hover:bg-muted/40 active:bg-muted/60 transition-colors"
-        aria-expanded={open}
-      >
-        <ChevronDown
-          className={cn(
-            'h-4 w-4 text-muted-foreground transition-transform shrink-0',
-            !open && '-rotate-90'
-          )}
-        />
-        <div className="min-w-0 flex-1">
-          <div className="text-xs font-medium truncate">{row.label}</div>
-          <div className="text-[10px] text-muted-foreground mt-0.5">
-            {monthsCount} {monthsCount === 1 ? 'mês' : 'meses'}
-          </div>
-        </div>
-        <div
-          className={cn(
-            'text-xs font-semibold tabular-nums shrink-0',
-            row.total > 0
-              ? 'text-emerald-600 dark:text-emerald-400'
-              : row.total < 0
-              ? 'text-red-600 dark:text-red-400'
-              : 'text-muted-foreground'
-          )}
+      <div className="flex items-stretch">
+        {/* Botão chevron — apenas expand/collapse */}
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          className="flex items-center justify-center px-3 hover:bg-muted/40 active:bg-muted/60 transition-colors border-r"
+          aria-expanded={open}
+          aria-label={open ? 'Recolher meses' : 'Expandir meses'}
         >
-          {fmtBRL(row.total)}
-        </div>
-      </button>
+          <ChevronDown
+            className={cn(
+              'h-4 w-4 text-muted-foreground transition-transform',
+              !open && '-rotate-90'
+            )}
+          />
+        </button>
+
+        {/* Área principal — abre drill-down */}
+        <button
+          type="button"
+          onClick={onOpenDrilldown}
+          className="flex-1 flex items-center gap-2 p-3 text-left hover:bg-muted/40 active:bg-muted/60 transition-colors min-w-0"
+        >
+          <div className="min-w-0 flex-1">
+            <div className="text-xs font-medium truncate">{row.label}</div>
+            <div className="text-[10px] text-muted-foreground mt-0.5">
+              {monthsCount} {monthsCount === 1 ? 'mês' : 'meses'} • toque para detalhes
+            </div>
+          </div>
+          <div
+            className={cn(
+              'text-xs font-semibold tabular-nums shrink-0',
+              row.total > 0
+                ? 'text-emerald-600 dark:text-emerald-400'
+                : row.total < 0
+                ? 'text-red-600 dark:text-red-400'
+                : 'text-muted-foreground'
+            )}
+          >
+            {fmtBRL(row.total)}
+          </div>
+          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+        </button>
+      </div>
 
       {open && (
         <div className="border-t bg-muted/20 px-2 py-2 space-y-2">
