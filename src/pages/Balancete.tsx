@@ -558,15 +558,7 @@ export default function Balancete() {
 
       {/* Drill-down dialog */}
       <Dialog open={!!drilldown} onOpenChange={(o) => !o && setDrilldown(null)}>
-        <DialogContent
-          className="max-w-3xl w-[calc(100vw-1rem)] max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 gap-0"
-          style={{
-            paddingTop: 'env(safe-area-inset-top)',
-            paddingBottom: 'env(safe-area-inset-bottom)',
-            paddingLeft: 'env(safe-area-inset-left)',
-            paddingRight: 'env(safe-area-inset-right)',
-          }}
-        >
+        <DialogContent className="max-w-3xl w-[calc(100vw-1rem)] max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 gap-0">
           <DialogHeader className="px-4 sm:px-6 pt-4 pb-3 sticky top-0 bg-background z-10 border-b">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
