@@ -1974,12 +1974,12 @@ function PropertyAccordionRow({
                     {yearTotal === 0 ? '—' : fmtBRL(yearTotal)}
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-1 p-1.5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5 p-1.5">
                   {Array.from({ length: 12 }).map((_, i) => {
                     const mes = i + 1;
                     const mk = `${yearBlock.ano}-${String(mes).padStart(2, '0')}`;
-                    const v = row.values[mk] ?? null;
-                    const empty = v === null || v === 0;
+                    const m = row.monthly?.[mk];
+                    const empty = !m || (m.receita === 0 && m.despesa === 0 && m.liquido === 0);
                     return (
                       <button
                         key={mk}
@@ -1987,27 +1987,48 @@ function PropertyAccordionRow({
                         disabled={empty}
                         onClick={() => onOpenMonthDrilldown(yearBlock.ano, mes)}
                         className={cn(
-                          'rounded px-2 py-1.5 flex flex-col items-start justify-center min-h-[44px] text-left transition-colors',
+                          'rounded-md px-2 py-1.5 flex flex-col items-stretch text-left transition-colors',
                           empty
-                            ? 'bg-muted/40 cursor-default'
+                            ? 'bg-muted/40 cursor-default min-h-[44px] justify-center'
                             : 'bg-card border hover:bg-muted/40 active:bg-muted/60 cursor-pointer'
                         )}
                       >
-                        <div className="text-[9px] uppercase tracking-wide text-muted-foreground">
+                        <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-semibold">
                           {MONTHS[i]}
                         </div>
-                        <div
-                          className={cn(
-                            'text-[11px] font-semibold tabular-nums leading-tight mt-0.5',
-                            empty
-                              ? 'text-muted-foreground/50'
-                              : v! > 0
-                              ? 'text-emerald-600 dark:text-emerald-400'
-                              : 'text-red-600 dark:text-red-400'
-                          )}
-                        >
-                          {empty ? '—' : fmtBRL(v!)}
-                        </div>
+                        {empty ? (
+                          <div className="text-[11px] font-semibold tabular-nums text-muted-foreground/50 mt-0.5">
+                            —
+                          </div>
+                        ) : (
+                          <div className="mt-0.5 space-y-0 leading-tight">
+                            <div className="flex items-baseline justify-between gap-1 tabular-nums">
+                              <span className="text-[8px] text-muted-foreground/80 font-medium">R</span>
+                              <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                                {fmtBRL(m!.receita)}
+                              </span>
+                            </div>
+                            <div className="flex items-baseline justify-between gap-1 tabular-nums">
+                              <span className="text-[8px] text-muted-foreground/80 font-medium">D</span>
+                              <span className="text-[10px] font-medium text-red-600 dark:text-red-400">
+                                {fmtBRL(m!.despesa)}
+                              </span>
+                            </div>
+                            <div className="flex items-baseline justify-between gap-1 tabular-nums border-t border-border/50 pt-0.5 mt-0.5">
+                              <span className="text-[8px] text-muted-foreground font-semibold">L</span>
+                              <span className={cn(
+                                'text-[11px] font-bold',
+                                m!.liquido > 0
+                                  ? 'text-emerald-600 dark:text-emerald-400'
+                                  : m!.liquido < 0
+                                  ? 'text-red-600 dark:text-red-400'
+                                  : 'text-muted-foreground'
+                              )}>
+                                {fmtBRL(m!.liquido)}
+                              </span>
+                            </div>
+                          </div>
+                        )}
                       </button>
                     );
                   })}
