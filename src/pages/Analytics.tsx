@@ -241,7 +241,7 @@ const Analytics = () => {
         propertiesAlugados: [], propertiesNaoAlugados: [],
       };
       const cond = p.valor_condominio ?? 0;
-      const iptuMes = (p.iptu_value ?? 0) / 12;
+      const iptuMes = p.iptu_value ?? 0;
       if (p.alugado) {
         grouped[city].aluguelBruto += p.valor_aluguel ?? 0;
         grouped[city].condAlugados += cond;
