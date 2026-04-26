@@ -662,7 +662,17 @@ export default function Balancete() {
 
       {/* Month-level drill-down dialog */}
       <Dialog open={!!monthDrilldown} onOpenChange={(o) => !o && setMonthDrilldown(null)}>
-        <DialogContent className="!left-3 !right-3 !w-auto !max-w-md !translate-x-0 sm:!left-[50%] sm:!right-auto sm:!w-[calc(100vw-2rem)] sm:!translate-x-[-50%] max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 gap-0">
+        <DialogContent
+          className="max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 gap-0"
+          style={{
+            left: '0.75rem',
+            right: '0.75rem',
+            top: '4vh',
+            width: 'auto',
+            maxWidth: '28rem',
+            transform: 'none',
+          }}
+        >
           <DialogHeader className="px-4 pt-4 pb-3 sticky top-0 bg-background z-10 border-b">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
