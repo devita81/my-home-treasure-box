@@ -226,14 +226,20 @@ export default function Balancete() {
 
   // KPIs agrupados por ano (para visão expansível)
   const kpisByYear = useMemo(() => {
-    const map = new Map<number, { ano: number; receita: number; despesa: number; liquido: number; imoveis: Set<string>; meses: Record<number, number> }>();
+    type MesAgg = { receita: number; despesa: number; liquido: number };
+    const map = new Map<number, { ano: number; receita: number; despesa: number; liquido: number; imoveis: Set<string>; meses: Record<number, MesAgg> }>();
     filtered.forEach(r => {
       if (!map.has(r.ano)) map.set(r.ano, { ano: r.ano, receita: 0, despesa: 0, liquido: 0, imoveis: new Set(), meses: {} });
       const acc = map.get(r.ano)!;
-      acc.receita += Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
-      acc.despesa += Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas);
+      const rec = Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
+      const desp = Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas);
+      acc.receita += rec;
+      acc.despesa += desp;
       acc.liquido += r.liquido;
-      acc.meses[r.mes] = (acc.meses[r.mes] || 0) + r.liquido;
+      if (!acc.meses[r.mes]) acc.meses[r.mes] = { receita: 0, despesa: 0, liquido: 0 };
+      acc.meses[r.mes].receita += rec;
+      acc.meses[r.mes].despesa += desp;
+      acc.meses[r.mes].liquido += r.liquido;
       if (r.aluguel > 0) acc.imoveis.add(propertyKey(r));
     });
     return Array.from(map.values())
@@ -1399,7 +1405,7 @@ function YearlyKpis({
   totals,
   onOpenMonth,
 }: {
-  years: { ano: number; receita: number; despesa: number; liquido: number; imoveisAtivos: number; meses: Record<number, number> }[];
+  years: { ano: number; receita: number; despesa: number; liquido: number; imoveisAtivos: number; meses: Record<number, { receita: number; despesa: number; liquido: number }> }[];
   loading: boolean;
   totals: { receita: number; despesa: number; liquido: number; imoveisAtivos: number };
   onOpenMonth: (ano: number, mes: number) => void;
@@ -1469,7 +1475,7 @@ function YearlyKpis({
       {/* Cards por ano */}
       {years.map(y => {
         const isOpen = expanded.has(y.ano);
-        const mesesCount = Object.values(y.meses).filter(v => v !== 0).length;
+        const mesesCount = Object.values(y.meses).filter(m => m.liquido !== 0 || m.receita !== 0 || m.despesa !== 0).length;
         return (
           <Card key={y.ano} className="overflow-hidden">
             <button
@@ -1488,41 +1494,36 @@ function YearlyKpis({
                 <div className="text-base sm:text-lg font-display font-semibold tabular-nums shrink-0">
                   {y.ano}
                 </div>
-                <div className="ml-auto flex items-center gap-3 sm:gap-5 text-[11px] sm:text-xs flex-wrap justify-end">
-                  <span className="hidden sm:inline text-muted-foreground">
+                <div className="ml-auto flex items-center gap-2 sm:gap-4 text-[10px] sm:text-xs flex-wrap justify-end">
+                  <span className="hidden md:inline text-muted-foreground">
                     {y.imoveisAtivos} imóveis • {mesesCount} {mesesCount === 1 ? 'mês' : 'meses'}
                   </span>
-                  <span className={cn('font-bold tabular-nums', y.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}>
-                    {fmtBRL(y.liquido)}
-                  </span>
+                  <div className="flex items-baseline gap-1 tabular-nums">
+                    <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium">R</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{fmtBRL(y.receita)}</span>
+                  </div>
+                  <div className="flex items-baseline gap-1 tabular-nums">
+                    <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium">D</span>
+                    <span className="text-red-600 dark:text-red-400 font-semibold">{fmtBRL(y.despesa)}</span>
+                  </div>
+                  <div className="flex items-baseline gap-1 tabular-nums">
+                    <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium">L</span>
+                    <span className={cn('font-bold', y.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}>
+                      {fmtBRL(y.liquido)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </button>
 
             {isOpen && (
-              <div className="border-t bg-muted/20 px-2 py-2 space-y-2">
-                {/* Resumo Receita / Despesa */}
-                <div className="grid grid-cols-2 gap-2 px-1">
-                  <div className="rounded-md bg-card border p-2">
-                    <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-medium">Receita</div>
-                    <div className="text-xs sm:text-sm font-semibold tabular-nums text-emerald-600 dark:text-emerald-400 mt-0.5">
-                      {fmtBRL(y.receita)}
-                    </div>
-                  </div>
-                  <div className="rounded-md bg-card border p-2">
-                    <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-medium">Despesa</div>
-                    <div className="text-xs sm:text-sm font-semibold tabular-nums text-red-600 dark:text-red-400 mt-0.5">
-                      {fmtBRL(y.despesa)}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Grade de meses (Jan..Dez) */}
-                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-1 p-1">
+              <div className="border-t bg-muted/20 px-2 py-2">
+                {/* Grade de meses (Jan..Dez) com R / D / L */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5 p-1">
                   {Array.from({ length: 12 }).map((_, i) => {
                     const mes = i + 1;
-                    const v = y.meses[mes] ?? null;
-                    const empty = v === null || v === 0;
+                    const m = y.meses[mes];
+                    const empty = !m || (m.receita === 0 && m.despesa === 0 && m.liquido === 0);
                     return (
                       <button
                         key={mes}
@@ -1530,27 +1531,48 @@ function YearlyKpis({
                         disabled={empty}
                         onClick={() => onOpenMonth(y.ano, mes)}
                         className={cn(
-                          'rounded px-2 py-1.5 flex flex-col items-start justify-center min-h-[44px] text-left transition-colors',
+                          'rounded-md px-2 py-1.5 flex flex-col items-stretch text-left transition-colors',
                           empty
-                            ? 'bg-muted/40 cursor-default'
+                            ? 'bg-muted/40 cursor-default min-h-[44px] justify-center'
                             : 'bg-card border hover:bg-muted/40 active:bg-muted/60 cursor-pointer'
                         )}
                       >
-                        <div className="text-[9px] uppercase tracking-wide text-muted-foreground">
+                        <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-semibold">
                           {MONTHS[i]}
                         </div>
-                        <div
-                          className={cn(
-                            'text-[11px] font-semibold tabular-nums leading-tight mt-0.5',
-                            empty
-                              ? 'text-muted-foreground/50'
-                              : v! > 0
-                              ? 'text-emerald-600 dark:text-emerald-400'
-                              : 'text-red-600 dark:text-red-400'
-                          )}
-                        >
-                          {empty ? '—' : fmtBRL(v!)}
-                        </div>
+                        {empty ? (
+                          <div className="text-[11px] font-semibold tabular-nums text-muted-foreground/50 mt-0.5">
+                            —
+                          </div>
+                        ) : (
+                          <div className="mt-0.5 space-y-0 leading-tight">
+                            <div className="flex items-baseline justify-between gap-1 tabular-nums">
+                              <span className="text-[8px] text-muted-foreground/80 font-medium">R</span>
+                              <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                                {fmtBRL(m.receita)}
+                              </span>
+                            </div>
+                            <div className="flex items-baseline justify-between gap-1 tabular-nums">
+                              <span className="text-[8px] text-muted-foreground/80 font-medium">D</span>
+                              <span className="text-[10px] font-medium text-red-600 dark:text-red-400">
+                                {fmtBRL(m.despesa)}
+                              </span>
+                            </div>
+                            <div className="flex items-baseline justify-between gap-1 tabular-nums border-t border-border/50 pt-0.5 mt-0.5">
+                              <span className="text-[8px] text-muted-foreground font-semibold">L</span>
+                              <span className={cn(
+                                'text-[11px] font-bold',
+                                m.liquido > 0
+                                  ? 'text-emerald-600 dark:text-emerald-400'
+                                  : m.liquido < 0
+                                  ? 'text-red-600 dark:text-red-400'
+                                  : 'text-muted-foreground'
+                              )}>
+                                {fmtBRL(m.liquido)}
+                              </span>
+                            </div>
+                          </div>
+                        )}
                       </button>
                     );
                   })}
