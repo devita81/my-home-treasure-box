@@ -199,7 +199,7 @@ const ResponsiveTable = ({ children }: { children: any }) => {
         {bodyRows.map((row, i) => {
           const cells = getCells(row);
           return (
-            <div key={i} className="rounded-md border border-border bg-white text-slate-900 p-2 shadow-sm">
+            <div key={i} className="rounded-md border border-border bg-card text-card-foreground p-2 shadow-sm">
               {cells.map((cell, j) => {
                 const label = headers[j] || `Campo ${j + 1}`;
                 const value = extractText(cell).trim();
