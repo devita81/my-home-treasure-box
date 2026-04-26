@@ -515,37 +515,20 @@ export default function Balancete() {
           </CardContent>
         </Card>
 
-        {/* Mobile cards */}
+        {/* Mobile cards — accordion estilo "rentabilidade histórica" */}
         <Card className="md:hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Imóveis</CardTitle>
-            <p className="text-xs text-muted-foreground">Toque para ver o histórico</p>
+            <p className="text-xs text-muted-foreground">Toque para expandir os meses • toque em um mês para ver detalhes</p>
           </CardHeader>
           <CardContent className="space-y-2 px-3 pb-3">
             {pivot.rows.map(r => (
-              <button
+              <PropertyAccordionRow
                 key={r.key}
-                onClick={() => setDrilldown({ key: r.key, label: r.label })}
-                className="w-full flex items-center justify-between gap-2 p-3 rounded-lg border bg-card hover:bg-muted/50 active:scale-[0.99] transition-all text-left"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs font-medium truncate">{r.label}</div>
-                  <div className="text-[10px] text-muted-foreground mt-0.5">
-                    {Object.values(r.values).filter(v => v !== 0).length} meses
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <div
-                    className={cn(
-                      'text-xs font-semibold tabular-nums',
-                      r.total > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
-                    )}
-                  >
-                    {fmtBRL(r.total)}
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </button>
+                row={r}
+                months={pivot.months}
+                onOpenDrilldown={() => setDrilldown({ key: r.key, label: r.label })}
+              />
             ))}
             {/* Subtotal geral mobile */}
             <div className="flex items-center justify-between gap-2 p-3 rounded-lg border-2 bg-muted/40 mt-2">
