@@ -49,7 +49,7 @@ const fmtBRLFull = (v: number) => v.toLocaleString('pt-BR', { style: 'currency',
 
 function formatAddress(r: BalanceteRow) {
   const parts = [r.rua, r.numero, r.apartamento].filter(Boolean);
-  return parts.join(', ');
+  return parts.join(', ').toUpperCase();
 }
 
 function propertyKey(r: BalanceteRow) {
