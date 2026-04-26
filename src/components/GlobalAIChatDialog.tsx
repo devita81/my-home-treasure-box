@@ -347,10 +347,8 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm]}
                           components={{
-                            table: ({ node, ...props }) => (
-                              <div className="my-2 -mx-1 overflow-x-auto rounded-md border border-border bg-background">
-                                <table className="w-full border-collapse text-[11px]" {...props} />
-                              </div>
+                            table: ({ node, children }) => (
+                              <ResponsiveTable>{children}</ResponsiveTable>
                             ),
                             thead: ({ node, ...props }) => (
                               <thead className="bg-muted/80" {...props} />
