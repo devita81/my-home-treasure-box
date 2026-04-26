@@ -255,14 +255,37 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
                       <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
                     </div>
                   )}
-                  <div className={`rounded-xl px-3 sm:px-4 py-2 sm:py-3 max-w-[85%] ${
+                  <div className={`rounded-xl px-3 sm:px-4 py-2 sm:py-3 ${
                     msg.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-secondary'
+                      ? 'bg-primary text-primary-foreground max-w-[85%]'
+                      : 'bg-secondary max-w-[92%] sm:max-w-[88%] w-full'
                   }`}>
                     {msg.role === 'assistant' ? (
-                      <div className="prose prose-sm dark:prose-invert max-w-none text-[12px] prose-table:my-2 prose-table:text-[11px] prose-th:px-2 prose-th:py-1 prose-th:bg-muted prose-th:font-semibold prose-td:px-2 prose-td:py-1 prose-td:border prose-th:border prose-table:border-collapse prose-table:w-full overflow-x-auto">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                      <div className="text-[12px] leading-relaxed space-y-2 [&_p]:my-1 [&_h1]:text-[14px] [&_h1]:font-bold [&_h1]:mt-3 [&_h1]:mb-1 [&_h2]:text-[13px] [&_h2]:font-semibold [&_h2]:mt-3 [&_h2]:mb-1 [&_h3]:text-[12px] [&_h3]:font-semibold [&_h3]:mt-2 [&_h3]:mb-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_li]:my-0.5 [&_strong]:font-semibold [&_code]:bg-background/60 [&_code]:px-1 [&_code]:rounded [&_code]:text-[11px]">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            table: ({ node, ...props }) => (
+                              <div className="my-2 -mx-1 overflow-x-auto rounded-md border border-border bg-background">
+                                <table className="w-full border-collapse text-[11px]" {...props} />
+                              </div>
+                            ),
+                            thead: ({ node, ...props }) => (
+                              <thead className="bg-muted/80" {...props} />
+                            ),
+                            tr: ({ node, ...props }) => (
+                              <tr className="border-b border-border last:border-0 even:bg-muted/30" {...props} />
+                            ),
+                            th: ({ node, ...props }) => (
+                              <th className="border-r border-border last:border-0 px-2 py-1.5 text-left font-semibold text-foreground whitespace-nowrap" {...props} />
+                            ),
+                            td: ({ node, ...props }) => (
+                              <td className="border-r border-border last:border-0 px-2 py-1.5 align-top text-foreground/90" {...props} />
+                            ),
+                          }}
+                        >
+                          {msg.content}
+                        </ReactMarkdown>
                       </div>
                     ) : (
                       <p className="text-[12px] whitespace-pre-wrap">{msg.content}</p>
