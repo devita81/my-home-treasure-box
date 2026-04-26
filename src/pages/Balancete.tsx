@@ -79,6 +79,7 @@ export default function Balancete() {
   const [yearFilter, setYearFilter] = useState<string>('all');
   const [monthFilter, setMonthFilter] = useState<string>('all');
   const [drilldown, setDrilldown] = useState<{ key: string; label: string } | null>(null);
+  const [monthDrilldown, setMonthDrilldown] = useState<{ key: string; label: string; ano: number; mes: number } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -257,6 +258,14 @@ export default function Balancete() {
       { aluguel: 0, condominio: 0, iptu: 0, taxa: 0, outras: 0, reembolso: 0, liquido: 0 }
     );
   }, [drilldownRows]);
+
+  // Month-level drill-down (todos os custos/receitas do mês específico)
+  const monthDrilldownRow = useMemo(() => {
+    if (!monthDrilldown) return null;
+    return rows.find(
+      r => propertyKey(r) === monthDrilldown.key && r.ano === monthDrilldown.ano && r.mes === monthDrilldown.mes
+    ) ?? null;
+  }, [monthDrilldown, rows]);
 
   return (
     <div
@@ -528,6 +537,9 @@ export default function Balancete() {
                 row={r}
                 months={pivot.months}
                 onOpenDrilldown={() => setDrilldown({ key: r.key, label: r.label })}
+                onOpenMonthDrilldown={(ano, mes) =>
+                  setMonthDrilldown({ key: r.key, label: r.label, ano, mes })
+                }
               />
             ))}
             {/* Subtotal geral mobile */}
@@ -642,6 +654,129 @@ export default function Balancete() {
                 </div>
               ))}
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Month-level drill-down dialog */}
+      <Dialog open={!!monthDrilldown} onOpenChange={(o) => !o && setMonthDrilldown(null)}>
+        <DialogContent
+          className="max-w-md w-[calc(100vw-1rem)] max-h-[92vh] overflow-y-auto p-0 gap-0"
+          style={{
+            paddingTop: 'env(safe-area-inset-top)',
+            paddingBottom: 'env(safe-area-inset-bottom)',
+            paddingLeft: 'env(safe-area-inset-left)',
+            paddingRight: 'env(safe-area-inset-right)',
+          }}
+        >
+          <DialogHeader className="px-4 pt-4 pb-3 sticky top-0 bg-background z-10 border-b">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <DialogTitle className="text-sm font-display truncate pr-8">
+                  {monthDrilldown ? `${MONTHS[monthDrilldown.mes - 1]}/${monthDrilldown.ano}` : ''}
+                </DialogTitle>
+                <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                  {monthDrilldown?.label}
+                </p>
+              </div>
+              <DialogClose
+                className="rounded-full h-8 w-8 inline-flex items-center justify-center hover:bg-muted shrink-0 transition-colors"
+                aria-label="Fechar"
+              >
+                <X className="h-4 w-4" />
+              </DialogClose>
+            </div>
+          </DialogHeader>
+
+          <div className="px-4 py-4 space-y-4">
+            {monthDrilldownRow ? (
+              <>
+                {/* Totals do mês */}
+                <div className="grid grid-cols-3 gap-2">
+                  <MiniStat
+                    label="Receita"
+                    value={
+                      Math.max(0, monthDrilldownRow.aluguel) +
+                      Math.max(0, monthDrilldownRow.reembolso_condominio) +
+                      Math.max(0, monthDrilldownRow.reembolso_iptu) +
+                      Math.max(0, monthDrilldownRow.reembolso_outras_despesas)
+                    }
+                    tone="positive"
+                  />
+                  <MiniStat
+                    label="Despesa"
+                    value={
+                      Math.min(0, monthDrilldownRow.condominio) +
+                      Math.min(0, monthDrilldownRow.iptu) +
+                      Math.min(0, monthDrilldownRow.taxa_administracao) +
+                      Math.min(0, monthDrilldownRow.outras_despesas)
+                    }
+                    tone="negative"
+                  />
+                  <MiniStat
+                    label="Líquido"
+                    value={monthDrilldownRow.liquido}
+                    tone={monthDrilldownRow.liquido >= 0 ? 'positive' : 'negative'}
+                  />
+                </div>
+
+                {/* Status / locatário */}
+                {(monthDrilldownRow.alugado || monthDrilldownRow.locatario) && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {monthDrilldownRow.alugado && (
+                      <Badge className="text-[10px] px-2 py-0 h-5 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/15">
+                        Alugado
+                      </Badge>
+                    )}
+                    {monthDrilldownRow.locatario && (
+                      <span className="text-[11px] text-muted-foreground truncate">
+                        Locatário: <span className="text-foreground">{monthDrilldownRow.locatario}</span>
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Receitas */}
+                <div className="rounded-lg border bg-card p-3 space-y-1.5">
+                  <div className="text-[10px] uppercase tracking-wide font-semibold text-emerald-600 dark:text-emerald-400 mb-1">
+                    Receitas
+                  </div>
+                  <Line2 label="Aluguel" value={monthDrilldownRow.aluguel} positive />
+                  <Line2 label="Reemb. condomínio" value={monthDrilldownRow.reembolso_condominio} positive />
+                  <Line2 label="Reemb. IPTU" value={monthDrilldownRow.reembolso_iptu} positive />
+                  <Line2 label="Reemb. outras" value={monthDrilldownRow.reembolso_outras_despesas} positive />
+                </div>
+
+                {/* Despesas */}
+                <div className="rounded-lg border bg-card p-3 space-y-1.5">
+                  <div className="text-[10px] uppercase tracking-wide font-semibold text-red-600 dark:text-red-400 mb-1">
+                    Despesas
+                  </div>
+                  <Line2 label="Condomínio" value={monthDrilldownRow.condominio} />
+                  <Line2 label="IPTU" value={monthDrilldownRow.iptu} />
+                  <Line2 label="Taxa administração" value={monthDrilldownRow.taxa_administracao} />
+                  <Line2 label="Outras despesas" value={monthDrilldownRow.outras_despesas} />
+                </div>
+
+                {/* CTA para drill-down completo */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!monthDrilldown) return;
+                    setDrilldown({ key: monthDrilldown.key, label: monthDrilldown.label });
+                    setMonthDrilldown(null);
+                  }}
+                  className="w-full flex items-center justify-center gap-1 py-2 rounded-md text-[11px] font-medium text-primary hover:bg-primary/5 active:bg-primary/10 transition-colors border"
+                >
+                  Ver histórico completo do imóvel
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </>
+            ) : (
+              <p className="text-xs text-muted-foreground text-center py-6">
+                Sem dados para este mês.
+              </p>
+            )}
           </div>
         </DialogContent>
       </Dialog>
@@ -871,10 +1006,12 @@ function PropertyAccordionRow({
   row,
   months,
   onOpenDrilldown,
+  onOpenMonthDrilldown,
 }: {
   row: { key: string; label: string; values: Record<string, number>; total: number; hasValues: boolean };
   months: string[];
   onOpenDrilldown: () => void;
+  onOpenMonthDrilldown: (ano: number, mes: number) => void;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -969,11 +1106,16 @@ function PropertyAccordionRow({
                     const v = row.values[mk] ?? null;
                     const empty = v === null || v === 0;
                     return (
-                      <div
+                      <button
                         key={mk}
+                        type="button"
+                        disabled={empty}
+                        onClick={() => onOpenMonthDrilldown(yearBlock.ano, mes)}
                         className={cn(
-                          'rounded px-2 py-1.5 flex flex-col items-start justify-center min-h-[44px]',
-                          empty ? 'bg-muted/40' : 'bg-card border'
+                          'rounded px-2 py-1.5 flex flex-col items-start justify-center min-h-[44px] text-left transition-colors',
+                          empty
+                            ? 'bg-muted/40 cursor-default'
+                            : 'bg-card border hover:bg-muted/40 active:bg-muted/60 cursor-pointer'
                         )}
                       >
                         <div className="text-[9px] uppercase tracking-wide text-muted-foreground">
@@ -991,7 +1133,7 @@ function PropertyAccordionRow({
                         >
                           {empty ? '—' : fmtBRL(v!)}
                         </div>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
