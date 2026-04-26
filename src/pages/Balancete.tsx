@@ -1677,17 +1677,8 @@ function YearlyKpis({
   totals: { receita: number; despesa: number; liquido: number; imoveisAtivos: number };
   onOpenMonth: (ano: number, mes: number) => void;
 }) {
-  // Default: expandir o ano mais recente
-  const [expanded, setExpanded] = useState<Set<number>>(() =>
-    years.length > 0 ? new Set([years[0].ano]) : new Set()
-  );
-
-  // Auto-expandir ano mais recente quando os dados carregam
-  useEffect(() => {
-    if (years.length > 0 && expanded.size === 0) {
-      setExpanded(new Set([years[0].ano]));
-    }
-  }, [years]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Default: todos os anos fechados
+  const [expanded, setExpanded] = useState<Set<number>>(() => new Set());
 
   const toggle = (ano: number) => {
     setExpanded(prev => {
