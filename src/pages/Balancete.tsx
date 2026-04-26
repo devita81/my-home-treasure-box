@@ -871,10 +871,10 @@ function MiniStat({ label, value, tone }: { label: string; value: number; tone: 
 function Line2({ label, value, positive }: { label: string; value: number; positive?: boolean }) {
   if (value === 0) return null;
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,5.6rem)] sm:grid-cols-[minmax(0,1fr)_minmax(0,6.75rem)] items-baseline gap-1.5 sm:gap-2 min-w-0 overflow-hidden">
+    <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,6.75rem)] items-baseline gap-0.5 sm:gap-2 min-w-0 overflow-hidden">
       <span className="text-muted-foreground truncate min-w-0">{label}</span>
       <span className={cn(
-        'tabular-nums min-w-0 truncate text-right leading-tight',
+        'tabular-nums min-w-0 text-left sm:text-right leading-tight whitespace-nowrap text-[14px] sm:text-[11px]',
         positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
       )}>
         {fmtBRL(value)}
