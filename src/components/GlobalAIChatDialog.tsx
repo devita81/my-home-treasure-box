@@ -145,6 +145,88 @@ BALANCETE POR IMÓVEL — últimos ${cutoff.length} meses (mais recentes):
 ${propLines.join('\n')}`;
 }
 
+// Helpers para renderizar tabelas markdown como cards em mobile e tabelas em desktop
+function extractText(node: any): string {
+  if (node == null) return '';
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(extractText).join('');
+  if (node.props?.children !== undefined) return extractText(node.props.children);
+  return '';
+}
+
+function getRows(children: any): any[] {
+  const arr = Array.isArray(children) ? children : [children];
+  const rows: any[] = [];
+  for (const child of arr) {
+    if (!child) continue;
+    const type = child.type;
+    const tag = (child.props?.node?.tagName) || (typeof type === 'string' ? type : '');
+    if (tag === 'tr') rows.push(child);
+    else if (child.props?.children) rows.push(...getRows(child.props.children));
+  }
+  return rows;
+}
+
+function getCells(row: any): any[] {
+  const children = row?.props?.children;
+  const arr = Array.isArray(children) ? children : [children];
+  return arr.filter((c: any) => {
+    const tag = c?.props?.node?.tagName || (typeof c?.type === 'string' ? c.type : '');
+    return tag === 'th' || tag === 'td';
+  });
+}
+
+const ResponsiveTable = ({ children }: { children: any }) => {
+  const arr = Array.isArray(children) ? children : [children];
+  let headerRow: any = null;
+  const bodyRows: any[] = [];
+  for (const section of arr) {
+    if (!section) continue;
+    const tag = section?.props?.node?.tagName || (typeof section?.type === 'string' ? section.type : '');
+    if (tag === 'thead') {
+      const rows = getRows(section.props.children);
+      if (rows[0]) headerRow = rows[0];
+    } else if (tag === 'tbody') {
+      bodyRows.push(...getRows(section.props.children));
+    }
+  }
+  const headers = headerRow ? getCells(headerRow).map(extractText) : [];
+
+  return (
+    <>
+      {/* Mobile: cards */}
+      <div className="sm:hidden my-2 space-y-2">
+        {bodyRows.map((row, i) => {
+          const cells = getCells(row);
+          return (
+            <div key={i} className="rounded-md border border-border bg-background p-2 shadow-sm">
+              {cells.map((cell, j) => {
+                const label = headers[j] || `Campo ${j + 1}`;
+                const value = extractText(cell).trim();
+                if (!value || value === '-') return null;
+                return (
+                  <div key={j} className="flex gap-2 py-0.5 border-b border-border/40 last:border-0">
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide shrink-0 w-[35%]">
+                      {label}
+                    </span>
+                    <span className="text-[11px] text-foreground/90 flex-1 break-words">
+                      {value}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+      {/* Desktop: tabela tradicional */}
+      <div className="hidden sm:block my-2 -mx-1 overflow-x-auto rounded-md border border-border bg-background">
+        <table className="w-full border-collapse text-[11px]">{children}</table>
+      </div>
+    </>
+  );
+};
+
 export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogProps) => {
   const { properties } = useProperties();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -265,10 +347,8 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm]}
                           components={{
-                            table: ({ node, ...props }) => (
-                              <div className="my-2 -mx-1 overflow-x-auto rounded-md border border-border bg-background">
-                                <table className="w-full border-collapse text-[11px]" {...props} />
-                              </div>
+                            table: ({ node, children }) => (
+                              <ResponsiveTable>{children}</ResponsiveTable>
                             ),
                             thead: ({ node, ...props }) => (
                               <thead className="bg-muted/80" {...props} />
