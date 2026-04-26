@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, TrendingDown, Wallet, Home as HomeIcon, X, ChevronRight } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, Wallet, Home as HomeIcon, X, ChevronRight, ChevronDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Header } from '@/components/layout/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, ComposedChart,
+  AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   XAxis, YAxis, Tooltip, Legend, CartesianGrid,
 } from 'recharts';
 import { cn } from '@/lib/utils';
@@ -50,6 +51,13 @@ const fmtBRLFull = (v: number) => v.toLocaleString('pt-BR', { style: 'currency',
 function formatAddress(r: BalanceteRow) {
   const parts = [r.rua, r.numero, r.apartamento].filter(Boolean);
   return parts.join(', ').toUpperCase();
+}
+
+function formatPropertyLabel(r: BalanceteRow) {
+  const addr = formatAddress(r);
+  const cidade = r.cidade ? r.cidade.toUpperCase() : '';
+  if (cidade && addr) return `${cidade} • ${addr}`;
+  return addr || cidade || 'SEM ENDEREÇO';
 }
 
 function propertyKey(r: BalanceteRow) {
