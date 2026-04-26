@@ -559,7 +559,7 @@ export default function Balancete() {
       {/* Drill-down dialog */}
       <Dialog open={!!drilldown} onOpenChange={(o) => !o && setDrilldown(null)}>
         <DialogContent
-          className="max-w-3xl w-[calc(100vw-1rem)] max-h-[92vh] overflow-y-auto p-0 gap-0"
+          className="max-w-3xl w-[calc(100vw-1rem)] max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 gap-0"
           style={{
             paddingTop: 'env(safe-area-inset-top)',
             paddingBottom: 'env(safe-area-inset-bottom)',
@@ -661,7 +661,7 @@ export default function Balancete() {
       {/* Month-level drill-down dialog */}
       <Dialog open={!!monthDrilldown} onOpenChange={(o) => !o && setMonthDrilldown(null)}>
         <DialogContent
-          className="max-w-md w-[calc(100vw-1rem)] max-h-[92vh] overflow-y-auto p-0 gap-0"
+          className="max-w-md w-[calc(100vw-1rem)] max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 gap-0"
           style={{
             paddingTop: 'env(safe-area-inset-top)',
             paddingBottom: 'env(safe-area-inset-bottom)',
@@ -854,10 +854,10 @@ function MoneyTooltip({ active, payload, label }: any) {
 
 function MiniStat({ label, value, tone }: { label: string; value: number; tone: 'positive' | 'negative' }) {
   return (
-    <div className="rounded-lg border bg-card p-2">
-      <div className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</div>
+    <div className="rounded-lg border bg-card p-2 min-w-0 overflow-hidden">
+      <div className="text-[10px] text-muted-foreground uppercase tracking-wide truncate">{label}</div>
       <div className={cn(
-        'text-xs sm:text-sm font-semibold tabular-nums mt-0.5',
+        'text-xs sm:text-sm font-semibold tabular-nums mt-0.5 truncate',
         tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
       )}>
         {fmtBRL(value)}
@@ -869,10 +869,10 @@ function MiniStat({ label, value, tone }: { label: string; value: number; tone: 
 function Line2({ label, value, positive }: { label: string; value: number; positive?: boolean }) {
   if (value === 0) return null;
   return (
-    <div className="flex items-center justify-between gap-2">
-      <span className="text-muted-foreground truncate">{label}</span>
+    <div className="flex items-center justify-between gap-2 min-w-0">
+      <span className="text-muted-foreground truncate min-w-0 flex-1">{label}</span>
       <span className={cn(
-        'tabular-nums shrink-0',
+        'tabular-nums shrink-0 max-w-[45%] truncate text-right',
         positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
       )}>
         {fmtBRL(value)}
