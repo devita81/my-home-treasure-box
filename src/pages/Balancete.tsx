@@ -672,11 +672,11 @@ export default function Balancete() {
             </div>
           </DialogHeader>
 
-          <div className="px-4 py-4 space-y-4">
+          <div className="px-3 py-4 space-y-4 min-w-0 overflow-hidden">
             {monthDrilldownRow ? (
               <>
                 {/* Totals do mês */}
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-2 min-w-0 overflow-hidden">
                   <MiniStat
                     label="Receita"
                     value={
@@ -706,14 +706,14 @@ export default function Balancete() {
 
                 {/* Status / locatário */}
                 {(monthDrilldownRow.alugado || monthDrilldownRow.locatario) && (
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 min-w-0 overflow-hidden">
                     {monthDrilldownRow.alugado && (
-                      <Badge className="text-[10px] px-2 py-0 h-5 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/15">
+                      <Badge className="text-[10px] px-2 py-0 h-5 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/15 shrink-0">
                         Alugado
                       </Badge>
                     )}
                     {monthDrilldownRow.locatario && (
-                      <span className="text-[11px] text-muted-foreground truncate">
+                      <span className="text-[11px] text-muted-foreground truncate min-w-0 flex-1">
                         Locatário: <span className="text-foreground">{monthDrilldownRow.locatario}</span>
                       </span>
                     )}
@@ -721,8 +721,8 @@ export default function Balancete() {
                 )}
 
                 {/* Receitas */}
-                <div className="rounded-lg border bg-card p-3 space-y-1.5">
-                  <div className="text-[10px] uppercase tracking-wide font-semibold text-emerald-600 dark:text-emerald-400 mb-1">
+                <div className="rounded-lg border bg-card p-3 space-y-1.5 min-w-0 overflow-hidden">
+                  <div className="text-[10px] uppercase tracking-wide font-semibold text-emerald-600 dark:text-emerald-400 mb-1 truncate">
                     Receitas
                   </div>
                   <Line2 label="Aluguel" value={monthDrilldownRow.aluguel} positive />
@@ -732,8 +732,8 @@ export default function Balancete() {
                 </div>
 
                 {/* Despesas */}
-                <div className="rounded-lg border bg-card p-3 space-y-1.5">
-                  <div className="text-[10px] uppercase tracking-wide font-semibold text-red-600 dark:text-red-400 mb-1">
+                <div className="rounded-lg border bg-card p-3 space-y-1.5 min-w-0 overflow-hidden">
+                  <div className="text-[10px] uppercase tracking-wide font-semibold text-red-600 dark:text-red-400 mb-1 truncate">
                     Despesas
                   </div>
                   <Line2 label="Condomínio" value={monthDrilldownRow.condominio} />
@@ -750,10 +750,10 @@ export default function Balancete() {
                     setDrilldown({ key: monthDrilldown.key, label: monthDrilldown.label });
                     setMonthDrilldown(null);
                   }}
-                  className="w-full flex items-center justify-center gap-1 py-2 rounded-md text-[11px] font-medium text-primary hover:bg-primary/5 active:bg-primary/10 transition-colors border"
+                  className="w-full min-w-0 flex items-center justify-center gap-1 py-2 px-2 rounded-md text-[11px] font-medium text-primary hover:bg-primary/5 active:bg-primary/10 transition-colors border overflow-hidden"
                 >
-                  Ver histórico completo do imóvel
-                  <ChevronRight className="h-3.5 w-3.5" />
+                  <span className="truncate">Ver histórico completo do imóvel</span>
+                  <ChevronRight className="h-3.5 w-3.5 shrink-0" />
                 </button>
               </>
             ) : (
@@ -839,9 +839,9 @@ function MoneyTooltip({ active, payload, label }: any) {
 function MiniStat({ label, value, tone }: { label: string; value: number; tone: 'positive' | 'negative' }) {
   return (
     <div className="rounded-lg border bg-card p-2 min-w-0 overflow-hidden">
-      <div className="text-[10px] text-muted-foreground uppercase tracking-wide truncate">{label}</div>
+      <div className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wide truncate">{label}</div>
       <div className={cn(
-        'text-xs sm:text-sm font-semibold tabular-nums mt-0.5 truncate',
+        'text-[11px] sm:text-xs font-semibold tabular-nums mt-0.5 truncate leading-tight',
         tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
       )}>
         {fmtBRL(value)}
@@ -853,10 +853,10 @@ function MiniStat({ label, value, tone }: { label: string; value: number; tone: 
 function Line2({ label, value, positive }: { label: string; value: number; positive?: boolean }) {
   if (value === 0) return null;
   return (
-    <div className="flex items-center justify-between gap-2 min-w-0">
-      <span className="text-muted-foreground truncate min-w-0 flex-1">{label}</span>
+    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,6.75rem)] items-baseline gap-2 min-w-0 overflow-hidden">
+      <span className="text-muted-foreground truncate min-w-0">{label}</span>
       <span className={cn(
-        'tabular-nums shrink-0 max-w-[45%] truncate text-right',
+        'tabular-nums min-w-0 truncate text-right leading-tight',
         positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
       )}>
         {fmtBRL(value)}
