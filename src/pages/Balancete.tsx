@@ -1276,10 +1276,12 @@ function YearlyKpis({
   years,
   loading,
   totals,
+  onOpenMonth,
 }: {
-  years: { ano: number; receita: number; despesa: number; liquido: number; imoveisAtivos: number }[];
+  years: { ano: number; receita: number; despesa: number; liquido: number; imoveisAtivos: number; meses: Record<number, number> }[];
   loading: boolean;
   totals: { receita: number; despesa: number; liquido: number; imoveisAtivos: number };
+  onOpenMonth: (ano: number, mes: number) => void;
 }) {
   // Default: expandir o ano mais recente
   const [expanded, setExpanded] = useState<Set<number>>(() =>
@@ -1346,6 +1348,7 @@ function YearlyKpis({
       {/* Cards por ano */}
       {years.map(y => {
         const isOpen = expanded.has(y.ano);
+        const mesesCount = Object.values(y.meses).filter(v => v !== 0).length;
         return (
           <Card key={y.ano} className="overflow-hidden">
             <button
@@ -1365,7 +1368,9 @@ function YearlyKpis({
                   {y.ano}
                 </div>
                 <div className="ml-auto flex items-center gap-3 sm:gap-5 text-[11px] sm:text-xs flex-wrap justify-end">
-                  <span className="hidden sm:inline text-muted-foreground">{y.imoveisAtivos} imóveis</span>
+                  <span className="hidden sm:inline text-muted-foreground">
+                    {y.imoveisAtivos} imóveis • {mesesCount} {mesesCount === 1 ? 'mês' : 'meses'}
+                  </span>
                   <span className={cn('font-bold tabular-nums', y.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}>
                     {fmtBRL(y.liquido)}
                   </span>
@@ -1374,11 +1379,61 @@ function YearlyKpis({
             </button>
 
             {isOpen && (
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 px-3 sm:px-4 pb-3 sm:pb-4 border-t pt-3">
-                <KpiCard label="Receita" value={y.receita} icon={TrendingUp} tone="positive" loading={false} />
-                <KpiCard label="Despesa" value={y.despesa} icon={TrendingDown} tone="negative" loading={false} />
-                <KpiCard label="Líquido" value={y.liquido} icon={Wallet} tone={y.liquido >= 0 ? 'positive' : 'negative'} loading={false} />
-                <KpiCard label="Imóveis ativos" value={y.imoveisAtivos} icon={HomeIcon} tone="neutral" loading={false} isCount />
+              <div className="border-t bg-muted/20 px-2 py-2 space-y-2">
+                {/* Resumo Receita / Despesa */}
+                <div className="grid grid-cols-2 gap-2 px-1">
+                  <div className="rounded-md bg-card border p-2">
+                    <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-medium">Receita</div>
+                    <div className="text-xs sm:text-sm font-semibold tabular-nums text-emerald-600 dark:text-emerald-400 mt-0.5">
+                      {fmtBRL(y.receita)}
+                    </div>
+                  </div>
+                  <div className="rounded-md bg-card border p-2">
+                    <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-medium">Despesa</div>
+                    <div className="text-xs sm:text-sm font-semibold tabular-nums text-red-600 dark:text-red-400 mt-0.5">
+                      {fmtBRL(y.despesa)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Grade de meses (Jan..Dez) */}
+                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-1 p-1">
+                  {Array.from({ length: 12 }).map((_, i) => {
+                    const mes = i + 1;
+                    const v = y.meses[mes] ?? null;
+                    const empty = v === null || v === 0;
+                    return (
+                      <button
+                        key={mes}
+                        type="button"
+                        disabled={empty}
+                        onClick={() => onOpenMonth(y.ano, mes)}
+                        className={cn(
+                          'rounded px-2 py-1.5 flex flex-col items-start justify-center min-h-[44px] text-left transition-colors',
+                          empty
+                            ? 'bg-muted/40 cursor-default'
+                            : 'bg-card border hover:bg-muted/40 active:bg-muted/60 cursor-pointer'
+                        )}
+                      >
+                        <div className="text-[9px] uppercase tracking-wide text-muted-foreground">
+                          {MONTHS[i]}
+                        </div>
+                        <div
+                          className={cn(
+                            'text-[11px] font-semibold tabular-nums leading-tight mt-0.5',
+                            empty
+                              ? 'text-muted-foreground/50'
+                              : v! > 0
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-red-600 dark:text-red-400'
+                          )}
+                        >
+                          {empty ? '—' : fmtBRL(v!)}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </Card>
