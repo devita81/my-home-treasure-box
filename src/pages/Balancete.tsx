@@ -839,9 +839,9 @@ function MoneyTooltip({ active, payload, label }: any) {
 function MiniStat({ label, value, tone }: { label: string; value: number; tone: 'positive' | 'negative' }) {
   return (
     <div className="rounded-lg border bg-card p-2 min-w-0 overflow-hidden">
-      <div className="text-[10px] text-muted-foreground uppercase tracking-wide truncate">{label}</div>
+      <div className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wide truncate">{label}</div>
       <div className={cn(
-        'text-xs sm:text-sm font-semibold tabular-nums mt-0.5 truncate',
+        'text-[11px] sm:text-xs font-semibold tabular-nums mt-0.5 truncate leading-tight',
         tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
       )}>
         {fmtBRL(value)}
@@ -853,10 +853,10 @@ function MiniStat({ label, value, tone }: { label: string; value: number; tone: 
 function Line2({ label, value, positive }: { label: string; value: number; positive?: boolean }) {
   if (value === 0) return null;
   return (
-    <div className="flex items-center justify-between gap-2 min-w-0">
-      <span className="text-muted-foreground truncate min-w-0 flex-1">{label}</span>
+    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,6.75rem)] items-baseline gap-2 min-w-0 overflow-hidden">
+      <span className="text-muted-foreground truncate min-w-0">{label}</span>
       <span className={cn(
-        'tabular-nums shrink-0 max-w-[45%] truncate text-right',
+        'tabular-nums min-w-0 truncate text-right leading-tight',
         positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
       )}>
         {fmtBRL(value)}
