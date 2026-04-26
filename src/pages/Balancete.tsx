@@ -477,6 +477,36 @@ export default function Balancete() {
                         </TableCell>
                       </TableRow>
                     ))}
+                    {/* Subtotal geral */}
+                    <TableRow className="bg-muted/40 hover:bg-muted/40 border-t-2">
+                      <TableCell className="sticky left-0 bg-muted/40 z-10 font-semibold text-xs uppercase tracking-wide">
+                        Subtotal geral
+                      </TableCell>
+                      {pivot.months.map(mk => {
+                        const v = pivot.monthTotals[mk] || 0;
+                        return (
+                          <TableCell
+                            key={mk}
+                            className={cn(
+                              'text-right text-[11px] font-semibold tabular-nums whitespace-nowrap',
+                              v > 0 && 'text-emerald-600 dark:text-emerald-400',
+                              v < 0 && 'text-red-600 dark:text-red-400',
+                              v === 0 && 'text-muted-foreground/60'
+                            )}
+                          >
+                            {v === 0 ? '—' : fmtBRL(v)}
+                          </TableCell>
+                        );
+                      })}
+                      <TableCell
+                        className={cn(
+                          'text-right text-xs font-bold tabular-nums',
+                          pivot.grandTotal >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+                        )}
+                      >
+                        {fmtBRL(pivot.grandTotal)}
+                      </TableCell>
+                    </TableRow>
                   </TableBody>
                 </Table>
               </div>
