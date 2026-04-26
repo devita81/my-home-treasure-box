@@ -117,6 +117,7 @@ export default function Balancete() {
   const [monthFilter, setMonthFilter] = useState<string>('all');
   const [drilldown, setDrilldown] = useState<{ key: string; label: string } | null>(null);
   const [monthDrilldown, setMonthDrilldown] = useState<{ key: string; label: string; ano: number; mes: number } | null>(null);
+  const [yearMonthDrilldown, setYearMonthDrilldown] = useState<{ ano: number; mes: number } | null>(null);
 
   useEffect(() => {
     (async () => {
