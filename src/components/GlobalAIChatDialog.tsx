@@ -261,8 +261,8 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
                       : 'bg-secondary'
                   }`}>
                     {msg.role === 'assistant' ? (
-                      <div className="prose prose-sm dark:prose-invert max-w-none text-[12px]">
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      <div className="prose prose-sm dark:prose-invert max-w-none text-[12px] prose-table:my-2 prose-table:text-[11px] prose-th:px-2 prose-th:py-1 prose-th:bg-muted prose-th:font-semibold prose-td:px-2 prose-td:py-1 prose-td:border prose-th:border prose-table:border-collapse prose-table:w-full overflow-x-auto">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                       </div>
                     ) : (
                       <p className="text-[12px] whitespace-pre-wrap">{msg.content}</p>
