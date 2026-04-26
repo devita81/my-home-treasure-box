@@ -380,7 +380,12 @@ export default function Balancete() {
         </div>
 
         {/* KPIs por ano (expansíveis) */}
-        <YearlyKpis years={kpisByYear} loading={loading} totals={kpis} />
+        <YearlyKpis
+          years={kpisByYear}
+          loading={loading}
+          totals={kpis}
+          onOpenMonth={(ano, mes) => setYearMonthDrilldown({ ano, mes })}
+        />
 
         {/* Charts */}
         <Tabs defaultValue="trend" className="w-full">
