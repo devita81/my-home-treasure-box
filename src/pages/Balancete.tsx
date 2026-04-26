@@ -589,7 +589,7 @@ export default function Balancete() {
 
           <div className="px-2.5 sm:px-6 py-3 sm:py-4 space-y-3 sm:space-y-4 min-w-0 overflow-hidden">
             {/* Totals */}
-            <div className="grid grid-cols-[repeat(3,minmax(0,1fr))] gap-1 sm:gap-2 w-full max-w-full min-w-0 overflow-hidden">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-2 w-full max-w-full min-w-0 overflow-hidden">
               <MiniStat label="Receita" value={drilldownTotals.aluguel + drilldownTotals.reembolso} tone="positive" />
               <MiniStat
                 label="Despesa"
@@ -694,7 +694,7 @@ export default function Balancete() {
             {monthDrilldownRow ? (
               <>
                 {/* Totals do mês */}
-                <div className="grid grid-cols-[repeat(3,minmax(0,1fr))] gap-1 sm:gap-2 w-full max-w-full min-w-0 overflow-hidden">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-2 w-full max-w-full min-w-0 overflow-hidden">
                   <MiniStat
                     label="Receita"
                     value={
