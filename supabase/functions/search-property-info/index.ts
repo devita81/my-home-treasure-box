@@ -143,7 +143,7 @@ serve(async (req) => {
         // 3) Filtro de tipo (residencial descarta garagem/vaga/etc)
         const tipoLower = (tipo_imovel ?? '').toLowerCase();
         const ehResidencial = !['garagem','vaga','comercial','terreno'].some((t) => tipoLower.includes(t));
-        const PADROES_NAO_RESID = /\b(GARAGEM|GAR|VAGA|VG|BOX|ESTACIONAMENTO|DEPOSITO|DEP|HOBBY|CUBICULO)\b/;
+        const PADROES_NAO_RESID = /\b(GARAGEM|GAR|VAGA|VAGAS|VG|VGS|BOX|ESTACIONAMENTO|DEP[OÓ]SITO|DEP|HOBBY|CUB[IÍ]CULO|JIRAU)\b/;
         const matchedItbi = candidatosNomeOk.filter((c: any) => {
           if (!ehResidencial) return true;
           const compl = stripText(c.complemento ?? '');
