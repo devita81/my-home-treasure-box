@@ -559,7 +559,7 @@ export default function Balancete() {
       {/* Drill-down dialog */}
       <Dialog open={!!drilldown} onOpenChange={(o) => !o && setDrilldown(null)}>
         <DialogContent
-          className="max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 gap-0 w-[calc(100dvw-1.5rem)] max-w-[calc(100dvw-1.5rem)] sm:max-w-3xl"
+          className="max-h-[calc(100dvh-1.5rem)] md:max-h-[92vh] overflow-hidden md:overflow-y-auto p-0 gap-0 w-[calc(100dvw-1.5rem)] max-w-[calc(100dvw-1.5rem)] sm:max-w-3xl"
           style={{
             left: '0.75rem',
             right: '0.75rem',
@@ -568,10 +568,10 @@ export default function Balancete() {
             transform: 'none',
           }}
         >
-          <DialogHeader className="px-4 sm:px-6 pt-4 pb-3 sticky top-0 bg-background z-10 border-b">
+          <DialogHeader className="px-3 sm:px-6 pt-3 sm:pt-4 pb-2 sm:pb-3 sticky top-0 bg-background z-10 border-b">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <DialogTitle className="text-sm sm:text-base font-display truncate pr-8">
+                <DialogTitle className="text-[12px] sm:text-base font-display truncate pr-8 leading-tight">
                   {drilldown?.label}
                 </DialogTitle>
                 <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -587,7 +587,33 @@ export default function Balancete() {
             </div>
           </DialogHeader>
 
-          <div className="px-2.5 sm:px-6 py-3 sm:py-4 space-y-3 sm:space-y-4 min-w-0 overflow-hidden">
+          <div className="md:hidden px-2.5 py-2 space-y-2 min-w-0 overflow-hidden">
+            <div className="grid grid-cols-3 rounded-md border bg-card overflow-hidden">
+              <MobileTotalCell label="Receita" value={drilldownTotals.aluguel + drilldownTotals.reembolso} tone="positive" />
+              <MobileTotalCell
+                label="Despesa"
+                value={drilldownTotals.condominio + drilldownTotals.iptu + drilldownTotals.taxa + drilldownTotals.outras}
+                tone="negative"
+              />
+              <MobileTotalCell label="Líquido" value={drilldownTotals.liquido} tone={drilldownTotals.liquido >= 0 ? 'positive' : 'negative'} />
+            </div>
+
+            <div className="space-y-1">
+              {drilldownRows.map(r => (
+                <MobileHistoryRow
+                  key={r.id}
+                  row={r}
+                  onClick={() => {
+                    if (!drilldown) return;
+                    setMonthDrilldown({ key: drilldown.key, label: drilldown.label, ano: r.ano, mes: r.mes });
+                    setDrilldown(null);
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="hidden md:block px-2.5 sm:px-6 py-3 sm:py-4 space-y-3 sm:space-y-4 min-w-0 overflow-hidden">
             {/* Totals */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-2 w-full max-w-full min-w-0 overflow-hidden">
               <MiniStat label="Receita" value={drilldownTotals.aluguel + drilldownTotals.reembolso} tone="positive" />
@@ -776,6 +802,69 @@ function MiniStat({ label, value, tone }: { label: string; value: number; tone: 
       <div className="text-[9px] sm:text-[10px] leading-none text-muted-foreground uppercase truncate">{label}</div>
       <div className={cn(
         'text-[10px] sm:text-xs font-semibold tabular-nums mt-1 truncate leading-none text-left',
+        tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+      )}>
+        {fmtBRL(value)}
+      </div>
+    </div>
+  );
+}
+
+function MobileTotalCell({ label, value, tone }: { label: string; value: number; tone: 'positive' | 'negative' }) {
+  return (
+    <div className="min-w-0 px-2 py-1.5 border-r last:border-r-0">
+      <div className="text-[8px] uppercase leading-none text-muted-foreground truncate">{label}</div>
+      <div className={cn(
+        'text-[10px] font-bold tabular-nums leading-tight truncate mt-0.5',
+        tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+      )}>
+        {fmtBRL(value)}
+      </div>
+    </div>
+  );
+}
+
+function MobileHistoryRow({ row, onClick }: { row: BalanceteRow; onClick: () => void }) {
+  const receita = Math.max(0, row.aluguel) + Math.max(0, row.reembolso_condominio) + Math.max(0, row.reembolso_iptu) + Math.max(0, row.reembolso_outras_despesas);
+  const despesa = Math.min(0, row.condominio) + Math.min(0, row.iptu) + Math.min(0, row.taxa_administracao) + Math.min(0, row.outras_despesas);
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full rounded-md border bg-card px-2 py-1.5 text-left min-w-0 overflow-hidden active:bg-muted/60"
+    >
+      <div className="flex items-center justify-between gap-2 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <Badge variant="outline" className="h-4 px-1.5 text-[9px] shrink-0">
+            {MONTHS[row.mes - 1]}/{String(row.ano).slice(-2)}
+          </Badge>
+          {row.alugado && (
+            <Badge className="h-4 px-1.5 text-[8px] shrink-0 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/15">
+              Alugado
+            </Badge>
+          )}
+          {row.locatario && <span className="text-[9px] text-muted-foreground truncate min-w-0">{row.locatario}</span>}
+        </div>
+        <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
+      </div>
+
+      <div className="grid grid-cols-3 gap-1 pt-1 min-w-0">
+        <MobileAmount label="Rec." value={receita} tone="positive" />
+        <MobileAmount label="Desp." value={despesa} tone="negative" />
+        <MobileAmount label="Líq." value={row.liquido} tone={row.liquido >= 0 ? 'positive' : 'negative'} strong />
+      </div>
+    </button>
+  );
+}
+
+function MobileAmount({ label, value, tone, strong }: { label: string; value: number; tone: 'positive' | 'negative'; strong?: boolean }) {
+  return (
+    <div className="min-w-0">
+      <div className="text-[8px] text-muted-foreground leading-none truncate">{label}</div>
+      <div className={cn(
+        'text-[10px] tabular-nums leading-tight truncate',
+        strong ? 'font-bold' : 'font-semibold',
         tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
       )}>
         {fmtBRL(value)}
