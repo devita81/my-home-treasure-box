@@ -91,8 +91,8 @@ const Index = () => {
         <PropertyFilters />
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between gap-3 rounded-lg border bg-card px-3 py-2.5 sm:px-4 sm:py-3 shadow-sm">
-            <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center justify-between gap-2 rounded-lg border bg-card px-3 py-2.5 sm:px-4 sm:py-3 shadow-sm">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               <div className="hidden sm:flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 shrink-0">
                 <Home className="h-4 w-4 text-primary" />
               </div>
@@ -104,7 +104,18 @@ const Index = () => {
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleSync}
+                disabled={syncing}
+                title="Atualizar valores (aluguel, IPTU, condomínio, taxa adm) com base no último mês do balancete"
+                className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm"
+              >
+                <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''} sm:mr-1.5`} />
+                <span className="hidden sm:inline">{syncing ? 'Sincronizando...' : 'Sincronizar'}</span>
+              </Button>
               <GridDensitySelector value={density} onChange={setDensity} />
               <Link to="/add" className="shrink-0">
                 <Button size="sm" className="h-8 sm:h-9 px-2.5 sm:px-4 text-xs sm:text-sm">
