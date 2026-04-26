@@ -810,6 +810,69 @@ function MiniStat({ label, value, tone }: { label: string; value: number; tone: 
   );
 }
 
+function MobileTotalCell({ label, value, tone }: { label: string; value: number; tone: 'positive' | 'negative' }) {
+  return (
+    <div className="min-w-0 px-2 py-1.5 border-r last:border-r-0">
+      <div className="text-[8px] uppercase leading-none text-muted-foreground truncate">{label}</div>
+      <div className={cn(
+        'text-[10px] font-bold tabular-nums leading-tight truncate mt-0.5',
+        tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+      )}>
+        {fmtBRL(value)}
+      </div>
+    </div>
+  );
+}
+
+function MobileHistoryRow({ row, onClick }: { row: BalanceteRow; onClick: () => void }) {
+  const receita = Math.max(0, row.aluguel) + Math.max(0, row.reembolso_condominio) + Math.max(0, row.reembolso_iptu) + Math.max(0, row.reembolso_outras_despesas);
+  const despesa = Math.min(0, row.condominio) + Math.min(0, row.iptu) + Math.min(0, row.taxa_administracao) + Math.min(0, row.outras_despesas);
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full rounded-md border bg-card px-2 py-1.5 text-left min-w-0 overflow-hidden active:bg-muted/60"
+    >
+      <div className="flex items-center justify-between gap-2 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <Badge variant="outline" className="h-4 px-1.5 text-[9px] shrink-0">
+            {MONTHS[row.mes - 1]}/{String(row.ano).slice(-2)}
+          </Badge>
+          {row.alugado && (
+            <Badge className="h-4 px-1.5 text-[8px] shrink-0 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/15">
+              Alugado
+            </Badge>
+          )}
+          {row.locatario && <span className="text-[9px] text-muted-foreground truncate min-w-0">{row.locatario}</span>}
+        </div>
+        <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
+      </div>
+
+      <div className="grid grid-cols-3 gap-1 pt-1 min-w-0">
+        <MobileAmount label="Rec." value={receita} tone="positive" />
+        <MobileAmount label="Desp." value={despesa} tone="negative" />
+        <MobileAmount label="Líq." value={row.liquido} tone={row.liquido >= 0 ? 'positive' : 'negative'} strong />
+      </div>
+    </button>
+  );
+}
+
+function MobileAmount({ label, value, tone, strong }: { label: string; value: number; tone: 'positive' | 'negative'; strong?: boolean }) {
+  return (
+    <div className="min-w-0">
+      <div className="text-[8px] text-muted-foreground leading-none truncate">{label}</div>
+      <div className={cn(
+        'text-[10px] tabular-nums leading-tight truncate',
+        strong ? 'font-bold' : 'font-semibold',
+        tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+      )}>
+        {fmtBRL(value)}
+      </div>
+    </div>
+  );
+}
+
 function MonthDrilldownTable({
   row,
   onOpenFull,
