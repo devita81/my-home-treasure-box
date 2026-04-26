@@ -113,21 +113,39 @@ const CATEGORY_COLORS = {
 
 export default function Balancete() {
   const [rows, setRows] = useState<BalanceteRow[]>([]);
+  const [propertyTypes, setPropertyTypes] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [yearFilter, setYearFilter] = useState<string>('all');
   const [monthFilter, setMonthFilter] = useState<string>('all');
+  const [search, setSearch] = useState<string>('');
+  const [cidadeFilter, setCidadeFilter] = useState<string>('all');
+  const [bairroFilter, setBairroFilter] = useState<string>('all');
+  const [tipoFilter, setTipoFilter] = useState<string>('all');
+  type SortField = 'cidade' | 'rua' | 'receita' | 'despesa' | 'liquido';
+  const [sortField, setSortField] = useState<SortField>('liquido');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [drilldown, setDrilldown] = useState<{ key: string; label: string } | null>(null);
   const [monthDrilldown, setMonthDrilldown] = useState<{ key: string; label: string; ano: number; mes: number } | null>(null);
   const [yearMonthDrilldown, setYearMonthDrilldown] = useState<{ ano: number; mes: number } | null>(null);
 
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase
-        .from('property_balancete')
-        .select('*')
-        .order('ano', { ascending: false })
-        .order('mes', { ascending: false });
-      if (!error && data) setRows(data as BalanceteRow[]);
+      const [balRes, propRes] = await Promise.all([
+        supabase
+          .from('property_balancete')
+          .select('*')
+          .order('ano', { ascending: false })
+          .order('mes', { ascending: false }),
+        supabase.from('properties').select('id, tipo_imovel'),
+      ]);
+      if (!balRes.error && balRes.data) setRows(balRes.data as BalanceteRow[]);
+      if (!propRes.error && propRes.data) {
+        const map: Record<string, string> = {};
+        for (const p of propRes.data as Array<{ id: string; tipo_imovel: string | null }>) {
+          if (p.tipo_imovel) map[p.id] = p.tipo_imovel;
+        }
+        setPropertyTypes(map);
+      }
       setLoading(false);
     })();
   }, []);
