@@ -2051,7 +2051,7 @@ function PropertyAccordionRow({
   onOpenDrilldown,
   onOpenMonthDrilldown,
 }: {
-  row: { key: string; label: string; cidade?: string; rua?: string; values: Record<string, number>; monthly?: Record<string, { receita: number; despesa: number; liquido: number; aluguel: number }>; total: number; hasValues: boolean };
+  row: { key: string; label: string; cidade?: string; rua?: string; numero?: string; apartamento?: string; complemento?: string; values: Record<string, number>; monthly?: Record<string, { receita: number; despesa: number; liquido: number; aluguel: number }>; total: number; hasValues: boolean };
   months: string[];
   metric: 'receita' | 'despesa' | 'liquido' | 'aluguel';
   onOpenDrilldown: () => void;
