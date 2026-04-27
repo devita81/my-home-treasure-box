@@ -2188,16 +2188,16 @@ function PropertyAccordionRow({
                               </span>
                             </div>
                             <div className="flex items-baseline justify-between gap-1 tabular-nums border-t border-border/50 pt-0.5 mt-0.5">
-                              <span className="text-[8px] text-muted-foreground font-semibold">L</span>
+                              <span className="text-[8px] text-muted-foreground font-semibold">{METRIC_SHORT[metric]}</span>
                               <span className={cn(
                                 'text-[11px] font-bold',
-                                m!.liquido > 0
+                                m![metric] > 0
                                   ? 'text-emerald-600 dark:text-emerald-400'
-                                  : m!.liquido < 0
+                                  : m![metric] < 0
                                   ? 'text-red-600 dark:text-red-400'
                                   : 'text-muted-foreground'
                               )}>
-                                {fmtBRL(m!.liquido)}
+                                {fmtBRL(m![metric])}
                               </span>
                             </div>
                           </div>
