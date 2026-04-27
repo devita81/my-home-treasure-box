@@ -2385,3 +2385,92 @@ function PropertyAccordionRow({
     </div>
   );
 }
+
+// Botão+popover para escolher período (de/até) em formato YYYY-MM
+function PeriodFilterButton({
+  from,
+  to,
+  onChange,
+}: {
+  from: string | null;
+  to: string | null;
+  onChange: (from: string | null, to: string | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [draftFrom, setDraftFrom] = useState(from ?? '');
+  const [draftTo, setDraftTo] = useState(to ?? '');
+
+  useEffect(() => {
+    if (open) {
+      setDraftFrom(from ?? '');
+      setDraftTo(to ?? '');
+    }
+  }, [open, from, to]);
+
+  const active = from !== null || to !== null;
+  const label = active
+    ? `${ymLabel(from) || '—'} → ${ymLabel(to) || '—'}`
+    : 'Selecionar';
+
+  function apply() {
+    const f = draftFrom || null;
+    const t = draftTo || null;
+    // se ambos preenchidos invertidos, troca
+    if (f && t && f > t) onChange(t, f);
+    else onChange(f, t);
+    setOpen(false);
+  }
+
+  function clear() {
+    setDraftFrom('');
+    setDraftTo('');
+    onChange(null, null);
+    setOpen(false);
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className={cn(
+            'h-9 gap-1.5 bg-card border-border shadow-sm hover:bg-accent/40 text-xs justify-between min-w-[150px]',
+            active && 'border-primary/60 bg-primary/5',
+          )}
+        >
+          <CalendarRange className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">{label}</span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-[280px] p-3 space-y-3">
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">De</label>
+          <Input
+            type="month"
+            value={draftFrom}
+            onChange={(e) => setDraftFrom(e.target.value)}
+            className="h-9 text-xs"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Até</label>
+          <Input
+            type="month"
+            value={draftTo}
+            onChange={(e) => setDraftTo(e.target.value)}
+            className="h-9 text-xs"
+          />
+        </div>
+        <div className="flex items-center justify-between pt-1">
+          <Button variant="ghost" size="sm" onClick={clear} className="h-8 text-xs">
+            Limpar
+          </Button>
+          <Button size="sm" onClick={apply} className="h-8 text-xs">
+            Aplicar
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
