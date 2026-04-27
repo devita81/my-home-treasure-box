@@ -2059,17 +2059,13 @@ function YearlyKpis({
               )}
             />
             <div className="flex flex-col min-w-0 flex-1">
-              <div className="flex items-baseline gap-2 flex-wrap">
-                <span className="text-[10px] sm:text-xs uppercase tracking-wide font-bold text-foreground">
-                  {periodTitle ?? 'Últimos 12 meses'}
+              {last12.periodoLabel && (
+                <span className="text-[11px] sm:text-sm text-foreground tabular-nums font-semibold">
+                  {last12.periodoLabel}
                 </span>
-                {last12.periodoLabel && (
-                  <span className="text-[10px] sm:text-[11px] text-muted-foreground tabular-nums">
-                    {last12.periodoLabel}
-                  </span>
-                )}
+              )}
             </div>
-          </div>
+
 
             <div className="ml-auto flex items-center gap-2 sm:gap-4 text-[10px] sm:text-xs flex-wrap justify-end shrink-0">
               <div className="flex items-baseline gap-1 tabular-nums">
