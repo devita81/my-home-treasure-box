@@ -323,6 +323,7 @@ export default function Balancete() {
     type MonthAgg = { receita: number; despesa: number; liquido: number; aluguel: number };
     type PivotRow = {
       key: string; label: string; cidade: string; rua: string;
+      numero: string; apartamento: string; complemento: string;
       values: Record<string, number>;
       monthly: Record<string, MonthAgg>;
       total: number; receita: number; despesa: number; aluguel: number; hasValues: boolean;
@@ -336,6 +337,9 @@ export default function Balancete() {
           key: k, label: lbl,
           cidade: (r.cidade ?? '').toString(),
           rua: (r.rua ?? '').toString(),
+          numero: (r.numero ?? '').toString(),
+          apartamento: (r.apartamento ?? '').toString(),
+          complemento: (r.complemento ?? '').toString(),
           values: {}, monthly: {}, total: 0, receita: 0, despesa: 0, aluguel: 0, hasValues: false,
         });
       }
