@@ -128,28 +128,38 @@ const CATEGORY_COLORS = {
 // Persistência de filtros entre sessões
 const FILTERS_STORAGE_KEY = 'balancete:filters:v1';
 type StoredFilters = {
-  yearFilter: string;
-  monthFilter: string;
+  yearFilter: number[];   // vazio = todos
+  monthFilter: number[];  // vazio = todos
   periodFrom: string | null; // 'YYYY-MM'
   periodTo: string | null;   // 'YYYY-MM'
 };
 
 function loadStoredFilters(): StoredFilters {
-  if (typeof window === 'undefined') {
-    return { yearFilter: 'all', monthFilter: 'all', periodFrom: null, periodTo: null };
-  }
+  const empty: StoredFilters = { yearFilter: [], monthFilter: [], periodFrom: null, periodTo: null };
+  if (typeof window === 'undefined') return empty;
   try {
     const raw = window.localStorage.getItem(FILTERS_STORAGE_KEY);
-    if (!raw) return { yearFilter: 'all', monthFilter: 'all', periodFrom: null, periodTo: null };
-    const parsed = JSON.parse(raw) as Partial<StoredFilters>;
+    if (!raw) return empty;
+    const parsed = JSON.parse(raw) as Partial<StoredFilters> & {
+      yearFilter?: unknown; monthFilter?: unknown;
+    };
+    const toNumArr = (v: unknown): number[] => {
+      if (Array.isArray(v)) return v.map(Number).filter(n => Number.isFinite(n));
+      // retrocompat: antes era string ('all' ou número)
+      if (typeof v === 'string' && v !== 'all' && v !== '') {
+        const n = Number(v);
+        return Number.isFinite(n) ? [n] : [];
+      }
+      return [];
+    };
     return {
-      yearFilter: parsed.yearFilter ?? 'all',
-      monthFilter: parsed.monthFilter ?? 'all',
+      yearFilter: toNumArr(parsed.yearFilter),
+      monthFilter: toNumArr(parsed.monthFilter),
       periodFrom: parsed.periodFrom ?? null,
       periodTo: parsed.periodTo ?? null,
     };
   } catch {
-    return { yearFilter: 'all', monthFilter: 'all', periodFrom: null, periodTo: null };
+    return empty;
   }
 }
 
@@ -173,8 +183,8 @@ export default function Balancete() {
   const [propertyTypes, setPropertyTypes] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const initialFilters = useMemo(() => loadStoredFilters(), []);
-  const [yearFilter, setYearFilter] = useState<string>(initialFilters.yearFilter);
-  const [monthFilter, setMonthFilter] = useState<string>(initialFilters.monthFilter);
+  const [yearFilter, setYearFilter] = useState<number[]>(initialFilters.yearFilter);
+  const [monthFilter, setMonthFilter] = useState<number[]>(initialFilters.monthFilter);
   const [periodFrom, setPeriodFrom] = useState<string | null>(initialFilters.periodFrom);
   const [periodTo, setPeriodTo] = useState<string | null>(initialFilters.periodTo);
   const [search, setSearch] = useState<string>('');
@@ -203,7 +213,7 @@ export default function Balancete() {
   }, [yearFilter, monthFilter, periodFrom, periodTo]);
 
   const periodActive = periodFrom !== null || periodTo !== null;
-  const anyDateFilterActive = periodActive || yearFilter !== 'all' || monthFilter !== 'all';
+  const anyDateFilterActive = periodActive || yearFilter.length > 0 || monthFilter.length > 0;
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -275,8 +285,8 @@ export default function Balancete() {
         if (fromIdx !== null && idx < fromIdx) return false;
         if (toIdx !== null && idx > toIdx) return false;
       } else {
-        if (yearFilter !== 'all' && r.ano !== Number(yearFilter)) return false;
-        if (monthFilter !== 'all' && r.mes !== Number(monthFilter)) return false;
+        if (yearFilter.length > 0 && !yearFilter.includes(r.ano)) return false;
+        if (monthFilter.length > 0 && !monthFilter.includes(r.mes)) return false;
       }
       if (cidadeFilter !== 'all' && (r.cidade ?? '').trim() !== cidadeFilter) return false;
       if (bairroFilter !== 'all' && (r.bairro ?? '').trim() !== bairroFilter) return false;
@@ -642,53 +652,33 @@ export default function Balancete() {
             <ImportBalanceteDialog onImported={fetchAll} />
           </div>
 
-          {/* Linha 2: filtros agrupados em card unificado */}
-          <div className="flex flex-wrap items-stretch gap-0 rounded-lg border border-border bg-card shadow-sm overflow-hidden w-fit max-w-full">
-            <div className="flex flex-col gap-0.5 px-3 py-2 min-w-[120px]">
-              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                Ano
-              </label>
-              <Select value={yearFilter} onValueChange={setYearFilter} disabled={periodActive}>
-                <SelectTrigger
-                  className={cn(
-                    "h-7 w-full text-xs border-0 shadow-none bg-transparent px-0 hover:bg-transparent focus:ring-0 focus:ring-offset-0",
-                    periodActive && "opacity-50",
-                  )}
-                >
-                  <SelectValue placeholder="Ano" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Linha 2: filtros agrupados em card unificado e compacto */}
+          <div className="inline-flex flex-wrap items-stretch rounded-lg border border-border bg-card shadow-sm overflow-hidden max-w-full">
+            <MultiSelectFilter
+              label="Ano"
+              placeholder="Todos"
+              disabled={periodActive}
+              options={years.map(y => ({ value: y, label: String(y) }))}
+              selected={yearFilter}
+              onChange={setYearFilter}
+              className="min-w-[110px]"
+            />
 
             <div className="w-px bg-border self-stretch" aria-hidden />
 
-            <div className="flex flex-col gap-0.5 px-3 py-2 min-w-[120px]">
-              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                Mês
-              </label>
-              <Select value={monthFilter} onValueChange={setMonthFilter} disabled={periodActive}>
-                <SelectTrigger
-                  className={cn(
-                    "h-7 w-full text-xs border-0 shadow-none bg-transparent px-0 hover:bg-transparent focus:ring-0 focus:ring-offset-0",
-                    periodActive && "opacity-50",
-                  )}
-                >
-                  <SelectValue placeholder="Mês" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {MONTHS.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            <MultiSelectFilter
+              label="Mês"
+              placeholder="Todos"
+              disabled={periodActive}
+              options={MONTHS.map((m, i) => ({ value: i + 1, label: m }))}
+              selected={monthFilter}
+              onChange={setMonthFilter}
+              className="min-w-[110px]"
+            />
 
             <div className="w-px bg-border self-stretch" aria-hidden />
 
-            <div className="flex flex-col gap-0.5 px-3 py-2 min-w-[180px]">
+            <div className="flex flex-col gap-0.5 px-3 py-1.5 min-w-[170px]">
               <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 Período
               </label>
@@ -699,8 +689,8 @@ export default function Balancete() {
                   setPeriodFrom(f);
                   setPeriodTo(t);
                   if (f !== null || t !== null) {
-                    setYearFilter('all');
-                    setMonthFilter('all');
+                    setYearFilter([]);
+                    setMonthFilter([]);
                   }
                 }}
               />
@@ -718,13 +708,15 @@ export default function Balancete() {
           periodTitle={
             periodActive
               ? 'Período selecionado'
-              : yearFilter !== 'all' && monthFilter !== 'all'
-                ? `${MONTHS[Number(monthFilter) - 1]} / ${yearFilter}`
-                : yearFilter !== 'all'
-                  ? `Ano ${yearFilter}`
-                  : monthFilter !== 'all'
-                    ? `${MONTHS[Number(monthFilter) - 1]} (todos os anos)`
-                    : 'Últimos 12 meses'
+              : yearFilter.length === 1 && monthFilter.length === 1
+                ? `${MONTHS[monthFilter[0] - 1]} / ${yearFilter[0]}`
+                : yearFilter.length > 0 && monthFilter.length === 0
+                  ? (yearFilter.length === 1 ? `Ano ${yearFilter[0]}` : `${yearFilter.length} anos selecionados`)
+                  : monthFilter.length > 0 && yearFilter.length === 0
+                    ? (monthFilter.length === 1 ? `${MONTHS[monthFilter[0] - 1]} (todos os anos)` : `${monthFilter.length} meses selecionados`)
+                    : (yearFilter.length > 0 || monthFilter.length > 0)
+                      ? 'Seleção personalizada'
+                      : 'Últimos 12 meses'
           }
           onOpenMonth={(ano, mes) => setYearMonthDrilldown({ ano, mes })}
         />
@@ -2479,6 +2471,95 @@ function PeriodFilterButton({
           <Button size="sm" onClick={apply} className="h-8 text-xs">
             Aplicar
           </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// Filtro multi-seleção compacto (popover com checkboxes), integrado ao card de filtros
+function MultiSelectFilter<T extends number>({
+  label,
+  placeholder,
+  options,
+  selected,
+  onChange,
+  disabled,
+  className,
+}: {
+  label: string;
+  placeholder: string;
+  options: { value: T; label: string }[];
+  selected: T[];
+  onChange: (next: T[]) => void;
+  disabled?: boolean;
+  className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const allSelected = selected.length === 0;
+  const summary = allSelected
+    ? placeholder
+    : selected.length === 1
+      ? options.find(o => o.value === selected[0])?.label ?? String(selected[0])
+      : `${selected.length} selecionados`;
+
+  function toggle(v: T) {
+    if (selected.includes(v)) onChange(selected.filter(x => x !== v));
+    else onChange([...selected, v].sort((a, b) => Number(a) - Number(b)) as T[]);
+  }
+
+  return (
+    <Popover open={open} onOpenChange={(o) => !disabled && setOpen(o)}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          disabled={disabled}
+          className={cn(
+            'flex flex-col gap-0.5 px-3 py-1.5 text-left transition-colors hover:bg-accent/30 focus:outline-none focus-visible:bg-accent/40 disabled:opacity-50 disabled:cursor-not-allowed',
+            className,
+          )}
+        >
+          <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+            {label}
+          </span>
+          <span className="flex items-center justify-between gap-1.5 h-7">
+            <span className={cn('text-xs truncate', !allSelected && 'font-medium text-foreground')}>
+              {summary}
+            </span>
+            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          </span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-[200px] p-1">
+        <button
+          type="button"
+          onClick={() => onChange([])}
+          className={cn(
+            'w-full text-left text-xs px-2 py-1.5 rounded hover:bg-accent transition-colors',
+            allSelected && 'bg-accent font-medium',
+          )}
+        >
+          Todos
+        </button>
+        <div className="h-px bg-border my-1" />
+        <div className="max-h-64 overflow-auto pr-0.5">
+          {options.map(opt => {
+            const checked = selected.includes(opt.value);
+            return (
+              <label
+                key={String(opt.value)}
+                className="flex items-center gap-2 px-2 py-1.5 rounded text-xs hover:bg-accent cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => toggle(opt.value)}
+                  className="h-3.5 w-3.5 accent-primary cursor-pointer"
+                />
+                <span className={cn(checked && 'font-medium')}>{opt.label}</span>
+              </label>
+            );
+          })}
         </div>
       </PopoverContent>
     </Popover>
