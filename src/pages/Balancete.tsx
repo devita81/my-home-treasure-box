@@ -624,19 +624,20 @@ export default function Balancete() {
       >
         {/* Page header */}
         <div className="flex items-start sm:items-center justify-between gap-2 flex-wrap">
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <Link to="/">
               <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-label="Voltar">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <h1 className="text-lg sm:text-2xl font-display font-semibold tracking-tight truncate">Balancete</h1>
               <p className="text-[11px] sm:text-sm text-muted-foreground">Custos e receitas mês a mês por imóvel</p>
             </div>
+            <ImportBalanceteDialog onImported={fetchAll} />
           </div>
 
-          <div className="flex items-end gap-2 ml-auto">
+          <div className="flex items-end gap-2 ml-auto w-full sm:w-auto">
             <div className="flex flex-col gap-1">
               <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground px-0.5">
                 Ano
