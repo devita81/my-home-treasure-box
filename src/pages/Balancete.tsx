@@ -323,6 +323,7 @@ export default function Balancete() {
     type MonthAgg = { receita: number; despesa: number; liquido: number; aluguel: number };
     type PivotRow = {
       key: string; label: string; cidade: string; rua: string;
+      numero: string; apartamento: string; complemento: string;
       values: Record<string, number>;
       monthly: Record<string, MonthAgg>;
       total: number; receita: number; despesa: number; aluguel: number; hasValues: boolean;
@@ -336,6 +337,9 @@ export default function Balancete() {
           key: k, label: lbl,
           cidade: (r.cidade ?? '').toString(),
           rua: (r.rua ?? '').toString(),
+          numero: (r.numero ?? '').toString(),
+          apartamento: (r.apartamento ?? '').toString(),
+          complemento: (r.complemento ?? '').toString(),
           values: {}, monthly: {}, total: 0, receita: 0, despesa: 0, aluguel: 0, hasValues: false,
         });
       }
@@ -811,8 +815,20 @@ export default function Balancete() {
                         className="cursor-pointer"
                         onClick={() => setDrilldown({ key: r.key, label: r.label })}
                       >
-                        <TableCell className="sticky left-0 bg-card z-10 font-medium text-xs max-w-[260px] truncate">
-                          {r.label}
+                        <TableCell className="sticky left-0 bg-card z-10 font-medium text-xs max-w-[260px] align-top">
+                          <div className="flex flex-col leading-tight">
+                            <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium truncate">
+                              {r.cidade.toUpperCase() || '—'}
+                            </span>
+                            <span className="text-[12px] font-semibold truncate">
+                              {(r.rua || '—').toUpperCase()}
+                            </span>
+                            {(r.numero || r.apartamento || r.complemento) && (
+                              <span className="text-[11px] text-muted-foreground truncate">
+                                {[r.numero, r.apartamento, r.complemento].filter(Boolean).join(', ').toUpperCase()}
+                              </span>
+                            )}
+                          </div>
                         </TableCell>
                         {pivot.months.map(mk => {
                           const v = r.values[mk] || 0;
@@ -2035,7 +2051,7 @@ function PropertyAccordionRow({
   onOpenDrilldown,
   onOpenMonthDrilldown,
 }: {
-  row: { key: string; label: string; cidade?: string; rua?: string; values: Record<string, number>; monthly?: Record<string, { receita: number; despesa: number; liquido: number; aluguel: number }>; total: number; hasValues: boolean };
+  row: { key: string; label: string; cidade?: string; rua?: string; numero?: string; apartamento?: string; complemento?: string; values: Record<string, number>; monthly?: Record<string, { receita: number; despesa: number; liquido: number; aluguel: number }>; total: number; hasValues: boolean };
   months: string[];
   metric: 'receita' | 'despesa' | 'liquido' | 'aluguel';
   onOpenDrilldown: () => void;
@@ -2045,16 +2061,8 @@ function PropertyAccordionRow({
 
   const monthsCount = Object.values(row.values).filter(v => v !== 0).length;
 
-  // Divide o label em "cidade" (linha 1, menor) e "endereço" (linha 2)
-  const { cityLine, addrLine } = useMemo(() => {
-    const cidade = (row.cidade ?? '').toString().toUpperCase().trim();
-    const full = row.label.toUpperCase();
-    if (cidade && full.startsWith(cidade)) {
-      const rest = full.slice(cidade.length).replace(/^\s*•\s*/, '').trim();
-      return { cityLine: cidade, addrLine: rest || full };
-    }
-    return { cityLine: cidade, addrLine: full };
-  }, [row.label, row.cidade]);
+
+
 
   const byYear = useMemo(() => {
     const map = new Map<number, { mes: number; key: string }[]>();
@@ -2096,14 +2104,19 @@ function PropertyAccordionRow({
           className="flex-1 flex items-start gap-2 p-2.5 text-left hover:bg-muted/40 active:bg-muted/60 transition-colors min-w-0"
         >
           <div className="min-w-0 flex-1">
-            {cityLine && (
+            {(row.cidade || '').trim() && (
               <div className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground leading-tight">
-                {cityLine}
+                {(row.cidade || '').toUpperCase()}
               </div>
             )}
-            <div className="text-[10px] font-medium leading-snug break-words">
-              {addrLine}
+            <div className="text-[11px] font-semibold leading-snug break-words uppercase">
+              {(row.rua || '—').toUpperCase()}
             </div>
+            {(row.numero || row.apartamento || row.complemento) && (
+              <div className="text-[10px] text-muted-foreground leading-snug break-words uppercase">
+                {[row.numero, row.apartamento, row.complemento].filter(Boolean).join(', ').toUpperCase()}
+              </div>
+            )}
             <div className="text-[9px] text-muted-foreground mt-0.5">
               {monthsCount} {monthsCount === 1 ? 'mês' : 'meses'} • toque para detalhes
             </div>
