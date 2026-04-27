@@ -564,6 +564,7 @@ export default function Balancete() {
                 {MONTHS.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}
               </SelectContent>
             </Select>
+            <ImportBalanceteDialog onImported={fetchAll} />
           </div>
         </div>
 
