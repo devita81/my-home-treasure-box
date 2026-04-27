@@ -641,8 +641,11 @@ export default function Balancete() {
               <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground px-0.5">
                 Ano
               </label>
-              <Select value={yearFilter} onValueChange={setYearFilter}>
-                <SelectTrigger className="h-9 w-[120px] text-xs bg-card border-border shadow-sm hover:bg-accent/40">
+              <Select value={yearFilter} onValueChange={setYearFilter} disabled={periodActive}>
+                <SelectTrigger className={cn(
+                  "h-9 w-[110px] text-xs bg-card border-border shadow-sm hover:bg-accent/40",
+                  periodActive && "opacity-50",
+                )}>
                   <SelectValue placeholder="Ano" />
                 </SelectTrigger>
                 <SelectContent>
@@ -655,8 +658,11 @@ export default function Balancete() {
               <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground px-0.5">
                 Mês
               </label>
-              <Select value={monthFilter} onValueChange={setMonthFilter}>
-                <SelectTrigger className="h-9 w-[120px] text-xs bg-card border-border shadow-sm hover:bg-accent/40">
+              <Select value={monthFilter} onValueChange={setMonthFilter} disabled={periodActive}>
+                <SelectTrigger className={cn(
+                  "h-9 w-[110px] text-xs bg-card border-border shadow-sm hover:bg-accent/40",
+                  periodActive && "opacity-50",
+                )}>
                   <SelectValue placeholder="Mês" />
                 </SelectTrigger>
                 <SelectContent>
@@ -664,6 +670,24 @@ export default function Balancete() {
                   {MONTHS.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground px-0.5">
+                Período
+              </label>
+              <PeriodFilterButton
+                from={periodFrom}
+                to={periodTo}
+                onChange={(f, t) => {
+                  setPeriodFrom(f);
+                  setPeriodTo(t);
+                  if (f !== null || t !== null) {
+                    // período tem prioridade: limpa ano/mês individuais
+                    setYearFilter('all');
+                    setMonthFilter('all');
+                  }
+                }}
+              />
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-[10px] font-medium uppercase tracking-wide text-transparent select-none px-0.5" aria-hidden>
