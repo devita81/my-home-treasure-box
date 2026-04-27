@@ -672,8 +672,8 @@ export default function Balancete() {
             <ImportBalanceteDialog onImported={fetchAll} />
           </div>
 
-          {/* Linha 2: filtros agrupados em grid 2x2 (Ano | Mês / Período | Limpar) */}
-          <div className="grid grid-cols-2 rounded-lg border border-border bg-card shadow-sm overflow-hidden w-full divide-x divide-y divide-border [&>*]:border-0">
+          {/* Linha 2: filtros em grid 2x2 (Ano | Mês / Período | Limpar) */}
+          <div className="grid grid-cols-2 rounded-lg border border-border bg-card shadow-sm overflow-hidden w-full">
             <MultiSelectFilter
               label="Ano"
               placeholder="Todos"
@@ -681,7 +681,6 @@ export default function Balancete() {
               options={years.map(y => ({ value: y, label: String(y) }))}
               selected={yearFilter}
               onChange={setYearFilter}
-              className="border-l border-border/0"
             />
             <MultiSelectFilter
               label="Mês"
@@ -730,6 +729,8 @@ export default function Balancete() {
             ) : (
               <div className="border-l border-t border-border" aria-hidden />
             )}
+          </div>
+
           </div>
         </div>
 
