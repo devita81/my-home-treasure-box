@@ -2442,17 +2442,16 @@ function PeriodFilterButton({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
+        <button
+          type="button"
           className={cn(
-            'h-9 gap-1.5 bg-card border-border shadow-sm hover:bg-accent/40 text-xs justify-between min-w-[150px]',
-            active && 'border-primary/60 bg-primary/5',
+            'h-7 flex items-center gap-1.5 text-xs text-foreground bg-transparent px-0 border-0 shadow-none hover:text-primary transition-colors w-full justify-start',
+            active && 'text-primary font-medium',
           )}
         >
-          <CalendarRange className="h-3.5 w-3.5 shrink-0" />
+          <CalendarRange className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           <span className="truncate">{label}</span>
-        </Button>
+        </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[280px] p-3 space-y-3">
         <div className="space-y-1.5">
