@@ -217,6 +217,49 @@ export default function Balancete() {
     return { receita, despesa, liquido, imoveisAtivos };
   }, [filtered]);
 
+  // Detalhamento dos últimos 12 meses (independente do filtro de ano/mês)
+  const last12Breakdown = useMemo(() => {
+    if (rows.length === 0) {
+      return { aluguel: 0, reembolsoCond: 0, reembolsoIptu: 0, reembolsoOutras: 0, receita: 0,
+        condominio: 0, iptu: 0, taxa: 0, outras: 0, despesa: 0, liquido: 0,
+        imoveisAtivos: 0, monthsCount: 0, periodoLabel: '' };
+    }
+    // Encontrar o mês mais recente nos dados
+    const sorted = [...rows].sort((a, b) => b.ano - a.ano || b.mes - a.mes);
+    const latest = sorted[0];
+    // Janela: 12 meses a partir do mais recente, retroativos
+    const endIdx = latest.ano * 12 + (latest.mes - 1);
+    const startIdx = endIdx - 11; // inclui 12 meses
+    const inWindow = rows.filter(r => {
+      const idx = r.ano * 12 + (r.mes - 1);
+      return idx >= startIdx && idx <= endIdx;
+    });
+    const acc = { aluguel: 0, reembolsoCond: 0, reembolsoIptu: 0, reembolsoOutras: 0,
+      condominio: 0, iptu: 0, taxa: 0, outras: 0, liquido: 0 };
+    const imoveis = new Set<string>();
+    const monthSet = new Set<string>();
+    inWindow.forEach(r => {
+      acc.aluguel += Math.max(0, r.aluguel);
+      acc.reembolsoCond += Math.max(0, r.reembolso_condominio);
+      acc.reembolsoIptu += Math.max(0, r.reembolso_iptu);
+      acc.reembolsoOutras += Math.max(0, r.reembolso_outras_despesas);
+      acc.condominio += Math.min(0, r.condominio);
+      acc.iptu += Math.min(0, r.iptu);
+      acc.taxa += Math.min(0, r.taxa_administracao);
+      acc.outras += Math.min(0, r.outras_despesas);
+      acc.liquido += r.liquido;
+      if (r.aluguel > 0) imoveis.add(propertyKey(r));
+      monthSet.add(`${r.ano}-${String(r.mes).padStart(2, '0')}`);
+    });
+    const receita = acc.aluguel + acc.reembolsoCond + acc.reembolsoIptu + acc.reembolsoOutras;
+    const despesa = acc.condominio + acc.iptu + acc.taxa + acc.outras;
+    const startMonthIdx = endIdx - 11;
+    const startAno = Math.floor(startMonthIdx / 12);
+    const startMes = (startMonthIdx % 12) + 1;
+    const periodoLabel = `${MONTHS[startMes - 1]}/${String(startAno).slice(2)} – ${MONTHS[latest.mes - 1]}/${String(latest.ano).slice(2)}`;
+    return { ...acc, receita, despesa, imoveisAtivos: imoveis.size, monthsCount: monthSet.size, periodoLabel };
+  }, [rows]);
+
   // Time series — receitas vs despesas por mês
   const timeSeries = useMemo(() => {
     const map = new Map<string, { key: string; ano: number; mes: number; receita: number; despesa: number; liquido: number; aluguel: number }>();
