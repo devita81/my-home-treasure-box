@@ -183,8 +183,28 @@ export default function Balancete() {
   const [propertyTypes, setPropertyTypes] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const initialFilters = useMemo(() => loadStoredFilters(), []);
-  const [yearFilter, setYearFilter] = useState<number[]>(initialFilters.yearFilter);
+  const [yearFilter, setYearFilterRaw] = useState<number[]>(initialFilters.yearFilter);
   const [monthFilter, setMonthFilter] = useState<number[]>(initialFilters.monthFilter);
+
+  // Ao selecionar/alterar anos: marca automaticamente todos os meses (1..12).
+  // Ao limpar todos os anos: também limpa a seleção de meses (volta a "todos").
+  // Usuário ainda pode desmarcar meses individuais depois.
+  const setYearFilter = useCallback((next: number[] | ((prev: number[]) => number[])) => {
+    setYearFilterRaw(prev => {
+      const resolved = typeof next === 'function' ? next(prev) : next;
+      const wasEmpty = prev.length === 0;
+      const isEmpty = resolved.length === 0;
+      if (isEmpty) {
+        // Sem ano selecionado → meses também voltam a "todos"
+        setMonthFilter([]);
+      } else if (wasEmpty) {
+        // Primeira seleção de ano → marca todos os meses
+        setMonthFilter([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+      }
+      // Se já havia ano(s) e adicionou/removeu outros, preserva seleção atual de meses
+      return resolved;
+    });
+  }, []);
   const [periodFrom, setPeriodFrom] = useState<string | null>(initialFilters.periodFrom);
   const [periodTo, setPeriodTo] = useState<string | null>(initialFilters.periodTo);
   const [search, setSearch] = useState<string>('');
