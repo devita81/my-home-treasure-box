@@ -2029,75 +2029,108 @@ function YearlyKpis({
 
   return (
     <div className="space-y-2">
-      {/* Últimos 12 meses — detalhado */}
-      <Card className="bg-card border shadow-sm">
-        <CardContent className="p-3 sm:p-4 space-y-2.5">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-baseline gap-2 flex-wrap">
+      {/* Resumo do período (filtro ativo ou últimos 12 meses) — colapsável */}
+      <Card className="bg-card border shadow-sm overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setPeriodOpen(o => !o)}
+          className="w-full text-left hover:bg-muted/40 active:bg-muted/60 transition-colors"
+          aria-expanded={periodOpen}
+        >
+          <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4">
+            <ChevronDown
+              className={cn(
+                'h-4 w-4 text-muted-foreground transition-transform shrink-0',
+                !periodOpen && '-rotate-90'
+              )}
+            />
+            <div className="flex flex-col min-w-0 flex-1">
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <span className="text-[10px] sm:text-xs uppercase tracking-wide font-bold text-foreground">
+                  {periodTitle ?? 'Últimos 12 meses'}
+                </span>
+                {last12.periodoLabel && (
+                  <span className="text-[10px] sm:text-[11px] text-muted-foreground tabular-nums">
+                    {last12.periodoLabel}
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px] text-muted-foreground tabular-nums">
+                {last12.imoveisAtivos} imóveis • {last12.monthsCount} {last12.monthsCount === 1 ? 'mês' : 'meses'} c/ dados
+              </span>
+            </div>
+            <div className="ml-auto flex items-center gap-2 sm:gap-4 text-[10px] sm:text-xs flex-wrap justify-end shrink-0">
+              <div className="flex items-baseline gap-1 tabular-nums">
+                <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium">R</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{fmtBRL(last12.receita)}</span>
+              </div>
+              <div className="flex items-baseline gap-1 tabular-nums">
+                <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium">D</span>
+                <span className="text-red-600 dark:text-red-400 font-semibold">{fmtBRL(last12.despesa)}</span>
+              </div>
+              <div className="flex items-baseline gap-1 tabular-nums">
+                <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium">L</span>
+                <span className={cn('font-bold', last12.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}>
+                  {fmtBRL(last12.liquido)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </button>
+
+        {periodOpen && (
+          <div className="border-t px-3 sm:px-4 py-3 space-y-2.5">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              {/* Receitas */}
+              <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 p-2 sm:p-2.5 space-y-1">
+                <div className="text-[9px] uppercase tracking-wide font-bold text-emerald-700 dark:text-emerald-400">
+                  Receitas
+                </div>
+                <BreakdownLine label="Aluguel" value={last12.aluguel} tone="positive" />
+                <BreakdownLine label="Reemb. condomínio" value={last12.reembolsoCond} tone="positive" muted />
+                <BreakdownLine label="Reemb. IPTU" value={last12.reembolsoIptu} tone="positive" muted />
+                <BreakdownLine label="Reemb. outras" value={last12.reembolsoOutras} tone="positive" muted />
+                <div className="border-t border-emerald-500/30 pt-1 mt-1">
+                  <BreakdownLine label="Subtotal" value={last12.receita} tone="positive" bold />
+                </div>
+              </div>
+
+              {/* Despesas */}
+              <div className="rounded-md border border-red-500/20 bg-red-500/5 p-2 sm:p-2.5 space-y-1">
+                <div className="text-[9px] uppercase tracking-wide font-bold text-red-700 dark:text-red-400">
+                  Despesas
+                </div>
+                <BreakdownLine label="Condomínio" value={last12.condominio} tone="negative" />
+                <BreakdownLine label="IPTU" value={last12.iptu} tone="negative" />
+                <BreakdownLine label="Taxa adm." value={last12.taxa} tone="negative" />
+                <BreakdownLine label="Outras" value={last12.outras} tone="negative" />
+                <div className="border-t border-red-500/30 pt-1 mt-1">
+                  <BreakdownLine label="Subtotal" value={last12.despesa} tone="negative" bold />
+                </div>
+              </div>
+            </div>
+
+            {/* Linha do líquido */}
+            <div className="rounded-md border bg-muted/30 px-3 py-2 flex items-center justify-between gap-2">
               <span className="text-[10px] sm:text-xs uppercase tracking-wide font-bold text-foreground">
-                {periodTitle ?? 'Últimos 12 meses'}
+                Resultado líquido
               </span>
-              {last12.periodoLabel && (
-                <span className="text-[10px] sm:text-[11px] text-muted-foreground tabular-nums">
-                  {last12.periodoLabel}
+              <div className="flex items-baseline gap-2 sm:gap-3 flex-wrap justify-end">
+                {totalReembolso > 0 && (
+                  <span className="text-[9px] sm:text-[10px] text-muted-foreground tabular-nums hidden sm:inline">
+                    reemb. total {fmtBRL(totalReembolso)}
+                  </span>
+                )}
+                <span className={cn(
+                  'text-base sm:text-lg font-bold tabular-nums',
+                  last12.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+                )}>
+                  {fmtBRL(last12.liquido)}
                 </span>
-              )}
-            </div>
-            <span className="text-[10px] text-muted-foreground tabular-nums">
-              {last12.imoveisAtivos} imóveis ativos • {last12.monthsCount} {last12.monthsCount === 1 ? 'mês' : 'meses'} c/ dados
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
-            {/* Receitas */}
-            <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 p-2 sm:p-2.5 space-y-1">
-              <div className="text-[9px] uppercase tracking-wide font-bold text-emerald-700 dark:text-emerald-400">
-                Receitas
-              </div>
-              <BreakdownLine label="Aluguel" value={last12.aluguel} tone="positive" />
-              <BreakdownLine label="Reemb. condomínio" value={last12.reembolsoCond} tone="positive" muted />
-              <BreakdownLine label="Reemb. IPTU" value={last12.reembolsoIptu} tone="positive" muted />
-              <BreakdownLine label="Reemb. outras" value={last12.reembolsoOutras} tone="positive" muted />
-              <div className="border-t border-emerald-500/30 pt-1 mt-1">
-                <BreakdownLine label="Subtotal" value={last12.receita} tone="positive" bold />
-              </div>
-            </div>
-
-            {/* Despesas */}
-            <div className="rounded-md border border-red-500/20 bg-red-500/5 p-2 sm:p-2.5 space-y-1">
-              <div className="text-[9px] uppercase tracking-wide font-bold text-red-700 dark:text-red-400">
-                Despesas
-              </div>
-              <BreakdownLine label="Condomínio" value={last12.condominio} tone="negative" />
-              <BreakdownLine label="IPTU" value={last12.iptu} tone="negative" />
-              <BreakdownLine label="Taxa adm." value={last12.taxa} tone="negative" />
-              <BreakdownLine label="Outras" value={last12.outras} tone="negative" />
-              <div className="border-t border-red-500/30 pt-1 mt-1">
-                <BreakdownLine label="Subtotal" value={last12.despesa} tone="negative" bold />
               </div>
             </div>
           </div>
-
-          {/* Linha do líquido */}
-          <div className="rounded-md border bg-muted/30 px-3 py-2 flex items-center justify-between gap-2">
-            <span className="text-[10px] sm:text-xs uppercase tracking-wide font-bold text-foreground">
-              Resultado líquido
-            </span>
-            <div className="flex items-baseline gap-2 sm:gap-3 flex-wrap justify-end">
-              {totalReembolso > 0 && (
-                <span className="text-[9px] sm:text-[10px] text-muted-foreground tabular-nums hidden sm:inline">
-                  reemb. total {fmtBRL(totalReembolso)}
-                </span>
-              )}
-              <span className={cn(
-                'text-base sm:text-lg font-bold tabular-nums',
-                last12.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
-              )}>
-                {fmtBRL(last12.liquido)}
-              </span>
-            </div>
-          </div>
-        </CardContent>
+        )}
       </Card>
 
       {/* Cards por ano */}
