@@ -47,21 +47,55 @@ interface BalanceteRow {
   liquido: number;
 }
 
-const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-const METRIC_LABELS: Record<'receita' | 'despesa' | 'liquido' | 'aluguel', string> = {
+const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'] as const;
+const MONTHS_FULL_RANGE: readonly number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+type MetricLabel = 'receita' | 'despesa' | 'liquido' | 'aluguel';
+const METRIC_LABELS: Record<MetricLabel, string> = {
   receita: 'Receita',
   despesa: 'Despesa',
   liquido: 'Líquido',
   aluguel: 'Aluguel',
 };
-const METRIC_SHORT: Record<'receita' | 'despesa' | 'liquido' | 'aluguel', string> = {
+const METRIC_SHORT: Record<MetricLabel, string> = {
   receita: 'R',
   despesa: 'D',
   liquido: 'L',
   aluguel: 'A',
 };
-const fmtBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
-const fmtBRLFull = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+const BRL_FORMATTER = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+const BRL_FORMATTER_FULL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+const fmtBRL = (v: number) => BRL_FORMATTER.format(v);
+const fmtBRLFull = (v: number) => BRL_FORMATTER_FULL.format(v);
+
+// Tone helpers — evita repetir tailwind classes em ~30 lugares
+type Tone = 'positive' | 'negative' | 'neutral';
+const TONE_TEXT: Record<Tone, string> = {
+  positive: 'text-emerald-600 dark:text-emerald-400',
+  negative: 'text-red-600 dark:text-red-400',
+  neutral: 'text-muted-foreground',
+};
+const toneFor = (v: number): Tone => (v > 0 ? 'positive' : v < 0 ? 'negative' : 'neutral');
+
+// Chave única "YYYY-MM" usada como id de mês
+const monthKey = (ano: number, mes: number) => `${ano}-${String(mes).padStart(2, '0')}`;
+// Label compacto Mai/25
+const formatMonthLabel = (ano: number, mes: number) => `${MONTHS[mes - 1]}/${String(ano).slice(2)}`;
+
+// Cálculo padronizado de totais por linha (evita repetir Math.max/Math.min em vários memos)
+function rowTotals(r: BalanceteRow) {
+  const aluguel = Math.max(0, r.aluguel);
+  const reembolsoCond = Math.max(0, r.reembolso_condominio);
+  const reembolsoIptu = Math.max(0, r.reembolso_iptu);
+  const reembolsoOutras = Math.max(0, r.reembolso_outras_despesas);
+  const condominio = Math.min(0, r.condominio);
+  const iptu = Math.min(0, r.iptu);
+  const taxa = Math.min(0, r.taxa_administracao);
+  const outras = Math.min(0, r.outras_despesas);
+  const receita = aluguel + reembolsoCond + reembolsoIptu + reembolsoOutras;
+  const despesa = condominio + iptu + taxa + outras;
+  return { aluguel, reembolsoCond, reembolsoIptu, reembolsoOutras, condominio, iptu, taxa, outras, receita, despesa };
+}
 
 function formatAddress(r: BalanceteRow) {
   const parts = [r.rua, r.numero, r.apartamento].filter(Boolean);
@@ -123,7 +157,7 @@ const CATEGORY_COLORS = {
   taxa: 'hsl(280 60% 50%)',
   outras: 'hsl(220 70% 50%)',
   reembolso: 'hsl(180 60% 45%)',
-};
+} as const;
 
 // Persistência de filtros entre sessões
 const FILTERS_STORAGE_KEY = 'balancete:filters:v1';
