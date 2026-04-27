@@ -795,17 +795,17 @@ export default function Balancete() {
             <CardTitle className="text-base">{METRIC_LABELS[pivot.metric]} por imóvel × mês</CardTitle>
             <p className="text-xs text-muted-foreground">Toque em um imóvel para ver o histórico detalhado</p>
           </CardHeader>
-          <CardContent className="px-0">
-            <ScrollArea className="w-full">
-              <div className="min-w-max pr-4">
+          <CardContent className="px-0 pb-3">
+            <ScrollArea className="w-full" type="always">
+              <div className="min-w-max pr-6 pb-2">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead className="sticky left-0 bg-card z-10 min-w-[220px]">Imóvel</TableHead>
                       {pivot.monthLabels.map((m, i) => (
-                        <TableHead key={i} className="text-right text-[11px] whitespace-nowrap">{m}</TableHead>
+                        <TableHead key={i} className="text-right text-[11px] whitespace-nowrap min-w-[72px] px-3">{m}</TableHead>
                       ))}
-                      <TableHead className="text-right text-[11px] font-semibold whitespace-nowrap pl-4 pr-4 min-w-[90px]">Total</TableHead>
+                      <TableHead className="text-right text-[11px] font-semibold whitespace-nowrap pl-4 pr-6 min-w-[100px]">Total</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
