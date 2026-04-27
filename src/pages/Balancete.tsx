@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, TrendingUp, TrendingDown, Wallet, Home as HomeIcon, X, ChevronRight, ChevronDown, Search, ArrowUpDown, ArrowUp, ArrowDown, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ import {
   XAxis, YAxis, Tooltip, Legend, CartesianGrid,
 } from 'recharts';
 import { cn } from '@/lib/utils';
+import { ImportBalanceteDialog } from '@/components/balancete/ImportBalanceteDialog';
 
 interface BalanceteRow {
   id: string;
@@ -141,27 +142,30 @@ export default function Balancete() {
   const [monthDrilldown, setMonthDrilldown] = useState<{ key: string; label: string; ano: number; mes: number } | null>(null);
   const [yearMonthDrilldown, setYearMonthDrilldown] = useState<{ ano: number; mes: number } | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      const [balRes, propRes] = await Promise.all([
-        supabase
-          .from('property_balancete')
-          .select('*')
-          .order('ano', { ascending: false })
-          .order('mes', { ascending: false }),
-        supabase.from('properties').select('id, tipo_imovel'),
-      ]);
-      if (!balRes.error && balRes.data) setRows(balRes.data as BalanceteRow[]);
-      if (!propRes.error && propRes.data) {
-        const map: Record<string, string> = {};
-        for (const p of propRes.data as Array<{ id: string; tipo_imovel: string | null }>) {
-          if (p.tipo_imovel) map[p.id] = p.tipo_imovel;
-        }
-        setPropertyTypes(map);
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    const [balRes, propRes] = await Promise.all([
+      supabase
+        .from('property_balancete')
+        .select('*')
+        .order('ano', { ascending: false })
+        .order('mes', { ascending: false }),
+      supabase.from('properties').select('id, tipo_imovel'),
+    ]);
+    if (!balRes.error && balRes.data) setRows(balRes.data as BalanceteRow[]);
+    if (!propRes.error && propRes.data) {
+      const map: Record<string, string> = {};
+      for (const p of propRes.data as Array<{ id: string; tipo_imovel: string | null }>) {
+        if (p.tipo_imovel) map[p.id] = p.tipo_imovel;
       }
-      setLoading(false);
-    })();
+      setPropertyTypes(map);
+    }
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    void fetchAll();
+  }, [fetchAll]);
 
   const years = useMemo(() => Array.from(new Set(rows.map(r => r.ano))).sort((a, b) => b - a), [rows]);
 
@@ -559,6 +563,7 @@ export default function Balancete() {
                 {MONTHS.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}
               </SelectContent>
             </Select>
+            <ImportBalanceteDialog onImported={fetchAll} />
           </div>
         </div>
 
