@@ -1993,6 +1993,8 @@ function YearlyKpis({
 }) {
   // Default: todos os anos fechados
   const [expanded, setExpanded] = useState<Set<number>>(() => new Set());
+  // Default: card de resumo do período fechado
+  const [periodOpen, setPeriodOpen] = useState(false);
 
   const toggle = (ano: number) => {
     setExpanded(prev => {
