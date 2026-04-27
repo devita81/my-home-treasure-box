@@ -756,6 +756,7 @@ export default function Balancete() {
                   <SelectItem value="receita">Receita</SelectItem>
                   <SelectItem value="despesa">Despesa</SelectItem>
                   <SelectItem value="liquido">Líquido</SelectItem>
+                  <SelectItem value="aluguel">Aluguel</SelectItem>
                 </SelectContent>
               </Select>
               <Button
