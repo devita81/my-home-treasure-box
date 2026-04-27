@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, TrendingUp, TrendingDown, Wallet, Home as HomeIcon, X, ChevronRight, ChevronDown, Search, ArrowUpDown, ArrowUp, ArrowDown, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -19,7 +19,6 @@ import {
 } from 'recharts';
 import { cn } from '@/lib/utils';
 import { ImportBalanceteDialog } from '@/components/balancete/ImportBalanceteDialog';
-import { useCallback } from 'react';
 
 interface BalanceteRow {
   id: string;
