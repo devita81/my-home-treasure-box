@@ -121,7 +121,8 @@ export default function Balancete() {
   const [cidadeFilter, setCidadeFilter] = useState<string>('all');
   const [bairroFilter, setBairroFilter] = useState<string>('all');
   const [tipoFilter, setTipoFilter] = useState<string>('all');
-  type SortField = 'cidade' | 'rua' | 'receita' | 'despesa' | 'liquido';
+  type SortField = 'cidade' | 'rua' | 'receita' | 'despesa' | 'liquido' | 'aluguel';
+  type MetricField = 'receita' | 'despesa' | 'liquido' | 'aluguel';
   const [sortField, setSortField] = useState<SortField>('liquido');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [drilldown, setDrilldown] = useState<{ key: string; label: string } | null>(null);
