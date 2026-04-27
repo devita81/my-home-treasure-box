@@ -880,7 +880,7 @@ export default function Balancete() {
                       })}
                       <TableCell
                         className={cn(
-                          'text-right text-xs font-bold tabular-nums',
+                          'text-right text-xs font-bold tabular-nums whitespace-nowrap pl-4 pr-4',
                           pivot.grandTotal >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
                         )}
                       >
