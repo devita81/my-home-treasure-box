@@ -815,8 +815,20 @@ export default function Balancete() {
                         className="cursor-pointer"
                         onClick={() => setDrilldown({ key: r.key, label: r.label })}
                       >
-                        <TableCell className="sticky left-0 bg-card z-10 font-medium text-xs max-w-[260px] truncate">
-                          {r.label}
+                        <TableCell className="sticky left-0 bg-card z-10 font-medium text-xs max-w-[260px] align-top">
+                          <div className="flex flex-col leading-tight">
+                            <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium truncate">
+                              {r.cidade.toUpperCase() || '—'}
+                            </span>
+                            <span className="text-[12px] font-semibold truncate">
+                              {(r.rua || '—').toUpperCase()}
+                            </span>
+                            {(r.numero || r.apartamento || r.complemento) && (
+                              <span className="text-[11px] text-muted-foreground truncate">
+                                {[r.numero, r.apartamento, r.complemento].filter(Boolean).join(', ').toUpperCase()}
+                              </span>
+                            )}
+                          </div>
                         </TableCell>
                         {pivot.months.map(mk => {
                           const v = r.values[mk] || 0;
