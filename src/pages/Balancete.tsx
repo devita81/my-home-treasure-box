@@ -836,7 +836,7 @@ export default function Balancete() {
                             <TableCell
                               key={mk}
                               className={cn(
-                                'text-right text-[11px] tabular-nums whitespace-nowrap',
+                                'text-right text-[11px] tabular-nums whitespace-nowrap px-3',
                                 v > 0 && 'text-emerald-600 dark:text-emerald-400',
                                 v < 0 && 'text-red-600 dark:text-red-400',
                                 v === 0 && 'text-muted-foreground/60'
