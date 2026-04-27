@@ -705,6 +705,7 @@ export default function Balancete() {
               <PeriodFilterButton
                 from={periodFrom}
                 to={periodTo}
+                availableYears={years}
                 onChange={(f, t) => {
                   setPeriodFrom(f);
                   setPeriodTo(t);
