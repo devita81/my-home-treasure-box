@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, TrendingDown, Wallet, Home as HomeIcon, X, ChevronRight, ChevronDown, Search, ArrowUpDown, ArrowUp, ArrowDown, Filter, CalendarRange } from 'lucide-react';
+import { ArrowLeft, X, ChevronRight, ChevronDown, Search, ArrowUpDown, ArrowUp, ArrowDown, CalendarRange } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,14 +8,14 @@ import { Header } from '@/components/layout/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
-  ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, ComposedChart,
-  AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, ComposedChart,
+  AreaChart, Area, Line,
   XAxis, YAxis, Tooltip, Legend, CartesianGrid,
 } from 'recharts';
 import { cn } from '@/lib/utils';
@@ -47,21 +47,54 @@ interface BalanceteRow {
   liquido: number;
 }
 
-const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-const METRIC_LABELS: Record<'receita' | 'despesa' | 'liquido' | 'aluguel', string> = {
+const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'] as const;
+type MetricLabel = 'receita' | 'despesa' | 'liquido' | 'aluguel';
+const METRIC_LABELS: Record<MetricLabel, string> = {
   receita: 'Receita',
   despesa: 'Despesa',
   liquido: 'Líquido',
   aluguel: 'Aluguel',
 };
-const METRIC_SHORT: Record<'receita' | 'despesa' | 'liquido' | 'aluguel', string> = {
+const METRIC_SHORT: Record<MetricLabel, string> = {
   receita: 'R',
   despesa: 'D',
   liquido: 'L',
   aluguel: 'A',
 };
-const fmtBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
-const fmtBRLFull = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+const BRL_FORMATTER = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+const BRL_FORMATTER_FULL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+const fmtBRL = (v: number) => BRL_FORMATTER.format(v);
+const fmtBRLFull = (v: number) => BRL_FORMATTER_FULL.format(v);
+
+// Tone helpers — evita repetir tailwind classes em ~30 lugares
+type Tone = 'positive' | 'negative' | 'neutral';
+const TONE_TEXT: Record<Tone, string> = {
+  positive: 'text-emerald-600 dark:text-emerald-400',
+  negative: 'text-red-600 dark:text-red-400',
+  neutral: 'text-muted-foreground',
+};
+const toneFor = (v: number): Tone => (v > 0 ? 'positive' : v < 0 ? 'negative' : 'neutral');
+
+// Chave única "YYYY-MM" usada como id de mês
+const monthKey = (ano: number, mes: number) => `${ano}-${String(mes).padStart(2, '0')}`;
+// Label compacto Mai/25
+const formatMonthLabel = (ano: number, mes: number) => `${MONTHS[mes - 1]}/${String(ano).slice(2)}`;
+
+// Cálculo padronizado de totais por linha (evita repetir Math.max/Math.min em vários memos)
+function rowTotals(r: BalanceteRow) {
+  const aluguel = Math.max(0, r.aluguel);
+  const reembolsoCond = Math.max(0, r.reembolso_condominio);
+  const reembolsoIptu = Math.max(0, r.reembolso_iptu);
+  const reembolsoOutras = Math.max(0, r.reembolso_outras_despesas);
+  const condominio = Math.min(0, r.condominio);
+  const iptu = Math.min(0, r.iptu);
+  const taxa = Math.min(0, r.taxa_administracao);
+  const outras = Math.min(0, r.outras_despesas);
+  const receita = aluguel + reembolsoCond + reembolsoIptu + reembolsoOutras;
+  const despesa = condominio + iptu + taxa + outras;
+  return { aluguel, reembolsoCond, reembolsoIptu, reembolsoOutras, condominio, iptu, taxa, outras, receita, despesa };
+}
 
 function formatAddress(r: BalanceteRow) {
   const parts = [r.rua, r.numero, r.apartamento].filter(Boolean);
@@ -123,7 +156,7 @@ const CATEGORY_COLORS = {
   taxa: 'hsl(280 60% 50%)',
   outras: 'hsl(220 70% 50%)',
   reembolso: 'hsl(180 60% 45%)',
-};
+} as const;
 
 // Persistência de filtros entre sessões
 const FILTERS_STORAGE_KEY = 'balancete:filters:v1';
@@ -327,102 +360,120 @@ export default function Balancete() {
     });
   }, [rows, yearFilter, monthFilter, periodFrom, periodTo, cidadeFilter, bairroFilter, tipoFilter, search, propertyTypes]);
 
-  // KPIs
+  // KPIs — 1 pass único em vez de 4
   const kpis = useMemo(() => {
-    const receita = filtered.reduce((s, r) => s + Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas), 0);
-    const despesa = filtered.reduce((s, r) => s + Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas), 0);
-    const liquido = filtered.reduce((s, r) => s + r.liquido, 0);
-    const imoveisAtivos = new Set(filtered.filter(r => r.aluguel > 0).map(propertyKey)).size;
-    return { receita, despesa, liquido, imoveisAtivos };
+    let receita = 0, despesa = 0, liquido = 0;
+    const imoveis = new Set<string>();
+    for (const r of filtered) {
+      const t = rowTotals(r);
+      receita += t.receita;
+      despesa += t.despesa;
+      liquido += r.liquido;
+      if (r.aluguel > 0) imoveis.add(propertyKey(r));
+    }
+    return { receita, despesa, liquido, imoveisAtivos: imoveis.size };
   }, [filtered]);
 
   // Detalhamento dos últimos 12 meses — quando há filtro ativo, respeita-o
   // (mostrando o período filtrado em vez da janela móvel padrão).
   const last12Breakdown = useMemo(() => {
+    const empty = {
+      aluguel: 0, reembolsoCond: 0, reembolsoIptu: 0, reembolsoOutras: 0, receita: 0,
+      condominio: 0, iptu: 0, taxa: 0, outras: 0, despesa: 0, liquido: 0,
+      imoveisAtivos: 0, monthsCount: 0, periodoLabel: '',
+    };
     const source = anyDateFilterActive ? filtered : rows;
-    if (source.length === 0) {
-      return { aluguel: 0, reembolsoCond: 0, reembolsoIptu: 0, reembolsoOutras: 0, receita: 0,
-        condominio: 0, iptu: 0, taxa: 0, outras: 0, despesa: 0, liquido: 0,
-        imoveisAtivos: 0, monthsCount: 0, periodoLabel: '' };
-    }
+    if (source.length === 0) return empty;
 
     let inWindow: BalanceteRow[];
     let startAno: number, startMes: number, endAno: number, endMes: number;
 
     if (anyDateFilterActive) {
-      // Usa todo o conjunto filtrado
+      // Single-pass min/max em vez de sort O(n log n)
       inWindow = source;
-      const sortedAsc = [...source].sort((a, b) => a.ano - b.ano || a.mes - b.mes);
-      const first = sortedAsc[0];
-      const last = sortedAsc[sortedAsc.length - 1];
-      startAno = first.ano; startMes = first.mes;
-      endAno = last.ano; endMes = last.mes;
+      let minIdx = Infinity, maxIdx = -Infinity;
+      for (const r of source) {
+        const idx = r.ano * 12 + (r.mes - 1);
+        if (idx < minIdx) minIdx = idx;
+        if (idx > maxIdx) maxIdx = idx;
+      }
+      startAno = Math.floor(minIdx / 12); startMes = (minIdx % 12) + 1;
+      endAno = Math.floor(maxIdx / 12); endMes = (maxIdx % 12) + 1;
     } else {
       // Comportamento padrão: últimos 12 meses retroativos a partir do mais recente
-      const sortedDesc = [...source].sort((a, b) => b.ano - a.ano || b.mes - a.mes);
-      const latest = sortedDesc[0];
-      const endIdx = latest.ano * 12 + (latest.mes - 1);
+      let maxIdx = -Infinity;
+      for (const r of source) {
+        const idx = r.ano * 12 + (r.mes - 1);
+        if (idx > maxIdx) maxIdx = idx;
+      }
+      const endIdx = maxIdx;
       const startIdx = endIdx - 11;
       inWindow = source.filter(r => {
         const idx = r.ano * 12 + (r.mes - 1);
         return idx >= startIdx && idx <= endIdx;
       });
-      startAno = Math.floor(startIdx / 12);
-      startMes = (startIdx % 12) + 1;
-      endAno = latest.ano; endMes = latest.mes;
+      startAno = Math.floor(startIdx / 12); startMes = (startIdx % 12) + 1;
+      endAno = Math.floor(endIdx / 12); endMes = (endIdx % 12) + 1;
     }
 
     const acc = { aluguel: 0, reembolsoCond: 0, reembolsoIptu: 0, reembolsoOutras: 0,
       condominio: 0, iptu: 0, taxa: 0, outras: 0, liquido: 0 };
     const imoveis = new Set<string>();
     const monthSet = new Set<string>();
-    inWindow.forEach(r => {
-      acc.aluguel += Math.max(0, r.aluguel);
-      acc.reembolsoCond += Math.max(0, r.reembolso_condominio);
-      acc.reembolsoIptu += Math.max(0, r.reembolso_iptu);
-      acc.reembolsoOutras += Math.max(0, r.reembolso_outras_despesas);
-      acc.condominio += Math.min(0, r.condominio);
-      acc.iptu += Math.min(0, r.iptu);
-      acc.taxa += Math.min(0, r.taxa_administracao);
-      acc.outras += Math.min(0, r.outras_despesas);
+    for (const r of inWindow) {
+      const t = rowTotals(r);
+      acc.aluguel += t.aluguel;
+      acc.reembolsoCond += t.reembolsoCond;
+      acc.reembolsoIptu += t.reembolsoIptu;
+      acc.reembolsoOutras += t.reembolsoOutras;
+      acc.condominio += t.condominio;
+      acc.iptu += t.iptu;
+      acc.taxa += t.taxa;
+      acc.outras += t.outras;
       acc.liquido += r.liquido;
       if (r.aluguel > 0) imoveis.add(propertyKey(r));
-      monthSet.add(`${r.ano}-${String(r.mes).padStart(2, '0')}`);
-    });
+      monthSet.add(monthKey(r.ano, r.mes));
+    }
     const receita = acc.aluguel + acc.reembolsoCond + acc.reembolsoIptu + acc.reembolsoOutras;
     const despesa = acc.condominio + acc.iptu + acc.taxa + acc.outras;
-    const periodoLabel = `${MONTHS[startMes - 1]}/${String(startAno).slice(2)} – ${MONTHS[endMes - 1]}/${String(endAno).slice(2)}`;
+    const periodoLabel = `${formatMonthLabel(startAno, startMes)} – ${formatMonthLabel(endAno, endMes)}`;
     return { ...acc, receita, despesa, imoveisAtivos: imoveis.size, monthsCount: monthSet.size, periodoLabel };
   }, [rows, filtered, anyDateFilterActive]);
 
   // Time series — receitas vs despesas por mês
   const timeSeries = useMemo(() => {
-    const map = new Map<string, { key: string; ano: number; mes: number; receita: number; despesa: number; liquido: number; aluguel: number }>();
-    filtered.forEach(r => {
-      const key = `${r.ano}-${String(r.mes).padStart(2, '0')}`;
-      if (!map.has(key)) map.set(key, { key, ano: r.ano, mes: r.mes, receita: 0, despesa: 0, liquido: 0, aluguel: 0 });
-      const acc = map.get(key)!;
-      acc.receita += Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
-      acc.despesa += Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas);
+    type Point = { key: string; ano: number; mes: number; receita: number; despesa: number; liquido: number; aluguel: number };
+    const map = new Map<string, Point>();
+    for (const r of filtered) {
+      const key = monthKey(r.ano, r.mes);
+      let acc = map.get(key);
+      if (!acc) {
+        acc = { key, ano: r.ano, mes: r.mes, receita: 0, despesa: 0, liquido: 0, aluguel: 0 };
+        map.set(key, acc);
+      }
+      const t = rowTotals(r);
+      acc.receita += t.receita;
+      acc.despesa += t.despesa;
       acc.liquido += r.liquido;
-      acc.aluguel += Math.max(0, r.aluguel);
-    });
+      acc.aluguel += t.aluguel;
+    }
     return Array.from(map.values())
       .sort((a, b) => a.ano - b.ano || a.mes - b.mes)
-      .map(d => ({ ...d, label: `${MONTHS[d.mes - 1]}/${String(d.ano).slice(2)}` }));
+      .map(d => ({ ...d, label: formatMonthLabel(d.ano, d.mes) }));
   }, [filtered]);
 
   // Categorias (pizza)
   const categoryData = useMemo(() => {
     const acc = { aluguel: 0, condominio: 0, iptu: 0, taxa: 0, outras: 0, reembolso: 0 };
-    filtered.forEach(r => {
-      acc.aluguel += Math.max(0, r.aluguel);
-      acc.condominio += Math.abs(Math.min(0, r.condominio));
-      acc.iptu += Math.abs(Math.min(0, r.iptu));
-      acc.taxa += Math.abs(Math.min(0, r.taxa_administracao));
-      acc.outras += Math.abs(Math.min(0, r.outras_despesas));
-      acc.reembolso += Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
-    });
+    for (const r of filtered) {
+      const t = rowTotals(r);
+      acc.aluguel += t.aluguel;
+      acc.condominio += -t.condominio;
+      acc.iptu += -t.iptu;
+      acc.taxa += -t.taxa;
+      acc.outras += -t.outras;
+      acc.reembolso += t.reembolsoCond + t.reembolsoIptu + t.reembolsoOutras;
+    }
     return [
       { name: 'Aluguel', value: acc.aluguel, color: CATEGORY_COLORS.aluguel },
       { name: 'Condomínio', value: acc.condominio, color: CATEGORY_COLORS.condominio },
@@ -451,45 +502,50 @@ export default function Balancete() {
       total: number; receita: number; despesa: number; aluguel: number; hasValues: boolean;
     };
     const byKey = new Map<string, PivotRow>();
-    filtered.forEach(r => {
+    for (const r of filtered) {
       const k = propertyKey(r);
-      const lbl = formatPropertyLabel(r);
-      if (!byKey.has(k)) {
-        byKey.set(k, {
-          key: k, label: lbl,
-          cidade: (r.cidade ?? '').toString(),
-          rua: (r.rua ?? '').toString(),
-          numero: (r.numero ?? '').toString(),
-          apartamento: (r.apartamento ?? '').toString(),
-          complemento: (r.complemento ?? '').toString(),
+      let acc = byKey.get(k);
+      if (!acc) {
+        acc = {
+          key: k, label: formatPropertyLabel(r),
+          cidade: r.cidade ?? '',
+          rua: r.rua ?? '',
+          numero: r.numero ?? '',
+          apartamento: r.apartamento ?? '',
+          complemento: r.complemento ?? '',
           values: {}, monthly: {}, total: 0, receita: 0, despesa: 0, aluguel: 0, hasValues: false,
-        });
+        };
+        byKey.set(k, acc);
       }
-      const acc = byKey.get(k)!;
-      const mk = `${r.ano}-${String(r.mes).padStart(2, '0')}`;
-      const recRow = Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
-      const despRow = Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas);
-      const aluguelRow = Math.max(0, r.aluguel);
-      if (!acc.monthly[mk]) acc.monthly[mk] = { receita: 0, despesa: 0, liquido: 0, aluguel: 0 };
-      acc.monthly[mk].receita += recRow;
-      acc.monthly[mk].despesa += despRow;
-      acc.monthly[mk].liquido += r.liquido;
-      acc.monthly[mk].aluguel += aluguelRow;
-      acc.receita += recRow;
-      acc.despesa += despRow;
-      acc.aluguel += aluguelRow;
-      if (r.liquido !== 0 || aluguelRow !== 0) acc.hasValues = true;
-    });
+      const t = rowTotals(r);
+      const mk = monthKey(r.ano, r.mes);
+      let m = acc.monthly[mk];
+      if (!m) {
+        m = { receita: 0, despesa: 0, liquido: 0, aluguel: 0 };
+        acc.monthly[mk] = m;
+      }
+      m.receita += t.receita;
+      m.despesa += t.despesa;
+      m.liquido += r.liquido;
+      m.aluguel += t.aluguel;
+      acc.receita += t.receita;
+      acc.despesa += t.despesa;
+      acc.aluguel += t.aluguel;
+      if (r.liquido !== 0 || t.aluguel !== 0) acc.hasValues = true;
+    }
     // Preenche values e total conforme métrica selecionada
-    byKey.forEach(acc => {
-      Object.entries(acc.monthly).forEach(([mk, m]) => {
+    for (const acc of byKey.values()) {
+      let liquidoTotal = 0;
+      for (const [mk, m] of Object.entries(acc.monthly)) {
         acc.values[mk] = m[displayMetric];
-      });
-      acc.total = displayMetric === 'liquido' ? Object.values(acc.monthly).reduce((s, m) => s + m.liquido, 0)
-        : displayMetric === 'receita' ? acc.receita
-        : displayMetric === 'despesa' ? acc.despesa
-        : acc.aluguel;
-    });
+        liquidoTotal += m.liquido;
+      }
+      acc.total =
+        displayMetric === 'liquido' ? liquidoTotal :
+        displayMetric === 'receita' ? acc.receita :
+        displayMetric === 'despesa' ? acc.despesa :
+        acc.aluguel;
+    }
     const mult = sortOrder === 'asc' ? 1 : -1;
     const sortedRows = Array.from(byKey.values()).sort((a, b) => {
       // Imóveis com valores sempre primeiro (independente da ordenação)
@@ -507,12 +563,12 @@ export default function Balancete() {
     // Subtotais por mês e geral
     const monthTotals: Record<string, number> = {};
     let grandTotal = 0;
-    sortedRows.forEach(row => {
-      months.forEach(mk => {
+    for (const row of sortedRows) {
+      for (const mk of months) {
         monthTotals[mk] = (monthTotals[mk] || 0) + (row.values[mk] || 0);
-      });
+      }
       grandTotal += row.total;
-    });
+    }
     return {
       months,
       monthLabels: timeSeries.map(t => t.label),
@@ -526,21 +582,28 @@ export default function Balancete() {
   // KPIs agrupados por ano (para visão expansível)
   const kpisByYear = useMemo(() => {
     type MesAgg = { receita: number; despesa: number; liquido: number };
-    const map = new Map<number, { ano: number; receita: number; despesa: number; liquido: number; imoveis: Set<string>; meses: Record<number, MesAgg> }>();
-    filtered.forEach(r => {
-      if (!map.has(r.ano)) map.set(r.ano, { ano: r.ano, receita: 0, despesa: 0, liquido: 0, imoveis: new Set(), meses: {} });
-      const acc = map.get(r.ano)!;
-      const rec = Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
-      const desp = Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas);
-      acc.receita += rec;
-      acc.despesa += desp;
+    type YearAgg = { ano: number; receita: number; despesa: number; liquido: number; imoveis: Set<string>; meses: Record<number, MesAgg> };
+    const map = new Map<number, YearAgg>();
+    for (const r of filtered) {
+      let acc = map.get(r.ano);
+      if (!acc) {
+        acc = { ano: r.ano, receita: 0, despesa: 0, liquido: 0, imoveis: new Set(), meses: {} };
+        map.set(r.ano, acc);
+      }
+      const t = rowTotals(r);
+      acc.receita += t.receita;
+      acc.despesa += t.despesa;
       acc.liquido += r.liquido;
-      if (!acc.meses[r.mes]) acc.meses[r.mes] = { receita: 0, despesa: 0, liquido: 0 };
-      acc.meses[r.mes].receita += rec;
-      acc.meses[r.mes].despesa += desp;
-      acc.meses[r.mes].liquido += r.liquido;
+      let m = acc.meses[r.mes];
+      if (!m) {
+        m = { receita: 0, despesa: 0, liquido: 0 };
+        acc.meses[r.mes] = m;
+      }
+      m.receita += t.receita;
+      m.despesa += t.despesa;
+      m.liquido += r.liquido;
       if (r.aluguel > 0) acc.imoveis.add(propertyKey(r));
-    });
+    }
     return Array.from(map.values())
       .map(y => ({ ano: y.ano, receita: y.receita, despesa: y.despesa, liquido: y.liquido, imoveisAtivos: y.imoveis.size, meses: y.meses }))
       .sort((a, b) => b.ano - a.ano);
@@ -548,27 +611,26 @@ export default function Balancete() {
 
   // Stacked categories por mês (gráfico empilhado)
   const stackedByMonth = useMemo(() => {
-    const map = new Map<string, any>();
-    filtered.forEach(r => {
-      const key = `${r.ano}-${String(r.mes).padStart(2, '0')}`;
-      if (!map.has(key)) {
-        map.set(key, {
-          key, ano: r.ano, mes: r.mes,
-          aluguel: 0, reembolsos: 0,
-          condominio: 0, iptu: 0, taxa: 0, outras: 0,
-        });
+    type StackPoint = { key: string; ano: number; mes: number; aluguel: number; reembolsos: number; condominio: number; iptu: number; taxa: number; outras: number };
+    const map = new Map<string, StackPoint>();
+    for (const r of filtered) {
+      const key = monthKey(r.ano, r.mes);
+      let acc = map.get(key);
+      if (!acc) {
+        acc = { key, ano: r.ano, mes: r.mes, aluguel: 0, reembolsos: 0, condominio: 0, iptu: 0, taxa: 0, outras: 0 };
+        map.set(key, acc);
       }
-      const acc = map.get(key)!;
-      acc.aluguel += Math.max(0, r.aluguel);
-      acc.reembolsos += Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
-      acc.condominio += Math.min(0, r.condominio);
-      acc.iptu += Math.min(0, r.iptu);
-      acc.taxa += Math.min(0, r.taxa_administracao);
-      acc.outras += Math.min(0, r.outras_despesas);
-    });
+      const t = rowTotals(r);
+      acc.aluguel += t.aluguel;
+      acc.reembolsos += t.reembolsoCond + t.reembolsoIptu + t.reembolsoOutras;
+      acc.condominio += t.condominio;
+      acc.iptu += t.iptu;
+      acc.taxa += t.taxa;
+      acc.outras += t.outras;
+    }
     return Array.from(map.values())
       .sort((a, b) => a.ano - b.ano || a.mes - b.mes)
-      .map(d => ({ ...d, label: `${MONTHS[d.mes - 1]}/${String(d.ano).slice(2)}` }));
+      .map(d => ({ ...d, label: formatMonthLabel(d.ano, d.mes) }));
   }, [filtered]);
 
   // Drill-down detail
@@ -1572,32 +1634,6 @@ export default function Balancete() {
 }
 
 /* ---------- Subcomponents ---------- */
-
-function KpiCard({
-  label, value, icon: Icon, tone, loading, isCount,
-}: { label: string; value: number; icon: typeof TrendingUp; tone: 'positive' | 'negative' | 'neutral'; loading: boolean; isCount?: boolean }) {
-  const toneClass =
-    tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' :
-    tone === 'negative' ? 'text-red-600 dark:text-red-400' :
-    'text-foreground';
-  return (
-    <Card className="overflow-hidden">
-      <CardContent className="p-3 sm:p-4">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <div className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide font-medium">{label}</div>
-            <div className={cn('text-base sm:text-xl font-semibold tabular-nums mt-1 truncate', toneClass)}>
-              {loading ? '—' : isCount ? value : fmtBRL(value)}
-            </div>
-          </div>
-          <div className={cn('h-8 w-8 sm:h-9 sm:w-9 rounded-lg flex items-center justify-center shrink-0', `bg-${tone === 'positive' ? 'emerald' : tone === 'negative' ? 'red' : 'primary'}-500/10`)}>
-            <Icon className={cn('h-4 w-4', toneClass)} />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 function ChartCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
