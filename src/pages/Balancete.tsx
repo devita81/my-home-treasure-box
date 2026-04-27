@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, TrendingDown, Wallet, Home as HomeIcon, X, ChevronRight, ChevronDown, Search, ArrowUpDown, ArrowUp, ArrowDown, Filter } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, Wallet, Home as HomeIcon, X, ChevronRight, ChevronDown, Search, ArrowUpDown, ArrowUp, ArrowDown, Filter, CalendarRange } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { Header } from '@/components/layout/Header';
@@ -124,12 +125,58 @@ const CATEGORY_COLORS = {
   reembolso: 'hsl(180 60% 45%)',
 };
 
+// Persistência de filtros entre sessões
+const FILTERS_STORAGE_KEY = 'balancete:filters:v1';
+type StoredFilters = {
+  yearFilter: string;
+  monthFilter: string;
+  periodFrom: string | null; // 'YYYY-MM'
+  periodTo: string | null;   // 'YYYY-MM'
+};
+
+function loadStoredFilters(): StoredFilters {
+  if (typeof window === 'undefined') {
+    return { yearFilter: 'all', monthFilter: 'all', periodFrom: null, periodTo: null };
+  }
+  try {
+    const raw = window.localStorage.getItem(FILTERS_STORAGE_KEY);
+    if (!raw) return { yearFilter: 'all', monthFilter: 'all', periodFrom: null, periodTo: null };
+    const parsed = JSON.parse(raw) as Partial<StoredFilters>;
+    return {
+      yearFilter: parsed.yearFilter ?? 'all',
+      monthFilter: parsed.monthFilter ?? 'all',
+      periodFrom: parsed.periodFrom ?? null,
+      periodTo: parsed.periodTo ?? null,
+    };
+  } catch {
+    return { yearFilter: 'all', monthFilter: 'all', periodFrom: null, periodTo: null };
+  }
+}
+
+// 'YYYY-MM' → índice numérico (ano*12 + mes-1)
+function ymToIdx(ym: string | null): number | null {
+  if (!ym) return null;
+  const [y, m] = ym.split('-').map(Number);
+  if (!y || !m || m < 1 || m > 12) return null;
+  return y * 12 + (m - 1);
+}
+
+function ymLabel(ym: string | null): string {
+  if (!ym) return '';
+  const [y, m] = ym.split('-').map(Number);
+  if (!y || !m) return ym;
+  return `${MONTHS[m - 1]}/${String(y).slice(2)}`;
+}
+
 export default function Balancete() {
   const [rows, setRows] = useState<BalanceteRow[]>([]);
   const [propertyTypes, setPropertyTypes] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
-  const [yearFilter, setYearFilter] = useState<string>('all');
-  const [monthFilter, setMonthFilter] = useState<string>('all');
+  const initialFilters = useMemo(() => loadStoredFilters(), []);
+  const [yearFilter, setYearFilter] = useState<string>(initialFilters.yearFilter);
+  const [monthFilter, setMonthFilter] = useState<string>(initialFilters.monthFilter);
+  const [periodFrom, setPeriodFrom] = useState<string | null>(initialFilters.periodFrom);
+  const [periodTo, setPeriodTo] = useState<string | null>(initialFilters.periodTo);
   const [search, setSearch] = useState<string>('');
   const [cidadeFilter, setCidadeFilter] = useState<string>('all');
   const [bairroFilter, setBairroFilter] = useState<string>('all');
@@ -141,6 +188,22 @@ export default function Balancete() {
   const [drilldown, setDrilldown] = useState<{ key: string; label: string } | null>(null);
   const [monthDrilldown, setMonthDrilldown] = useState<{ key: string; label: string; ano: number; mes: number } | null>(null);
   const [yearMonthDrilldown, setYearMonthDrilldown] = useState<{ ano: number; mes: number } | null>(null);
+
+  // Persiste filtros
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem(
+        FILTERS_STORAGE_KEY,
+        JSON.stringify({ yearFilter, monthFilter, periodFrom, periodTo }),
+      );
+    } catch {
+      // ignora erros de quota
+    }
+  }, [yearFilter, monthFilter, periodFrom, periodTo]);
+
+  const periodActive = periodFrom !== null || periodTo !== null;
+  const anyDateFilterActive = periodActive || yearFilter !== 'all' || monthFilter !== 'all';
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -203,9 +266,18 @@ export default function Balancete() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const fromIdx = ymToIdx(periodFrom);
+    const toIdx = ymToIdx(periodTo);
     return rows.filter(r => {
-      if (yearFilter !== 'all' && r.ano !== Number(yearFilter)) return false;
-      if (monthFilter !== 'all' && r.mes !== Number(monthFilter)) return false;
+      // Período (de/até) tem prioridade sobre ano/mês quando definido
+      if (fromIdx !== null || toIdx !== null) {
+        const idx = r.ano * 12 + (r.mes - 1);
+        if (fromIdx !== null && idx < fromIdx) return false;
+        if (toIdx !== null && idx > toIdx) return false;
+      } else {
+        if (yearFilter !== 'all' && r.ano !== Number(yearFilter)) return false;
+        if (monthFilter !== 'all' && r.mes !== Number(monthFilter)) return false;
+      }
       if (cidadeFilter !== 'all' && (r.cidade ?? '').trim() !== cidadeFilter) return false;
       if (bairroFilter !== 'all' && (r.bairro ?? '').trim() !== bairroFilter) return false;
       if (tipoFilter !== 'all') {
@@ -223,7 +295,7 @@ export default function Balancete() {
       }
       return true;
     });
-  }, [rows, yearFilter, monthFilter, cidadeFilter, bairroFilter, tipoFilter, search, propertyTypes]);
+  }, [rows, yearFilter, monthFilter, periodFrom, periodTo, cidadeFilter, bairroFilter, tipoFilter, search, propertyTypes]);
 
   // KPIs
   const kpis = useMemo(() => {
@@ -234,23 +306,42 @@ export default function Balancete() {
     return { receita, despesa, liquido, imoveisAtivos };
   }, [filtered]);
 
-  // Detalhamento dos últimos 12 meses (independente do filtro de ano/mês)
+  // Detalhamento dos últimos 12 meses — quando há filtro ativo, respeita-o
+  // (mostrando o período filtrado em vez da janela móvel padrão).
   const last12Breakdown = useMemo(() => {
-    if (rows.length === 0) {
+    const source = anyDateFilterActive ? filtered : rows;
+    if (source.length === 0) {
       return { aluguel: 0, reembolsoCond: 0, reembolsoIptu: 0, reembolsoOutras: 0, receita: 0,
         condominio: 0, iptu: 0, taxa: 0, outras: 0, despesa: 0, liquido: 0,
         imoveisAtivos: 0, monthsCount: 0, periodoLabel: '' };
     }
-    // Encontrar o mês mais recente nos dados
-    const sorted = [...rows].sort((a, b) => b.ano - a.ano || b.mes - a.mes);
-    const latest = sorted[0];
-    // Janela: 12 meses a partir do mais recente, retroativos
-    const endIdx = latest.ano * 12 + (latest.mes - 1);
-    const startIdx = endIdx - 11; // inclui 12 meses
-    const inWindow = rows.filter(r => {
-      const idx = r.ano * 12 + (r.mes - 1);
-      return idx >= startIdx && idx <= endIdx;
-    });
+
+    let inWindow: BalanceteRow[];
+    let startAno: number, startMes: number, endAno: number, endMes: number;
+
+    if (anyDateFilterActive) {
+      // Usa todo o conjunto filtrado
+      inWindow = source;
+      const sortedAsc = [...source].sort((a, b) => a.ano - b.ano || a.mes - b.mes);
+      const first = sortedAsc[0];
+      const last = sortedAsc[sortedAsc.length - 1];
+      startAno = first.ano; startMes = first.mes;
+      endAno = last.ano; endMes = last.mes;
+    } else {
+      // Comportamento padrão: últimos 12 meses retroativos a partir do mais recente
+      const sortedDesc = [...source].sort((a, b) => b.ano - a.ano || b.mes - a.mes);
+      const latest = sortedDesc[0];
+      const endIdx = latest.ano * 12 + (latest.mes - 1);
+      const startIdx = endIdx - 11;
+      inWindow = source.filter(r => {
+        const idx = r.ano * 12 + (r.mes - 1);
+        return idx >= startIdx && idx <= endIdx;
+      });
+      startAno = Math.floor(startIdx / 12);
+      startMes = (startIdx % 12) + 1;
+      endAno = latest.ano; endMes = latest.mes;
+    }
+
     const acc = { aluguel: 0, reembolsoCond: 0, reembolsoIptu: 0, reembolsoOutras: 0,
       condominio: 0, iptu: 0, taxa: 0, outras: 0, liquido: 0 };
     const imoveis = new Set<string>();
@@ -270,12 +361,9 @@ export default function Balancete() {
     });
     const receita = acc.aluguel + acc.reembolsoCond + acc.reembolsoIptu + acc.reembolsoOutras;
     const despesa = acc.condominio + acc.iptu + acc.taxa + acc.outras;
-    const startMonthIdx = endIdx - 11;
-    const startAno = Math.floor(startMonthIdx / 12);
-    const startMes = (startMonthIdx % 12) + 1;
-    const periodoLabel = `${MONTHS[startMes - 1]}/${String(startAno).slice(2)} – ${MONTHS[latest.mes - 1]}/${String(latest.ano).slice(2)}`;
+    const periodoLabel = `${MONTHS[startMes - 1]}/${String(startAno).slice(2)} – ${MONTHS[endMes - 1]}/${String(endAno).slice(2)}`;
     return { ...acc, receita, despesa, imoveisAtivos: imoveis.size, monthsCount: monthSet.size, periodoLabel };
-  }, [rows]);
+  }, [rows, filtered, anyDateFilterActive]);
 
   // Time series — receitas vs despesas por mês
   const timeSeries = useMemo(() => {
@@ -553,8 +641,11 @@ export default function Balancete() {
               <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground px-0.5">
                 Ano
               </label>
-              <Select value={yearFilter} onValueChange={setYearFilter}>
-                <SelectTrigger className="h-9 w-[120px] text-xs bg-card border-border shadow-sm hover:bg-accent/40">
+              <Select value={yearFilter} onValueChange={setYearFilter} disabled={periodActive}>
+                <SelectTrigger className={cn(
+                  "h-9 w-[110px] text-xs bg-card border-border shadow-sm hover:bg-accent/40",
+                  periodActive && "opacity-50",
+                )}>
                   <SelectValue placeholder="Ano" />
                 </SelectTrigger>
                 <SelectContent>
@@ -567,8 +658,11 @@ export default function Balancete() {
               <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground px-0.5">
                 Mês
               </label>
-              <Select value={monthFilter} onValueChange={setMonthFilter}>
-                <SelectTrigger className="h-9 w-[120px] text-xs bg-card border-border shadow-sm hover:bg-accent/40">
+              <Select value={monthFilter} onValueChange={setMonthFilter} disabled={periodActive}>
+                <SelectTrigger className={cn(
+                  "h-9 w-[110px] text-xs bg-card border-border shadow-sm hover:bg-accent/40",
+                  periodActive && "opacity-50",
+                )}>
                   <SelectValue placeholder="Mês" />
                 </SelectTrigger>
                 <SelectContent>
@@ -576,6 +670,24 @@ export default function Balancete() {
                   {MONTHS.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground px-0.5">
+                Período
+              </label>
+              <PeriodFilterButton
+                from={periodFrom}
+                to={periodTo}
+                onChange={(f, t) => {
+                  setPeriodFrom(f);
+                  setPeriodTo(t);
+                  if (f !== null || t !== null) {
+                    // período tem prioridade: limpa ano/mês individuais
+                    setYearFilter('all');
+                    setMonthFilter('all');
+                  }
+                }}
+              />
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-[10px] font-medium uppercase tracking-wide text-transparent select-none px-0.5" aria-hidden>
@@ -592,6 +704,17 @@ export default function Balancete() {
           loading={loading}
           totals={kpis}
           last12={last12Breakdown}
+          periodTitle={
+            periodActive
+              ? 'Período selecionado'
+              : yearFilter !== 'all' && monthFilter !== 'all'
+                ? `${MONTHS[Number(monthFilter) - 1]} / ${yearFilter}`
+                : yearFilter !== 'all'
+                  ? `Ano ${yearFilter}`
+                  : monthFilter !== 'all'
+                    ? `${MONTHS[Number(monthFilter) - 1]} (todos os anos)`
+                    : 'Últimos 12 meses'
+          }
           onOpenMonth={(ano, mes) => setYearMonthDrilldown({ ano, mes })}
         />
 
@@ -1831,6 +1954,7 @@ function YearlyKpis({
   totals,
   last12,
   onOpenMonth,
+  periodTitle,
 }: {
   years: { ano: number; receita: number; despesa: number; liquido: number; imoveisAtivos: number; meses: Record<number, { receita: number; despesa: number; liquido: number }> }[];
   loading: boolean;
@@ -1841,6 +1965,7 @@ function YearlyKpis({
     imoveisAtivos: number; monthsCount: number; periodoLabel: string;
   };
   onOpenMonth: (ano: number, mes: number) => void;
+  periodTitle?: string;
 }) {
   // Default: todos os anos fechados
   const [expanded, setExpanded] = useState<Set<number>>(() => new Set());
@@ -1884,7 +2009,7 @@ function YearlyKpis({
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-baseline gap-2 flex-wrap">
               <span className="text-[10px] sm:text-xs uppercase tracking-wide font-bold text-foreground">
-                Últimos 12 meses
+                {periodTitle ?? 'Últimos 12 meses'}
               </span>
               {last12.periodoLabel && (
                 <span className="text-[10px] sm:text-[11px] text-muted-foreground tabular-nums">
@@ -2258,5 +2383,94 @@ function PropertyAccordionRow({
         </div>
       )}
     </div>
+  );
+}
+
+// Botão+popover para escolher período (de/até) em formato YYYY-MM
+function PeriodFilterButton({
+  from,
+  to,
+  onChange,
+}: {
+  from: string | null;
+  to: string | null;
+  onChange: (from: string | null, to: string | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [draftFrom, setDraftFrom] = useState(from ?? '');
+  const [draftTo, setDraftTo] = useState(to ?? '');
+
+  useEffect(() => {
+    if (open) {
+      setDraftFrom(from ?? '');
+      setDraftTo(to ?? '');
+    }
+  }, [open, from, to]);
+
+  const active = from !== null || to !== null;
+  const label = active
+    ? `${ymLabel(from) || '—'} → ${ymLabel(to) || '—'}`
+    : 'Selecionar';
+
+  function apply() {
+    const f = draftFrom || null;
+    const t = draftTo || null;
+    // se ambos preenchidos invertidos, troca
+    if (f && t && f > t) onChange(t, f);
+    else onChange(f, t);
+    setOpen(false);
+  }
+
+  function clear() {
+    setDraftFrom('');
+    setDraftTo('');
+    onChange(null, null);
+    setOpen(false);
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className={cn(
+            'h-9 gap-1.5 bg-card border-border shadow-sm hover:bg-accent/40 text-xs justify-between min-w-[150px]',
+            active && 'border-primary/60 bg-primary/5',
+          )}
+        >
+          <CalendarRange className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">{label}</span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-[280px] p-3 space-y-3">
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">De</label>
+          <Input
+            type="month"
+            value={draftFrom}
+            onChange={(e) => setDraftFrom(e.target.value)}
+            className="h-9 text-xs"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Até</label>
+          <Input
+            type="month"
+            value={draftTo}
+            onChange={(e) => setDraftTo(e.target.value)}
+            className="h-9 text-xs"
+          />
+        </div>
+        <div className="flex items-center justify-between pt-1">
+          <Button variant="ghost" size="sm" onClick={clear} className="h-8 text-xs">
+            Limpar
+          </Button>
+          <Button size="sm" onClick={apply} className="h-8 text-xs">
+            Aplicar
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
