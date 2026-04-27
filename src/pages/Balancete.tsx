@@ -548,21 +548,28 @@ export default function Balancete() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 ml-auto">
-            <Select value={yearFilter} onValueChange={setYearFilter}>
-              <SelectTrigger className="h-9 w-[110px] text-xs bg-card border-border shadow-sm hover:bg-accent/40"><SelectValue placeholder="Ano" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos anos</SelectItem>
-                {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={monthFilter} onValueChange={setMonthFilter}>
-              <SelectTrigger className="h-9 w-[110px] text-xs bg-card border-border shadow-sm hover:bg-accent/40"><SelectValue placeholder="Mês" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos meses</SelectItem>
-                {MONTHS.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-2 ml-auto flex-wrap justify-end">
+            <div className="flex items-center gap-1.5 rounded-md bg-card border border-border shadow-sm p-0.5">
+              <Select value={yearFilter} onValueChange={setYearFilter}>
+                <SelectTrigger className="h-8 w-[100px] text-xs border-0 shadow-none bg-transparent hover:bg-accent/40 focus:ring-0">
+                  <SelectValue placeholder="Ano" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos anos</SelectItem>
+                  {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <div className="h-5 w-px bg-border" aria-hidden />
+              <Select value={monthFilter} onValueChange={setMonthFilter}>
+                <SelectTrigger className="h-8 w-[100px] text-xs border-0 shadow-none bg-transparent hover:bg-accent/40 focus:ring-0">
+                  <SelectValue placeholder="Mês" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos meses</SelectItem>
+                  {MONTHS.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
             <ImportBalanceteDialog onImported={fetchAll} />
           </div>
         </div>
