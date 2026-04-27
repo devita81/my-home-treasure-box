@@ -611,6 +611,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      build_property_key: {
+        Args: {
+          p_apartamento: string
+          p_cidade: string
+          p_complemento: string
+          p_numero: string
+          p_rua: string
+        }
+        Returns: string
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -655,6 +665,7 @@ export type Database = {
         }
         Returns: number
       }
+      normalize_addr_part: { Args: { input: string }; Returns: string }
       normalize_address_text: { Args: { input: string }; Returns: string }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
