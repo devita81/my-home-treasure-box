@@ -510,14 +510,14 @@ export default function Balancete() {
 
           <div className="flex items-center gap-2 ml-auto">
             <Select value={yearFilter} onValueChange={setYearFilter}>
-              <SelectTrigger className="h-9 w-[110px] text-xs"><SelectValue placeholder="Ano" /></SelectTrigger>
+              <SelectTrigger className="h-9 w-[110px] text-xs bg-card border-border shadow-sm hover:bg-accent/40"><SelectValue placeholder="Ano" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos anos</SelectItem>
                 {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={monthFilter} onValueChange={setMonthFilter}>
-              <SelectTrigger className="h-9 w-[110px] text-xs"><SelectValue placeholder="Mês" /></SelectTrigger>
+              <SelectTrigger className="h-9 w-[110px] text-xs bg-card border-border shadow-sm hover:bg-accent/40"><SelectValue placeholder="Mês" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos meses</SelectItem>
                 {MONTHS.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}
