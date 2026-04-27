@@ -46,6 +46,18 @@ interface BalanceteRow {
 }
 
 const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+const METRIC_LABELS: Record<'receita' | 'despesa' | 'liquido' | 'aluguel', string> = {
+  receita: 'Receita',
+  despesa: 'Despesa',
+  liquido: 'Líquido',
+  aluguel: 'Aluguel',
+};
+const METRIC_SHORT: Record<'receita' | 'despesa' | 'liquido' | 'aluguel', string> = {
+  receita: 'R',
+  despesa: 'D',
+  liquido: 'L',
+  aluguel: 'A',
+};
 const fmtBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
 const fmtBRLFull = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -121,7 +133,8 @@ export default function Balancete() {
   const [cidadeFilter, setCidadeFilter] = useState<string>('all');
   const [bairroFilter, setBairroFilter] = useState<string>('all');
   const [tipoFilter, setTipoFilter] = useState<string>('all');
-  type SortField = 'cidade' | 'rua' | 'receita' | 'despesa' | 'liquido';
+  type SortField = 'cidade' | 'rua' | 'receita' | 'despesa' | 'liquido' | 'aluguel';
+  type MetricField = 'receita' | 'despesa' | 'liquido' | 'aluguel';
   const [sortField, setSortField] = useState<SortField>('liquido');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [drilldown, setDrilldown] = useState<{ key: string; label: string } | null>(null);
@@ -298,15 +311,21 @@ export default function Balancete() {
     ].filter(c => c.value > 0);
   }, [filtered]);
 
-  // Pivot: imóvel x mês (líquido) — com receita/despesa por linha p/ ordenação
+  // Métrica exibida nas tabelas/cards: derivada do sortField (cidade/rua => líquido)
+  const displayMetric: MetricField = useMemo(() => {
+    if (sortField === 'receita' || sortField === 'despesa' || sortField === 'aluguel') return sortField;
+    return 'liquido';
+  }, [sortField]);
+
+  // Pivot: imóvel x mês — valores exibidos seguem displayMetric
   const pivot = useMemo(() => {
     const months = timeSeries.map(t => t.key);
-    type MonthAgg = { receita: number; despesa: number; liquido: number };
+    type MonthAgg = { receita: number; despesa: number; liquido: number; aluguel: number };
     type PivotRow = {
       key: string; label: string; cidade: string; rua: string;
       values: Record<string, number>;
       monthly: Record<string, MonthAgg>;
-      total: number; receita: number; despesa: number; hasValues: boolean;
+      total: number; receita: number; despesa: number; aluguel: number; hasValues: boolean;
     };
     const byKey = new Map<string, PivotRow>();
     filtered.forEach(r => {
@@ -317,22 +336,33 @@ export default function Balancete() {
           key: k, label: lbl,
           cidade: (r.cidade ?? '').toString(),
           rua: (r.rua ?? '').toString(),
-          values: {}, monthly: {}, total: 0, receita: 0, despesa: 0, hasValues: false,
+          values: {}, monthly: {}, total: 0, receita: 0, despesa: 0, aluguel: 0, hasValues: false,
         });
       }
       const acc = byKey.get(k)!;
       const mk = `${r.ano}-${String(r.mes).padStart(2, '0')}`;
       const recRow = Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
       const despRow = Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas);
-      acc.values[mk] = (acc.values[mk] || 0) + r.liquido;
-      if (!acc.monthly[mk]) acc.monthly[mk] = { receita: 0, despesa: 0, liquido: 0 };
+      const aluguelRow = Math.max(0, r.aluguel);
+      if (!acc.monthly[mk]) acc.monthly[mk] = { receita: 0, despesa: 0, liquido: 0, aluguel: 0 };
       acc.monthly[mk].receita += recRow;
       acc.monthly[mk].despesa += despRow;
       acc.monthly[mk].liquido += r.liquido;
-      acc.total += r.liquido;
+      acc.monthly[mk].aluguel += aluguelRow;
       acc.receita += recRow;
       acc.despesa += despRow;
-      if (r.liquido !== 0) acc.hasValues = true;
+      acc.aluguel += aluguelRow;
+      if (r.liquido !== 0 || aluguelRow !== 0) acc.hasValues = true;
+    });
+    // Preenche values e total conforme métrica selecionada
+    byKey.forEach(acc => {
+      Object.entries(acc.monthly).forEach(([mk, m]) => {
+        acc.values[mk] = m[displayMetric];
+      });
+      acc.total = displayMetric === 'liquido' ? Object.values(acc.monthly).reduce((s, m) => s + m.liquido, 0)
+        : displayMetric === 'receita' ? acc.receita
+        : displayMetric === 'despesa' ? acc.despesa
+        : acc.aluguel;
     });
     const mult = sortOrder === 'asc' ? 1 : -1;
     const sortedRows = Array.from(byKey.values()).sort((a, b) => {
@@ -343,6 +373,7 @@ export default function Balancete() {
         case 'rua': return mult * a.rua.localeCompare(b.rua, 'pt-BR');
         case 'receita': return mult * (a.receita - b.receita);
         case 'despesa': return mult * (a.despesa - b.despesa);
+        case 'aluguel': return mult * (a.aluguel - b.aluguel);
         case 'liquido':
         default: return mult * (a.total - b.total);
       }
@@ -362,8 +393,9 @@ export default function Balancete() {
       rows: sortedRows,
       monthTotals,
       grandTotal,
+      metric: displayMetric,
     };
-  }, [filtered, timeSeries, sortField, sortOrder]);
+  }, [filtered, timeSeries, sortField, sortOrder, displayMetric]);
 
   // KPIs agrupados por ano (para visão expansível)
   const kpisByYear = useMemo(() => {
@@ -736,6 +768,7 @@ export default function Balancete() {
                   <SelectItem value="receita">Receita</SelectItem>
                   <SelectItem value="despesa">Despesa</SelectItem>
                   <SelectItem value="liquido">Líquido</SelectItem>
+                  <SelectItem value="aluguel">Aluguel</SelectItem>
                 </SelectContent>
               </Select>
               <Button
@@ -755,7 +788,7 @@ export default function Balancete() {
         {/* Pivot table — desktop */}
         <Card className="hidden md:block">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Líquido por imóvel × mês</CardTitle>
+            <CardTitle className="text-base">{METRIC_LABELS[pivot.metric]} por imóvel × mês</CardTitle>
             <p className="text-xs text-muted-foreground">Toque em um imóvel para ver o histórico detalhado</p>
           </CardHeader>
           <CardContent className="px-0">
@@ -849,7 +882,7 @@ export default function Balancete() {
         {/* Mobile cards — accordion estilo "rentabilidade histórica" */}
         <Card className="md:hidden">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Imóveis</CardTitle>
+            <CardTitle className="text-base">Imóveis · {METRIC_LABELS[pivot.metric]}</CardTitle>
             <p className="text-xs text-muted-foreground">Toque para expandir os meses • toque em um mês para ver detalhes</p>
           </CardHeader>
           <CardContent className="space-y-2 px-3 pb-3">
@@ -858,6 +891,7 @@ export default function Balancete() {
                 key={r.key}
                 row={r}
                 months={pivot.months}
+                metric={pivot.metric}
                 onOpenDrilldown={() => setDrilldown({ key: r.key, label: r.label })}
                 onOpenMonthDrilldown={(ano, mes) =>
                   setMonthDrilldown({ key: r.key, label: r.label, ano, mes })
@@ -1997,11 +2031,13 @@ function YearlyKpis({
 function PropertyAccordionRow({
   row,
   months,
+  metric,
   onOpenDrilldown,
   onOpenMonthDrilldown,
 }: {
-  row: { key: string; label: string; cidade?: string; rua?: string; values: Record<string, number>; monthly?: Record<string, { receita: number; despesa: number; liquido: number }>; total: number; hasValues: boolean };
+  row: { key: string; label: string; cidade?: string; rua?: string; values: Record<string, number>; monthly?: Record<string, { receita: number; despesa: number; liquido: number; aluguel: number }>; total: number; hasValues: boolean };
   months: string[];
+  metric: 'receita' | 'despesa' | 'liquido' | 'aluguel';
   onOpenDrilldown: () => void;
   onOpenMonthDrilldown: (ano: number, mes: number) => void;
 }) {
@@ -2152,16 +2188,16 @@ function PropertyAccordionRow({
                               </span>
                             </div>
                             <div className="flex items-baseline justify-between gap-1 tabular-nums border-t border-border/50 pt-0.5 mt-0.5">
-                              <span className="text-[8px] text-muted-foreground font-semibold">L</span>
+                              <span className="text-[8px] text-muted-foreground font-semibold">{METRIC_SHORT[metric]}</span>
                               <span className={cn(
                                 'text-[11px] font-bold',
-                                m!.liquido > 0
+                                m![metric] > 0
                                   ? 'text-emerald-600 dark:text-emerald-400'
-                                  : m!.liquido < 0
+                                  : m![metric] < 0
                                   ? 'text-red-600 dark:text-red-400'
                                   : 'text-muted-foreground'
                               )}>
-                                {fmtBRL(m!.liquido)}
+                                {fmtBRL(m![metric])}
                               </span>
                             </div>
                           </div>
