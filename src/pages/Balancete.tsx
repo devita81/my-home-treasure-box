@@ -46,6 +46,18 @@ interface BalanceteRow {
 }
 
 const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+const METRIC_LABELS: Record<'receita' | 'despesa' | 'liquido' | 'aluguel', string> = {
+  receita: 'Receita',
+  despesa: 'Despesa',
+  liquido: 'Líquido',
+  aluguel: 'Aluguel',
+};
+const METRIC_SHORT: Record<'receita' | 'despesa' | 'liquido' | 'aluguel', string> = {
+  receita: 'R',
+  despesa: 'D',
+  liquido: 'L',
+  aluguel: 'A',
+};
 const fmtBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
 const fmtBRLFull = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
