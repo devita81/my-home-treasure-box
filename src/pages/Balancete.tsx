@@ -623,30 +623,38 @@ export default function Balancete() {
         }}
       >
         {/* Page header */}
-        <div className="flex items-start sm:items-center justify-between gap-2 flex-wrap">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
+        <div className="space-y-3">
+          {/* Linha 1: voltar + título + ação primária */}
+          <div className="flex items-center gap-3">
             <Link to="/">
               <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-label="Voltar">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg sm:text-2xl font-display font-semibold tracking-tight truncate">Balancete</h1>
-              <p className="text-[11px] sm:text-sm text-muted-foreground">Custos e receitas mês a mês por imóvel</p>
+              <h1 className="text-lg sm:text-2xl font-display font-semibold tracking-tight truncate leading-tight">
+                Balancete
+              </h1>
+              <p className="text-[11px] sm:text-sm text-muted-foreground truncate">
+                Custos e receitas mês a mês por imóvel
+              </p>
             </div>
             <ImportBalanceteDialog onImported={fetchAll} />
           </div>
 
-          <div className="flex items-end gap-2 ml-auto w-full sm:w-auto">
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground px-0.5">
+          {/* Linha 2: filtros agrupados em card unificado */}
+          <div className="flex flex-wrap items-stretch gap-0 rounded-lg border border-border bg-card shadow-sm overflow-hidden w-fit max-w-full">
+            <div className="flex flex-col gap-0.5 px-3 py-2 min-w-[120px]">
+              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 Ano
               </label>
               <Select value={yearFilter} onValueChange={setYearFilter} disabled={periodActive}>
-                <SelectTrigger className={cn(
-                  "h-9 w-[110px] text-xs bg-card border-border shadow-sm hover:bg-accent/40",
-                  periodActive && "opacity-50",
-                )}>
+                <SelectTrigger
+                  className={cn(
+                    "h-7 w-full text-xs border-0 shadow-none bg-transparent px-0 hover:bg-transparent focus:ring-0 focus:ring-offset-0",
+                    periodActive && "opacity-50",
+                  )}
+                >
                   <SelectValue placeholder="Ano" />
                 </SelectTrigger>
                 <SelectContent>
@@ -655,15 +663,20 @@ export default function Balancete() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground px-0.5">
+
+            <div className="w-px bg-border self-stretch" aria-hidden />
+
+            <div className="flex flex-col gap-0.5 px-3 py-2 min-w-[120px]">
+              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 Mês
               </label>
               <Select value={monthFilter} onValueChange={setMonthFilter} disabled={periodActive}>
-                <SelectTrigger className={cn(
-                  "h-9 w-[110px] text-xs bg-card border-border shadow-sm hover:bg-accent/40",
-                  periodActive && "opacity-50",
-                )}>
+                <SelectTrigger
+                  className={cn(
+                    "h-7 w-full text-xs border-0 shadow-none bg-transparent px-0 hover:bg-transparent focus:ring-0 focus:ring-offset-0",
+                    periodActive && "opacity-50",
+                  )}
+                >
                   <SelectValue placeholder="Mês" />
                 </SelectTrigger>
                 <SelectContent>
@@ -672,8 +685,11 @@ export default function Balancete() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground px-0.5">
+
+            <div className="w-px bg-border self-stretch" aria-hidden />
+
+            <div className="flex flex-col gap-0.5 px-3 py-2 min-w-[180px]">
+              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 Período
               </label>
               <PeriodFilterButton
@@ -683,7 +699,6 @@ export default function Balancete() {
                   setPeriodFrom(f);
                   setPeriodTo(t);
                   if (f !== null || t !== null) {
-                    // período tem prioridade: limpa ano/mês individuais
                     setYearFilter('all');
                     setMonthFilter('all');
                   }
@@ -691,8 +706,8 @@ export default function Balancete() {
               />
             </div>
           </div>
-
         </div>
+
 
         {/* KPIs por ano (expansíveis) */}
         <YearlyKpis
