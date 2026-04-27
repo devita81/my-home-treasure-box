@@ -805,7 +805,7 @@ export default function Balancete() {
                       {pivot.monthLabels.map((m, i) => (
                         <TableHead key={i} className="text-right text-[11px] whitespace-nowrap">{m}</TableHead>
                       ))}
-                      <TableHead className="text-right text-[11px] font-semibold">Total</TableHead>
+                      <TableHead className="text-right text-[11px] font-semibold whitespace-nowrap pl-4 pr-4 min-w-[90px]">Total</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
