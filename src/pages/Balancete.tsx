@@ -1973,7 +1973,7 @@ function YearlyKpis({
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-baseline gap-2 flex-wrap">
               <span className="text-[10px] sm:text-xs uppercase tracking-wide font-bold text-foreground">
-                Últimos 12 meses
+                {periodTitle ?? 'Últimos 12 meses'}
               </span>
               {last12.periodoLabel && (
                 <span className="text-[10px] sm:text-[11px] text-muted-foreground tabular-nums">
