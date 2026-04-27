@@ -673,7 +673,7 @@ export default function Balancete() {
           </div>
 
           {/* Linha 2: filtros agrupados em card unificado e compacto */}
-          <div className="inline-flex flex-wrap items-stretch rounded-lg border border-border bg-card shadow-sm overflow-hidden max-w-full">
+          <div className="flex flex-wrap items-stretch rounded-lg border border-border bg-card shadow-sm overflow-hidden w-full">
             <MultiSelectFilter
               label="Ano"
               placeholder="Todos"
@@ -681,7 +681,7 @@ export default function Balancete() {
               options={years.map(y => ({ value: y, label: String(y) }))}
               selected={yearFilter}
               onChange={setYearFilter}
-              className="min-w-[110px]"
+              className="flex-1 min-w-[110px]"
             />
 
             <div className="w-px bg-border self-stretch" aria-hidden />
@@ -693,12 +693,12 @@ export default function Balancete() {
               options={MONTHS.map((m, i) => ({ value: i + 1, label: m }))}
               selected={monthFilter}
               onChange={setMonthFilter}
-              className="min-w-[110px]"
+              className="flex-1 min-w-[110px]"
             />
 
             <div className="w-px bg-border self-stretch" aria-hidden />
 
-            <div className="flex flex-col gap-0.5 px-3 py-1.5 min-w-[170px]">
+            <div className="flex flex-col gap-0.5 px-3 py-1.5 flex-1 min-w-[170px]">
               <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 Período
               </label>
@@ -728,7 +728,7 @@ export default function Balancete() {
                     setPeriodFrom(null);
                     setPeriodTo(null);
                   }}
-                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 min-w-[110px] text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 active:bg-muted/70 transition-colors"
+                  className="flex items-center justify-center gap-1.5 px-3 py-2 min-w-[120px] text-[11px] font-semibold uppercase tracking-wide text-destructive bg-destructive/5 hover:bg-destructive/10 active:bg-destructive/15 transition-colors border-l border-border"
                   aria-label="Limpar filtros de período"
                 >
                   <X className="h-3.5 w-3.5" />
