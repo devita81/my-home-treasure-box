@@ -316,8 +316,7 @@ Deno.serve(async (req) => {
       const taxa = colTaxa >= 0 ? toNum(row[colTaxa]) : 0;
       const outras = colOutras >= 0 ? toNum(row[colOutras]) : 0;
       const reembOutras = colReembOutras >= 0 ? toNum(row[colReembOutras]) : 0;
-      const liquido =
-        aluguel + condominio + reembCond + iptu + reembIptu + taxa + outras + reembOutras;
+      // `liquido` é coluna gerada no banco — não enviar no insert
 
       const alugado = colAlugado >= 0 ? toBool(row[colAlugado]) : null;
       const locatario = colLocatario >= 0 ? ((row[colLocatario] ?? "").trim() || null) : null;
@@ -348,7 +347,6 @@ Deno.serve(async (req) => {
         taxa_administracao: taxa,
         outras_despesas: outras,
         reembolso_outras_despesas: reembOutras,
-        liquido,
       });
 
       // Atualiza latestByProp
