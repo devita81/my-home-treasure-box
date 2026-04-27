@@ -690,13 +690,8 @@ export default function Balancete() {
                 }}
               />
             </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-medium uppercase tracking-wide text-transparent select-none px-0.5" aria-hidden>
-                .
-              </span>
-              <ImportBalanceteDialog onImported={fetchAll} />
-            </div>
           </div>
+
         </div>
 
         {/* KPIs por ano (expansíveis) */}
