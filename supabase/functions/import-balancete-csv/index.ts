@@ -347,7 +347,6 @@ Deno.serve(async (req) => {
         taxa_administracao: taxa,
         outras_despesas: outras,
         reembolso_outras_despesas: reembOutras,
-        liquido,
       });
 
       // Atualiza latestByProp
