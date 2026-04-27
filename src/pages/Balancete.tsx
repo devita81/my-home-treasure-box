@@ -652,53 +652,33 @@ export default function Balancete() {
             <ImportBalanceteDialog onImported={fetchAll} />
           </div>
 
-          {/* Linha 2: filtros agrupados em card unificado */}
-          <div className="flex flex-wrap items-stretch gap-0 rounded-lg border border-border bg-card shadow-sm overflow-hidden w-fit max-w-full">
-            <div className="flex flex-col gap-0.5 px-3 py-2 min-w-[120px]">
-              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                Ano
-              </label>
-              <Select value={yearFilter} onValueChange={setYearFilter} disabled={periodActive}>
-                <SelectTrigger
-                  className={cn(
-                    "h-7 w-full text-xs border-0 shadow-none bg-transparent px-0 hover:bg-transparent focus:ring-0 focus:ring-offset-0",
-                    periodActive && "opacity-50",
-                  )}
-                >
-                  <SelectValue placeholder="Ano" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Linha 2: filtros agrupados em card unificado e compacto */}
+          <div className="inline-flex flex-wrap items-stretch rounded-lg border border-border bg-card shadow-sm overflow-hidden max-w-full">
+            <MultiSelectFilter
+              label="Ano"
+              placeholder="Todos"
+              disabled={periodActive}
+              options={years.map(y => ({ value: y, label: String(y) }))}
+              selected={yearFilter}
+              onChange={setYearFilter}
+              className="min-w-[110px]"
+            />
 
             <div className="w-px bg-border self-stretch" aria-hidden />
 
-            <div className="flex flex-col gap-0.5 px-3 py-2 min-w-[120px]">
-              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                Mês
-              </label>
-              <Select value={monthFilter} onValueChange={setMonthFilter} disabled={periodActive}>
-                <SelectTrigger
-                  className={cn(
-                    "h-7 w-full text-xs border-0 shadow-none bg-transparent px-0 hover:bg-transparent focus:ring-0 focus:ring-offset-0",
-                    periodActive && "opacity-50",
-                  )}
-                >
-                  <SelectValue placeholder="Mês" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {MONTHS.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            <MultiSelectFilter
+              label="Mês"
+              placeholder="Todos"
+              disabled={periodActive}
+              options={MONTHS.map((m, i) => ({ value: i + 1, label: m }))}
+              selected={monthFilter}
+              onChange={setMonthFilter}
+              className="min-w-[110px]"
+            />
 
             <div className="w-px bg-border self-stretch" aria-hidden />
 
-            <div className="flex flex-col gap-0.5 px-3 py-2 min-w-[180px]">
+            <div className="flex flex-col gap-0.5 px-3 py-1.5 min-w-[170px]">
               <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 Período
               </label>
@@ -709,8 +689,8 @@ export default function Balancete() {
                   setPeriodFrom(f);
                   setPeriodTo(t);
                   if (f !== null || t !== null) {
-                    setYearFilter('all');
-                    setMonthFilter('all');
+                    setYearFilter([]);
+                    setMonthFilter([]);
                   }
                 }}
               />
@@ -728,13 +708,15 @@ export default function Balancete() {
           periodTitle={
             periodActive
               ? 'Período selecionado'
-              : yearFilter !== 'all' && monthFilter !== 'all'
-                ? `${MONTHS[Number(monthFilter) - 1]} / ${yearFilter}`
-                : yearFilter !== 'all'
-                  ? `Ano ${yearFilter}`
-                  : monthFilter !== 'all'
-                    ? `${MONTHS[Number(monthFilter) - 1]} (todos os anos)`
-                    : 'Últimos 12 meses'
+              : yearFilter.length === 1 && monthFilter.length === 1
+                ? `${MONTHS[monthFilter[0] - 1]} / ${yearFilter[0]}`
+                : yearFilter.length > 0 && monthFilter.length === 0
+                  ? (yearFilter.length === 1 ? `Ano ${yearFilter[0]}` : `${yearFilter.length} anos selecionados`)
+                  : monthFilter.length > 0 && yearFilter.length === 0
+                    ? (monthFilter.length === 1 ? `${MONTHS[monthFilter[0] - 1]} (todos os anos)` : `${monthFilter.length} meses selecionados`)
+                    : (yearFilter.length > 0 || monthFilter.length > 0)
+                      ? 'Seleção personalizada'
+                      : 'Últimos 12 meses'
           }
           onOpenMonth={(ano, mes) => setYearMonthDrilldown({ ano, mes })}
         />
