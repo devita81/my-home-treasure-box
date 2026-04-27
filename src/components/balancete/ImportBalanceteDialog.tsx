@@ -225,80 +225,50 @@ export function ImportBalanceteDialog({ onImported }: Props) {
                 )}
 
                 {/* Balancete sem imóvel */}
-                <section>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-semibold flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-amber-500" />
-                      Lançamentos sem imóvel correspondente
-                    </h3>
-                    <Badge variant="outline" className="text-[10px]">
-                      {result.balanceteSemImovel.length}
-                    </Badge>
-                  </div>
-                  {result.balanceteSemImovel.length === 0 ? (
-                    <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                      Tudo vinculado.
-                    </p>
-                  ) : (
-                    <ul className="space-y-1 text-xs">
-                      {result.balanceteSemImovel.slice(0, 100).map((b, i) => (
-                        <li
-                          key={i}
-                          className="bg-muted/40 rounded px-2 py-1.5 border border-border/50"
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-mono text-[10px] text-muted-foreground">
-                              {String(b.mes).padStart(2, '0')}/{b.ano}
-                              {b.external_id ? ` · ${b.external_id}` : ''}
-                            </span>
-                          </div>
-                          <div className="text-foreground/90">{fmtAddr(b)}</div>
-                        </li>
-                      ))}
-                      {result.balanceteSemImovel.length > 100 && (
-                        <li className="text-[10px] text-muted-foreground italic">
-                          + {result.balanceteSemImovel.length - 100} outros…
-                        </li>
-                      )}
-                    </ul>
+                <IssueList
+                  title="Lançamentos sem imóvel correspondente"
+                  emptyText="Tudo vinculado."
+                  items={result.balanceteSemImovel}
+                  filename="balancete_sem_imovel.csv"
+                  columns={[
+                    { key: 'ano', label: 'ano', value: (b) => b.ano },
+                    { key: 'mes', label: 'mes', value: (b) => b.mes },
+                    { key: 'external_id', label: 'id_csv', value: (b) => b.external_id ?? '' },
+                    { key: 'cidade', label: 'cidade', value: (b) => b.cidade ?? '' },
+                    { key: 'rua', label: 'rua', value: (b) => b.rua ?? '' },
+                    { key: 'numero', label: 'numero', value: (b) => b.numero ?? '' },
+                    { key: 'apartamento', label: 'apartamento', value: (b) => b.apartamento ?? '' },
+                    { key: 'complemento', label: 'complemento', value: (b) => b.complemento ?? '' },
+                  ]}
+                  renderItem={(b) => (
+                    <>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-mono text-[10px] text-muted-foreground">
+                          {String(b.mes).padStart(2, '0')}/{b.ano}
+                          {b.external_id ? ` · ${b.external_id}` : ''}
+                        </span>
+                      </div>
+                      <div className="text-foreground/90">{fmtAddr(b)}</div>
+                    </>
                   )}
-                </section>
+                />
 
                 {/* Properties sem balancete */}
-                <section>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-semibold flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-amber-500" />
-                      Imóveis sem nenhum lançamento no balancete
-                    </h3>
-                    <Badge variant="outline" className="text-[10px]">
-                      {result.propriedadesSemBalancete.length}
-                    </Badge>
-                  </div>
-                  {result.propriedadesSemBalancete.length === 0 ? (
-                    <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                      Todos os imóveis têm lançamentos.
-                    </p>
-                  ) : (
-                    <ul className="space-y-1 text-xs">
-                      {result.propriedadesSemBalancete.slice(0, 100).map((p) => (
-                        <li
-                          key={p.id}
-                          className="bg-muted/40 rounded px-2 py-1.5 border border-border/50"
-                        >
-                          {fmtAddr(p)}
-                        </li>
-                      ))}
-                      {result.propriedadesSemBalancete.length > 100 && (
-                        <li className="text-[10px] text-muted-foreground italic">
-                          + {result.propriedadesSemBalancete.length - 100} outros…
-                        </li>
-                      )}
-                    </ul>
-                  )}
-                </section>
+                <IssueList
+                  title="Imóveis sem nenhum lançamento no balancete"
+                  emptyText="Todos os imóveis têm lançamentos."
+                  items={result.propriedadesSemBalancete}
+                  filename="imoveis_sem_balancete.csv"
+                  columns={[
+                    { key: 'id', label: 'id', value: (p) => p.id },
+                    { key: 'cidade', label: 'cidade', value: (p) => p.cidade ?? '' },
+                    { key: 'rua', label: 'rua', value: (p) => p.rua ?? '' },
+                    { key: 'numero', label: 'numero', value: (p) => p.numero ?? '' },
+                    { key: 'apartamento', label: 'apartamento', value: (p) => p.apartamento ?? '' },
+                    { key: 'complemento', label: 'complemento', value: (p) => p.complemento ?? '' },
+                  ]}
+                  renderItem={(p) => <>{fmtAddr(p)}</>}
+                />
               </div>
             </ScrollArea>
           )}
