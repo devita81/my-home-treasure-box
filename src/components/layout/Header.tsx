@@ -28,7 +28,7 @@ export function Header() {
   return (
     <>
       <header
-        className="sticky top-0 z-50 isolate border-b border-border bg-background shadow-sm"
+        className="sticky top-0 z-50 isolate border-b border-border bg-card shadow-sm"
         style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}
       >
         <div className="container mx-auto px-3 sm:px-4">
