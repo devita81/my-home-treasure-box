@@ -2061,16 +2061,8 @@ function PropertyAccordionRow({
 
   const monthsCount = Object.values(row.values).filter(v => v !== 0).length;
 
-  // Divide o label em "cidade" (linha 1, menor) e "endereço" (linha 2)
-  const { cityLine, addrLine } = useMemo(() => {
-    const cidade = (row.cidade ?? '').toString().toUpperCase().trim();
-    const full = row.label.toUpperCase();
-    if (cidade && full.startsWith(cidade)) {
-      const rest = full.slice(cidade.length).replace(/^\s*•\s*/, '').trim();
-      return { cityLine: cidade, addrLine: rest || full };
-    }
-    return { cityLine: cidade, addrLine: full };
-  }, [row.label, row.cidade]);
+
+
 
   const byYear = useMemo(() => {
     const map = new Map<number, { mes: number; key: string }[]>();
