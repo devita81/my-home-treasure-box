@@ -672,8 +672,8 @@ export default function Balancete() {
             <ImportBalanceteDialog onImported={fetchAll} />
           </div>
 
-          {/* Linha 2: filtros agrupados em card unificado e compacto */}
-          <div className="flex flex-wrap items-stretch rounded-lg border border-border bg-card shadow-sm overflow-hidden w-full">
+          {/* Linha 2: filtros em grid 2x2 (Ano | Mês / Período | Limpar) */}
+          <div className="grid grid-cols-2 rounded-lg border border-border bg-card shadow-sm overflow-hidden w-full">
             <MultiSelectFilter
               label="Ano"
               placeholder="Todos"
@@ -681,11 +681,7 @@ export default function Balancete() {
               options={years.map(y => ({ value: y, label: String(y) }))}
               selected={yearFilter}
               onChange={setYearFilter}
-              className="flex-1 min-w-[110px]"
             />
-
-            <div className="w-px bg-border self-stretch" aria-hidden />
-
             <MultiSelectFilter
               label="Mês"
               placeholder="Todos"
@@ -693,12 +689,10 @@ export default function Balancete() {
               options={MONTHS.map((m, i) => ({ value: i + 1, label: m }))}
               selected={monthFilter}
               onChange={setMonthFilter}
-              className="flex-1 min-w-[110px]"
+              className="border-l border-border"
             />
 
-            <div className="w-px bg-border self-stretch" aria-hidden />
-
-            <div className="flex flex-col gap-0.5 px-3 py-1.5 flex-1 min-w-[170px]">
+            <div className="flex flex-col gap-0.5 px-3 py-1.5 border-t border-border">
               <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 Período
               </label>
@@ -717,24 +711,23 @@ export default function Balancete() {
               />
             </div>
 
-            {anyDateFilterActive && (
-              <>
-                <div className="w-px bg-border self-stretch" aria-hidden />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setYearFilter([]);
-                    setMonthFilter([]);
-                    setPeriodFrom(null);
-                    setPeriodTo(null);
-                  }}
-                  className="flex items-center justify-center gap-1.5 px-3 py-2 min-w-[120px] text-[11px] font-semibold uppercase tracking-wide text-destructive bg-destructive/5 hover:bg-destructive/10 active:bg-destructive/15 transition-colors border-l border-border"
-                  aria-label="Limpar filtros de período"
-                >
-                  <X className="h-3.5 w-3.5" />
-                  Limpar filtro
-                </button>
-              </>
+            {anyDateFilterActive ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setYearFilter([]);
+                  setMonthFilter([]);
+                  setPeriodFrom(null);
+                  setPeriodTo(null);
+                }}
+                className="flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-destructive bg-destructive/5 hover:bg-destructive/10 active:bg-destructive/15 transition-colors border-l border-t border-border"
+                aria-label="Limpar filtros de período"
+              >
+                <X className="h-3.5 w-3.5" />
+                Limpar filtro
+              </button>
+            ) : (
+              <div className="border-l border-t border-border" aria-hidden />
             )}
           </div>
         </div>
