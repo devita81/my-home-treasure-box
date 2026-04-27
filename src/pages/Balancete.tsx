@@ -716,7 +716,6 @@ export default function Balancete() {
                 }}
               />
             </div>
-            </div>
 
             {anyDateFilterActive && (
               <>
