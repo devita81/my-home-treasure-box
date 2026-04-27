@@ -213,7 +213,7 @@ export default function Balancete() {
   }, [yearFilter, monthFilter, periodFrom, periodTo]);
 
   const periodActive = periodFrom !== null || periodTo !== null;
-  const anyDateFilterActive = periodActive || yearFilter !== 'all' || monthFilter !== 'all';
+  const anyDateFilterActive = periodActive || yearFilter.length > 0 || monthFilter.length > 0;
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
