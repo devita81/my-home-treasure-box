@@ -882,7 +882,7 @@ export default function Balancete() {
         {/* Mobile cards — accordion estilo "rentabilidade histórica" */}
         <Card className="md:hidden">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Imóveis</CardTitle>
+            <CardTitle className="text-base">Imóveis · {METRIC_LABELS[pivot.metric]}</CardTitle>
             <p className="text-xs text-muted-foreground">Toque para expandir os meses • toque em um mês para ver detalhes</p>
           </CardHeader>
           <CardContent className="space-y-2 px-3 pb-3">
