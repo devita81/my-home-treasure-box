@@ -727,9 +727,6 @@ export default function Balancete() {
               <h1 className="text-lg sm:text-2xl font-display font-semibold tracking-tight truncate leading-tight">
                 Balancete
               </h1>
-              <p className="text-[11px] sm:text-sm text-muted-foreground truncate">
-                Custos e receitas mês a mês por imóvel
-              </p>
             </div>
             <ImportBalanceteDialog onImported={fetchAll} />
           </div>
