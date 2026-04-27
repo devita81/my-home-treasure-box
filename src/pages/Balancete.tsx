@@ -124,12 +124,58 @@ const CATEGORY_COLORS = {
   reembolso: 'hsl(180 60% 45%)',
 };
 
+// Persistência de filtros entre sessões
+const FILTERS_STORAGE_KEY = 'balancete:filters:v1';
+type StoredFilters = {
+  yearFilter: string;
+  monthFilter: string;
+  periodFrom: string | null; // 'YYYY-MM'
+  periodTo: string | null;   // 'YYYY-MM'
+};
+
+function loadStoredFilters(): StoredFilters {
+  if (typeof window === 'undefined') {
+    return { yearFilter: 'all', monthFilter: 'all', periodFrom: null, periodTo: null };
+  }
+  try {
+    const raw = window.localStorage.getItem(FILTERS_STORAGE_KEY);
+    if (!raw) return { yearFilter: 'all', monthFilter: 'all', periodFrom: null, periodTo: null };
+    const parsed = JSON.parse(raw) as Partial<StoredFilters>;
+    return {
+      yearFilter: parsed.yearFilter ?? 'all',
+      monthFilter: parsed.monthFilter ?? 'all',
+      periodFrom: parsed.periodFrom ?? null,
+      periodTo: parsed.periodTo ?? null,
+    };
+  } catch {
+    return { yearFilter: 'all', monthFilter: 'all', periodFrom: null, periodTo: null };
+  }
+}
+
+// 'YYYY-MM' → índice numérico (ano*12 + mes-1)
+function ymToIdx(ym: string | null): number | null {
+  if (!ym) return null;
+  const [y, m] = ym.split('-').map(Number);
+  if (!y || !m || m < 1 || m > 12) return null;
+  return y * 12 + (m - 1);
+}
+
+function ymLabel(ym: string | null): string {
+  if (!ym) return '';
+  const [y, m] = ym.split('-').map(Number);
+  if (!y || !m) return ym;
+  return `${MONTHS[m - 1]}/${String(y).slice(2)}`;
+}
+
 export default function Balancete() {
   const [rows, setRows] = useState<BalanceteRow[]>([]);
   const [propertyTypes, setPropertyTypes] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
-  const [yearFilter, setYearFilter] = useState<string>('all');
-  const [monthFilter, setMonthFilter] = useState<string>('all');
+  const initialFilters = useMemo(() => loadStoredFilters(), []);
+  const [yearFilter, setYearFilter] = useState<string>(initialFilters.yearFilter);
+  const [monthFilter, setMonthFilter] = useState<string>(initialFilters.monthFilter);
+  const [periodFrom, setPeriodFrom] = useState<string | null>(initialFilters.periodFrom);
+  const [periodTo, setPeriodTo] = useState<string | null>(initialFilters.periodTo);
   const [search, setSearch] = useState<string>('');
   const [cidadeFilter, setCidadeFilter] = useState<string>('all');
   const [bairroFilter, setBairroFilter] = useState<string>('all');
@@ -141,6 +187,22 @@ export default function Balancete() {
   const [drilldown, setDrilldown] = useState<{ key: string; label: string } | null>(null);
   const [monthDrilldown, setMonthDrilldown] = useState<{ key: string; label: string; ano: number; mes: number } | null>(null);
   const [yearMonthDrilldown, setYearMonthDrilldown] = useState<{ ano: number; mes: number } | null>(null);
+
+  // Persiste filtros
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem(
+        FILTERS_STORAGE_KEY,
+        JSON.stringify({ yearFilter, monthFilter, periodFrom, periodTo }),
+      );
+    } catch {
+      // ignora erros de quota
+    }
+  }, [yearFilter, monthFilter, periodFrom, periodTo]);
+
+  const periodActive = periodFrom !== null || periodTo !== null;
+  const anyDateFilterActive = periodActive || yearFilter !== 'all' || monthFilter !== 'all';
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
