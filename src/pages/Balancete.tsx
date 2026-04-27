@@ -537,12 +537,12 @@ export default function Balancete() {
 
         {/* Charts */}
         <Tabs defaultValue="trend" className="w-full">
-          <TabsList className="grid grid-cols-5 w-full sm:w-auto sm:inline-flex h-9">
-            <TabsTrigger value="trend" className="text-xs">Tendência</TabsTrigger>
-            <TabsTrigger value="bars" className="text-xs">Mensal</TabsTrigger>
-            <TabsTrigger value="stacked" className="text-xs">Empilhado</TabsTrigger>
-            <TabsTrigger value="area" className="text-xs">Área</TabsTrigger>
-            <TabsTrigger value="categories" className="text-xs">Categorias</TabsTrigger>
+          <TabsList className="grid grid-cols-5 w-full sm:w-auto sm:inline-flex h-9 bg-card border shadow-sm">
+            <TabsTrigger value="trend" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow">Tendência</TabsTrigger>
+            <TabsTrigger value="bars" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow">Mensal</TabsTrigger>
+            <TabsTrigger value="stacked" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow">Empilhado</TabsTrigger>
+            <TabsTrigger value="area" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow">Área</TabsTrigger>
+            <TabsTrigger value="categories" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow">Categorias</TabsTrigger>
           </TabsList>
 
           <TabsContent value="trend" className="mt-3">
