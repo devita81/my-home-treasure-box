@@ -730,8 +730,6 @@ export default function Balancete() {
               <div className="border-l border-t border-border" aria-hidden />
             )}
           </div>
-
-          </div>
         </div>
 
 
