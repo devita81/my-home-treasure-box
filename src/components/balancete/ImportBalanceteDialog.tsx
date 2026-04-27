@@ -1,5 +1,15 @@
-import { useRef, useState } from 'react';
-import { Upload, Loader2, FileSpreadsheet, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import {
+  Upload,
+  Loader2,
+  FileSpreadsheet,
+  AlertTriangle,
+  CheckCircle2,
+  Copy,
+  Download,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -215,80 +225,50 @@ export function ImportBalanceteDialog({ onImported }: Props) {
                 )}
 
                 {/* Balancete sem imóvel */}
-                <section>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-semibold flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-amber-500" />
-                      Lançamentos sem imóvel correspondente
-                    </h3>
-                    <Badge variant="outline" className="text-[10px]">
-                      {result.balanceteSemImovel.length}
-                    </Badge>
-                  </div>
-                  {result.balanceteSemImovel.length === 0 ? (
-                    <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                      Tudo vinculado.
-                    </p>
-                  ) : (
-                    <ul className="space-y-1 text-xs">
-                      {result.balanceteSemImovel.slice(0, 100).map((b, i) => (
-                        <li
-                          key={i}
-                          className="bg-muted/40 rounded px-2 py-1.5 border border-border/50"
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-mono text-[10px] text-muted-foreground">
-                              {String(b.mes).padStart(2, '0')}/{b.ano}
-                              {b.external_id ? ` · ${b.external_id}` : ''}
-                            </span>
-                          </div>
-                          <div className="text-foreground/90">{fmtAddr(b)}</div>
-                        </li>
-                      ))}
-                      {result.balanceteSemImovel.length > 100 && (
-                        <li className="text-[10px] text-muted-foreground italic">
-                          + {result.balanceteSemImovel.length - 100} outros…
-                        </li>
-                      )}
-                    </ul>
+                <IssueList
+                  title="Lançamentos sem imóvel correspondente"
+                  emptyText="Tudo vinculado."
+                  items={result.balanceteSemImovel}
+                  filename="balancete_sem_imovel.csv"
+                  columns={[
+                    { key: 'ano', label: 'ano', value: (b) => b.ano },
+                    { key: 'mes', label: 'mes', value: (b) => b.mes },
+                    { key: 'external_id', label: 'id_csv', value: (b) => b.external_id ?? '' },
+                    { key: 'cidade', label: 'cidade', value: (b) => b.cidade ?? '' },
+                    { key: 'rua', label: 'rua', value: (b) => b.rua ?? '' },
+                    { key: 'numero', label: 'numero', value: (b) => b.numero ?? '' },
+                    { key: 'apartamento', label: 'apartamento', value: (b) => b.apartamento ?? '' },
+                    { key: 'complemento', label: 'complemento', value: (b) => b.complemento ?? '' },
+                  ]}
+                  renderItem={(b) => (
+                    <>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-mono text-[10px] text-muted-foreground">
+                          {String(b.mes).padStart(2, '0')}/{b.ano}
+                          {b.external_id ? ` · ${b.external_id}` : ''}
+                        </span>
+                      </div>
+                      <div className="text-foreground/90">{fmtAddr(b)}</div>
+                    </>
                   )}
-                </section>
+                />
 
                 {/* Properties sem balancete */}
-                <section>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-semibold flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-amber-500" />
-                      Imóveis sem nenhum lançamento no balancete
-                    </h3>
-                    <Badge variant="outline" className="text-[10px]">
-                      {result.propriedadesSemBalancete.length}
-                    </Badge>
-                  </div>
-                  {result.propriedadesSemBalancete.length === 0 ? (
-                    <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                      Todos os imóveis têm lançamentos.
-                    </p>
-                  ) : (
-                    <ul className="space-y-1 text-xs">
-                      {result.propriedadesSemBalancete.slice(0, 100).map((p) => (
-                        <li
-                          key={p.id}
-                          className="bg-muted/40 rounded px-2 py-1.5 border border-border/50"
-                        >
-                          {fmtAddr(p)}
-                        </li>
-                      ))}
-                      {result.propriedadesSemBalancete.length > 100 && (
-                        <li className="text-[10px] text-muted-foreground italic">
-                          + {result.propriedadesSemBalancete.length - 100} outros…
-                        </li>
-                      )}
-                    </ul>
-                  )}
-                </section>
+                <IssueList
+                  title="Imóveis sem nenhum lançamento no balancete"
+                  emptyText="Todos os imóveis têm lançamentos."
+                  items={result.propriedadesSemBalancete}
+                  filename="imoveis_sem_balancete.csv"
+                  columns={[
+                    { key: 'id', label: 'id', value: (p) => p.id },
+                    { key: 'cidade', label: 'cidade', value: (p) => p.cidade ?? '' },
+                    { key: 'rua', label: 'rua', value: (p) => p.rua ?? '' },
+                    { key: 'numero', label: 'numero', value: (p) => p.numero ?? '' },
+                    { key: 'apartamento', label: 'apartamento', value: (p) => p.apartamento ?? '' },
+                    { key: 'complemento', label: 'complemento', value: (p) => p.complemento ?? '' },
+                  ]}
+                  renderItem={(p) => <>{fmtAddr(p)}</>}
+                />
               </div>
             </ScrollArea>
           )}
@@ -327,5 +307,194 @@ function SummaryStat({
         {value}
       </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// IssueList: seção paginada com botões "copiar" e "baixar CSV"
+// ---------------------------------------------------------------------------
+
+interface IssueColumn<T> {
+  key: string;
+  label: string;
+  value: (item: T) => string | number | null | undefined;
+}
+
+interface IssueListProps<T> {
+  title: string;
+  emptyText: string;
+  items: T[];
+  filename: string;
+  columns: IssueColumn<T>[];
+  renderItem: (item: T) => React.ReactNode;
+  pageSize?: number;
+}
+
+function csvEscape(v: unknown): string {
+  if (v == null) return '';
+  const s = String(v);
+  if (/[",\n;]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+function buildCsv<T>(items: T[], columns: IssueColumn<T>[]): string {
+  const header = columns.map((c) => csvEscape(c.label)).join(',');
+  const lines = items.map((it) =>
+    columns.map((c) => csvEscape(c.value(it))).join(',')
+  );
+  return [header, ...lines].join('\n');
+}
+
+function IssueList<T>({
+  title,
+  emptyText,
+  items,
+  filename,
+  columns,
+  renderItem,
+  pageSize = 25,
+}: IssueListProps<T>) {
+  const [page, setPage] = useState(1);
+  const [copied, setCopied] = useState(false);
+
+  const total = items.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * pageSize;
+  const pageItems = useMemo(
+    () => items.slice(start, start + pageSize),
+    [items, start, pageSize]
+  );
+
+  async function copyCsv() {
+    const csv = buildCsv(items, columns);
+    try {
+      await navigator.clipboard.writeText(csv);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // fallback: cria textarea temporário
+      const ta = document.createElement('textarea');
+      ta.value = csv;
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      } finally {
+        document.body.removeChild(ta);
+      }
+    }
+  }
+
+  function downloadCsv() {
+    const csv = buildCsv(items, columns);
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <section>
+      <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+        <h3 className="text-sm font-semibold flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4 text-amber-500" />
+          {title}
+        </h3>
+        <div className="flex items-center gap-1.5">
+          <Badge variant="outline" className="text-[10px]">
+            {total}
+          </Badge>
+          {total > 0 && (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 px-2 gap-1"
+                onClick={copyCsv}
+                title="Copiar como CSV"
+              >
+                {copied ? (
+                  <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                ) : (
+                  <Copy className="h-3 w-3" />
+                )}
+                <span className="text-[10px]">{copied ? 'Copiado!' : 'Copiar'}</span>
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 px-2 gap-1"
+                onClick={downloadCsv}
+                title="Baixar CSV"
+              >
+                <Download className="h-3 w-3" />
+                <span className="text-[10px]">CSV</span>
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {total === 0 ? (
+        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+          {emptyText}
+        </p>
+      ) : (
+        <>
+          <ul className="space-y-1 text-xs">
+            {pageItems.map((it, i) => (
+              <li
+                key={start + i}
+                className="bg-muted/40 rounded px-2 py-1.5 border border-border/50"
+              >
+                {renderItem(it)}
+              </li>
+            ))}
+          </ul>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between gap-2 mt-2 text-[11px]">
+              <span className="text-muted-foreground">
+                {start + 1}–{Math.min(start + pageSize, total)} de {total}
+              </span>
+              <div className="flex items-center gap-1">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 w-7 p-0"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={safePage <= 1}
+                  aria-label="Página anterior"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                </Button>
+                <span className="tabular-nums px-1">
+                  {safePage} / {totalPages}
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 w-7 p-0"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={safePage >= totalPages}
+                  aria-label="Próxima página"
+                >
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </section>
   );
 }
