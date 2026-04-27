@@ -305,23 +305,42 @@ export default function Balancete() {
     return { receita, despesa, liquido, imoveisAtivos };
   }, [filtered]);
 
-  // Detalhamento dos últimos 12 meses (independente do filtro de ano/mês)
+  // Detalhamento dos últimos 12 meses — quando há filtro ativo, respeita-o
+  // (mostrando o período filtrado em vez da janela móvel padrão).
   const last12Breakdown = useMemo(() => {
-    if (rows.length === 0) {
+    const source = anyDateFilterActive ? filtered : rows;
+    if (source.length === 0) {
       return { aluguel: 0, reembolsoCond: 0, reembolsoIptu: 0, reembolsoOutras: 0, receita: 0,
         condominio: 0, iptu: 0, taxa: 0, outras: 0, despesa: 0, liquido: 0,
         imoveisAtivos: 0, monthsCount: 0, periodoLabel: '' };
     }
-    // Encontrar o mês mais recente nos dados
-    const sorted = [...rows].sort((a, b) => b.ano - a.ano || b.mes - a.mes);
-    const latest = sorted[0];
-    // Janela: 12 meses a partir do mais recente, retroativos
-    const endIdx = latest.ano * 12 + (latest.mes - 1);
-    const startIdx = endIdx - 11; // inclui 12 meses
-    const inWindow = rows.filter(r => {
-      const idx = r.ano * 12 + (r.mes - 1);
-      return idx >= startIdx && idx <= endIdx;
-    });
+
+    let inWindow: BalanceteRow[];
+    let startAno: number, startMes: number, endAno: number, endMes: number;
+
+    if (anyDateFilterActive) {
+      // Usa todo o conjunto filtrado
+      inWindow = source;
+      const sortedAsc = [...source].sort((a, b) => a.ano - b.ano || a.mes - b.mes);
+      const first = sortedAsc[0];
+      const last = sortedAsc[sortedAsc.length - 1];
+      startAno = first.ano; startMes = first.mes;
+      endAno = last.ano; endMes = last.mes;
+    } else {
+      // Comportamento padrão: últimos 12 meses retroativos a partir do mais recente
+      const sortedDesc = [...source].sort((a, b) => b.ano - a.ano || b.mes - a.mes);
+      const latest = sortedDesc[0];
+      const endIdx = latest.ano * 12 + (latest.mes - 1);
+      const startIdx = endIdx - 11;
+      inWindow = source.filter(r => {
+        const idx = r.ano * 12 + (r.mes - 1);
+        return idx >= startIdx && idx <= endIdx;
+      });
+      startAno = Math.floor(startIdx / 12);
+      startMes = (startIdx % 12) + 1;
+      endAno = latest.ano; endMes = latest.mes;
+    }
+
     const acc = { aluguel: 0, reembolsoCond: 0, reembolsoIptu: 0, reembolsoOutras: 0,
       condominio: 0, iptu: 0, taxa: 0, outras: 0, liquido: 0 };
     const imoveis = new Set<string>();
@@ -341,12 +360,9 @@ export default function Balancete() {
     });
     const receita = acc.aluguel + acc.reembolsoCond + acc.reembolsoIptu + acc.reembolsoOutras;
     const despesa = acc.condominio + acc.iptu + acc.taxa + acc.outras;
-    const startMonthIdx = endIdx - 11;
-    const startAno = Math.floor(startMonthIdx / 12);
-    const startMes = (startMonthIdx % 12) + 1;
-    const periodoLabel = `${MONTHS[startMes - 1]}/${String(startAno).slice(2)} – ${MONTHS[latest.mes - 1]}/${String(latest.ano).slice(2)}`;
+    const periodoLabel = `${MONTHS[startMes - 1]}/${String(startAno).slice(2)} – ${MONTHS[endMes - 1]}/${String(endAno).slice(2)}`;
     return { ...acc, receita, despesa, imoveisAtivos: imoveis.size, monthsCount: monthSet.size, periodoLabel };
-  }, [rows]);
+  }, [rows, filtered, anyDateFilterActive]);
 
   // Time series — receitas vs despesas por mês
   const timeSeries = useMemo(() => {
