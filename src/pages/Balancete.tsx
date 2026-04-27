@@ -705,6 +705,7 @@ export default function Balancete() {
               <PeriodFilterButton
                 from={periodFrom}
                 to={periodTo}
+                availableYears={years}
                 onChange={(f, t) => {
                   setPeriodFrom(f);
                   setPeriodTo(t);
@@ -2414,19 +2415,43 @@ function PeriodFilterButton({
   from,
   to,
   onChange,
+  availableYears,
 }: {
   from: string | null;
   to: string | null;
   onChange: (from: string | null, to: string | null) => void;
+  availableYears: number[];
 }) {
   const [open, setOpen] = useState(false);
-  const [draftFrom, setDraftFrom] = useState(from ?? '');
-  const [draftTo, setDraftTo] = useState(to ?? '');
+
+  // Decompõe 'YYYY-MM' em ano + mês
+  const parseYM = (v: string | null): { y: string; m: string } => {
+    if (!v) return { y: '', m: '' };
+    const [y, m] = v.split('-');
+    return { y: y || '', m: m || '' };
+  };
+  const buildYM = (y: string, m: string): string => {
+    if (!y && !m) return '';
+    if (y && m) return `${y}-${m}`;
+    // permite só ano (assume jan/dez conforme contexto no apply)
+    return y ? `${y}-${m || ''}` : '';
+  };
+
+  const initFrom = parseYM(from);
+  const initTo = parseYM(to);
+  const [fromYear, setFromYear] = useState(initFrom.y);
+  const [fromMonth, setFromMonth] = useState(initFrom.m);
+  const [toYear, setToYear] = useState(initTo.y);
+  const [toMonth, setToMonth] = useState(initTo.m);
 
   useEffect(() => {
     if (open) {
-      setDraftFrom(from ?? '');
-      setDraftTo(to ?? '');
+      const f = parseYM(from);
+      const t = parseYM(to);
+      setFromYear(f.y);
+      setFromMonth(f.m);
+      setToYear(t.y);
+      setToMonth(t.m);
     }
   }, [open, from, to]);
 
@@ -2435,21 +2460,44 @@ function PeriodFilterButton({
     ? `${ymLabel(from) || '—'} → ${ymLabel(to) || '—'}`
     : 'Selecionar';
 
+  // Lista de anos: usa os disponíveis + anos atualmente selecionados (caso fora da lista)
+  const yearOptions = useMemo(() => {
+    const set = new Set<number>(availableYears);
+    if (fromYear) set.add(Number(fromYear));
+    if (toYear) set.add(Number(toYear));
+    if (set.size === 0) {
+      const current = new Date().getFullYear();
+      for (let y = current - 5; y <= current + 1; y++) set.add(y);
+    }
+    return Array.from(set).sort((a, b) => b - a);
+  }, [availableYears, fromYear, toYear]);
+
   function apply() {
-    const f = draftFrom || null;
-    const t = draftTo || null;
-    // se ambos preenchidos invertidos, troca
-    if (f && t && f > t) onChange(t, f);
-    else onChange(f, t);
+    // Se só ano informado, completa: De → mês 01, Até → mês 12
+    const f = fromYear ? `${fromYear}-${(fromMonth || '01').padStart(2, '0')}` : '';
+    const t = toYear ? `${toYear}-${(toMonth || '12').padStart(2, '0')}` : '';
+    const fv = f || null;
+    const tv = t || null;
+    if (fv && tv && fv > tv) onChange(tv, fv);
+    else onChange(fv, tv);
     setOpen(false);
   }
 
   function clear() {
-    setDraftFrom('');
-    setDraftTo('');
+    setFromYear('');
+    setFromMonth('');
+    setToYear('');
+    setToMonth('');
     onChange(null, null);
     setOpen(false);
   }
+
+  // Estilos compartilhados para os <select> nativos (melhor UX mobile)
+  const selectClass = cn(
+    'h-10 rounded-md border border-input bg-background px-2 text-sm',
+    'focus:outline-none focus:ring-2 focus:ring-ring',
+    'appearance-none',
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -2465,25 +2513,64 @@ function PeriodFilterButton({
           <span className="truncate">{label}</span>
         </button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-[280px] p-3 space-y-3">
+      <PopoverContent align="end" className="w-[300px] p-3 space-y-3">
         <div className="space-y-1.5">
           <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">De</label>
-          <Input
-            type="month"
-            value={draftFrom}
-            onChange={(e) => setDraftFrom(e.target.value)}
-            className="h-9 text-xs"
-          />
+          <div className="grid grid-cols-2 gap-2">
+            <select
+              value={fromMonth}
+              onChange={(e) => setFromMonth(e.target.value)}
+              className={selectClass}
+              aria-label="Mês inicial"
+            >
+              <option value="">Mês</option>
+              {MONTHS.map((m, i) => (
+                <option key={m} value={String(i + 1).padStart(2, '0')}>{m}</option>
+              ))}
+            </select>
+            <select
+              value={fromYear}
+              onChange={(e) => setFromYear(e.target.value)}
+              className={selectClass}
+              aria-label="Ano inicial"
+            >
+              <option value="">Ano</option>
+              {yearOptions.map(y => (
+                <option key={y} value={String(y)}>{y}</option>
+              ))}
+            </select>
+          </div>
         </div>
         <div className="space-y-1.5">
           <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Até</label>
-          <Input
-            type="month"
-            value={draftTo}
-            onChange={(e) => setDraftTo(e.target.value)}
-            className="h-9 text-xs"
-          />
+          <div className="grid grid-cols-2 gap-2">
+            <select
+              value={toMonth}
+              onChange={(e) => setToMonth(e.target.value)}
+              className={selectClass}
+              aria-label="Mês final"
+            >
+              <option value="">Mês</option>
+              {MONTHS.map((m, i) => (
+                <option key={m} value={String(i + 1).padStart(2, '0')}>{m}</option>
+              ))}
+            </select>
+            <select
+              value={toYear}
+              onChange={(e) => setToYear(e.target.value)}
+              className={selectClass}
+              aria-label="Ano final"
+            >
+              <option value="">Ano</option>
+              {yearOptions.map(y => (
+                <option key={y} value={String(y)}>{y}</option>
+              ))}
+            </select>
+          </div>
         </div>
+        <p className="text-[10px] text-muted-foreground leading-snug">
+          Dica: informe apenas o ano para considerar de Jan (De) a Dez (Até).
+        </p>
         <div className="flex items-center justify-between pt-1">
           <Button variant="ghost" size="sm" onClick={clear} className="h-8 text-xs">
             Limpar
