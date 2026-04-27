@@ -299,15 +299,21 @@ export default function Balancete() {
     ].filter(c => c.value > 0);
   }, [filtered]);
 
-  // Pivot: imóvel x mês (líquido) — com receita/despesa por linha p/ ordenação
+  // Métrica exibida nas tabelas/cards: derivada do sortField (cidade/rua => líquido)
+  const displayMetric: MetricField = useMemo(() => {
+    if (sortField === 'receita' || sortField === 'despesa' || sortField === 'aluguel') return sortField;
+    return 'liquido';
+  }, [sortField]);
+
+  // Pivot: imóvel x mês — valores exibidos seguem displayMetric
   const pivot = useMemo(() => {
     const months = timeSeries.map(t => t.key);
-    type MonthAgg = { receita: number; despesa: number; liquido: number };
+    type MonthAgg = { receita: number; despesa: number; liquido: number; aluguel: number };
     type PivotRow = {
       key: string; label: string; cidade: string; rua: string;
       values: Record<string, number>;
       monthly: Record<string, MonthAgg>;
-      total: number; receita: number; despesa: number; hasValues: boolean;
+      total: number; receita: number; despesa: number; aluguel: number; hasValues: boolean;
     };
     const byKey = new Map<string, PivotRow>();
     filtered.forEach(r => {
@@ -318,22 +324,33 @@ export default function Balancete() {
           key: k, label: lbl,
           cidade: (r.cidade ?? '').toString(),
           rua: (r.rua ?? '').toString(),
-          values: {}, monthly: {}, total: 0, receita: 0, despesa: 0, hasValues: false,
+          values: {}, monthly: {}, total: 0, receita: 0, despesa: 0, aluguel: 0, hasValues: false,
         });
       }
       const acc = byKey.get(k)!;
       const mk = `${r.ano}-${String(r.mes).padStart(2, '0')}`;
       const recRow = Math.max(0, r.aluguel) + Math.max(0, r.reembolso_condominio) + Math.max(0, r.reembolso_iptu) + Math.max(0, r.reembolso_outras_despesas);
       const despRow = Math.min(0, r.condominio) + Math.min(0, r.iptu) + Math.min(0, r.taxa_administracao) + Math.min(0, r.outras_despesas);
-      acc.values[mk] = (acc.values[mk] || 0) + r.liquido;
-      if (!acc.monthly[mk]) acc.monthly[mk] = { receita: 0, despesa: 0, liquido: 0 };
+      const aluguelRow = Math.max(0, r.aluguel);
+      if (!acc.monthly[mk]) acc.monthly[mk] = { receita: 0, despesa: 0, liquido: 0, aluguel: 0 };
       acc.monthly[mk].receita += recRow;
       acc.monthly[mk].despesa += despRow;
       acc.monthly[mk].liquido += r.liquido;
-      acc.total += r.liquido;
+      acc.monthly[mk].aluguel += aluguelRow;
       acc.receita += recRow;
       acc.despesa += despRow;
-      if (r.liquido !== 0) acc.hasValues = true;
+      acc.aluguel += aluguelRow;
+      if (r.liquido !== 0 || aluguelRow !== 0) acc.hasValues = true;
+    });
+    // Preenche values e total conforme métrica selecionada
+    byKey.forEach(acc => {
+      Object.entries(acc.monthly).forEach(([mk, m]) => {
+        acc.values[mk] = m[displayMetric];
+      });
+      acc.total = displayMetric === 'liquido' ? Object.values(acc.monthly).reduce((s, m) => s + m.liquido, 0)
+        : displayMetric === 'receita' ? acc.receita
+        : displayMetric === 'despesa' ? acc.despesa
+        : acc.aluguel;
     });
     const mult = sortOrder === 'asc' ? 1 : -1;
     const sortedRows = Array.from(byKey.values()).sort((a, b) => {
@@ -344,6 +361,7 @@ export default function Balancete() {
         case 'rua': return mult * a.rua.localeCompare(b.rua, 'pt-BR');
         case 'receita': return mult * (a.receita - b.receita);
         case 'despesa': return mult * (a.despesa - b.despesa);
+        case 'aluguel': return mult * (a.aluguel - b.aluguel);
         case 'liquido':
         default: return mult * (a.total - b.total);
       }
@@ -363,8 +381,9 @@ export default function Balancete() {
       rows: sortedRows,
       monthTotals,
       grandTotal,
+      metric: displayMetric,
     };
-  }, [filtered, timeSeries, sortField, sortOrder]);
+  }, [filtered, timeSeries, sortField, sortOrder, displayMetric]);
 
   // KPIs agrupados por ano (para visão expansível)
   const kpisByYear = useMemo(() => {
