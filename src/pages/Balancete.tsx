@@ -2476,3 +2476,92 @@ function PeriodFilterButton({
     </Popover>
   );
 }
+
+// Filtro multi-seleção compacto (popover com checkboxes), integrado ao card de filtros
+function MultiSelectFilter<T extends number>({
+  label,
+  placeholder,
+  options,
+  selected,
+  onChange,
+  disabled,
+  className,
+}: {
+  label: string;
+  placeholder: string;
+  options: { value: T; label: string }[];
+  selected: T[];
+  onChange: (next: T[]) => void;
+  disabled?: boolean;
+  className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const allSelected = selected.length === 0;
+  const summary = allSelected
+    ? placeholder
+    : selected.length === 1
+      ? options.find(o => o.value === selected[0])?.label ?? String(selected[0])
+      : `${selected.length} selecionados`;
+
+  function toggle(v: T) {
+    if (selected.includes(v)) onChange(selected.filter(x => x !== v));
+    else onChange([...selected, v].sort((a, b) => Number(a) - Number(b)) as T[]);
+  }
+
+  return (
+    <Popover open={open} onOpenChange={(o) => !disabled && setOpen(o)}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          disabled={disabled}
+          className={cn(
+            'flex flex-col gap-0.5 px-3 py-1.5 text-left transition-colors hover:bg-accent/30 focus:outline-none focus-visible:bg-accent/40 disabled:opacity-50 disabled:cursor-not-allowed',
+            className,
+          )}
+        >
+          <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+            {label}
+          </span>
+          <span className="flex items-center justify-between gap-1.5 h-7">
+            <span className={cn('text-xs truncate', !allSelected && 'font-medium text-foreground')}>
+              {summary}
+            </span>
+            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          </span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-[200px] p-1">
+        <button
+          type="button"
+          onClick={() => onChange([])}
+          className={cn(
+            'w-full text-left text-xs px-2 py-1.5 rounded hover:bg-accent transition-colors',
+            allSelected && 'bg-accent font-medium',
+          )}
+        >
+          Todos
+        </button>
+        <div className="h-px bg-border my-1" />
+        <div className="max-h-64 overflow-auto pr-0.5">
+          {options.map(opt => {
+            const checked = selected.includes(opt.value);
+            return (
+              <label
+                key={String(opt.value)}
+                className="flex items-center gap-2 px-2 py-1.5 rounded text-xs hover:bg-accent cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => toggle(opt.value)}
+                  className="h-3.5 w-3.5 accent-primary cursor-pointer"
+                />
+                <span className={cn(checked && 'font-medium')}>{opt.label}</span>
+              </label>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
