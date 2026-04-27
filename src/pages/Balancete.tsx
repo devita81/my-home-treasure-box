@@ -285,8 +285,8 @@ export default function Balancete() {
         if (fromIdx !== null && idx < fromIdx) return false;
         if (toIdx !== null && idx > toIdx) return false;
       } else {
-        if (yearFilter !== 'all' && r.ano !== Number(yearFilter)) return false;
-        if (monthFilter !== 'all' && r.mes !== Number(monthFilter)) return false;
+        if (yearFilter.length > 0 && !yearFilter.includes(r.ano)) return false;
+        if (monthFilter.length > 0 && !monthFilter.includes(r.mes)) return false;
       }
       if (cidadeFilter !== 'all' && (r.cidade ?? '').trim() !== cidadeFilter) return false;
       if (bairroFilter !== 'all' && (r.bairro ?? '').trim() !== bairroFilter) return false;
