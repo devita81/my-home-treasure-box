@@ -737,6 +737,8 @@ export default function Balancete() {
               </>
             )}
           </div>
+        </div>
+
 
 
         {/* KPIs por ano (expansíveis) */}
