@@ -1918,6 +1918,7 @@ function YearlyKpis({
   totals,
   last12,
   onOpenMonth,
+  periodTitle,
 }: {
   years: { ano: number; receita: number; despesa: number; liquido: number; imoveisAtivos: number; meses: Record<number, { receita: number; despesa: number; liquido: number }> }[];
   loading: boolean;
@@ -1928,6 +1929,7 @@ function YearlyKpis({
     imoveisAtivos: number; monthsCount: number; periodoLabel: string;
   };
   onOpenMonth: (ano: number, mes: number) => void;
+  periodTitle?: string;
 }) {
   // Default: todos os anos fechados
   const [expanded, setExpanded] = useState<Set<number>>(() => new Set());
