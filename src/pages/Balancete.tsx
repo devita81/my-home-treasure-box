@@ -891,6 +891,7 @@ export default function Balancete() {
                 key={r.key}
                 row={r}
                 months={pivot.months}
+                metric={pivot.metric}
                 onOpenDrilldown={() => setDrilldown({ key: r.key, label: r.label })}
                 onOpenMonthDrilldown={(ano, mes) =>
                   setMonthDrilldown({ key: r.key, label: r.label, ano, mes })
