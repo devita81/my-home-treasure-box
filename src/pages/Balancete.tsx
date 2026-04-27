@@ -48,7 +48,6 @@ interface BalanceteRow {
 }
 
 const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'] as const;
-const MONTHS_FULL_RANGE: readonly number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 type MetricLabel = 'receita' | 'despesa' | 'liquido' | 'aluguel';
 const METRIC_LABELS: Record<MetricLabel, string> = {
   receita: 'Receita',
