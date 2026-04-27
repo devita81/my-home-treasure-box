@@ -679,6 +679,17 @@ export default function Balancete() {
           loading={loading}
           totals={kpis}
           last12={last12Breakdown}
+          periodTitle={
+            periodActive
+              ? 'Período selecionado'
+              : yearFilter !== 'all' && monthFilter !== 'all'
+                ? `${MONTHS[Number(monthFilter) - 1]} / ${yearFilter}`
+                : yearFilter !== 'all'
+                  ? `Ano ${yearFilter}`
+                  : monthFilter !== 'all'
+                    ? `${MONTHS[Number(monthFilter) - 1]} (todos os anos)`
+                    : 'Últimos 12 meses'
+          }
           onOpenMonth={(ano, mes) => setYearMonthDrilldown({ ano, mes })}
         />
 
