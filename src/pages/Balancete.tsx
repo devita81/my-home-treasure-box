@@ -1723,6 +1723,34 @@ function Line2({ label, value, positive }: { label: string; value: number; posit
   );
 }
 
+function BreakdownLine({
+  label, value, tone, bold, muted,
+}: { label: string; value: number; tone: 'positive' | 'negative'; bold?: boolean; muted?: boolean }) {
+  const display = Math.abs(value);
+  return (
+    <div className="flex items-baseline justify-between gap-2">
+      <span className={cn(
+        'text-[10px] sm:text-[11px]',
+        muted ? 'text-muted-foreground' : 'text-foreground/80',
+        bold && 'font-semibold text-foreground'
+      )}>
+        {label}
+      </span>
+      <span className={cn(
+        'tabular-nums text-[10px] sm:text-[11px]',
+        bold ? 'font-bold' : 'font-medium',
+        display === 0
+          ? 'text-muted-foreground/60'
+          : tone === 'positive'
+          ? 'text-emerald-600 dark:text-emerald-400'
+          : 'text-red-600 dark:text-red-400'
+      )}>
+        {display === 0 ? '—' : fmtBRL(display)}
+      </span>
+    </div>
+  );
+}
+
 function YearlyKpis({
   years,
   loading,
