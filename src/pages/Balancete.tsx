@@ -128,28 +128,38 @@ const CATEGORY_COLORS = {
 // Persistência de filtros entre sessões
 const FILTERS_STORAGE_KEY = 'balancete:filters:v1';
 type StoredFilters = {
-  yearFilter: string;
-  monthFilter: string;
+  yearFilter: number[];   // vazio = todos
+  monthFilter: number[];  // vazio = todos
   periodFrom: string | null; // 'YYYY-MM'
   periodTo: string | null;   // 'YYYY-MM'
 };
 
 function loadStoredFilters(): StoredFilters {
-  if (typeof window === 'undefined') {
-    return { yearFilter: 'all', monthFilter: 'all', periodFrom: null, periodTo: null };
-  }
+  const empty: StoredFilters = { yearFilter: [], monthFilter: [], periodFrom: null, periodTo: null };
+  if (typeof window === 'undefined') return empty;
   try {
     const raw = window.localStorage.getItem(FILTERS_STORAGE_KEY);
-    if (!raw) return { yearFilter: 'all', monthFilter: 'all', periodFrom: null, periodTo: null };
-    const parsed = JSON.parse(raw) as Partial<StoredFilters>;
+    if (!raw) return empty;
+    const parsed = JSON.parse(raw) as Partial<StoredFilters> & {
+      yearFilter?: unknown; monthFilter?: unknown;
+    };
+    const toNumArr = (v: unknown): number[] => {
+      if (Array.isArray(v)) return v.map(Number).filter(n => Number.isFinite(n));
+      // retrocompat: antes era string ('all' ou número)
+      if (typeof v === 'string' && v !== 'all' && v !== '') {
+        const n = Number(v);
+        return Number.isFinite(n) ? [n] : [];
+      }
+      return [];
+    };
     return {
-      yearFilter: parsed.yearFilter ?? 'all',
-      monthFilter: parsed.monthFilter ?? 'all',
+      yearFilter: toNumArr(parsed.yearFilter),
+      monthFilter: toNumArr(parsed.monthFilter),
       periodFrom: parsed.periodFrom ?? null,
       periodTo: parsed.periodTo ?? null,
     };
   } catch {
-    return { yearFilter: 'all', monthFilter: 'all', periodFrom: null, periodTo: null };
+    return empty;
   }
 }
 
