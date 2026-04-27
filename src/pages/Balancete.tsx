@@ -848,7 +848,7 @@ export default function Balancete() {
                         })}
                         <TableCell
                           className={cn(
-                            'text-right text-xs font-semibold tabular-nums whitespace-nowrap pl-4 pr-4',
+                            'text-right text-xs font-semibold tabular-nums whitespace-nowrap pl-4 pr-6',
                             r.total > 0 && 'text-emerald-600 dark:text-emerald-400',
                             r.total < 0 && 'text-red-600 dark:text-red-400'
                           )}
