@@ -217,6 +217,49 @@ export default function Balancete() {
     return { receita, despesa, liquido, imoveisAtivos };
   }, [filtered]);
 
+  // Detalhamento dos últimos 12 meses (independente do filtro de ano/mês)
+  const last12Breakdown = useMemo(() => {
+    if (rows.length === 0) {
+      return { aluguel: 0, reembolsoCond: 0, reembolsoIptu: 0, reembolsoOutras: 0, receita: 0,
+        condominio: 0, iptu: 0, taxa: 0, outras: 0, despesa: 0, liquido: 0,
+        imoveisAtivos: 0, monthsCount: 0, periodoLabel: '' };
+    }
+    // Encontrar o mês mais recente nos dados
+    const sorted = [...rows].sort((a, b) => b.ano - a.ano || b.mes - a.mes);
+    const latest = sorted[0];
+    // Janela: 12 meses a partir do mais recente, retroativos
+    const endIdx = latest.ano * 12 + (latest.mes - 1);
+    const startIdx = endIdx - 11; // inclui 12 meses
+    const inWindow = rows.filter(r => {
+      const idx = r.ano * 12 + (r.mes - 1);
+      return idx >= startIdx && idx <= endIdx;
+    });
+    const acc = { aluguel: 0, reembolsoCond: 0, reembolsoIptu: 0, reembolsoOutras: 0,
+      condominio: 0, iptu: 0, taxa: 0, outras: 0, liquido: 0 };
+    const imoveis = new Set<string>();
+    const monthSet = new Set<string>();
+    inWindow.forEach(r => {
+      acc.aluguel += Math.max(0, r.aluguel);
+      acc.reembolsoCond += Math.max(0, r.reembolso_condominio);
+      acc.reembolsoIptu += Math.max(0, r.reembolso_iptu);
+      acc.reembolsoOutras += Math.max(0, r.reembolso_outras_despesas);
+      acc.condominio += Math.min(0, r.condominio);
+      acc.iptu += Math.min(0, r.iptu);
+      acc.taxa += Math.min(0, r.taxa_administracao);
+      acc.outras += Math.min(0, r.outras_despesas);
+      acc.liquido += r.liquido;
+      if (r.aluguel > 0) imoveis.add(propertyKey(r));
+      monthSet.add(`${r.ano}-${String(r.mes).padStart(2, '0')}`);
+    });
+    const receita = acc.aluguel + acc.reembolsoCond + acc.reembolsoIptu + acc.reembolsoOutras;
+    const despesa = acc.condominio + acc.iptu + acc.taxa + acc.outras;
+    const startMonthIdx = endIdx - 11;
+    const startAno = Math.floor(startMonthIdx / 12);
+    const startMes = (startMonthIdx % 12) + 1;
+    const periodoLabel = `${MONTHS[startMes - 1]}/${String(startAno).slice(2)} – ${MONTHS[latest.mes - 1]}/${String(latest.ano).slice(2)}`;
+    return { ...acc, receita, despesa, imoveisAtivos: imoveis.size, monthsCount: monthSet.size, periodoLabel };
+  }, [rows]);
+
   // Time series — receitas vs despesas por mês
   const timeSeries = useMemo(() => {
     const map = new Map<string, { key: string; ano: number; mes: number; receita: number; despesa: number; liquido: number; aluguel: number }>();
@@ -467,14 +510,14 @@ export default function Balancete() {
 
           <div className="flex items-center gap-2 ml-auto">
             <Select value={yearFilter} onValueChange={setYearFilter}>
-              <SelectTrigger className="h-9 w-[110px] text-xs"><SelectValue placeholder="Ano" /></SelectTrigger>
+              <SelectTrigger className="h-9 w-[110px] text-xs bg-card border-border shadow-sm hover:bg-accent/40"><SelectValue placeholder="Ano" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos anos</SelectItem>
                 {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={monthFilter} onValueChange={setMonthFilter}>
-              <SelectTrigger className="h-9 w-[110px] text-xs"><SelectValue placeholder="Mês" /></SelectTrigger>
+              <SelectTrigger className="h-9 w-[110px] text-xs bg-card border-border shadow-sm hover:bg-accent/40"><SelectValue placeholder="Mês" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos meses</SelectItem>
                 {MONTHS.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}
@@ -488,17 +531,18 @@ export default function Balancete() {
           years={kpisByYear}
           loading={loading}
           totals={kpis}
+          last12={last12Breakdown}
           onOpenMonth={(ano, mes) => setYearMonthDrilldown({ ano, mes })}
         />
 
         {/* Charts */}
         <Tabs defaultValue="trend" className="w-full">
-          <TabsList className="grid grid-cols-5 w-full sm:w-auto sm:inline-flex h-9">
-            <TabsTrigger value="trend" className="text-xs">Tendência</TabsTrigger>
-            <TabsTrigger value="bars" className="text-xs">Mensal</TabsTrigger>
-            <TabsTrigger value="stacked" className="text-xs">Empilhado</TabsTrigger>
-            <TabsTrigger value="area" className="text-xs">Área</TabsTrigger>
-            <TabsTrigger value="categories" className="text-xs">Categorias</TabsTrigger>
+          <TabsList className="grid grid-cols-5 w-full sm:w-auto sm:inline-flex h-9 bg-card border shadow-sm">
+            <TabsTrigger value="trend" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow">Tendência</TabsTrigger>
+            <TabsTrigger value="bars" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow">Mensal</TabsTrigger>
+            <TabsTrigger value="stacked" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow">Empilhado</TabsTrigger>
+            <TabsTrigger value="area" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow">Área</TabsTrigger>
+            <TabsTrigger value="categories" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow">Categorias</TabsTrigger>
           </TabsList>
 
           <TabsContent value="trend" className="mt-3">
@@ -1679,15 +1723,49 @@ function Line2({ label, value, positive }: { label: string; value: number; posit
   );
 }
 
+function BreakdownLine({
+  label, value, tone, bold, muted,
+}: { label: string; value: number; tone: 'positive' | 'negative'; bold?: boolean; muted?: boolean }) {
+  const display = Math.abs(value);
+  return (
+    <div className="flex items-baseline justify-between gap-2">
+      <span className={cn(
+        'text-[10px] sm:text-[11px]',
+        muted ? 'text-muted-foreground' : 'text-foreground/80',
+        bold && 'font-semibold text-foreground'
+      )}>
+        {label}
+      </span>
+      <span className={cn(
+        'tabular-nums text-[10px] sm:text-[11px]',
+        bold ? 'font-bold' : 'font-medium',
+        display === 0
+          ? 'text-muted-foreground/60'
+          : tone === 'positive'
+          ? 'text-emerald-600 dark:text-emerald-400'
+          : 'text-red-600 dark:text-red-400'
+      )}>
+        {display === 0 ? '—' : fmtBRL(display)}
+      </span>
+    </div>
+  );
+}
+
 function YearlyKpis({
   years,
   loading,
   totals,
+  last12,
   onOpenMonth,
 }: {
   years: { ano: number; receita: number; despesa: number; liquido: number; imoveisAtivos: number; meses: Record<number, { receita: number; despesa: number; liquido: number }> }[];
   loading: boolean;
   totals: { receita: number; despesa: number; liquido: number; imoveisAtivos: number };
+  last12: {
+    aluguel: number; reembolsoCond: number; reembolsoIptu: number; reembolsoOutras: number; receita: number;
+    condominio: number; iptu: number; taxa: number; outras: number; despesa: number; liquido: number;
+    imoveisAtivos: number; monthsCount: number; periodoLabel: string;
+  };
   onOpenMonth: (ano: number, mes: number) => void;
 }) {
   // Default: todos os anos fechados
@@ -1722,22 +1800,76 @@ function YearlyKpis({
     );
   }
 
+  const totalReembolso = last12.reembolsoCond + last12.reembolsoIptu + last12.reembolsoOutras;
+
   return (
     <div className="space-y-2">
-      {/* Total acumulado */}
-      <Card className="bg-muted/30 border-dashed">
-        <CardContent className="p-3 sm:p-4">
+      {/* Últimos 12 meses — detalhado */}
+      <Card className="bg-card border shadow-sm">
+        <CardContent className="p-3 sm:p-4 space-y-2.5">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="text-[10px] sm:text-xs uppercase tracking-wide font-semibold text-muted-foreground">
-              Total acumulado ({years.length} {years.length === 1 ? 'ano' : 'anos'})
-            </div>
-            <div className="flex items-center gap-3 sm:gap-5 text-[11px] sm:text-xs flex-wrap">
-              <span className="text-emerald-600 dark:text-emerald-400 font-semibold tabular-nums">{fmtBRL(totals.receita)}</span>
-              <span className="text-red-600 dark:text-red-400 font-semibold tabular-nums">{fmtBRL(totals.despesa)}</span>
-              <span className={cn('font-bold tabular-nums', totals.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}>
-                {fmtBRL(totals.liquido)}
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-[10px] sm:text-xs uppercase tracking-wide font-bold text-foreground">
+                Últimos 12 meses
               </span>
-              <span className="text-muted-foreground hidden sm:inline">• {totals.imoveisAtivos} imóveis</span>
+              {last12.periodoLabel && (
+                <span className="text-[10px] sm:text-[11px] text-muted-foreground tabular-nums">
+                  {last12.periodoLabel}
+                </span>
+              )}
+            </div>
+            <span className="text-[10px] text-muted-foreground tabular-nums">
+              {last12.imoveisAtivos} imóveis ativos • {last12.monthsCount} {last12.monthsCount === 1 ? 'mês' : 'meses'} c/ dados
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            {/* Receitas */}
+            <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 p-2 sm:p-2.5 space-y-1">
+              <div className="text-[9px] uppercase tracking-wide font-bold text-emerald-700 dark:text-emerald-400">
+                Receitas
+              </div>
+              <BreakdownLine label="Aluguel" value={last12.aluguel} tone="positive" />
+              <BreakdownLine label="Reemb. condomínio" value={last12.reembolsoCond} tone="positive" muted />
+              <BreakdownLine label="Reemb. IPTU" value={last12.reembolsoIptu} tone="positive" muted />
+              <BreakdownLine label="Reemb. outras" value={last12.reembolsoOutras} tone="positive" muted />
+              <div className="border-t border-emerald-500/30 pt-1 mt-1">
+                <BreakdownLine label="Subtotal" value={last12.receita} tone="positive" bold />
+              </div>
+            </div>
+
+            {/* Despesas */}
+            <div className="rounded-md border border-red-500/20 bg-red-500/5 p-2 sm:p-2.5 space-y-1">
+              <div className="text-[9px] uppercase tracking-wide font-bold text-red-700 dark:text-red-400">
+                Despesas
+              </div>
+              <BreakdownLine label="Condomínio" value={last12.condominio} tone="negative" />
+              <BreakdownLine label="IPTU" value={last12.iptu} tone="negative" />
+              <BreakdownLine label="Taxa adm." value={last12.taxa} tone="negative" />
+              <BreakdownLine label="Outras" value={last12.outras} tone="negative" />
+              <div className="border-t border-red-500/30 pt-1 mt-1">
+                <BreakdownLine label="Subtotal" value={last12.despesa} tone="negative" bold />
+              </div>
+            </div>
+          </div>
+
+          {/* Linha do líquido */}
+          <div className="rounded-md border bg-muted/30 px-3 py-2 flex items-center justify-between gap-2">
+            <span className="text-[10px] sm:text-xs uppercase tracking-wide font-bold text-foreground">
+              Resultado líquido
+            </span>
+            <div className="flex items-baseline gap-2 sm:gap-3 flex-wrap justify-end">
+              {totalReembolso > 0 && (
+                <span className="text-[9px] sm:text-[10px] text-muted-foreground tabular-nums hidden sm:inline">
+                  reemb. total {fmtBRL(totalReembolso)}
+                </span>
+              )}
+              <span className={cn(
+                'text-base sm:text-lg font-bold tabular-nums',
+                last12.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+              )}>
+                {fmtBRL(last12.liquido)}
+              </span>
             </div>
           </div>
         </CardContent>
