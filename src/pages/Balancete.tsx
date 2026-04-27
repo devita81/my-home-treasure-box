@@ -750,7 +750,7 @@ export default function Balancete() {
                   : monthFilter.length > 0 && yearFilter.length === 0
                     ? (monthFilter.length === 1 ? `${MONTHS[monthFilter[0] - 1]} (todos os anos)` : `${monthFilter.length} meses selecionados`)
                     : (yearFilter.length > 0 || monthFilter.length > 0)
-                      ? 'Seleção personalizada'
+                      ? ''
                       : 'Últimos 12 meses'
           }
           onOpenMonth={(ano, mes) => setYearMonthDrilldown({ ano, mes })}
