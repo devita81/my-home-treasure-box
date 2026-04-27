@@ -1,5 +1,15 @@
-import { useRef, useState } from 'react';
-import { Upload, Loader2, FileSpreadsheet, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import {
+  Upload,
+  Loader2,
+  FileSpreadsheet,
+  AlertTriangle,
+  CheckCircle2,
+  Copy,
+  Download,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
