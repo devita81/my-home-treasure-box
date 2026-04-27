@@ -2112,14 +2112,19 @@ function PropertyAccordionRow({
           className="flex-1 flex items-start gap-2 p-2.5 text-left hover:bg-muted/40 active:bg-muted/60 transition-colors min-w-0"
         >
           <div className="min-w-0 flex-1">
-            {cityLine && (
+            {(row.cidade || '').trim() && (
               <div className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground leading-tight">
-                {cityLine}
+                {(row.cidade || '').toUpperCase()}
               </div>
             )}
-            <div className="text-[10px] font-medium leading-snug break-words">
-              {addrLine}
+            <div className="text-[11px] font-semibold leading-snug break-words uppercase">
+              {(row.rua || '—').toUpperCase()}
             </div>
+            {(row.numero || row.apartamento || row.complemento) && (
+              <div className="text-[10px] text-muted-foreground leading-snug break-words uppercase">
+                {[row.numero, row.apartamento, row.complemento].filter(Boolean).join(', ').toUpperCase()}
+              </div>
+            )}
             <div className="text-[9px] text-muted-foreground mt-0.5">
               {monthsCount} {monthsCount === 1 ? 'mês' : 'meses'} • toque para detalhes
             </div>
