@@ -183,8 +183,8 @@ export default function Balancete() {
   const [propertyTypes, setPropertyTypes] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const initialFilters = useMemo(() => loadStoredFilters(), []);
-  const [yearFilter, setYearFilter] = useState<string>(initialFilters.yearFilter);
-  const [monthFilter, setMonthFilter] = useState<string>(initialFilters.monthFilter);
+  const [yearFilter, setYearFilter] = useState<number[]>(initialFilters.yearFilter);
+  const [monthFilter, setMonthFilter] = useState<number[]>(initialFilters.monthFilter);
   const [periodFrom, setPeriodFrom] = useState<string | null>(initialFilters.periodFrom);
   const [periodTo, setPeriodTo] = useState<string | null>(initialFilters.periodTo);
   const [search, setSearch] = useState<string>('');
