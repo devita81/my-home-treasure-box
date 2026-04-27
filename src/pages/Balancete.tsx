@@ -797,7 +797,7 @@ export default function Balancete() {
           </CardHeader>
           <CardContent className="px-0">
             <ScrollArea className="w-full">
-              <div className="min-w-max">
+              <div className="min-w-max pr-4">
                 <Table>
                   <TableHeader>
                     <TableRow>
