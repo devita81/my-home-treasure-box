@@ -531,6 +531,7 @@ export default function Balancete() {
           years={kpisByYear}
           loading={loading}
           totals={kpis}
+          last12={last12Breakdown}
           onOpenMonth={(ano, mes) => setYearMonthDrilldown({ ano, mes })}
         />
 
