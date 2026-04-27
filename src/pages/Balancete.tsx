@@ -2066,7 +2066,6 @@ function YearlyKpis({
               )}
             </div>
 
-          </div>
 
             <div className="ml-auto flex items-center gap-2 sm:gap-4 text-[10px] sm:text-xs flex-wrap justify-end shrink-0">
               <div className="flex items-baseline gap-1 tabular-nums">
