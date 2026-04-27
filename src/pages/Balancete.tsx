@@ -776,7 +776,7 @@ export default function Balancete() {
         {/* Pivot table — desktop */}
         <Card className="hidden md:block">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Líquido por imóvel × mês</CardTitle>
+            <CardTitle className="text-base">{METRIC_LABELS[pivot.metric]} por imóvel × mês</CardTitle>
             <p className="text-xs text-muted-foreground">Toque em um imóvel para ver o histórico detalhado</p>
           </CardHeader>
           <CardContent className="px-0">
