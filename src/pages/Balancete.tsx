@@ -265,9 +265,18 @@ export default function Balancete() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const fromIdx = ymToIdx(periodFrom);
+    const toIdx = ymToIdx(periodTo);
     return rows.filter(r => {
-      if (yearFilter !== 'all' && r.ano !== Number(yearFilter)) return false;
-      if (monthFilter !== 'all' && r.mes !== Number(monthFilter)) return false;
+      // Período (de/até) tem prioridade sobre ano/mês quando definido
+      if (fromIdx !== null || toIdx !== null) {
+        const idx = r.ano * 12 + (r.mes - 1);
+        if (fromIdx !== null && idx < fromIdx) return false;
+        if (toIdx !== null && idx > toIdx) return false;
+      } else {
+        if (yearFilter !== 'all' && r.ano !== Number(yearFilter)) return false;
+        if (monthFilter !== 'all' && r.mes !== Number(monthFilter)) return false;
+      }
       if (cidadeFilter !== 'all' && (r.cidade ?? '').trim() !== cidadeFilter) return false;
       if (bairroFilter !== 'all' && (r.bairro ?? '').trim() !== bairroFilter) return false;
       if (tipoFilter !== 'all') {
@@ -285,7 +294,7 @@ export default function Balancete() {
       }
       return true;
     });
-  }, [rows, yearFilter, monthFilter, cidadeFilter, bairroFilter, tipoFilter, search, propertyTypes]);
+  }, [rows, yearFilter, monthFilter, periodFrom, periodTo, cidadeFilter, bairroFilter, tipoFilter, search, propertyTypes]);
 
   // KPIs
   const kpis = useMemo(() => {
