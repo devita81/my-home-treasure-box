@@ -1607,32 +1607,6 @@ export default function Balancete() {
 
 /* ---------- Subcomponents ---------- */
 
-function KpiCard({
-  label, value, icon: Icon, tone, loading, isCount,
-}: { label: string; value: number; icon: typeof TrendingUp; tone: 'positive' | 'negative' | 'neutral'; loading: boolean; isCount?: boolean }) {
-  const toneClass =
-    tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' :
-    tone === 'negative' ? 'text-red-600 dark:text-red-400' :
-    'text-foreground';
-  return (
-    <Card className="overflow-hidden">
-      <CardContent className="p-3 sm:p-4">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <div className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide font-medium">{label}</div>
-            <div className={cn('text-base sm:text-xl font-semibold tabular-nums mt-1 truncate', toneClass)}>
-              {loading ? '—' : isCount ? value : fmtBRL(value)}
-            </div>
-          </div>
-          <div className={cn('h-8 w-8 sm:h-9 sm:w-9 rounded-lg flex items-center justify-center shrink-0', `bg-${tone === 'positive' ? 'emerald' : tone === 'negative' ? 'red' : 'primary'}-500/10`)}>
-            <Icon className={cn('h-4 w-4', toneClass)} />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 function ChartCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
     <Card>
