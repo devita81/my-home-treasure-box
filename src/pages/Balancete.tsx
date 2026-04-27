@@ -797,7 +797,7 @@ export default function Balancete() {
           </CardHeader>
           <CardContent className="px-0">
             <ScrollArea className="w-full">
-              <div className="min-w-max">
+              <div className="min-w-max pr-4">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -805,7 +805,7 @@ export default function Balancete() {
                       {pivot.monthLabels.map((m, i) => (
                         <TableHead key={i} className="text-right text-[11px] whitespace-nowrap">{m}</TableHead>
                       ))}
-                      <TableHead className="text-right text-[11px] font-semibold">Total</TableHead>
+                      <TableHead className="text-right text-[11px] font-semibold whitespace-nowrap pl-4 pr-4 min-w-[90px]">Total</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -848,7 +848,7 @@ export default function Balancete() {
                         })}
                         <TableCell
                           className={cn(
-                            'text-right text-xs font-semibold tabular-nums',
+                            'text-right text-xs font-semibold tabular-nums whitespace-nowrap pl-4 pr-4',
                             r.total > 0 && 'text-emerald-600 dark:text-emerald-400',
                             r.total < 0 && 'text-red-600 dark:text-red-400'
                           )}
@@ -880,7 +880,7 @@ export default function Balancete() {
                       })}
                       <TableCell
                         className={cn(
-                          'text-right text-xs font-bold tabular-nums',
+                          'text-right text-xs font-bold tabular-nums whitespace-nowrap pl-4 pr-4',
                           pivot.grandTotal >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
                         )}
                       >
