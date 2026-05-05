@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const Index = () => {
-  const { getFilteredProperties, deleteProperty, duplicateProperty, refreshProperties, loading } = useProperties();
+  const { getFilteredProperties, deleteProperty, duplicateProperty, refreshProperties } = useProperties();
   const filteredProperties = getFilteredProperties();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [density, setDensity] = useGridDensity(1);

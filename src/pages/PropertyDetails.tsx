@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { Header } from '@/components/layout/Header';
 import { AIChatDialog } from '@/components/property/AIChatDialog';
 import { useProperties } from '@/contexts/PropertyContext';
-import { PropertyMapImage } from '@/components/property/PropertyMapImage';
 import { PropertyCardMap } from '@/components/property/PropertyCardMap';
 import { PropertyReportDialog } from '@/components/property/PropertyReportDialog';
 import { DocumentUpload } from '@/components/property/DocumentUpload';

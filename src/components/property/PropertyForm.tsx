@@ -71,7 +71,7 @@ interface PropertyFormProps {
 
 export function PropertyForm({ property, mode }: PropertyFormProps) {
   const navigate = useNavigate();
-  const { addProperty, updateProperty, refreshProperties } = useProperties();
+  const { addProperty, updateProperty } = useProperties();
 
   const initialFromProp = useMemo<PropertyFormData>(
     () => ({

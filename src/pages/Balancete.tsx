@@ -67,15 +67,6 @@ const BRL_FORMATTER_FULL = new Intl.NumberFormat('pt-BR', { style: 'currency', c
 const fmtBRL = (v: number) => BRL_FORMATTER.format(v);
 const fmtBRLFull = (v: number) => BRL_FORMATTER_FULL.format(v);
 
-// Tone helpers — evita repetir tailwind classes em ~30 lugares
-type Tone = 'positive' | 'negative' | 'neutral';
-const TONE_TEXT: Record<Tone, string> = {
-  positive: 'text-emerald-600 dark:text-emerald-400',
-  negative: 'text-red-600 dark:text-red-400',
-  neutral: 'text-muted-foreground',
-};
-const toneFor = (v: number): Tone => (v > 0 ? 'positive' : v < 0 ? 'negative' : 'neutral');
-
 // Chave única "YYYY-MM" usada como id de mês
 const monthKey = (ano: number, mes: number) => `${ano}-${String(mes).padStart(2, '0')}`;
 // Label compacto Mai/25
@@ -2022,10 +2013,8 @@ function BreakdownLine({
 function YearlyKpis({
   years,
   loading,
-  totals,
   last12,
   onOpenMonth,
-  periodTitle,
 }: {
   years: { ano: number; receita: number; despesa: number; liquido: number; imoveisAtivos: number; meses: Record<number, { receita: number; despesa: number; liquido: number }> }[];
   loading: boolean;
@@ -2506,13 +2495,6 @@ function PeriodFilterButton({
     const [y, m] = v.split('-');
     return { y: y || '', m: m || '' };
   };
-  const buildYM = (y: string, m: string): string => {
-    if (!y && !m) return '';
-    if (y && m) return `${y}-${m}`;
-    // permite só ano (assume jan/dez conforme contexto no apply)
-    return y ? `${y}-${m || ''}` : '';
-  };
-
   const initFrom = parseYM(from);
   const initTo = parseYM(to);
   const [fromYear, setFromYear] = useState(initFrom.y);

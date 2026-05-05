@@ -1,5 +1,5 @@
 import { useProperties } from '@/contexts/PropertyContext';
-import { Home, DollarSign, Key, CheckCircle, AlertTriangle, FileText, ArrowUpDown, X } from 'lucide-react';
+import { Home, DollarSign, Key, CheckCircle, FileText, ArrowUpDown, X } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { Property } from '@/types/property';
 import {
@@ -57,7 +57,6 @@ export function StatsOverview() {
   const totalMarketValue = properties.reduce((acc, p) => acc + (p.market_value || 0), 0);
   const totalDeclaredValue = properties.reduce((acc, p) => acc + (p.declared_value || 0), 0);
   const rentedProperties = properties.filter((p) => p.alugado);
-  const monthlyRent = rentedProperties.reduce((acc, p) => acc + (p.valor_aluguel || 0), 0);
   const validatedProperties = properties.filter((p) => p.validado);
   const pendingIptuProperties = properties.filter((p) => !p.iptu_pago);
 
