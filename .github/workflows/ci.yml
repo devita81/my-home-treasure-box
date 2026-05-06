@@ -29,3 +29,8 @@ jobs:
 
       - name: Build
         run: bun run build
+        env:
+          # When set (push to main with secret configured), Sentry plugin
+          # uploads source maps. When empty (PR runs without secret access),
+          # plugin skips upload and warns — build still succeeds.
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
