@@ -33,7 +33,7 @@ export function PdfCanvasViewer({ fileData, fileName }: PdfCanvasViewerProps) {
 
   useEffect(() => {
     let cancelled = false;
-    let createdUrls: string[] = [];
+    const createdUrls: string[] = [];
 
     const revokeUrls = (urls: string[]) => {
       urls.forEach((url) => URL.revokeObjectURL(url));

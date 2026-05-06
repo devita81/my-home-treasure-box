@@ -140,5 +140,6 @@ export default {
       },
     },
   },
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- Tailwind config runs in Node CJS context; ES import of this CJS plugin causes runtime issues
   plugins: [require("tailwindcss-animate")],
 } satisfies Config;
