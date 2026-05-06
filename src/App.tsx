@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { PropertyProvider } from "@/contexts/PropertyContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { ErrorFallback } from "@/components/ErrorFallback";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import Index from "./pages/Index";
 import AddProperty from "./pages/AddProperty";
@@ -28,35 +30,39 @@ function SessionTimeoutWrapper({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <SessionTimeoutWrapper>
-          <PropertyProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <ScrollToTop />
-              <Routes>
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-                <Route path="/add" element={<ProtectedRoute><AddProperty /></ProtectedRoute>} />
-                <Route path="/edit/:id" element={<ProtectedRoute><EditProperty /></ProtectedRoute>} />
-                <Route path="/property/:id" element={<ProtectedRoute><PropertyDetails /></ProtectedRoute>} />
-                <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-                <Route path="/balancete" element={<ProtectedRoute><Balancete /></ProtectedRoute>} />
-                <Route path="/admin/itbi" element={<ProtectedRoute><ItbiAdmin /></ProtectedRoute>} />
-                <Route path="/itbi-search" element={<ProtectedRoute><ItbiSearch /></ProtectedRoute>} />
-                <Route path="/unsubscribe" element={<Unsubscribe />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </PropertyProvider>
-        </SessionTimeoutWrapper>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <Sentry.ErrorBoundary
+    fallback={({ resetError }) => <ErrorFallback resetError={resetError} />}
+  >
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AuthProvider>
+          <SessionTimeoutWrapper>
+            <PropertyProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <ScrollToTop />
+                <Routes>
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                  <Route path="/add" element={<ProtectedRoute><AddProperty /></ProtectedRoute>} />
+                  <Route path="/edit/:id" element={<ProtectedRoute><EditProperty /></ProtectedRoute>} />
+                  <Route path="/property/:id" element={<ProtectedRoute><PropertyDetails /></ProtectedRoute>} />
+                  <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+                  <Route path="/balancete" element={<ProtectedRoute><Balancete /></ProtectedRoute>} />
+                  <Route path="/admin/itbi" element={<ProtectedRoute><ItbiAdmin /></ProtectedRoute>} />
+                  <Route path="/itbi-search" element={<ProtectedRoute><ItbiSearch /></ProtectedRoute>} />
+                  <Route path="/unsubscribe" element={<Unsubscribe />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </PropertyProvider>
+          </SessionTimeoutWrapper>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </Sentry.ErrorBoundary>
 );
 
 export default App;
