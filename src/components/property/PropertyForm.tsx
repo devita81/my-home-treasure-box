@@ -187,13 +187,16 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
       }
 
       navigate('/');
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error saving property:', error);
       toast.error('Erro ao salvar. Tente novamente.');
     }
   };
 
-  const handleChange = (field: keyof PropertyFormData, value: any) => {
+  const handleChange = <K extends keyof PropertyFormData>(
+    field: K,
+    value: PropertyFormData[K],
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 

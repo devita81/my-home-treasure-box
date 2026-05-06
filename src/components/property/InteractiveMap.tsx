@@ -10,10 +10,9 @@ interface InteractiveMapProps {
   address?: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare global {
   interface Window {
-    google: any;
+    google: typeof google;
     initMap: () => void;
   }
 }
