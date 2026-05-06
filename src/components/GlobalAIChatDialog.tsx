@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, isValidElement, type ReactElement, type ReactNode } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -145,44 +145,58 @@ BALANCETE POR IMÓVEL — últimos ${cutoff.length} meses (mais recentes):
 ${propLines.join('\n')}`;
 }
 
-// Helpers para renderizar tabelas markdown como cards em mobile e tabelas em desktop
-function extractText(node: any): string {
-  if (node == null) return '';
+// Helpers para renderizar tabelas markdown como cards em mobile e tabelas em desktop.
+// react-markdown passes a HAST 'node' field on props that identifies the original
+// markdown element (e.g. node.tagName === 'tr'); we use that to walk the tree.
+interface MarkdownNodeProps {
+  children?: ReactNode;
+  node?: { tagName?: string };
+}
+
+const isMarkdownElement = (value: ReactNode): value is ReactElement<MarkdownNodeProps> =>
+  isValidElement(value);
+
+const getTag = (element: ReactElement<MarkdownNodeProps>): string =>
+  element.props.node?.tagName || (typeof element.type === 'string' ? element.type : '');
+
+function extractText(node: ReactNode): string {
+  if (node == null || typeof node === 'boolean') return '';
   if (typeof node === 'string' || typeof node === 'number') return String(node);
   if (Array.isArray(node)) return node.map(extractText).join('');
-  if (node.props?.children !== undefined) return extractText(node.props.children);
+  if (isMarkdownElement(node) && node.props.children !== undefined) {
+    return extractText(node.props.children);
+  }
   return '';
 }
 
-function getRows(children: any): any[] {
+function getRows(children: ReactNode): ReactElement<MarkdownNodeProps>[] {
   const arr = Array.isArray(children) ? children : [children];
-  const rows: any[] = [];
+  const rows: ReactElement<MarkdownNodeProps>[] = [];
   for (const child of arr) {
-    if (!child) continue;
-    const type = child.type;
-    const tag = (child.props?.node?.tagName) || (typeof type === 'string' ? type : '');
-    if (tag === 'tr') rows.push(child);
-    else if (child.props?.children) rows.push(...getRows(child.props.children));
+    if (!isMarkdownElement(child)) continue;
+    if (getTag(child) === 'tr') rows.push(child);
+    else if (child.props.children) rows.push(...getRows(child.props.children));
   }
   return rows;
 }
 
-function getCells(row: any): any[] {
-  const children = row?.props?.children;
+function getCells(row: ReactElement<MarkdownNodeProps>): ReactElement<MarkdownNodeProps>[] {
+  const children = row.props.children;
   const arr = Array.isArray(children) ? children : [children];
-  return arr.filter((c: any) => {
-    const tag = c?.props?.node?.tagName || (typeof c?.type === 'string' ? c.type : '');
+  return arr.filter((c): c is ReactElement<MarkdownNodeProps> => {
+    if (!isMarkdownElement(c)) return false;
+    const tag = getTag(c);
     return tag === 'th' || tag === 'td';
   });
 }
 
-const ResponsiveTable = ({ children }: { children: any }) => {
+const ResponsiveTable = ({ children }: { children: ReactNode }) => {
   const arr = Array.isArray(children) ? children : [children];
-  let headerRow: any = null;
-  const bodyRows: any[] = [];
+  let headerRow: ReactElement<MarkdownNodeProps> | null = null;
+  const bodyRows: ReactElement<MarkdownNodeProps>[] = [];
   for (const section of arr) {
-    if (!section) continue;
-    const tag = section?.props?.node?.tagName || (typeof section?.type === 'string' ? section.type : '');
+    if (!isMarkdownElement(section)) continue;
+    const tag = getTag(section);
     if (tag === 'thead') {
       const rows = getRows(section.props.children);
       if (rows[0]) headerRow = rows[0];
