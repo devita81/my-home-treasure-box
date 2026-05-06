@@ -132,6 +132,13 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Calibri', 'Carlito', sans-serif;
+    /* Block browser pull-to-refresh and iOS rubber-band scrolling — the app
+       behaves like a native shell with its own scrollable areas instead of
+       letting the body itself bounce. */
+    overscroll-behavior: none;
+    /* Disable double-tap-to-zoom (zoom is also blocked by the viewport meta).
+       'manipulation' keeps tap and pan working — only pinch/double-tap are off. */
+    touch-action: manipulation;
   }
 
   h1, h2, h3, h4, h5, h6 {
