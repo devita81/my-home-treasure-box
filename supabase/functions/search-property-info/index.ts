@@ -3,6 +3,20 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 
+// Shape of a row from itbi_transactions used by this function.
+interface ItbiRow {
+  id?: string | number;
+  sql_iptu?: string | null;
+  logradouro?: string | null;
+  numero?: string | null;
+  complemento?: string | null;
+  bairro?: string | null;
+  data_transacao?: string | null;
+  valor_transacao?: number | string | null;
+  valor_venal?: number | string | null;
+  area_construida?: number | string | null;
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -117,7 +131,7 @@ serve(async (req) => {
         // 1) Busca paginada por número exato (sem limite de 1000)
         const PAGE = 1000;
         let from = 0;
-        const numMatches: any[] = [];
+        const numMatches: ItbiRow[] = [];
         while (true) {
           const { data: page, error: pageErr } = await supabaseClient
             .from('itbi_transactions')
@@ -133,7 +147,7 @@ serve(async (req) => {
 
         // 2) Filtro por nome principal idêntico
         const nomeAlvoSet = new Set(nomePrincipal);
-        const candidatosNomeOk = numMatches.filter((c: any) => {
+        const candidatosNomeOk = numMatches.filter((c: ItbiRow) => {
           const candCore = new Set(extractCoreName(c.logradouro ?? ''));
           if (candCore.size !== nomeAlvoSet.size) return false;
           for (const t of nomeAlvoSet) if (!candCore.has(t)) return false;
@@ -144,7 +158,7 @@ serve(async (req) => {
         const tipoLower = (tipo_imovel ?? '').toLowerCase();
         const ehResidencial = !['garagem','vaga','comercial','terreno'].some((t) => tipoLower.includes(t));
         const PADROES_NAO_RESID = /\b(GARAGEM|GAR|VAGA|VAGAS|VG|VGS|BOX|ESTACIONAMENTO|DEP[OÓ]SITO|DEP|HOBBY|CUB[IÍ]CULO|JIRAU)\b/;
-        const matchedItbi = candidatosNomeOk.filter((c: any) => {
+        const matchedItbi = candidatosNomeOk.filter((c: ItbiRow) => {
           if (!ehResidencial) return true;
           const compl = stripText(c.complemento ?? '');
           if (/\bAP\b|\bAPTO\b|\bAPARTAMENTO\b|\bCASA\b/.test(compl)) return true;
@@ -154,7 +168,7 @@ serve(async (req) => {
         // 4) Deduplica (ITBI registra comprador+vendedor) e coleta valores válidos
         const seen = new Set<string>();
         const valoresValidos: number[] = [];
-        const transacoesValidas: any[] = [];
+        const transacoesValidas: ItbiRow[] = [];
         for (const m of matchedItbi) {
           const v = Number(m.valor_transacao);
           if (!v || v <= 0) continue;
@@ -188,7 +202,7 @@ serve(async (req) => {
 
           // Top 10 transações da base final, mais recentes
           const baseFinalSet = new Set(baseFinal);
-          const inliersTransacoes = transacoesValidas.filter((t: any) => baseFinalSet.has(Number(t.valor_transacao)));
+          const inliersTransacoes = transacoesValidas.filter((t: ItbiRow) => baseFinalSet.has(Number(t.valor_transacao)));
           const recent = [...inliersTransacoes]
             .sort((a, b) => {
               const da = a.data_transacao ? new Date(a.data_transacao).getTime() : 0;
@@ -197,7 +211,7 @@ serve(async (req) => {
             })
             .slice(0, 10);
 
-          const tableLines = recent.map((c: any) => {
+          const tableLines = recent.map((c: ItbiRow) => {
             const data = c.data_transacao ? new Date(c.data_transacao).toLocaleDateString('pt-BR') : 'N/D';
             const compl = (c.complemento ?? '—').toString().slice(0, 25);
             const area = c.area_construida ? `${Number(c.area_construida).toFixed(0)}m²` : '—';

@@ -20,6 +20,57 @@ const corsHeaders = {
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
+// Shape of a row from itbi_transactions used by this function.
+// Loose because edge functions read raw rows without supabase generated types.
+interface ItbiRow {
+  id?: string | number;
+  sql_iptu?: string | null;
+  logradouro?: string | null;
+  numero?: string | null;
+  complemento?: string | null;
+  bairro?: string | null;
+  cep?: string | null;
+  data_transacao?: string | null;
+  valor_transacao?: number | string | null;
+  valor_venal?: number | string | null;
+  area_construida?: number | string | null;
+  logradouro_normalizado?: string | null;
+  numero_limpo?: string | null;
+}
+
+// ItbiRow + decision fields added by the matching/scoring pipeline.
+interface MatchedRow extends ItbiRow {
+  is_unidade_exata?: boolean;
+  incluido_na_media?: boolean;
+  motivo_exclusao?: string | null;
+}
+
+// Property being analyzed (subset of fields the function reads).
+interface PropertyInput {
+  tipo_imovel?: string | null;
+  logradouro?: string;
+  nome_principal?: string;
+  honorificos?: string;
+  numero?: string | null;
+  apartamento?: string | null;
+  rua?: string;
+  bairro?: string | null;
+  cidade?: string;
+  estado?: string;
+  declared_value?: number | null;
+  market_value?: number | null;
+}
+
+// Reference value (from GPT response or computed) used by buildReport.
+interface ValorRef {
+  valor_estimado?: number | string | null;
+  metodologia?: string;
+  classificacao?: string;
+}
+
+// Currency-formattable value (Number(v) is the runtime contract).
+type FormatValue = number | string | null | undefined;
+
 // === Honoríficos / tipos de via que devem ser separados do "nome principal" ===
 // Inclui tipos de via (RUA, AV, ESTRADA...) e títulos honoríficos (CORONEL, DR...).
 // Tudo aqui é tratado como prefixo descartável para extrair o NOME PRINCIPAL.
@@ -136,7 +187,7 @@ Marque is_unidade_exata=true quando o número do apartamento informado bate com 
 Retorne TODOS os candidatos válidos do mesmo prédio (mesma rua+número) — eles servem de referência de mercado.
 NÃO invente registros. NÃO altere campos de valor/data. Apenas decida quem entra.`;
 
-async function filterMatchesWithGPT(input: any, candidates: any[]) {
+async function filterMatchesWithGPT(input: PropertyInput, candidates: ItbiRow[]) {
   const userMsg = `ENDEREÇO-ALVO:
 - Tipo do Imóvel: ${input.tipo_imovel ?? "apartamento"}
 - Logradouro completo: ${input.logradouro}
@@ -192,12 +243,12 @@ Valide os honoríficos e retorne o JSON.`;
 }
 
 function buildReport(
-  property: any,
-  matched: any[],
+  property: PropertyInput,
+  matched: MatchedRow[],
   totalCandidates: number,
-  valorRef: any,
+  valorRef: ValorRef | null,
 ): string {
-  const fmt = (v: any) =>
+  const fmt = (v: FormatValue) =>
     v == null || v === ""
       ? "N/D"
       : new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v));
@@ -273,10 +324,10 @@ Foram analisados **${totalCandidates} candidatos** com número exato e nome de r
     })
     .join("\n");
 
-  const exatas = dedup.filter((m: any) => m.is_unidade_exata).length;
+  const exatas = dedup.filter((m: MatchedRow) => m.is_unidade_exata).length;
   const outrasUnidades = dedup.length - exatas;
-  const incluidasNaMedia = matched.filter((m: any) => m.incluido_na_media === true).length;
-  const excluidasOutlier = matched.filter((m: any) => m.incluido_na_media === false && (m.motivo_exclusao ?? "").startsWith("outlier")).length;
+  const incluidasNaMedia = matched.filter((m: MatchedRow) => m.incluido_na_media === true).length;
+  const excluidasOutlier = matched.filter((m: MatchedRow) => m.incluido_na_media === false && (m.motivo_exclusao ?? "").startsWith("outlier")).length;
 
   const diff =
     valorRef?.valor_estimado && property.declared_value
@@ -418,7 +469,7 @@ serve(async (req) => {
     //    padrão de 1000 do PostgREST e trazer TODA a base com aquele número.
     const PAGE = 1000;
     let from = 0;
-    const numMatches: any[] = [];
+    const numMatches: ItbiRow[] = [];
     while (true) {
       const { data: page, error: pageErr } = await userClient
         .from("itbi_transactions")
@@ -449,7 +500,7 @@ serve(async (req) => {
     // 2) Filtra em memória pelo NOME PRINCIPAL exato (após remover honoríficos do candidato).
     //    Todos os tokens do nome principal do alvo precisam estar no nome principal do candidato.
     const nomeAlvoSet = new Set(nomePrincipal);
-    const candidatosNomeOk = numMatches.filter((c: any) => {
+    const candidatosNomeOk = numMatches.filter((c: ItbiRow) => {
       const candCore = new Set(extractCoreName(c.logradouro ?? ""));
       // Igualdade de conjuntos: alvo ⊆ candidato e candidato ⊆ alvo
       if (candCore.size !== nomeAlvoSet.size) return false;
@@ -487,14 +538,14 @@ serve(async (req) => {
     const aptoAlvo = (property.apartamento ?? "").toString().replace(/[^0-9]/g, "");
 
     const matched = candidatosNomeOk
-      .filter((c: any) => {
+      .filter((c: ItbiRow) => {
         if (!ehResidencial) return true;
         const compl = strip(c.complemento ?? "");
         // Só descarta se o complemento indica garagem/etc E NÃO menciona AP/APTO
         if (/\bAP\b|\bAPTO\b|\bAPARTAMENTO\b|\bCASA\b/.test(compl)) return true;
         return !PADROES_NAO_RESIDENCIAL.test(compl);
       })
-      .map((c: any) => {
+      .map((c: ItbiRow): MatchedRow => {
         let isExata = false;
         if (aptoAlvo) {
           const complNum = ((c.complemento ?? "").toString().match(/\d+/g) ?? [])[0];
