@@ -395,6 +395,10 @@ const PropertyDetails = () => {
     loadEstimate();
   }, [id]);
 
+  if (!property) {
+    return <Navigate to="/" replace />;
+  }
+
   // Função para estimar valor do imóvel via IA
   const estimatePropertyValue = async () => {
     setIsSearching(true);
@@ -576,10 +580,6 @@ const PropertyDetails = () => {
     }
     return <Badge className="bg-success text-success-foreground text-[10px] font-medium">Disponível</Badge>;
   };
-
-  if (!property) {
-    return <Navigate to="/" replace />;
-  }
 
   const hasRealPhotos = property.photos && property.photos.length > 0 && property.photos[0];
   const hasEstimates = estimates.vendaMin || estimates.aluguelMin;
