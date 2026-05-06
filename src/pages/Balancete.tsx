@@ -18,6 +18,7 @@ import {
   AreaChart, Area, Line,
   XAxis, YAxis, Tooltip, Legend, CartesianGrid,
 } from 'recharts';
+import type { TooltipProps } from 'recharts';
 import { cn } from '@/lib/utils';
 import { ImportBalanceteDialog } from '@/components/balancete/ImportBalanceteDialog';
 
@@ -1647,16 +1648,16 @@ function ResponsiveChart({ children }: { children: React.ReactElement }) {
   );
 }
 
-function MoneyTooltip({ active, payload, label }: any) {
+function MoneyTooltip({ active, payload, label }: TooltipProps<number, string>) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border bg-background/95 backdrop-blur px-2.5 py-1.5 shadow-lg text-[11px]">
       {label && <div className="font-medium mb-1">{label}</div>}
-      {payload.map((p: any, i: number) => (
+      {payload.map((p, i) => (
         <div key={i} className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full" style={{ background: p.color || p.payload?.color }} />
           <span className="text-muted-foreground">{p.name}:</span>
-          <span className="font-medium tabular-nums">{fmtBRL(p.value)}</span>
+          <span className="font-medium tabular-nums">{fmtBRL(p.value ?? 0)}</span>
         </div>
       ))}
     </div>
