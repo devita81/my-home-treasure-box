@@ -106,13 +106,13 @@ const escapeHtml = (value: string) =>
 
 const formatInlineMarkdown = (text: string) =>
   escapeHtml(text)
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary underline underline-offset-4 hover:text-primary/80 inline-flex items-center gap-1">$1 ↗</a>')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary underline underline-offset-4 hover:text-primary/80 inline-flex items-center gap-1">$1 ↗</a>')
     .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>')
     .replace(/`([^`]+)`/g, '<code class="rounded bg-muted px-1.5 py-0.5 text-[11px] text-foreground">$1</code>');
 
 const isCompactMetricCell = (text: string) => {
   const value = text.trim();
-  return /^(R\$\s?[\d\.]+(?:,\d+)?(?:\/m²|\/m2)?)$/.test(value) || /^(\d+[\d\.,]*\s?(?:m²|m2|%|anos?)?)$/.test(value);
+  return /^(R\$\s?[\d.]+(?:,\d+)?(?:\/m²|\/m2)?)$/.test(value) || /^(\d+[\d.,]*\s?(?:m²|m2|%|anos?)?)$/.test(value);
 };
 
 // Resolve a "fonte" (origem dos dados) para uma linha da tabela
@@ -259,7 +259,7 @@ const convertMarkdownToHtml = (markdown: string): string => {
     }
 
     const nextLine = lines[index + 1]?.trim() || '';
-    const isTableStart = line.startsWith('|') && line.endsWith('|') && /^\|?\s*[:\-\| ]+\|?$/.test(nextLine);
+    const isTableStart = line.startsWith('|') && line.endsWith('|') && /^\|?\s*[:\-| ]+\|?$/.test(nextLine);
 
     if (isTableStart) {
       const tableLines = [line, nextLine];
@@ -306,7 +306,7 @@ const convertMarkdownToHtml = (markdown: string): string => {
     while (index < lines.length) {
       const current = lines[index].trim();
       const upcoming = lines[index + 1]?.trim() || '';
-      const isUpcomingTable = current.startsWith('|') && current.endsWith('|') && /^\|?\s*[:\-\| ]+\|?$/.test(upcoming);
+      const isUpcomingTable = current.startsWith('|') && current.endsWith('|') && /^\|?\s*[:\-| ]+\|?$/.test(upcoming);
       if (!current || current.startsWith('## ') || current.startsWith('### ') || current === '---' || current.startsWith('- ') || isUpcomingTable) {
         break;
       }
