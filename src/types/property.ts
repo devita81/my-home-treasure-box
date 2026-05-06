@@ -42,6 +42,7 @@ export interface Property {
   observacao?: string | null;
   street_view_heading?: number | null;
   taxa_administracao?: number | null;
+  cep?: string | null;
 }
 
 export type PropertyFormData = Omit<Property, 'id' | 'created_at' | 'updated_at' | 'user_id'>;
