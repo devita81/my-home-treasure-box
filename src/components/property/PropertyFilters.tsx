@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Search, X, Filter, ArrowUpDown, ChevronUp, ChevronDown, MapPin, Home, Key, ArrowDownUp } from 'lucide-react';
-import { SortField } from '@/types/property';
+import { SortField, PropertyFilters as PropertyFiltersType } from '@/types/property';
 
 const tiposImovel = [
   { value: 'apartamento', label: 'Apartamento' },
@@ -199,7 +199,7 @@ export function PropertyFilters() {
             <Key className="h-2.5 w-2.5" /> Status
           </p>
           <div className="grid grid-cols-2 gap-2">
-            <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value as any })}>
+            <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value as PropertyFiltersType['status'] })}>
               <SelectTrigger className="h-9 text-[11px]"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos Status</SelectItem>
@@ -208,7 +208,7 @@ export function PropertyFilters() {
                 {statusDisponiveis.has('vendido') && <SelectItem value="vendido">Vendido</SelectItem>}
               </SelectContent>
             </Select>
-            <Select value={filters.validado} onValueChange={(value) => setFilters({ ...filters, validado: value as any })}>
+            <Select value={filters.validado} onValueChange={(value) => setFilters({ ...filters, validado: value as PropertyFiltersType['validado'] })}>
               <SelectTrigger className="h-9 text-[11px]"><SelectValue placeholder="Validação" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
@@ -305,7 +305,7 @@ export function PropertyFilters() {
         {/* Linha 2: Status | Validação | Ordenar por | botão — mesmas proporções */}
         <div className="grid grid-cols-[auto_1fr_1fr_auto_1fr_1fr_1fr] items-center gap-2">
           <Key className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-          <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value as any })}>
+          <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value as PropertyFiltersType['status'] })}>
             <SelectTrigger className="h-8 text-xs gap-1 min-w-0">
               <span className="text-muted-foreground font-medium shrink-0">Status:</span>
               <SelectValue />
@@ -317,7 +317,7 @@ export function PropertyFilters() {
               {statusDisponiveis.has('vendido') && <SelectItem value="vendido">Vendido</SelectItem>}
             </SelectContent>
           </Select>
-          <Select value={filters.validado} onValueChange={(value) => setFilters({ ...filters, validado: value as any })}>
+          <Select value={filters.validado} onValueChange={(value) => setFilters({ ...filters, validado: value as PropertyFiltersType['validado'] })}>
             <SelectTrigger className="h-8 text-xs gap-1 min-w-0">
               <span className="text-muted-foreground font-medium shrink-0">Validação:</span>
               <SelectValue />
