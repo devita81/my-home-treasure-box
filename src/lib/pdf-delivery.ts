@@ -60,8 +60,8 @@ export async function sharePreparedPdf(blob: Blob, fileName: string): Promise<Pd
   try {
     await navigator.share({ files: [pdfFile] });
     return 'shared';
-  } catch (error: any) {
-    if (error?.name === 'AbortError') {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.name === 'AbortError') {
       return 'cancelled';
     }
 
@@ -77,8 +77,8 @@ export async function deliverPdfBlob(blob: Blob, fileName: string): Promise<PdfD
     try {
       await navigator.share({ files: [pdfFile] });
       return 'shared';
-    } catch (error: any) {
-      if (error?.name === 'AbortError') {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'AbortError') {
         return 'cancelled';
       }
     }

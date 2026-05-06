@@ -149,9 +149,10 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
       }
 
       toast.success('Documento enviado com sucesso!');
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error uploading document:', error);
-      toast.error(error?.message || 'Erro ao enviar documento');
+      const message = error instanceof Error ? error.message : 'Erro ao enviar documento';
+      toast.error(message);
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
