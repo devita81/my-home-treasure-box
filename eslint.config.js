@@ -21,9 +21,11 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "@typescript-eslint/no-unused-vars": "off",
-      // Downgraded to 'warn' so we see remaining 'any' usages without blocking CI.
-      // Will tighten to 'error' once we type the legacy code incrementally.
-      "@typescript-eslint/no-explicit-any": "warn",
+      // Locked at 'error' — all 65 legacy 'any' usages have been typed
+      // properly across 8 incremental cleanup PRs. New 'any' will fail CI.
+      // Two narrow 'eslint-disable-next-line' suppressions remain in
+      // PropertyDetails.tsx for supabase types that need regeneration.
+      "@typescript-eslint/no-explicit-any": "error",
     },
   },
 );
