@@ -10,6 +10,19 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Shape of a row from the itbi_transactions table — fields actually
+// touched by this function. Kept loose because edge functions parse
+// raw rows from PostgREST without generated supabase types.
+interface ItbiRow {
+  descricao_uso_iptu?: string | null;
+  complemento?: string | null;
+  area_construida?: number | string | null;
+  data_transacao?: string | null;
+  valor_transacao?: number | string | null;
+  sql_iptu?: string | null;
+  numero?: string | null;
+}
+
 // === Heurísticas para classificação de tipo ===
 // Apartamento: complemento começa com AP / APTO / APT (mais sufixo numérico).
 const APARTMENT_RE = /^\s*(AP|APTO?|APART(AMENTO)?)\b/i;
@@ -44,7 +57,7 @@ function categoryFromComplemento(compl: string | null | undefined): string | nul
 }
 
 // Decide a categoria final combinando IPTU (prioridade) + complemento + área.
-function inferCategory(row: any): string | null {
+function inferCategory(row: ItbiRow): string | null {
   const fromIptu = categoryFromUsoIptu(row.descricao_uso_iptu);
   if (fromIptu) return fromIptu;
   const fromCompl = categoryFromComplemento(row.complemento);
@@ -169,7 +182,7 @@ serve(async (req) => {
         if (tipo === "terreno") return cat === "terreno";
         return true;
       };
-      rows = rows.filter((r: any) => {
+      rows = rows.filter((r: ItbiRow) => {
         const cat = inferCategory(r);
         const area = r.area_construida == null ? 0 : Number(r.area_construida);
         return tipos.some((t) => matchTipo(t, cat, area));
@@ -179,7 +192,7 @@ serve(async (req) => {
 
     // Deduplicação (ITBI registra comprador + vendedor)
     const seen = new Set<string>();
-    const dedup = rows.filter((r: any) => {
+    const dedup = rows.filter((r: ItbiRow) => {
       const key = `${r.data_transacao ?? ""}|${r.valor_transacao ?? ""}|${r.sql_iptu ?? ""}|${r.numero ?? ""}|${r.complemento ?? ""}`;
       if (seen.has(key)) return false;
       seen.add(key);
