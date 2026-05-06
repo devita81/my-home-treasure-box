@@ -9,22 +9,27 @@ import { deliverPdfBlob } from '@/lib/pdf-delivery';
 interface ExportColumn {
   key: string;
   label: string;
-  format?: (value: any, property: Property) => string;
+  // value is the raw column value pulled by `(property as Record<string, unknown>)[key]`
+  // — could be any of Property's field types. Format functions narrow as needed.
+  format?: (value: unknown, property: Property) => string;
 }
 
-const formatCurrency = (value: number) => {
+// Both formatters accept unknown so column 'format' callbacks can pass values
+// straight through without local casts. Number(value) || 0 handles
+// string/null/undefined/NaN gracefully.
+const formatCurrency = (value: unknown) => {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
     minimumFractionDigits: 2,
-  }).format(value || 0);
+  }).format(Number(value) || 0);
 };
 
-const formatMetragem = (value: number) => {
+const formatMetragem = (value: unknown) => {
   return new Intl.NumberFormat('pt-BR', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(value || 0) + ' m²';
+  }).format(Number(value) || 0) + ' m²';
 };
 
 const getPropertyAddress = (p: Property) => {
@@ -38,18 +43,22 @@ const getFullAddress = (p: Property) => {
   return `${getPropertyAddress(p)} - ${p.bairro}, ${p.cidade}/${p.estado}`;
 };
 
+// Stringify-or-dash helper for text cells (preserves '-' on falsy values
+// including 0, matching the original 'v || "-"' semantics).
+const orDash = (v: unknown): string => (v ? String(v) : '-');
+
 // Default columns for export
 const defaultColumns: ExportColumn[] = [
   { key: 'address', label: 'Endereço', format: (_, p) => getFullAddress(p) },
-  { key: 'tipo_imovel', label: 'Tipo', format: (v) => v || '-' },
+  { key: 'tipo_imovel', label: 'Tipo', format: orDash },
   { key: 'metragem', label: 'Metragem', format: (v) => formatMetragem(v) },
-  { key: 'numero_matricula', label: 'Nº Matrícula', format: (v) => v || '-' },
-  { key: 'numero_contribuinte', label: 'Nº Contribuinte', format: (v) => v || '-' },
-  { key: 'proprietario_papel', label: 'Prop. Papel', format: (v) => v || '-' },
-  { key: 'proprietario_matricula', label: 'Prop. Matrícula I', format: (v) => v || '-' },
+  { key: 'numero_matricula', label: 'Nº Matrícula', format: orDash },
+  { key: 'numero_contribuinte', label: 'Nº Contribuinte', format: orDash },
+  { key: 'proprietario_papel', label: 'Prop. Papel', format: orDash },
+  { key: 'proprietario_matricula', label: 'Prop. Matrícula I', format: orDash },
   { key: 'percentual_proprietario_matricula', label: '% Prop. I', format: (v) => v != null ? `${v}%` : '-' },
-  { key: 'proprietario_matricula_ii', label: 'Prop. Matrícula II', format: (v) => v || '-' },
-  { key: 'percentual_proprietario_matricula_ii', label: '% Prop. II', format: (v) => v != null && v > 0 ? `${v}%` : '-' },
+  { key: 'proprietario_matricula_ii', label: 'Prop. Matrícula II', format: orDash },
+  { key: 'percentual_proprietario_matricula_ii', label: '% Prop. II', format: (v) => v != null && Number(v) > 0 ? `${v}%` : '-' },
   { key: 'declared_value', label: 'Valor Declarado', format: (v) => formatCurrency(v) },
   { key: 'market_value', label: 'Valor de Mercado', format: (v) => formatCurrency(v) },
   { key: 'valor_aluguel', label: 'Aluguel', format: (v) => formatCurrency(v) },
@@ -62,7 +71,7 @@ const defaultColumns: ExportColumn[] = [
 // Simple columns for StatsOverview and MetragemStats
 const simpleColumns: ExportColumn[] = [
   { key: 'address', label: 'Endereço', format: (_, p) => getFullAddress(p) },
-  { key: 'tipo_imovel', label: 'Tipo', format: (v) => v || '-' },
+  { key: 'tipo_imovel', label: 'Tipo', format: orDash },
   { key: 'metragem', label: 'Metragem', format: (v) => formatMetragem(v) },
   { key: 'market_value', label: 'Valor de Mercado', format: (v) => formatCurrency(v) },
   { key: 'declared_value', label: 'Valor Declarado', format: (v) => formatCurrency(v) },
@@ -85,9 +94,9 @@ export function useExportData() {
       const data = properties.map(property => {
         const row: Record<string, string> = {};
         columns.forEach(col => {
-          const value = col.key === 'address' 
-            ? '' 
-            : (property as any)[col.key];
+          const value = col.key === 'address'
+            ? ''
+            : (property as unknown as Record<string, unknown>)[col.key];
           row[col.label] = col.format ? col.format(value, property) : String(value || '');
         });
         return row;
@@ -172,7 +181,7 @@ export function useExportData() {
       const head = [columns.map((c) => c.label)];
       const body = properties.map((property) =>
         columns.map((col) => {
-          const value = col.key === 'address' ? '' : (property as any)[col.key];
+          const value = col.key === 'address' ? '' : (property as unknown as Record<string, unknown>)[col.key];
           return col.format ? col.format(value, property) : String(value || '');
         })
       );

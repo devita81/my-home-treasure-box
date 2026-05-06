@@ -350,6 +350,7 @@ const PropertyDetails = () => {
     if (!id) return;
 
     const loadEstimate = async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase generated types miss the ai_* columns until regenerated via `supabase gen types typescript`
       const { data, error } = await (supabase as any)
         .from('properties')
         .select('ai_market_estimate, ai_venda_min, ai_venda_med, ai_venda_max, ai_aluguel_min, ai_aluguel_med, ai_aluguel_max')
@@ -457,6 +458,7 @@ const PropertyDetails = () => {
         });
 
         if (id) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase generated types miss the ai_* columns until regenerated via `supabase gen types typescript`
           const { error: updateError } = await (supabase as any)
             .from('properties')
             .update({
@@ -504,7 +506,7 @@ const PropertyDetails = () => {
           bairro: property.bairro,
           cidade: property.cidade,
           estado: property.estado,
-          cep: (property as any).cep,
+          cep: property.cep,
           declared_value: property.declared_value,
           market_value: property.market_value,
           tipo_imovel: property.tipo_imovel,
