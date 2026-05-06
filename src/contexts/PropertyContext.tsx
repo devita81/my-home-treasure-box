@@ -58,7 +58,7 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       
       setProperties(data as Property[]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error fetching properties:', error);
       toast.error('Erro ao carregar imóveis');
     } finally {
@@ -85,7 +85,7 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
 
       setProperties((prev) => [data as Property, ...prev]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error adding property:', error);
       throw error;
     }
@@ -108,7 +108,7 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
         const filtered = prev.filter((prop) => prop.id !== id);
         return [updated, ...filtered];
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error updating property:', error);
       throw error;
     }
@@ -124,7 +124,7 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
 
       setProperties((prev) => prev.filter((prop) => prop.id !== id));
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error deleting property:', error);
       throw error;
     }
@@ -164,7 +164,7 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
       setProperties((prev) => [data as Property, ...prev]);
       toast.success('Imóvel duplicado com sucesso!');
       return data.id;
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error duplicating property:', error);
       toast.error('Erro ao duplicar imóvel');
       return null;

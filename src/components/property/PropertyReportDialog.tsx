@@ -15,6 +15,15 @@ import autoTable from 'jspdf-autotable';
 import * as pdfjsLib from 'pdfjs-dist';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
+// jspdf-autotable adds 'lastAutoTable' to the jsPDF instance at runtime
+// but the type augmentation isn't always picked up — declare it here so
+// 'doc.lastAutoTable.finalY' is properly typed instead of needing 'as any'.
+declare module 'jspdf' {
+  interface jsPDF {
+    lastAutoTable: { finalY: number };
+  }
+}
+
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
 
 interface PropertyReportDialogProps {
@@ -186,7 +195,7 @@ async function appendPdfPagesToReport(doc: jsPDF, pdfBuffer: ArrayBuffer, label:
       canvas.height = viewport.height;
       const ctx = canvas.getContext('2d');
       if (!ctx) continue;
-      await page.render({ canvas, canvasContext: ctx, viewport } as any).promise;
+      await page.render({ canvas, canvasContext: ctx, viewport }).promise;
       const imgData = canvas.toDataURL('image/jpeg', 0.85);
 
       doc.addPage();
@@ -334,7 +343,7 @@ async function generatePropertyPDF(property: Property): Promise<jsPDF> {
     head: [['Característica', 'Valor']],
     body: charData,
   });
-  yPos = (doc as any).lastAutoTable.finalY + 8;
+  yPos = doc.lastAutoTable.finalY + 8;
 
   // --- FINANCIAL TABLE (IPTU + Condomínio only) ---
   const finData: string[][] = [];
@@ -364,7 +373,7 @@ async function generatePropertyPDF(property: Property): Promise<jsPDF> {
       head: [['Item', 'Valor']],
       body: finData,
     });
-    yPos = (doc as any).lastAutoTable.finalY + 8;
+    yPos = doc.lastAutoTable.finalY + 8;
   }
 
   // --- OWNERSHIP TABLE ---
@@ -722,7 +731,7 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
       toast.success(`Relatório enviado para ${email}!`);
       setEmail('');
       onOpenChange(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       logger.error('Email send error:', err);
       toast.error('Erro ao enviar email.');
     } finally {
