@@ -377,7 +377,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                 <Label htmlFor="valor_aluguel">Valor Aluguel</Label>
                 <CurrencyInput
                   id="valor_aluguel"
-                  value={formData.valor_aluguel}
+                  value={formData.valor_aluguel ?? null}
                   onChange={(v) => handleChange('valor_aluguel', v ?? 0)}
                 />
               </div>
@@ -385,7 +385,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                 <Label htmlFor="valor_condominio">Valor Condomínio</Label>
                 <CurrencyInput
                   id="valor_condominio"
-                  value={formData.valor_condominio}
+                  value={formData.valor_condominio ?? null}
                   onChange={(v) => handleChange('valor_condominio', v ?? 0)}
                 />
               </div>
@@ -393,7 +393,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                 <Label htmlFor="taxa_administracao">Taxa de Administração</Label>
                 <CurrencyInput
                   id="taxa_administracao"
-                  value={formData.taxa_administracao}
+                  value={formData.taxa_administracao ?? null}
                   onChange={(v) => handleChange('taxa_administracao', v)}
                   allowNull
                 />
