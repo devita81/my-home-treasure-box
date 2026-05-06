@@ -2,7 +2,7 @@ import * as React from 'npm:react@18.3.1'
 import {
   Body, Container, Head, Heading, Html, Preview, Text, Section, Img, Hr, Button,
 } from 'npm:@react-email/components@0.0.22'
-import type { TemplateEntry } from './registry.ts'
+import type { TemplateEntry, TemplateData } from './registry.ts'
 
 const SITE_NAME = "DVHome"
 
@@ -135,8 +135,14 @@ const PropertyReportEmail = (props: PropertyReportProps) => {
 }
 
 export const template = {
-  component: PropertyReportEmail,
-  subject: (data: Record<string, any>) => `Relatório do Imóvel — ${data.address || 'Imóvel'}`,
+  // Cast required because ComponentType is contravariant in props: a component
+  // taking specific PropertyReportProps is not directly assignable to one taking
+  // generic TemplateData. The registry deliberately erases per-template props.
+  component: PropertyReportEmail as unknown as React.ComponentType<TemplateData>,
+  subject: (data: TemplateData) => {
+    const address = typeof data.address === 'string' ? data.address : 'Imóvel'
+    return `Relatório do Imóvel — ${address}`
+  },
   displayName: 'Relatório de Imóvel',
   previewData: {
     address: 'Rua das Flores, 123',
