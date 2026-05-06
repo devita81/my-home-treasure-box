@@ -226,7 +226,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
 
           <div
             className={compact ? 'flex-1 p-2 flex flex-col cursor-pointer sm:cursor-default' : 'flex-1 p-3 flex flex-col cursor-pointer sm:cursor-default'}
-            onClick={(e) => {
+            onClick={() => {
               // Only navigate on mobile (below sm breakpoint - 640px)
               if (typeof window !== 'undefined' && window.innerWidth < 640) {
                 handleCardClick();

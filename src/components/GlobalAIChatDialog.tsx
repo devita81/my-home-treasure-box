@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sparkles, Send, Loader2, Bot, User } from 'lucide-react';
+import { Sparkles, Send, Loader2, User } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useProperties } from '@/contexts/PropertyContext';
@@ -347,7 +347,7 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm]}
                           components={{
-                            table: ({ node, children }) => (
+                            table: ({ children }) => (
                               <ResponsiveTable>{children}</ResponsiveTable>
                             ),
                             thead: ({ node, ...props }) => (

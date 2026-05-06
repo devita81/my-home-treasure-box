@@ -1,5 +1,4 @@
 import { useProperties } from '@/contexts/PropertyContext';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   Dialog,
@@ -15,16 +14,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import {
-  ResizableTable,
-  ResizableTableBody,
-  ResizableTableCell,
-  ResizableTableHead,
-  ResizableTableHeader,
-  ResizableTableRow,
-} from '@/components/ui/resizable-table';
 import { ExportButtons } from '@/components/ui/export-buttons';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useExportData } from '@/hooks/useExportData';
 import {
   Select,
@@ -33,13 +23,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
-  TrendingUp, 
-  Home, 
-  DollarSign,
+import {
+  Home,
   FileCheck,
   CheckCircle2,
-  XCircle,
   Users,
   Building2,
   ChevronUp,
@@ -199,7 +186,6 @@ const Analytics = () => {
 
   // ==================== ALUGUEL & CONDOMINIO STATS ====================
   const alugadosProperties = properties.filter(p => p.alugado);
-  const naoAlugadosProperties = properties.filter(p => !p.alugado);
   const totalAluguelRecebido = alugadosProperties.reduce((acc, p) => acc + (p.valor_aluguel || 0), 0);
   const totalCondominio = properties.reduce((acc, p) => acc + (p.valor_condominio || 0), 0);
   const alugadosCount = alugadosProperties.length;
@@ -292,15 +278,6 @@ const Analytics = () => {
       case 'declared_value': return p.declared_value || 0;
       case 'valor_aluguel': return p.valor_aluguel || 0;
       default: return 0;
-    }
-  };
-
-  const getDistributionMetricLabel = () => {
-    switch (distributionMetric) {
-      case 'market_value': return 'Valor Mercado';
-      case 'declared_value': return 'Valor Declarado';
-      case 'valor_aluguel': return 'Aluguel';
-      default: return 'Valor';
     }
   };
 

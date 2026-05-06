@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import { Property, PropertyFormData, PropertyFilters } from '@/types/property';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';

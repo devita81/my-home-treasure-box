@@ -166,11 +166,6 @@ export function PropertyMapImage({
   const streetViewEmbedUrl = `https://www.google.com/maps?q=${encodedAddress}&layer=c&cbll=&cbp=&output=embed`;
   const mapEmbedUrl = `https://www.google.com/maps?q=${encodedAddress}&output=embed&z=17`;
   
-  // Google Maps link for navigation
-  const googleMapsUrl = hasCustomLocation 
-    ? `https://www.google.com/maps?q=${latitude},${longitude}` 
-    : `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-
   const handleOpenMap = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
