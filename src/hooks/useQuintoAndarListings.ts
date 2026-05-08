@@ -15,12 +15,21 @@ export interface QuintoAndarListing {
   imageUrl?: string;
 }
 
+export type QuintoAndarPrecision = "building" | "street" | "neighbourhood";
+
 export interface QuintoAndarListingsResponse {
   searchUrl: string;
   listings: QuintoAndarListing[];
   fetchedAt: string;
   filteredByRua?: boolean;
   totalAvailable?: number;
+  /**
+   * How precisely we could filter:
+   *   - "building": viewport bounding box around lat/lng (~35m) — best
+   *   - "street": post-fetch street-name match (rua filled, no lat/lng)
+   *   - "neighbourhood": just bairro slug (no lat/lng, no rua)
+   */
+  precision?: QuintoAndarPrecision;
 }
 
 type SearchType = "venda" | "aluguel";

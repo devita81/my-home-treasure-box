@@ -1,10 +1,14 @@
 import { useState } from "react";
-import { ExternalLink, Bed, Bath, Ruler, Search, AlertCircle } from "lucide-react";
+import { ExternalLink, Bed, Bath, Ruler, Search, AlertCircle, Building, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useQuintoAndarListings, type QuintoAndarListing } from "@/hooks/useQuintoAndarListings";
+import {
+  useQuintoAndarListings,
+  type QuintoAndarListing,
+  type QuintoAndarPrecision,
+} from "@/hooks/useQuintoAndarListings";
 import type { Property } from "@/types/property";
 
 interface QuintoAndarListingsProps {
@@ -102,10 +106,14 @@ function ListingsGrid({
   const query = useQuintoAndarListings(property, type, enabled);
 
   if (!enabled) {
+    const hasCoords =
+      typeof property.latitude === "number" && typeof property.longitude === "number";
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
         <p className="max-w-md text-sm text-muted-foreground">
-          {property.rua
+          {hasCoords
+            ? "Buscar anúncios ativos no seu prédio no QuintoAndar."
+            : property.rua
             ? `Buscar anúncios ativos na ${property.rua} no QuintoAndar.`
             : "Buscar anúncios similares no QuintoAndar baseado no bairro, tipo e número de quartos."}
         </p>
@@ -153,11 +161,13 @@ function ListingsGrid({
 
   const data = query.data;
   if (!data || data.listings.length === 0) {
-    const filteredByRua = data?.filteredByRua;
+    const precision = data?.precision;
     return (
       <div className="flex flex-col items-center gap-2 py-8 text-center">
         <p className="max-w-md text-sm text-muted-foreground">
-          {filteredByRua && property.rua
+          {precision === "building"
+            ? "Nenhum anúncio ativo no seu prédio neste momento."
+            : precision === "street" && property.rua
             ? `Nenhum anúncio ativo na ${property.rua} no momento.`
             : "Nenhum anúncio encontrado para esses critérios."}
         </p>
@@ -168,7 +178,7 @@ function ListingsGrid({
             rel="noopener noreferrer"
             className="text-sm text-primary underline-offset-4 hover:underline"
           >
-            {filteredByRua
+            {precision === "building" || precision === "street"
               ? `Ver anúncios no bairro ${property.bairro || ""} →`
               : "Ver no QuintoAndar →"}
           </a>
@@ -179,6 +189,7 @@ function ListingsGrid({
 
   return (
     <div className="space-y-3">
+      <PrecisionBadge precision={data.precision} property={property} />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {data.listings.map((listing) => (
           <ListingCard key={listing.url} listing={listing} />
@@ -195,6 +206,43 @@ function ListingsGrid({
           <ExternalLink className="h-3 w-3" />
         </a>
       </p>
+    </div>
+  );
+}
+
+// Small chip explaining how the listings were filtered. Helps the user
+// understand why some queries are very precise (own building, lat/lng
+// available) while others fall back to bairro-level matches.
+function PrecisionBadge({
+  precision,
+  property,
+}: {
+  precision: QuintoAndarPrecision | undefined;
+  property: QuintoAndarListingsProps["property"];
+}) {
+  if (!precision) return null;
+  const config = {
+    building: {
+      icon: Building,
+      label: "No seu prédio (raio ~35m do endereço)",
+      tone: "text-emerald-700 dark:text-emerald-400",
+    },
+    street: {
+      icon: MapPin,
+      label: property.rua ? `Na ${property.rua}` : "Na sua rua",
+      tone: "text-sky-700 dark:text-sky-400",
+    },
+    neighbourhood: {
+      icon: MapPin,
+      label: property.bairro ? `No bairro ${property.bairro}` : "No bairro",
+      tone: "text-muted-foreground",
+    },
+  } as const;
+  const { icon: Icon, label, tone } = config[precision];
+  return (
+    <div className={`flex items-center gap-1.5 text-xs ${tone}`}>
+      <Icon className="h-3.5 w-3.5" />
+      <span>{label}</span>
     </div>
   );
 }

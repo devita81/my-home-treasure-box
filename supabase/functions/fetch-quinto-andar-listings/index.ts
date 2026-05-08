@@ -5,17 +5,28 @@
 // quintoandar.com.br — it's a public POST endpoint with no auth header
 // (only a tracking userId, which we generate). It returns structured JSON
 // with all the fields we need (id, address, area, bedrooms, salePrice,
-// imageList, etc.) and supports geo-based relevance ranking via
-// `filters.location.coordinate`.
+// imageList, etc.) and supports a *viewport* (bounding box) filter that
+// we use for building-level precision.
 //
-// Earlier versions of this function scraped the public HTML and parsed
-// JSON-LD <script> blocks. The API approach is faster, more robust to
-// markup changes, and gives us richer fields (suites, parking, yield,
-// IPTU+condomínio, full image list).
+// Strategy:
+//   - When the property has lat/lng (most do — `geocode` edge function
+//     fills them on save), we send `filters.location.viewport` with a
+//     ~35m bounding box around the point. Empirically this isolates
+//     the user's specific building (8 listings → all condoId=24919 in
+//     our test on Marc Chagall, 397).
+//   - When lat/lng is missing, we fall back to bairro-level search
+//     and post-filter by street name client-side.
 //
-// Listing-level filtering by `rua` (street name) is still applied
-// post-fetch because QuintoAndar does not expose a server-side street
-// filter and their DB does not store building numbers.
+// Field formats discovered:
+//   - viewport: { north, south, east, west }   ← compass directions, not NE/SW
+//   - listing.coverImage prefix: strip "original" before building CDN URL
+//   - CDN URL: https://www.quintoandar.com.br/img/med/<filename>
+//   - listing page URL: https://www.quintoandar.com.br/imovel/<id>
+//   - bedrooms filter: filters.houseSpecs.bedrooms.range = { min, max }
+//
+// Earlier iterations: HTML scraping (JSON-LD) → API with `coordinate`
+// (only ranking, not filtering) → API with `viewport` (server-side filter,
+// current).
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -141,6 +152,28 @@ interface QaResponse {
   };
 }
 
+// Default radius (meters) for the viewport bounding box. Empirically 35m
+// isolates a single building in São Paulo (typical lot frontage 30-50m,
+// geocoder centers near building face). Larger values bleed into
+// neighbouring buildings; smaller values may miss the building if the
+// geocoded point is slightly off-center.
+const DEFAULT_RADIUS_METERS = 35;
+
+// Convert meters into degrees of latitude/longitude. 1° lat ≈ 111 km
+// everywhere; 1° lng ≈ 111 km × cos(lat). We use São Paulo's average
+// (cos(-23.5°) ≈ 0.917) which is good enough for ±10% accuracy
+// anywhere in Brazil's populated belt.
+function metersToBoundingBox(lat: number, lng: number, radiusMeters: number) {
+  const deltaLat = radiusMeters / 111_000;
+  const deltaLng = radiusMeters / (111_000 * Math.cos((lat * Math.PI) / 180));
+  return {
+    north: lat + deltaLat,
+    south: lat - deltaLat,
+    east: lng + deltaLng,
+    west: lng - deltaLng,
+  };
+}
+
 // Build the POST body for QuintoAndar's search API. Mirrors the structure
 // observed in their web client's network panel.
 function buildSearchPayload(input: PropertyInput, type: SearchType, pageSize: number) {
@@ -152,10 +185,20 @@ function buildSearchPayload(input: PropertyInput, type: SearchType, pageSize: nu
       ? { range: { min: input.quartos, max: input.quartos } }
       : { range: {} };
 
-  const location =
-    typeof input.latitude === "number" && typeof input.longitude === "number"
-      ? { coordinate: { lat: input.latitude, lng: input.longitude } }
-      : {};
+  // Use viewport bounding box for building-level filtering when we have
+  // coordinates. The API treats this as a hard server-side filter (vs
+  // `coordinate` which only affects relevance ranking).
+  const hasCoords =
+    typeof input.latitude === "number" && typeof input.longitude === "number";
+  const location = hasCoords
+    ? {
+        viewport: metersToBoundingBox(
+          input.latitude!,
+          input.longitude!,
+          DEFAULT_RADIUS_METERS,
+        ),
+      }
+    : {};
 
   return {
     slug,
@@ -187,7 +230,11 @@ function buildSearchPayload(input: PropertyInput, type: SearchType, pageSize: nu
       blocklist: [],
       businessContext,
       categories: [],
-      enableFlexibleSearch: true,
+      // When viewport is set, disable flexible search so QA doesn't return
+      // listings outside our bounding box. Without viewport, flexible
+      // search broadens results to neighbouring areas (helpful at the
+      // bairro level).
+      enableFlexibleSearch: !hasCoords,
       excludedSpecialConditions: [],
       houseSpecs: {
         amenities: [],
@@ -249,14 +296,24 @@ function mapHitToListing(hit: QaHit, type: SearchType): Listing | null {
   };
 }
 
+type Precision = "building" | "street" | "neighbourhood";
+
 async function fetchListings(input: PropertyInput, type: SearchType): Promise<{
   listings: Listing[];
   totalAvailable: number;
+  precision: Precision;
 }> {
-  const filteringByRua = Boolean(input.rua && input.rua.trim());
-  // When we'll filter by rua client-side, ask for more raw results so we
-  // have enough matches. Otherwise 12 is plenty.
-  const pageSize = filteringByRua ? 100 : 12;
+  const hasCoords =
+    typeof input.latitude === "number" && typeof input.longitude === "number";
+  const filteringByRua = !hasCoords && Boolean(input.rua && input.rua.trim());
+
+  // Page size depends on filter mode:
+  //   - viewport (building-level): API already returns ~10 listings max
+  //     in the box, so 30 is enough headroom.
+  //   - rua filter client-side: scrape up to 100 raw results so we have
+  //     enough matches after filtering.
+  //   - bairro fallback: 12 is plenty.
+  const pageSize = hasCoords ? 30 : filteringByRua ? 100 : 12;
 
   const payload = buildSearchPayload(input, type, pageSize);
 
@@ -289,7 +346,13 @@ async function fetchListings(input: PropertyInput, type: SearchType): Promise<{
     listings = listings.filter((l) => matchesStreet(l.address?.split(",")[0], input.rua!));
   }
 
-  return { listings: listings.slice(0, 12), totalAvailable };
+  const precision: Precision = hasCoords
+    ? "building"
+    : filteringByRua
+    ? "street"
+    : "neighbourhood";
+
+  return { listings: listings.slice(0, 12), totalAvailable, precision };
 }
 
 serve(async (req) => {
@@ -365,15 +428,16 @@ serve(async (req) => {
       longitude,
     };
 
-    const { listings, totalAvailable } = await fetchListings(input, type);
+    const { listings, totalAvailable, precision } = await fetchListings(input, type);
 
     return new Response(
       JSON.stringify({
         searchUrl: buildPublicSearchUrl(input, type),
         listings,
         fetchedAt: new Date().toISOString(),
-        filteredByRua: Boolean(rua && typeof rua === "string" && rua.trim()),
+        filteredByRua: precision === "street",
         totalAvailable,
+        precision,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
