@@ -42,7 +42,10 @@ type QuintoAndarPropertyInput = Pick<
   | "quartos"
   | "latitude"
   | "longitude"
->;
+> & {
+  /** AI-resolved provider-specific location (cached on the row). */
+  resolved_location?: unknown;
+};
 
 /**
  * Fetches QuintoAndar listings similar to a property by calling the

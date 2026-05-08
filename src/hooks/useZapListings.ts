@@ -50,7 +50,10 @@ type ZapPropertyInput = Pick<
   | "quartos"
   | "latitude"
   | "longitude"
->;
+> & {
+  /** AI-resolved provider-specific location (cached on the row). */
+  resolved_location?: unknown;
+};
 
 /**
  * Fetches ZAP Imóveis listings similar to a property by calling the
