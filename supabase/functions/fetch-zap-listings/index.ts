@@ -1,5 +1,6 @@
 // fetch-zap-listings: searches ZAP Imóveis for listings near a property.
 // Calls ZAP's internal Glue API at glue-api.zapimoveis.com.br/v2/listings.
+// Deployment marker: v1 (geocoding + persist coords + cloudflare fallback).
 //
 // Three precision tiers, picked automatically:
 //   1. street         — filters by `addressStreet` server-side (best, when rua is filled)

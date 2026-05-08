@@ -1,6 +1,7 @@
 // fetch-quinto-andar-listings: searches QuintoAndar for listings near a
 // property. Calls QA's internal POST endpoint at
 // apigw.prod.quintoandar.com.br/house-listing-search/v2/search/list.
+// Deployment marker: v2 (geocoding + viewport + persist coords).
 //
 // Three precision tiers, picked automatically:
 //   1. building       — viewport bounding box ~35m around lat/lng (best)
