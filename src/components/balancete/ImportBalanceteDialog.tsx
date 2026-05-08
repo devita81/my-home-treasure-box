@@ -243,7 +243,7 @@ export function ImportBalanceteDialog({ onImported }: Props) {
                   renderItem={(b) => (
                     <>
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-mono text-[10px] text-muted-foreground">
+                        <span className="font-mono text-[12px] text-muted-foreground">
                           {String(b.mes).padStart(2, '0')}/{b.ano}
                           {b.external_id ? ` · ${b.external_id}` : ''}
                         </span>
@@ -295,7 +295,7 @@ function SummaryStat({
 }) {
   return (
     <div className="bg-card border rounded-md px-3 py-2">
-      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+      <div className="text-[12px] uppercase tracking-wide text-muted-foreground">
         {label}
       </div>
       <div
@@ -409,7 +409,7 @@ function IssueList<T>({
           {title}
         </h3>
         <div className="flex items-center gap-1.5">
-          <Badge variant="outline" className="text-[10px]">
+          <Badge variant="outline" className="text-[12px]">
             {total}
           </Badge>
           {total > 0 && (
@@ -426,7 +426,7 @@ function IssueList<T>({
                 ) : (
                   <Copy className="h-3 w-3" />
                 )}
-                <span className="text-[10px]">{copied ? 'Copiado!' : 'Copiar'}</span>
+                <span className="text-[12px]">{copied ? 'Copiado!' : 'Copiar'}</span>
               </Button>
               <Button
                 size="sm"
@@ -436,7 +436,7 @@ function IssueList<T>({
                 title="Baixar CSV"
               >
                 <Download className="h-3 w-3" />
-                <span className="text-[10px]">CSV</span>
+                <span className="text-[12px]">CSV</span>
               </Button>
             </>
           )}

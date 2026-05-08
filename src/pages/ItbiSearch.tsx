@@ -395,11 +395,11 @@ export default function ItbiSearch() {
         {/* Resumo */}
         {stats && (
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            <Card><CardContent className="p-3"><div className="text-[10px] text-muted-foreground uppercase">Transações</div><div className="text-base font-semibold">{stats.count}</div></CardContent></Card>
-            <Card><CardContent className="p-3"><div className="text-[10px] text-muted-foreground uppercase">Mediana</div><div className="text-sm font-semibold tabular-nums">{fmtBRL(stats.mediana)}</div></CardContent></Card>
-            <Card><CardContent className="p-3"><div className="text-[10px] text-muted-foreground uppercase">Média</div><div className="text-sm font-semibold tabular-nums">{fmtBRL(stats.media)}</div></CardContent></Card>
-            <Card><CardContent className="p-3"><div className="text-[10px] text-muted-foreground uppercase">Mínimo</div><div className="text-sm font-semibold tabular-nums">{fmtBRL(stats.min)}</div></CardContent></Card>
-            <Card><CardContent className="p-3"><div className="text-[10px] text-muted-foreground uppercase">Máximo</div><div className="text-sm font-semibold tabular-nums">{fmtBRL(stats.max)}</div></CardContent></Card>
+            <Card><CardContent className="p-3"><div className="text-[12px] text-muted-foreground uppercase">Transações</div><div className="text-base font-semibold">{stats.count}</div></CardContent></Card>
+            <Card><CardContent className="p-3"><div className="text-[12px] text-muted-foreground uppercase">Mediana</div><div className="text-sm font-semibold tabular-nums">{fmtBRL(stats.mediana)}</div></CardContent></Card>
+            <Card><CardContent className="p-3"><div className="text-[12px] text-muted-foreground uppercase">Média</div><div className="text-sm font-semibold tabular-nums">{fmtBRL(stats.media)}</div></CardContent></Card>
+            <Card><CardContent className="p-3"><div className="text-[12px] text-muted-foreground uppercase">Mínimo</div><div className="text-sm font-semibold tabular-nums">{fmtBRL(stats.min)}</div></CardContent></Card>
+            <Card><CardContent className="p-3"><div className="text-[12px] text-muted-foreground uppercase">Máximo</div><div className="text-sm font-semibold tabular-nums">{fmtBRL(stats.max)}</div></CardContent></Card>
           </div>
         )}
 
@@ -479,11 +479,11 @@ export default function ItbiSearch() {
                       {r.bairro && <div className="text-muted-foreground">{r.bairro}</div>}
                       <div className="flex justify-between pt-1 border-t border-border/50">
                         <div>
-                          <div className="text-[10px] text-muted-foreground">Transação</div>
+                          <div className="text-[12px] text-muted-foreground">Transação</div>
                           <div className="font-semibold tabular-nums">{fmtBRL(r.valor_transacao)}</div>
                         </div>
                         <div className="text-right">
-                          <div className="text-[10px] text-muted-foreground">Venal</div>
+                          <div className="text-[12px] text-muted-foreground">Venal</div>
                           <div className="tabular-nums">{fmtBRL(r.valor_venal)}</div>
                         </div>
                       </div>

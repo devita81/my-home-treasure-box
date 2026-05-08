@@ -142,9 +142,9 @@ export function CustosReceitasStats() {
                     >
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="text-[11px] font-medium capitalize">{tipoLabels[g.tipo] || g.tipo}</span>
-                        <span className="text-[10px] text-muted-foreground font-mono">{g.count} {g.count === 1 ? 'imóvel' : 'imóveis'}</span>
+                        <span className="text-[12px] text-muted-foreground font-mono">{g.count} {g.count === 1 ? 'imóvel' : 'imóveis'}</span>
                       </div>
-                      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[12px]">
                         <span className="text-muted-foreground">Aluguel</span>
                         <span className="text-right font-medium tabular-nums">{fmt(g.aluguel)}</span>
                         <span className="text-muted-foreground">Condomínio</span>
@@ -163,9 +163,9 @@ export function CustosReceitasStats() {
               <div className="rounded-lg border-2 border-blue-300 bg-blue-50 px-3 py-2 shadow-sm">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[11px] font-bold text-blue-900">Subtotal</span>
-                  <span className="text-[10px] font-mono text-blue-700">{totals.count} imóveis</span>
+                  <span className="text-[12px] font-mono text-blue-700">{totals.count} imóveis</span>
                 </div>
-                <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] text-blue-900">
+                <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[12px] text-blue-900">
                   <span>Aluguel</span><span className="text-right font-medium tabular-nums">{fmt(totals.aluguel)}</span>
                   <span>Condomínio</span><span className="text-right font-medium tabular-nums">{fmt(totals.condominio)}</span>
                   <span>IPTU/mês</span><span className="text-right font-medium tabular-nums">{fmt(totals.iptuMes)}</span>
@@ -184,14 +184,14 @@ export function CustosReceitasStats() {
             <table className="w-full text-xs sm:text-sm min-w-[760px]">
               <thead>
                 <tr className="border-b bg-muted/50">
-                  <th className="text-left px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Cidade</th>
-                  <th className="text-left px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Tipo</th>
-                  <th className="text-right px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Qtd</th>
-                  <th className="text-right px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Aluguel/mês</th>
-                  <th className="text-right px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Condomínio/mês</th>
-                  <th className="text-right px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">IPTU/mês</th>
-                  <th className="text-right px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Taxa Adm/mês</th>
-                  <th className="text-right px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Líquido/mês</th>
+                  <th className="text-left px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Cidade</th>
+                  <th className="text-left px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Tipo</th>
+                  <th className="text-right px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Qtd</th>
+                  <th className="text-right px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Aluguel/mês</th>
+                  <th className="text-right px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Condomínio/mês</th>
+                  <th className="text-right px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">IPTU/mês</th>
+                  <th className="text-right px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Taxa Adm/mês</th>
+                  <th className="text-right px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Líquido/mês</th>
                 </tr>
               </thead>
               <tbody>
@@ -326,17 +326,17 @@ export function CustosReceitasStats() {
                             <p className="text-[12px] font-semibold text-slate-900 truncate" title={address}>
                               {address}
                             </p>
-                            <p className="text-[10px] text-slate-500 truncate">
+                            <p className="text-[12px] text-slate-500 truncate">
                               {tipoLabel} • {p.cidade} - {p.estado}
                             </p>
                           </div>
                           {p.alugado ? (
-                            <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
+                            <span className="shrink-0 text-[11px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
                           ) : (
-                            <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Vago</span>
+                            <span className="shrink-0 text-[11px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Vago</span>
                           )}
                         </div>
-                        <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] font-mono tabular-nums text-slate-700">
+                        <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[12px] font-mono tabular-nums text-slate-700">
                           <div className="flex justify-between"><span className="text-slate-500">Mercado</span><span className="font-semibold text-slate-900">{fmt(p.market_value || 0)}</span></div>
                           <div className="flex justify-between"><span className="text-slate-500">Declar.</span><span>{fmt(p.declared_value)}</span></div>
                           <div className="flex justify-between"><span className="text-slate-500">Aluguel</span><span>{fmt(p.valor_aluguel || 0)}</span></div>
@@ -345,7 +345,7 @@ export function CustosReceitasStats() {
                           <div />
                         </div>
                         {(p.numero_matricula || p.proprietario_matricula) && (
-                          <div className="mt-1.5 pt-1.5 border-t border-slate-100 text-[9px] text-slate-500 truncate">
+                          <div className="mt-1.5 pt-1.5 border-t border-slate-100 text-[11px] text-slate-500 truncate">
                             {p.numero_matricula && <span className="font-mono">Matr. {p.numero_matricula}</span>}
                             {p.numero_matricula && p.proprietario_matricula && <span> • </span>}
                             {p.proprietario_matricula && <span className="truncate">{p.proprietario_matricula}</span>}
@@ -365,12 +365,12 @@ export function CustosReceitasStats() {
               <table className="w-full text-xs sm:text-sm min-w-[680px]">
                 <thead>
                   <tr className="border-b bg-muted/50">
-                    <th className="text-left px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Endereço</th>
-                    <th className="text-right px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Aluguel</th>
-                    <th className="text-right px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Condomínio</th>
-                    <th className="text-right px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">IPTU/mês</th>
-                    <th className="text-right px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Taxa Adm</th>
-                    <th className="text-right px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Líquido</th>
+                    <th className="text-left px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Endereço</th>
+                    <th className="text-right px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Aluguel</th>
+                    <th className="text-right px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Condomínio</th>
+                    <th className="text-right px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">IPTU/mês</th>
+                    <th className="text-right px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Taxa Adm</th>
+                    <th className="text-right px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Líquido</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -391,7 +391,7 @@ export function CustosReceitasStats() {
                             <p className="font-medium text-xs sm:text-sm text-foreground">
                               {p.rua}{p.numero ? `, ${p.numero}` : ''}{p.apartamento ? ` – Ap ${p.apartamento}` : ''}
                             </p>
-                            <p className="text-[10px] sm:text-xs text-muted-foreground">{p.bairro}, {p.cidade}</p>
+                            <p className="text-[12px] sm:text-xs text-muted-foreground">{p.bairro}, {p.cidade}</p>
                           </Link>
                         </td>
                         <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-medium whitespace-nowrap">{fmtFull(aluguel)}</td>

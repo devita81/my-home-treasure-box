@@ -220,7 +220,7 @@ const ResponsiveTable = ({ children }: { children: ReactNode }) => {
                 if (!value || value === '-') return null;
                 return (
                   <div key={j} className="flex gap-2 py-0.5 border-b border-border/40 last:border-0">
-                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide shrink-0 w-[35%]">
+                    <span className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wide shrink-0 w-[35%]">
                       {label}
                     </span>
                     <span className="text-[11px] text-foreground/90 flex-1 break-words">
@@ -325,7 +325,7 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
             </div>
             <span className="truncate">Assistente IA — Imóveis</span>
           </DialogTitle>
-          <p className="text-[10px] sm:text-[11px] text-muted-foreground">
+          <p className="text-[12px] sm:text-[11px] text-muted-foreground">
             Pergunte sobre seus imóveis, valores, rentabilidade...
           </p>
         </DialogHeader>
