@@ -104,7 +104,7 @@ export function MapPinPicker({ latitude, longitude, onCoordsChange, address }: M
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-1.5">
           <MapPin className="h-3.5 w-3.5 text-primary" />
-          <span className="text-xs font-medium">Ajustar Pin no Mapa</span>
+          <span className="text-sm font-medium">Ajustar Pin no Mapa</span>
         </div>
         {address && (
           <Button
@@ -113,7 +113,7 @@ export function MapPinPicker({ latitude, longitude, onCoordsChange, address }: M
             size="sm"
             onClick={geocodeAddress}
             disabled={isGeocoding}
-            className="h-7 w-full text-xs sm:w-auto"
+            className="h-7 w-full text-sm sm:w-auto"
           >
             <RotateCcw className={`h-3 w-3 mr-1 ${isGeocoding ? 'animate-spin' : ''}`} />
             Buscar endereço
@@ -124,7 +124,7 @@ export function MapPinPicker({ latitude, longitude, onCoordsChange, address }: M
         ref={mapRef}
         className="h-[250px] w-full rounded-lg border border-border overflow-hidden"
       />
-      <p className="text-[12px] text-muted-foreground">
+      <p className="text-[13px] text-muted-foreground">
         Clique no mapa ou arraste o pin para ajustar a localização.
         {latitude != null && longitude != null && (
           <span className="ml-1 font-mono">

@@ -136,7 +136,7 @@ export function PropertyCardMap({
       <div className={`flex h-full w-full items-center justify-center bg-muted ${className}`} aria-label={title}>
         <div className="flex items-center gap-2 text-muted-foreground">
           <MapPin className="h-4 w-4 text-primary" />
-          <span className="text-xs font-medium">Carregando mapa</span>
+          <span className="text-sm font-medium">Carregando mapa</span>
         </div>
       </div>
     );

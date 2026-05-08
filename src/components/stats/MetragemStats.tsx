@@ -156,7 +156,7 @@ export function MetragemStats() {
     <Button
       variant="ghost"
       size="sm"
-      className="h-auto p-1 text-xs font-medium"
+      className="h-auto p-1 text-sm font-medium"
       onClick={() => toggleSort(field)}
     >
       {label}
@@ -173,7 +173,7 @@ export function MetragemStats() {
           <h3 className="text-sm font-semibold text-foreground tracking-tight">Visão de Metragem</h3>
         </div>
         <div className="flex items-center gap-1.5 text-muted-foreground group-hover:text-foreground transition-colors">
-          <span className="text-xs font-medium">{expanded ? 'Recolher' : 'Expandir'}</span>
+          <span className="text-sm font-medium">{expanded ? 'Recolher' : 'Expandir'}</span>
           {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </div>
       </CollapsibleTrigger>
@@ -185,7 +185,7 @@ export function MetragemStats() {
         {groupedByCidade.map(({ cidade, items }) => (
           <div key={cidade} className="rounded-lg border bg-card overflow-hidden">
             <div className="px-3 py-1.5 bg-muted/50 border-b">
-              <p className="text-[11px] font-semibold text-foreground">{cidade}</p>
+              <p className="text-[12px] font-semibold text-foreground">{cidade}</p>
             </div>
             {items.map((group) => (
               <div
@@ -194,14 +194,14 @@ export function MetragemStats() {
                 className="px-3 py-2 border-b last:border-b-0 cursor-pointer active:bg-muted/30"
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[11px] font-medium capitalize">{tipoLabels[group.tipo] || group.tipo}</span>
-                  <span className="text-[12px] text-muted-foreground font-mono">{group.count} {group.count === 1 ? 'imóvel' : 'imóveis'}</span>
+                  <span className="text-[12px] font-medium capitalize">{tipoLabels[group.tipo] || group.tipo}</span>
+                  <span className="text-[13px] text-muted-foreground font-mono">{group.count} {group.count === 1 ? 'imóvel' : 'imóveis'}</span>
                 </div>
-                <div className="flex items-center justify-between text-[12px]">
+                <div className="flex items-center justify-between text-[13px]">
                   <span className="text-muted-foreground">Metragem</span>
                   <span className="font-semibold tabular-nums">{formatMetragem(group.metragem)}</span>
                 </div>
-                <div className="flex items-center justify-between text-[12px]">
+                <div className="flex items-center justify-between text-[13px]">
                   <span className="text-muted-foreground">Valor de Mercado</span>
                   <span className="font-medium text-success tabular-nums">{formatCurrency(group.marketValue)}</span>
                 </div>
@@ -214,14 +214,14 @@ export function MetragemStats() {
       {/* Desktop: Tabela */}
       <div className="hidden sm:block rounded-lg border bg-card overflow-hidden scroll-x-fade">
         <div className="overflow-x-auto scroll-x-visible">
-          <table className="w-full text-xs sm:text-sm min-w-[520px]">
+          <table className="w-full text-sm sm:text-sm min-w-[520px]">
             <thead>
               <tr className="border-b bg-muted/50">
-                <th className="text-left px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Cidade</th>
-                <th className="text-left px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Tipo</th>
-                <th className="text-right px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Qtd</th>
-                <th className="text-right px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Metragem</th>
-                <th className="text-right px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Valor de Mercado</th>
+                <th className="text-left px-2 sm:px-3 py-2 text-[13px] sm:text-sm font-semibold text-muted-foreground">Cidade</th>
+                <th className="text-left px-2 sm:px-3 py-2 text-[13px] sm:text-sm font-semibold text-muted-foreground">Tipo</th>
+                <th className="text-right px-2 sm:px-3 py-2 text-[13px] sm:text-sm font-semibold text-muted-foreground">Qtd</th>
+                <th className="text-right px-2 sm:px-3 py-2 text-[13px] sm:text-sm font-semibold text-muted-foreground">Metragem</th>
+                <th className="text-right px-2 sm:px-3 py-2 text-[13px] sm:text-sm font-semibold text-muted-foreground">Valor de Mercado</th>
               </tr>
             </thead>
             <tbody>
@@ -267,13 +267,13 @@ export function MetragemStats() {
             />
           </div>
 
-          <p className="text-xs sm:text-sm text-muted-foreground">
+          <p className="text-sm sm:text-sm text-muted-foreground">
             Total: {formatMetragem(selectedGroup?.metragem || 0)} | {formatCurrencyFull(selectedGroup?.marketValue || 0)} em {selectedGroup?.count} imóveis
           </p>
 
           <div className="rounded-lg border bg-card overflow-hidden scroll-x-fade">
             <div className="overflow-x-auto scroll-x-visible">
-              <table className="w-full text-xs sm:text-sm">
+              <table className="w-full text-sm sm:text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">
                     <th className="text-left px-2 sm:px-3 py-2">
@@ -296,17 +296,17 @@ export function MetragemStats() {
                     >
                       <td className="px-2 sm:px-3 py-2 sm:py-2.5">
                         <Link to={`/property/${property.id}`} className="hover:text-primary transition-colors">
-                          <p className="font-medium text-[11px] sm:text-sm text-foreground break-words">
+                          <p className="font-medium text-[12px] sm:text-sm text-foreground break-words">
                             {property.rua}{property.numero ? `, ${property.numero}` : ''}
                             {property.apartamento ? ` – Apto ${property.apartamento}` : ''}
                           </p>
-                          <p className="text-[12px] sm:text-xs text-muted-foreground break-words">{property.bairro}, {property.cidade}</p>
+                          <p className="text-[13px] sm:text-sm text-muted-foreground break-words">{property.bairro}, {property.cidade}</p>
                         </Link>
                       </td>
-                      <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-semibold text-foreground whitespace-nowrap text-[11px] sm:text-sm">
+                      <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-semibold text-foreground whitespace-nowrap text-[12px] sm:text-sm">
                         {formatMetragem(property.metragem || 0)}
                       </td>
-                      <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-medium text-success whitespace-nowrap text-[11px] sm:text-sm">
+                      <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-medium text-success whitespace-nowrap text-[12px] sm:text-sm">
                         {formatCurrencyFull(property.market_value || 0)}
                       </td>
                     </tr>

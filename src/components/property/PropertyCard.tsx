@@ -173,7 +173,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                     />
                   ))}
                   {totalSlides > 10 && (
-                    <span className="text-[11px] text-white/70 ml-1">+{totalSlides - 10}</span>
+                    <span className="text-[12px] text-white/70 ml-1">+{totalSlides - 10}</span>
                   )}
                 </div>
               </>
@@ -182,19 +182,19 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
             <div className="absolute inset-0 z-20 pointer-events-none">
               <div className={`absolute ${compact ? 'top-2 left-2 right-10' : 'top-3 left-3 right-12'} flex flex-wrap gap-1.5`}>
                 {property.vendido ? (
-                  <Badge className={`bg-destructive text-destructive-foreground ${compact ? 'text-[11px] px-1.5 py-0' : 'text-[12px]'}`}>Vendido</Badge>
+                  <Badge className={`bg-destructive text-destructive-foreground ${compact ? 'text-[12px] px-1.5 py-0' : 'text-[13px]'}`}>Vendido</Badge>
                 ) : property.alugado ? (
-                  <Badge className={`bg-info text-info-foreground ${compact ? 'text-[11px] px-1.5 py-0' : 'text-[12px]'}`}>Alugado</Badge>
+                  <Badge className={`bg-info text-info-foreground ${compact ? 'text-[12px] px-1.5 py-0' : 'text-[13px]'}`}>Alugado</Badge>
                 ) : (
-                  <Badge className={`bg-success text-success-foreground ${compact ? 'text-[11px] px-1.5 py-0' : 'text-[12px]'}`}>Disponível</Badge>
+                  <Badge className={`bg-success text-success-foreground ${compact ? 'text-[12px] px-1.5 py-0' : 'text-[13px]'}`}>Disponível</Badge>
                 )}
                 {property.validado ? (
-                  <Badge variant="outline" className={`bg-card/90 border-success text-success ${compact ? 'text-[11px] px-1.5 py-0' : 'text-[12px]'}`}>
+                  <Badge variant="outline" className={`bg-card/90 border-success text-success ${compact ? 'text-[12px] px-1.5 py-0' : 'text-[13px]'}`}>
                     <CheckCircle className={compact ? 'h-2 w-2 mr-0.5' : 'h-2.5 w-2.5 mr-0.5'} />
                     Validado
                   </Badge>
                 ) : (
-                  <Badge variant="outline" className={`bg-card/90 border-warning text-warning ${compact ? 'text-[11px] px-1.5 py-0' : 'text-[12px]'}`}>
+                  <Badge variant="outline" className={`bg-card/90 border-warning text-warning ${compact ? 'text-[12px] px-1.5 py-0' : 'text-[13px]'}`}>
                     <XCircle className={compact ? 'h-2 w-2 mr-0.5' : 'h-2.5 w-2.5 mr-0.5'} />
                     Pendente
                   </Badge>
@@ -202,10 +202,10 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               </div>
 
               <div className={`absolute bottom-0 left-0 right-0 bg-foreground/85 backdrop-blur-sm ${compact ? 'px-2 py-1.5' : 'px-3 py-2.5'}`}>
-                <p className={`text-card font-semibold truncate ${compact ? 'text-xs' : 'text-sm'}`}>
+                <p className={`text-card font-semibold truncate ${compact ? 'text-sm' : 'text-sm'}`}>
                   {getAddressDisplay()}
                 </p>
-                <div className={`flex items-center gap-1 text-card/70 mt-0.5 ${compact ? 'text-[12px]' : 'text-[11px]'}`}>
+                <div className={`flex items-center gap-1 text-card/70 mt-0.5 ${compact ? 'text-[13px]' : 'text-[12px]'}`}>
                   <MapPin className={compact ? 'h-2.5 w-2.5 shrink-0' : 'h-3 w-3 shrink-0'} />
                   <span className="truncate">{property.bairro}, {property.cidade} - {property.estado}</span>
                 </div>
@@ -240,16 +240,16 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30">
                 <div className="flex items-center gap-1.5 mb-2">
                   <DollarSign className="h-3 w-3 text-primary" />
-                  <h4 className="text-[12px] font-semibold text-primary uppercase tracking-wider">Valores</h4>
+                  <h4 className="text-[13px] font-semibold text-primary uppercase tracking-wider">Valores</h4>
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center justify-between py-0.5 border-b border-border/20">
-                    <span className="text-[11px] text-muted-foreground">Mercado</span>
-                    <span className="text-[11px] font-semibold">{formatCurrency(property.market_value) || '—'}</span>
+                    <span className="text-[12px] text-muted-foreground">Mercado</span>
+                    <span className="text-[12px] font-semibold">{formatCurrency(property.market_value) || '—'}</span>
                   </div>
                   <div className="flex items-center justify-between py-0.5">
-                    <span className="text-[11px] text-muted-foreground">Declarado</span>
-                    <span className="text-[11px] font-medium">{formatCurrency(property.declared_value) || '—'}</span>
+                    <span className="text-[12px] text-muted-foreground">Declarado</span>
+                    <span className="text-[12px] font-medium">{formatCurrency(property.declared_value) || '—'}</span>
                   </div>
                 </div>
               </div>
@@ -257,23 +257,23 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30">
                 <div className="flex items-center gap-1.5 mb-2">
                   <FileText className="h-3 w-3 text-primary" />
-                  <h4 className="text-[12px] font-semibold text-primary uppercase tracking-wider">Custos</h4>
+                  <h4 className="text-[13px] font-semibold text-primary uppercase tracking-wider">Custos</h4>
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center justify-between py-0.5 border-b border-border/20">
-                    <span className="text-[11px] text-muted-foreground">IPTU</span>
+                    <span className="text-[12px] text-muted-foreground">IPTU</span>
                     <div className="flex items-center gap-1">
-                      <span className="text-[11px] font-medium">{property.iptu_value ? formatCurrency(property.iptu_value) : '—'}</span>
+                      <span className="text-[12px] font-medium">{property.iptu_value ? formatCurrency(property.iptu_value) : '—'}</span>
                       {property.iptu_pago ? (
-                        <Badge className="bg-success/10 text-success border-0 text-[10px] px-1 py-0">Pago</Badge>
+                        <Badge className="bg-success/10 text-success border-0 text-[11px] px-1 py-0">Pago</Badge>
                       ) : property.iptu_value ? (
-                        <Badge className="bg-warning/10 text-warning border-0 text-[10px] px-1 py-0">Pend.</Badge>
+                        <Badge className="bg-warning/10 text-warning border-0 text-[11px] px-1 py-0">Pend.</Badge>
                       ) : null}
                     </div>
                   </div>
                   <div className="flex items-center justify-between py-0.5">
-                    <span className="text-[11px] text-muted-foreground">Condomínio</span>
-                    <span className="text-[11px] font-medium">{property.valor_condominio ? `${formatCurrency(property.valor_condominio)}/mês` : '—'}</span>
+                    <span className="text-[12px] text-muted-foreground">Condomínio</span>
+                    <span className="text-[12px] font-medium">{property.valor_condominio ? `${formatCurrency(property.valor_condominio)}/mês` : '—'}</span>
                   </div>
                 </div>
               </div>
@@ -281,18 +281,18 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30">
                 <div className="flex items-center gap-1.5 mb-2">
                   <Key className="h-3 w-3 text-primary" />
-                  <h4 className="text-[12px] font-semibold text-primary uppercase tracking-wider">Renda</h4>
+                  <h4 className="text-[13px] font-semibold text-primary uppercase tracking-wider">Renda</h4>
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center justify-between py-0.5 border-b border-border/20">
-                    <span className="text-[11px] text-muted-foreground">Status</span>
-                    <span className={`text-[11px] font-medium ${property.alugado ? 'text-info' : ''}`}>
+                    <span className="text-[12px] text-muted-foreground">Status</span>
+                    <span className={`text-[12px] font-medium ${property.alugado ? 'text-info' : ''}`}>
                       {property.alugado ? 'Alugado' : 'Disponível'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between py-0.5">
-                    <span className="text-[11px] text-muted-foreground">Aluguel</span>
-                    <span className={`text-[11px] font-medium ${property.alugado && property.valor_aluguel ? 'text-info' : ''}`}>
+                    <span className="text-[12px] text-muted-foreground">Aluguel</span>
+                    <span className={`text-[12px] font-medium ${property.alugado && property.valor_aluguel ? 'text-info' : ''}`}>
                       {property.valor_aluguel ? `${formatCurrency(property.valor_aluguel)}/mês` : '—'}
                     </span>
                   </div>
@@ -302,51 +302,51 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               <div className={`rounded-lg p-2.5 border border-border/40 bg-muted/30 ${compact ? 'hidden sm:block' : 'lg:col-span-2'}`}>
                 <div className="flex items-center gap-1.5 mb-2">
                   <Building className="h-3 w-3 text-primary" />
-                  <h4 className="text-[12px] font-semibold text-primary uppercase tracking-wider">Propriedade</h4>
+                  <h4 className="text-[13px] font-semibold text-primary uppercase tracking-wider">Propriedade</h4>
                 </div>
                 <div className={compact ? 'grid grid-cols-1 gap-x-4 gap-y-0.5' : 'grid grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-0.5'}>
                   <div className="space-y-0.5">
                     <div className="flex items-center justify-between py-0.5 border-b border-border/20">
-                      <span className="text-[11px] text-muted-foreground">Tipo</span>
-                      <span className="text-[11px] font-medium capitalize">{property.tipo_imovel || 'Apartamento'}</span>
+                      <span className="text-[12px] text-muted-foreground">Tipo</span>
+                      <span className="text-[12px] font-medium capitalize">{property.tipo_imovel || 'Apartamento'}</span>
                     </div>
                     <div className="flex items-center justify-between py-0.5 border-b border-border/20 gap-2">
-                      <span className="text-[11px] text-muted-foreground shrink-0">Prop. Papel</span>
-                      <span className="text-[11px] font-medium truncate text-right" title={property.proprietario_papel || '—'}>{abbreviateOwnerName(property.proprietario_papel)}</span>
+                      <span className="text-[12px] text-muted-foreground shrink-0">Prop. Papel</span>
+                      <span className="text-[12px] font-medium truncate text-right" title={property.proprietario_papel || '—'}>{abbreviateOwnerName(property.proprietario_papel)}</span>
                     </div>
                     <div className="flex items-center justify-between py-0.5 border-b border-border/20 gap-2">
-                      <span className="text-[11px] text-muted-foreground shrink-0">Prop. Matrícula</span>
+                      <span className="text-[12px] text-muted-foreground shrink-0">Prop. Matrícula</span>
                       <div className="flex items-center gap-1 truncate">
-                        <span className="text-[12px] font-medium truncate text-right" title={property.proprietario_matricula || '—'}>{abbreviateOwnerName(property.proprietario_matricula)}</span>
-                        <Badge variant="outline" className="text-[11px] px-1 py-0 shrink-0 font-semibold">{property.percentual_proprietario_matricula ?? 100}%</Badge>
+                        <span className="text-[13px] font-medium truncate text-right" title={property.proprietario_matricula || '—'}>{abbreviateOwnerName(property.proprietario_matricula)}</span>
+                        <Badge variant="outline" className="text-[12px] px-1 py-0 shrink-0 font-semibold">{property.percentual_proprietario_matricula ?? 100}%</Badge>
                       </div>
                     </div>
                     <div className="flex items-center justify-between py-0.5 gap-2">
-                      <span className="text-[11px] text-muted-foreground shrink-0">Prop. Matrícula II</span>
+                      <span className="text-[12px] text-muted-foreground shrink-0">Prop. Matrícula II</span>
                       <div className="flex items-center gap-1 truncate">
-                        <span className="text-[12px] font-medium truncate text-right" title={property.proprietario_matricula_ii || '—'}>{abbreviateOwnerName(property.proprietario_matricula_ii)}</span>
-                        <Badge variant="outline" className="text-[11px] px-1 py-0 shrink-0 font-semibold">{property.percentual_proprietario_matricula_ii ?? 0}%</Badge>
+                        <span className="text-[13px] font-medium truncate text-right" title={property.proprietario_matricula_ii || '—'}>{abbreviateOwnerName(property.proprietario_matricula_ii)}</span>
+                        <Badge variant="outline" className="text-[12px] px-1 py-0 shrink-0 font-semibold">{property.percentual_proprietario_matricula_ii ?? 0}%</Badge>
                       </div>
                     </div>
                   </div>
                   <div className="space-y-0.5">
                     <div className="flex items-center justify-between py-0.5 border-b border-border/20">
-                      <span className="text-[11px] text-muted-foreground">Matrícula</span>
-                      <span className="text-[11px] font-medium">{property.numero_matricula || '—'}</span>
+                      <span className="text-[12px] text-muted-foreground">Matrícula</span>
+                      <span className="text-[12px] font-medium">{property.numero_matricula || '—'}</span>
                     </div>
                     <div className="flex items-center justify-between py-0.5 border-b border-border/20">
-                      <span className="text-[11px] text-muted-foreground">Contribuinte</span>
-                      <span className="text-[11px] font-medium font-mono">{property.numero_contribuinte || '—'}</span>
+                      <span className="text-[12px] text-muted-foreground">Contribuinte</span>
+                      <span className="text-[12px] font-medium font-mono">{property.numero_contribuinte || '—'}</span>
                     </div>
                     <div className="flex items-center justify-between py-0.5">
-                      <span className="text-[11px] text-muted-foreground">Validado</span>
+                      <span className="text-[12px] text-muted-foreground">Validado</span>
                       {property.validado ? (
-                        <Badge className="bg-success/10 text-success border-0 text-[11px] px-1.5 py-0">
+                        <Badge className="bg-success/10 text-success border-0 text-[12px] px-1.5 py-0">
                           <CheckCircle className="h-2.5 w-2.5 mr-0.5" />
                           Sim
                         </Badge>
                       ) : (
-                        <Badge className="bg-warning/10 text-warning border-0 text-[11px] px-1.5 py-0">
+                        <Badge className="bg-warning/10 text-warning border-0 text-[12px] px-1.5 py-0">
                           <XCircle className="h-2.5 w-2.5 mr-0.5" />
                           Não
                         </Badge>
@@ -359,57 +359,57 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               <div className={`rounded-lg p-2.5 border border-border/40 bg-muted/30 ${compact ? 'hidden sm:block' : ''}`}>
                 <div className="flex items-center gap-1.5 mb-2">
                   <Home className="h-3 w-3 text-primary" />
-                  <h4 className="text-[12px] font-semibold text-primary uppercase tracking-wider">Características</h4>
+                  <h4 className="text-[13px] font-semibold text-primary uppercase tracking-wider">Características</h4>
                 </div>
                 <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
                   <div className="flex items-center justify-between py-0.5 border-b border-border/20">
                     <div className="flex items-center gap-1">
                       <BedDouble className="h-2.5 w-2.5 text-muted-foreground" />
-                      <span className="text-[11px] text-muted-foreground">Quartos</span>
+                      <span className="text-[12px] text-muted-foreground">Quartos</span>
                     </div>
-                    <span className="text-[11px] font-medium">{property.quartos || '—'}</span>
+                    <span className="text-[12px] font-medium">{property.quartos || '—'}</span>
                   </div>
                   <div className="flex items-center justify-between py-0.5 border-b border-border/20">
                     <div className="flex items-center gap-1">
                       <BedDouble className="h-2.5 w-2.5 text-muted-foreground" />
-                      <span className="text-[11px] text-muted-foreground">Suítes</span>
+                      <span className="text-[12px] text-muted-foreground">Suítes</span>
                     </div>
-                    <span className="text-[11px] font-medium">{property.suites || '—'}</span>
+                    <span className="text-[12px] font-medium">{property.suites || '—'}</span>
                   </div>
                   <div className="flex items-center justify-between py-0.5 border-b border-border/20">
                     <div className="flex items-center gap-1">
                       <Bath className="h-2.5 w-2.5 text-muted-foreground" />
-                      <span className="text-[11px] text-muted-foreground">Banheiros</span>
+                      <span className="text-[12px] text-muted-foreground">Banheiros</span>
                     </div>
-                    <span className="text-[11px] font-medium">{property.banheiros || '—'}</span>
+                    <span className="text-[12px] font-medium">{property.banheiros || '—'}</span>
                   </div>
                   <div className="flex items-center justify-between py-0.5 border-b border-border/20">
                     <div className="flex items-center gap-1">
                       <Car className="h-2.5 w-2.5 text-muted-foreground" />
-                      <span className="text-[11px] text-muted-foreground">Garagens</span>
+                      <span className="text-[12px] text-muted-foreground">Garagens</span>
                     </div>
-                    <span className="text-[11px] font-medium">{property.garagens || '—'}</span>
+                    <span className="text-[12px] font-medium">{property.garagens || '—'}</span>
                   </div>
                   <div className="flex items-center justify-between py-0.5 border-b border-border/20">
                     <div className="flex items-center gap-1">
                       <Ruler className="h-2.5 w-2.5 text-muted-foreground" />
-                      <span className="text-[11px] text-muted-foreground">Útil</span>
+                      <span className="text-[12px] text-muted-foreground">Útil</span>
                     </div>
-                    <span className="text-[11px] font-medium">{property.metragem ? `${property.metragem} m²` : '—'}</span>
+                    <span className="text-[12px] font-medium">{property.metragem ? `${property.metragem} m²` : '—'}</span>
                   </div>
                   <div className="flex items-center justify-between py-0.5 border-b border-border/20">
                     <div className="flex items-center gap-1">
                       <Ruler className="h-2.5 w-2.5 text-muted-foreground" />
-                      <span className="text-[11px] text-muted-foreground">Comum</span>
+                      <span className="text-[12px] text-muted-foreground">Comum</span>
                     </div>
-                    <span className="text-[11px] font-medium">{property.area_comum ? `${property.area_comum} m²` : '—'}</span>
+                    <span className="text-[12px] font-medium">{property.area_comum ? `${property.area_comum} m²` : '—'}</span>
                   </div>
                   <div className="col-span-2 flex items-center justify-between py-0.5 bg-primary/5 rounded px-1">
                     <div className="flex items-center gap-1">
                       <Ruler className="h-2.5 w-2.5 text-primary" />
-                      <span className="text-[11px] font-medium text-primary">Área Total</span>
+                      <span className="text-[12px] font-medium text-primary">Área Total</span>
                     </div>
-                    <span className="text-[11px] font-semibold text-primary">{property.area_total ? `${property.area_total} m²` : '—'}</span>
+                    <span className="text-[12px] font-semibold text-primary">{property.area_total ? `${property.area_total} m²` : '—'}</span>
                   </div>
                 </div>
               </div>
@@ -417,7 +417,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
 
             <div className={compact ? 'flex gap-1 pt-2 mt-2 border-t border-border/40' : 'flex gap-2 pt-3 mt-3 border-t border-border/40'}>
               <Link to={`/property/${property.id}`} className="flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
-                <Button variant="default" size="sm" className={compact ? 'w-full h-8 px-1.5 text-[11px]' : 'w-full'}>
+                <Button variant="default" size="sm" className={compact ? 'w-full h-8 px-1.5 text-[12px]' : 'w-full'}>
                   <Eye className={compact ? 'h-3.5 w-3.5' : 'h-3.5 w-3.5 mr-1.5'} />
                   {!compact && 'Ver detalhes'}
                 </Button>
@@ -507,19 +507,19 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
 
                 <div className="absolute top-3 left-3 right-16 z-[998] flex flex-wrap gap-1.5 pointer-events-none">
                   {property.vendido ? (
-                    <Badge className="bg-destructive text-destructive-foreground text-[12px]">Vendido</Badge>
+                    <Badge className="bg-destructive text-destructive-foreground text-[13px]">Vendido</Badge>
                   ) : property.alugado ? (
-                    <Badge className="bg-info text-info-foreground text-[12px]">Alugado</Badge>
+                    <Badge className="bg-info text-info-foreground text-[13px]">Alugado</Badge>
                   ) : (
-                    <Badge className="bg-success text-success-foreground text-[12px]">Disponível</Badge>
+                    <Badge className="bg-success text-success-foreground text-[13px]">Disponível</Badge>
                   )}
                   {property.validado ? (
-                    <Badge variant="outline" className="bg-card/90 border-success text-success text-[12px]">
+                    <Badge variant="outline" className="bg-card/90 border-success text-success text-[13px]">
                       <CheckCircle className="h-2.5 w-2.5 mr-0.5" />
                       Validado
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="bg-card/90 border-warning text-warning text-[12px]">
+                    <Badge variant="outline" className="bg-card/90 border-warning text-warning text-[13px]">
                       <XCircle className="h-2.5 w-2.5 mr-0.5" />
                       Pendente
                     </Badge>
@@ -528,7 +528,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
 
                 <div className="absolute bottom-0 left-0 right-0 z-[998] pointer-events-none bg-foreground/85 backdrop-blur-sm px-3 py-2.5">
                   <p className="text-card font-semibold text-sm truncate">{getAddressDisplay()}</p>
-                  <div className="flex items-center gap-1 text-card/70 text-[11px] mt-0.5">
+                  <div className="flex items-center gap-1 text-card/70 text-[12px] mt-0.5">
                     <MapPin className="h-3 w-3 shrink-0" />
                     <span className="truncate">{property.bairro}, {property.cidade} - {property.estado}</span>
                   </div>
@@ -571,7 +571,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
             )}
 
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[999] bg-black/60 px-3 py-1 rounded-full">
-              <span className="text-white text-xs">
+              <span className="text-white text-sm">
                 {mediaIndex === 0 ? 'Mapa' : `Foto ${mediaIndex}`} · {mediaIndex + 1} / {totalSlides}
               </span>
             </div>

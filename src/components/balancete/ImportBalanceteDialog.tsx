@@ -142,7 +142,7 @@ export function ImportBalanceteDialog({ onImported }: Props) {
         ) : (
           <Upload className="h-3.5 w-3.5" />
         )}
-        <span className="text-xs">Reimportar CSV</span>
+        <span className="text-sm">Reimportar CSV</span>
       </Button>
 
       {/* Confirmação destrutiva */}
@@ -158,10 +158,10 @@ export function ImportBalanceteDialog({ onImported }: Props) {
                 Isso irá <strong>apagar TODOS</strong> os lançamentos atuais do balancete e
                 substituí-los pelos dados do arquivo selecionado.
               </span>
-              <span className="block text-xs">
+              <span className="block text-sm">
                 Arquivo: <strong>{pendingFile?.name}</strong>
               </span>
-              <span className="block text-xs text-muted-foreground">
+              <span className="block text-sm text-muted-foreground">
                 Os dados em <em>Imóveis</em> que não estiverem no CSV serão preservados.
               </span>
             </DialogDescription>
@@ -219,7 +219,7 @@ export function ImportBalanceteDialog({ onImported }: Props) {
                 </div>
 
                 {result.parseErrors > 0 && (
-                  <div className="text-xs text-amber-600 dark:text-amber-400">
+                  <div className="text-sm text-amber-600 dark:text-amber-400">
                     {result.parseErrors} linha(s) ignorada(s) por dados inválidos.
                   </div>
                 )}
@@ -243,7 +243,7 @@ export function ImportBalanceteDialog({ onImported }: Props) {
                   renderItem={(b) => (
                     <>
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-mono text-[12px] text-muted-foreground">
+                        <span className="font-mono text-[13px] text-muted-foreground">
                           {String(b.mes).padStart(2, '0')}/{b.ano}
                           {b.external_id ? ` · ${b.external_id}` : ''}
                         </span>
@@ -295,7 +295,7 @@ function SummaryStat({
 }) {
   return (
     <div className="bg-card border rounded-md px-3 py-2">
-      <div className="text-[12px] uppercase tracking-wide text-muted-foreground">
+      <div className="text-[13px] uppercase tracking-wide text-muted-foreground">
         {label}
       </div>
       <div
@@ -409,7 +409,7 @@ function IssueList<T>({
           {title}
         </h3>
         <div className="flex items-center gap-1.5">
-          <Badge variant="outline" className="text-[12px]">
+          <Badge variant="outline" className="text-[13px]">
             {total}
           </Badge>
           {total > 0 && (
@@ -426,7 +426,7 @@ function IssueList<T>({
                 ) : (
                   <Copy className="h-3 w-3" />
                 )}
-                <span className="text-[12px]">{copied ? 'Copiado!' : 'Copiar'}</span>
+                <span className="text-[13px]">{copied ? 'Copiado!' : 'Copiar'}</span>
               </Button>
               <Button
                 size="sm"
@@ -436,7 +436,7 @@ function IssueList<T>({
                 title="Baixar CSV"
               >
                 <Download className="h-3 w-3" />
-                <span className="text-[12px]">CSV</span>
+                <span className="text-[13px]">CSV</span>
               </Button>
             </>
           )}
@@ -444,13 +444,13 @@ function IssueList<T>({
       </div>
 
       {total === 0 ? (
-        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+        <p className="text-sm text-muted-foreground flex items-center gap-1.5">
           <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
           {emptyText}
         </p>
       ) : (
         <>
-          <ul className="space-y-1 text-xs">
+          <ul className="space-y-1 text-sm">
             {pageItems.map((it, i) => (
               <li
                 key={start + i}
@@ -462,7 +462,7 @@ function IssueList<T>({
           </ul>
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-between gap-2 mt-2 text-[11px]">
+            <div className="flex items-center justify-between gap-2 mt-2 text-[12px]">
               <span className="text-muted-foreground">
                 {start + 1}–{Math.min(start + pageSize, total)} de {total}
               </span>

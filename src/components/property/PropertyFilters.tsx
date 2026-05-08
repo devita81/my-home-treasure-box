@@ -130,7 +130,7 @@ export function PropertyFilters() {
             variant="ghost"
             size="sm"
             onClick={handleClearFilters}
-            className="text-xs text-muted-foreground hover:text-foreground h-9 px-2"
+            className="text-sm text-muted-foreground hover:text-foreground h-9 px-2"
           >
             <X className="h-3 w-3 mr-1" />
             Limpar
@@ -141,12 +141,12 @@ export function PropertyFilters() {
       {/* MOBILE: blocos empilhados */}
       <div className="space-y-2.5 sm:hidden">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
+          <p className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
             <Home className="h-2.5 w-2.5" /> Categoria
           </p>
           <div className="grid grid-cols-2 gap-2">
             <Select value={filters.tipoImovel || 'all'} onValueChange={(value) => setFilters({ ...filters, tipoImovel: value === 'all' ? '' : value })}>
-              <SelectTrigger className="h-9 text-[11px]"><SelectValue placeholder="Tipo" /></SelectTrigger>
+              <SelectTrigger className="h-9 text-[12px]"><SelectValue placeholder="Tipo" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os Tipos</SelectItem>
                 {tiposImovelFiltrados.map((tipo) => <SelectItem key={tipo.value} value={tipo.value}>{tipo.label}</SelectItem>)}
@@ -154,7 +154,7 @@ export function PropertyFilters() {
             </Select>
             {(proprietariosPapel.length > 0 || hasEmptyProprietarioPapel) && (
               <Select value={filters.proprietarioPapel || 'all'} onValueChange={(value) => setFilters({ ...filters, proprietarioPapel: value === 'all' ? '' : value })}>
-                <SelectTrigger className="h-9 text-[11px]"><SelectValue placeholder="Proprietário" /></SelectTrigger>
+                <SelectTrigger className="h-9 text-[12px]"><SelectValue placeholder="Proprietário" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos Proprietários</SelectItem>
                   {hasEmptyProprietarioPapel && <SelectItem value="__empty__">Não preenchido</SelectItem>}
@@ -166,26 +166,26 @@ export function PropertyFilters() {
         </div>
 
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
+          <p className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
             <MapPin className="h-2.5 w-2.5" /> Localização
           </p>
           <div className="grid grid-cols-2 gap-2">
             <Select value={filters.estado || 'all'} onValueChange={(value) => setFilters({ ...filters, estado: value === 'all' ? '' : value })}>
-              <SelectTrigger className="h-9 text-[11px]"><SelectValue placeholder="Estado" /></SelectTrigger>
+              <SelectTrigger className="h-9 text-[12px]"><SelectValue placeholder="Estado" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos Estados</SelectItem>
                 {estados.map((uf) => <SelectItem key={uf} value={uf}>{uf}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={filters.cidade || 'all'} onValueChange={(value) => setFilters({ ...filters, cidade: value === 'all' ? '' : value })}>
-              <SelectTrigger className="h-9 text-[11px]"><SelectValue placeholder="Cidade" /></SelectTrigger>
+              <SelectTrigger className="h-9 text-[12px]"><SelectValue placeholder="Cidade" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas Cidades</SelectItem>
                 {cidades.map((cidade) => <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={filters.bairro || 'all'} onValueChange={(value) => setFilters({ ...filters, bairro: value === 'all' ? '' : value })}>
-              <SelectTrigger className="h-9 text-[11px] col-span-2"><SelectValue placeholder="Bairro" /></SelectTrigger>
+              <SelectTrigger className="h-9 text-[12px] col-span-2"><SelectValue placeholder="Bairro" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos Bairros</SelectItem>
                 {bairros.map((bairro) => <SelectItem key={bairro} value={bairro}>{bairro}</SelectItem>)}
@@ -195,12 +195,12 @@ export function PropertyFilters() {
         </div>
 
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
+          <p className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
             <Key className="h-2.5 w-2.5" /> Status
           </p>
           <div className="grid grid-cols-2 gap-2">
             <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value as PropertyFiltersType['status'] })}>
-              <SelectTrigger className="h-9 text-[11px]"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectTrigger className="h-9 text-[12px]"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos Status</SelectItem>
                 {statusDisponiveis.has('disponivel') && <SelectItem value="disponivel">Disponível</SelectItem>}
@@ -209,7 +209,7 @@ export function PropertyFilters() {
               </SelectContent>
             </Select>
             <Select value={filters.validado} onValueChange={(value) => setFilters({ ...filters, validado: value as PropertyFiltersType['validado'] })}>
-              <SelectTrigger className="h-9 text-[11px]"><SelectValue placeholder="Validação" /></SelectTrigger>
+              <SelectTrigger className="h-9 text-[12px]"><SelectValue placeholder="Validação" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
                 {validadoDisponiveis.has('sim') && <SelectItem value="sim">Validado</SelectItem>}
@@ -220,12 +220,12 @@ export function PropertyFilters() {
         </div>
 
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
+          <p className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
             <ArrowDownUp className="h-2.5 w-2.5" /> Ordenação
           </p>
           <div className="grid grid-cols-[1fr_auto] gap-2">
             <Select value={filters.sortField} onValueChange={(value) => setFilters({ ...filters, sortField: value as SortField })}>
-              <SelectTrigger className="h-9 text-[11px]">
+              <SelectTrigger className="h-9 text-[12px]">
                 <ArrowUpDown className="h-3 w-3 mr-1 text-muted-foreground shrink-0" />
                 <SelectValue placeholder="Ordenar" />
               </SelectTrigger>
@@ -233,7 +233,7 @@ export function PropertyFilters() {
                 {sortOptions.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button variant="outline" onClick={toggleSortOrder} className="h-9 text-[11px] px-3 shrink-0">
+            <Button variant="outline" onClick={toggleSortOrder} className="h-9 text-[12px] px-3 shrink-0">
               {filters.sortOrder === 'asc' ? (<><ChevronUp className="h-3 w-3 mr-1" />Cresc.</>) : (<><ChevronDown className="h-3 w-3 mr-1" />Decresc.</>)}
             </Button>
           </div>
@@ -246,7 +246,7 @@ export function PropertyFilters() {
         <div className="grid grid-cols-[auto_1fr_1fr_auto_1fr_1fr_1fr] items-center gap-2">
           <Home className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
           <Select value={filters.tipoImovel || 'all'} onValueChange={(value) => setFilters({ ...filters, tipoImovel: value === 'all' ? '' : value })}>
-            <SelectTrigger className="h-8 text-xs gap-1 min-w-0">
+            <SelectTrigger className="h-8 text-sm gap-1 min-w-0">
               <span className="text-muted-foreground font-medium shrink-0">Tipo:</span>
               <SelectValue />
             </SelectTrigger>
@@ -257,7 +257,7 @@ export function PropertyFilters() {
           </Select>
           {(proprietariosPapel.length > 0 || hasEmptyProprietarioPapel) ? (
             <Select value={filters.proprietarioPapel || 'all'} onValueChange={(value) => setFilters({ ...filters, proprietarioPapel: value === 'all' ? '' : value })}>
-              <SelectTrigger className="h-8 text-xs gap-1 min-w-0">
+              <SelectTrigger className="h-8 text-sm gap-1 min-w-0">
                 <span className="text-muted-foreground font-medium shrink-0">Proprietário:</span>
                 <SelectValue />
               </SelectTrigger>
@@ -270,7 +270,7 @@ export function PropertyFilters() {
           ) : <div />}
           <div className="h-5 w-px bg-border justify-self-center" />
           <Select value={filters.estado || 'all'} onValueChange={(value) => setFilters({ ...filters, estado: value === 'all' ? '' : value })}>
-            <SelectTrigger className="h-8 text-xs gap-1 min-w-0">
+            <SelectTrigger className="h-8 text-sm gap-1 min-w-0">
               <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
               <span className="text-muted-foreground font-medium shrink-0">Estado:</span>
               <SelectValue />
@@ -281,7 +281,7 @@ export function PropertyFilters() {
             </SelectContent>
           </Select>
           <Select value={filters.cidade || 'all'} onValueChange={(value) => setFilters({ ...filters, cidade: value === 'all' ? '' : value })}>
-            <SelectTrigger className="h-8 text-xs gap-1 min-w-0">
+            <SelectTrigger className="h-8 text-sm gap-1 min-w-0">
               <span className="text-muted-foreground font-medium shrink-0">Cidade:</span>
               <SelectValue />
             </SelectTrigger>
@@ -291,7 +291,7 @@ export function PropertyFilters() {
             </SelectContent>
           </Select>
           <Select value={filters.bairro || 'all'} onValueChange={(value) => setFilters({ ...filters, bairro: value === 'all' ? '' : value })}>
-            <SelectTrigger className="h-8 text-xs gap-1 min-w-0">
+            <SelectTrigger className="h-8 text-sm gap-1 min-w-0">
               <span className="text-muted-foreground font-medium shrink-0">Bairro:</span>
               <SelectValue />
             </SelectTrigger>
@@ -306,7 +306,7 @@ export function PropertyFilters() {
         <div className="grid grid-cols-[auto_1fr_1fr_auto_1fr_1fr_1fr] items-center gap-2">
           <Key className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
           <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value as PropertyFiltersType['status'] })}>
-            <SelectTrigger className="h-8 text-xs gap-1 min-w-0">
+            <SelectTrigger className="h-8 text-sm gap-1 min-w-0">
               <span className="text-muted-foreground font-medium shrink-0">Status:</span>
               <SelectValue />
             </SelectTrigger>
@@ -318,7 +318,7 @@ export function PropertyFilters() {
             </SelectContent>
           </Select>
           <Select value={filters.validado} onValueChange={(value) => setFilters({ ...filters, validado: value as PropertyFiltersType['validado'] })}>
-            <SelectTrigger className="h-8 text-xs gap-1 min-w-0">
+            <SelectTrigger className="h-8 text-sm gap-1 min-w-0">
               <span className="text-muted-foreground font-medium shrink-0">Validação:</span>
               <SelectValue />
             </SelectTrigger>
@@ -330,7 +330,7 @@ export function PropertyFilters() {
           </Select>
           <div className="h-5 w-px bg-border justify-self-center" />
           <Select value={filters.sortField} onValueChange={(value) => setFilters({ ...filters, sortField: value as SortField })}>
-            <SelectTrigger className="h-8 text-xs gap-1 min-w-0 col-span-2">
+            <SelectTrigger className="h-8 text-sm gap-1 min-w-0 col-span-2">
               <ArrowDownUp className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
               <span className="text-muted-foreground font-medium shrink-0">Ordenar por:</span>
               <SelectValue />
@@ -339,7 +339,7 @@ export function PropertyFilters() {
               {sortOptions.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm" onClick={toggleSortOrder} className="h-8 text-xs px-2.5 min-w-0">
+          <Button variant="outline" size="sm" onClick={toggleSortOrder} className="h-8 text-sm px-2.5 min-w-0">
             {filters.sortOrder === 'asc' ? (<><ChevronUp className="h-3 w-3 mr-1" />Cresc.</>) : (<><ChevronDown className="h-3 w-3 mr-1" />Decresc.</>)}
           </Button>
         </div>

@@ -199,7 +199,7 @@ export function StatsOverview() {
     <Button
       variant="ghost"
       size="sm"
-      className="h-auto p-1 text-xs font-medium"
+      className="h-auto p-1 text-sm font-medium"
       onClick={() => toggleSort(field)}
     >
       {label}
@@ -221,7 +221,7 @@ export function StatsOverview() {
               <stat.icon className="h-3 sm:h-3.5 w-3 sm:w-3.5" />
             </div>
             <p className="text-sm sm:text-base font-semibold font-display truncate">{stat.value}</p>
-            <p className="text-[11px] sm:text-[12px] text-muted-foreground mt-0.5 truncate">{stat.label}</p>
+            <p className="text-[12px] sm:text-[13px] text-muted-foreground mt-0.5 truncate">{stat.label}</p>
           </div>
         ))}
       </div>
@@ -260,7 +260,7 @@ export function StatsOverview() {
             </div>
           </DialogHeader>
           <div className="flex-1 min-h-0 overflow-y-auto px-3 sm:px-6 py-3 sm:py-4">
-            <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-4">
+            <p className="text-sm sm:text-sm text-muted-foreground mb-2 sm:mb-4">
               {dialog.properties.length} imóveis
               {dialog.valueKey && dialogTotal > 0 && (
                 <> • Total: {formatCurrencyFull(dialogTotal)}</>
@@ -303,20 +303,20 @@ export function StatsOverview() {
                         >
                           <div className="flex items-start justify-between gap-2 mb-1.5">
                             <div className="min-w-0 flex-1">
-                              <p className="text-[12px] font-semibold text-slate-900 truncate" title={address}>
+                              <p className="text-[13px] font-semibold text-slate-900 truncate" title={address}>
                                 {address}
                               </p>
-                              <p className="text-[12px] text-slate-500 truncate">
+                              <p className="text-[13px] text-slate-500 truncate">
                                 {tipoLabel} • {property.cidade} - {property.estado}
                               </p>
                             </div>
                             {property.alugado ? (
-                              <span className="shrink-0 text-[11px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
+                              <span className="shrink-0 text-[12px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
                             ) : (
-                              <span className="shrink-0 text-[11px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Vago</span>
+                              <span className="shrink-0 text-[12px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Vago</span>
                             )}
                           </div>
-                          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[12px] font-mono tabular-nums text-slate-700">
+                          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[13px] font-mono tabular-nums text-slate-700">
                             <div className="flex justify-between"><span className="text-slate-500">Mercado</span><span className="font-semibold text-slate-900">{formatCurrency(property.market_value || 0)}</span></div>
                             <div className="flex justify-between"><span className="text-slate-500">Declar.</span><span>{formatCurrency(property.declared_value)}</span></div>
                             <div className="flex justify-between"><span className="text-slate-500">Aluguel</span><span>{formatCurrency(property.valor_aluguel || 0)}</span></div>
@@ -325,7 +325,7 @@ export function StatsOverview() {
                             <div />
                           </div>
                           {(property.numero_matricula || property.proprietario_matricula) && (
-                            <div className="mt-1.5 pt-1.5 border-t border-slate-100 text-[11px] text-slate-500 truncate">
+                            <div className="mt-1.5 pt-1.5 border-t border-slate-100 text-[12px] text-slate-500 truncate">
                               {property.numero_matricula && <span className="font-mono">Matr. {property.numero_matricula}</span>}
                               {property.numero_matricula && property.proprietario_matricula && <span> • </span>}
                               {property.proprietario_matricula && <span className="truncate">{property.proprietario_matricula}</span>}
@@ -354,7 +354,7 @@ export function StatsOverview() {
                         {property.rua}, {property.numero}
                         {property.apartamento && ` - Apto ${property.apartamento}`}
                       </p>
-                      <p className="text-xs text-muted-foreground truncate">
+                      <p className="text-sm text-muted-foreground truncate">
                         {property.bairro}, {property.cidade}
                       </p>
                     </div>
