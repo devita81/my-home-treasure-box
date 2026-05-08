@@ -4,10 +4,8 @@ import type { Property } from "@/types/property";
 
 export interface QuintoAndarListing {
   url: string;
-  type: "Apartment" | "House";
   name: string;
-  description?: string;
-  address?: string;
+  address: string;
   floorSize?: number;
   bedrooms?: number;
   bathrooms?: number;
@@ -15,45 +13,37 @@ export interface QuintoAndarListing {
   imageUrl?: string;
 }
 
+/**
+ * How precisely the listings were filtered:
+ *   - "building": viewport bounding box around lat/lng (~35m). Best.
+ *   - "street": bairro search + client-side rua match. No lat/lng.
+ *   - "neighbourhood": bairro slug only. Last resort.
+ */
 export type QuintoAndarPrecision = "building" | "street" | "neighbourhood";
 
 export interface QuintoAndarListingsResponse {
   searchUrl: string;
   listings: QuintoAndarListing[];
-  fetchedAt: string;
-  filteredByRua?: boolean;
-  totalAvailable?: number;
-  /**
-   * How precisely we could filter:
-   *   - "building": viewport bounding box around lat/lng (~35m) — best
-   *   - "street": post-fetch street-name match (rua filled, no lat/lng)
-   *   - "neighbourhood": just bairro slug (no lat/lng, no rua)
-   */
-  precision?: QuintoAndarPrecision;
+  precision: QuintoAndarPrecision;
 }
 
 type SearchType = "venda" | "aluguel";
 
+type QuintoAndarPropertyInput = Pick<
+  Property,
+  "cidade" | "estado" | "bairro" | "rua" | "tipo_imovel" | "quartos" | "latitude" | "longitude"
+>;
+
 /**
- * Fetches QuintoAndar listings similar to a given property by calling the
- * `fetch-quinto-andar-listings` edge function. Results are cached for 24h
- * so navigating back to the property doesn't re-scrape.
+ * Fetches QuintoAndar listings similar to a property by calling the
+ * `fetch-quinto-andar-listings` edge function. Cached for 24h since
+ * listings change slowly.
  *
- * `enabled` controls whether the request fires — set to true after the
- * user explicitly opts in (we don't want to scrape on every page load).
+ * `enabled` controls whether the request fires — pass `true` only after
+ * the user opts in (we don't want to call the API on every page load).
  */
 export function useQuintoAndarListings(
-  property: Pick<
-    Property,
-    | "cidade"
-    | "estado"
-    | "bairro"
-    | "rua"
-    | "tipo_imovel"
-    | "quartos"
-    | "latitude"
-    | "longitude"
-  >,
+  property: QuintoAndarPropertyInput,
   type: SearchType,
   enabled: boolean,
 ) {
@@ -73,26 +63,13 @@ export function useQuintoAndarListings(
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke<QuintoAndarListingsResponse>(
         "fetch-quinto-andar-listings",
-        {
-          body: {
-            cidade: property.cidade,
-            estado: property.estado,
-            bairro: property.bairro,
-            rua: property.rua,
-            tipo_imovel: property.tipo_imovel,
-            quartos: property.quartos,
-            latitude: property.latitude,
-            longitude: property.longitude,
-            type,
-          },
-        },
+        { body: { ...property, type } },
       );
       if (error) throw error;
       if (!data) throw new Error("No data returned");
       return data;
     },
     enabled,
-    // Listings change slowly enough that one fetch per day is plenty.
     staleTime: 24 * 60 * 60 * 1000,
     gcTime: 24 * 60 * 60 * 1000,
     retry: 1,
