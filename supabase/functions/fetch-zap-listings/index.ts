@@ -14,7 +14,8 @@
 // deep-link redirect.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { geocodeAddress } from "../_shared/geocode.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -29,10 +30,13 @@ type SearchType = "venda" | "aluguel";
 type Precision = "street" | "neighbourhood";
 
 interface PropertyInput {
+  id?: string | null; // property UUID — when set, geocoded coords are persisted back
   cidade: string;
   estado: string;
   bairro?: string | null;
   rua?: string | null;
+  numero?: string | null;
+  cep?: string | null;
   tipo_imovel?: string | null;
   quartos?: number | null;
   latitude?: number | null;
@@ -230,11 +234,31 @@ function mapHitToListing(
 async function fetchListings(
   input: PropertyInput,
   type: SearchType,
+  supabase: SupabaseClient,
 ): Promise<{
   listings: Listing[];
   precision: Precision;
   cloudflareBlocked: boolean;
 }> {
+  // Resolve missing coordinates so ZAP can rank by proximity. Same
+  // fallback the QuintoAndar function uses, including persistence so
+  // we don't re-geocode on every refresh.
+  if (typeof input.latitude !== "number" || typeof input.longitude !== "number") {
+    const resolved = await geocodeAddress(input);
+    if (resolved) {
+      input = { ...input, latitude: resolved.latitude, longitude: resolved.longitude };
+      if (input.id) {
+        void supabase
+          .from("properties")
+          .update({ latitude: resolved.latitude, longitude: resolved.longitude })
+          .eq("id", input.id)
+          .then(({ error }) => {
+            if (error) console.error("[ZAP] persist coords failed:", error);
+          });
+      }
+    }
+  }
+
   const filteringByRua = Boolean(input.rua && input.rua.trim());
   const pageSize = filteringByRua ? 30 : 12;
   const params = buildQueryParams(input, type, pageSize);
@@ -315,7 +339,7 @@ serve(async (req) => {
     if (claimsErr || !claims?.claims) return jsonResponse({ error: "Unauthorized" }, 401);
 
     const body = await req.json();
-    const { cidade, estado, bairro, rua, tipo_imovel, quartos, latitude, longitude, type = "venda" } = body;
+    const { id, cidade, estado, bairro, rua, numero, cep, tipo_imovel, quartos, latitude, longitude, type = "venda" } = body;
 
     if (!cidade || typeof cidade !== "string") return jsonResponse({ error: "cidade is required" }, 400);
     if (!estado || typeof estado !== "string") return jsonResponse({ error: "estado is required" }, 400);
@@ -323,8 +347,10 @@ serve(async (req) => {
       return jsonResponse({ error: "type must be 'venda' or 'aluguel'" }, 400);
     }
 
-    const input: PropertyInput = { cidade, estado, bairro, rua, tipo_imovel, quartos, latitude, longitude };
-    const { listings, precision, cloudflareBlocked } = await fetchListings(input, type);
+    const input: PropertyInput = {
+      id, cidade, estado, bairro, rua, numero, cep, tipo_imovel, quartos, latitude, longitude,
+    };
+    const { listings, precision, cloudflareBlocked } = await fetchListings(input, type, supabaseClient);
 
     return jsonResponse({
       searchUrl: buildPublicSearchUrl(input, type),

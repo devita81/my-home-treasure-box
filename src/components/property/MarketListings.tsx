@@ -3,6 +3,12 @@ import { ExternalLink, Search, AlertCircle, Building, MapPin } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
+// Active-tab style: shadcn's default `data-[state=active]:bg-background`
+// is invisible against the card background in this theme. Override with
+// the primary brand color so the user can see what's selected.
+const ACTIVE_TAB =
+  "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm";
 import {
   useQuintoAndarListings,
   type QuintoAndarPrecision,
@@ -19,7 +25,17 @@ type SearchType = "venda" | "aluguel";
 
 type MarketProperty = Pick<
   Property,
-  "cidade" | "estado" | "bairro" | "rua" | "tipo_imovel" | "quartos" | "latitude" | "longitude"
+  | "id"
+  | "cidade"
+  | "estado"
+  | "bairro"
+  | "rua"
+  | "numero"
+  | "cep"
+  | "tipo_imovel"
+  | "quartos"
+  | "latitude"
+  | "longitude"
 >;
 
 interface MarketListingsProps {
@@ -41,8 +57,8 @@ export function MarketListings({ property }: MarketListingsProps) {
       <CardContent>
         <Tabs defaultValue="quintoandar" className="w-full">
           <TabsList className="mb-3 grid w-full grid-cols-2 sm:w-auto">
-            <TabsTrigger value="quintoandar">QuintoAndar</TabsTrigger>
-            <TabsTrigger value="zap">ZAP Imóveis</TabsTrigger>
+            <TabsTrigger value="quintoandar" className={ACTIVE_TAB}>QuintoAndar</TabsTrigger>
+            <TabsTrigger value="zap" className={ACTIVE_TAB}>ZAP Imóveis</TabsTrigger>
           </TabsList>
           <TabsContent value="quintoandar">
             <ProviderSection property={property} provider="quintoandar" />
@@ -68,8 +84,8 @@ function ProviderSection({
   return (
     <Tabs defaultValue="venda" className="w-full">
       <TabsList className="grid w-full grid-cols-2 sm:w-auto">
-        <TabsTrigger value="venda">Venda</TabsTrigger>
-        <TabsTrigger value="aluguel">Aluguel</TabsTrigger>
+        <TabsTrigger value="venda" className={ACTIVE_TAB}>Venda</TabsTrigger>
+        <TabsTrigger value="aluguel" className={ACTIVE_TAB}>Aluguel</TabsTrigger>
       </TabsList>
       <TabsContent value="venda" className="pt-4">
         <ListingsGrid property={property} provider={provider} type="venda" />
@@ -110,15 +126,26 @@ function ListingsGrid({
   }
 
   if (data.isError) {
+    // Build a deep-link fallback so the user is never stuck — even if
+    // our API fails, they can still jump to the provider's site.
+    const fallbackUrl = buildProviderSearchUrl(provider, property, type);
     return (
       <div className="flex flex-col items-center gap-3 rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-6 text-center">
         <AlertCircle className="h-8 w-8 text-destructive" />
         <p className="text-sm font-medium text-destructive">
           Não foi possível carregar os anúncios.
         </p>
-        <Button variant="outline" size="sm" onClick={() => data.refetch()}>
-          Tentar novamente
-        </Button>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => data.refetch()}>
+            Tentar novamente
+          </Button>
+          <Button asChild variant="ghost" size="sm">
+            <a href={fallbackUrl} target="_blank" rel="noopener noreferrer">
+              Abrir direto
+              <ExternalLink className="ml-1 h-3 w-3" />
+            </a>
+          </Button>
+        </div>
       </div>
     );
   }
@@ -308,6 +335,43 @@ function PrecisionBadge({
       <span>{label}</span>
     </div>
   );
+}
+
+// ─── deep-link fallbacks (used when API fails) ───────────────────────
+
+const slugifyFor = (text: string): string =>
+  text
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+/**
+ * Build a sensible "open this provider's search page" URL so the user
+ * is never trapped in an error state. Mirrors the public URL formats
+ * the providers use.
+ */
+function buildProviderSearchUrl(
+  provider: "quintoandar" | "zap",
+  property: MarketProperty,
+  type: SearchType,
+): string {
+  const cidade = slugifyFor(property.cidade);
+  const estado = property.estado.toLowerCase();
+  const bairro = property.bairro ? slugifyFor(property.bairro) : "";
+  if (provider === "quintoandar") {
+    const action = type === "venda" ? "comprar" : "alugar";
+    const path = bairro
+      ? `${bairro}-${cidade}-${estado}-brasil`
+      : `${cidade}-${estado}-brasil`;
+    return `https://www.quintoandar.com.br/${action}/imovel/${path}`;
+  }
+  const action = type === "venda" ? "venda" : "aluguel";
+  const path = bairro ? `${estado}+${cidade}+${bairro}` : `${estado}+${cidade}`;
+  const url = new URL(`https://www.zapimoveis.com.br/${action}/imoveis/${path}/`);
+  if (property.rua) url.searchParams.set("onde", property.rua);
+  return url.toString();
 }
 
 // ─── small string helpers ────────────────────────────────────────────
