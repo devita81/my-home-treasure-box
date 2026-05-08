@@ -15,6 +15,9 @@ verify_jwt = false
 [functions.fetch-quinto-andar-listings]
 verify_jwt = false
 
+[functions.fetch-zap-listings]
+verify_jwt = false
+
 [functions.process-email-queue]
 verify_jwt = true
 
