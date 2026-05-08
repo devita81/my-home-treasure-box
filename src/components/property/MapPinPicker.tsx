@@ -124,7 +124,7 @@ export function MapPinPicker({ latitude, longitude, onCoordsChange, address }: M
         ref={mapRef}
         className="h-[250px] w-full rounded-lg border border-border overflow-hidden"
       />
-      <p className="text-[10px] text-muted-foreground">
+      <p className="text-[12px] text-muted-foreground">
         Clique no mapa ou arraste o pin para ajustar a localização.
         {latitude != null && longitude != null && (
           <span className="ml-1 font-mono">

@@ -141,7 +141,7 @@ export function PropertyFilters() {
       {/* MOBILE: blocos empilhados */}
       <div className="space-y-2.5 sm:hidden">
         <div>
-          <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
             <Home className="h-2.5 w-2.5" /> Categoria
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -166,7 +166,7 @@ export function PropertyFilters() {
         </div>
 
         <div>
-          <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
             <MapPin className="h-2.5 w-2.5" /> Localização
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -195,7 +195,7 @@ export function PropertyFilters() {
         </div>
 
         <div>
-          <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
             <Key className="h-2.5 w-2.5" /> Status
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -220,7 +220,7 @@ export function PropertyFilters() {
         </div>
 
         <div>
-          <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
             <ArrowDownUp className="h-2.5 w-2.5" /> Ordenação
           </p>
           <div className="grid grid-cols-[1fr_auto] gap-2">

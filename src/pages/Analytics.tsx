@@ -453,7 +453,7 @@ const Analytics = () => {
 
   const SortableHeader = ({ field, label }: { field: SortField; label: string }) => (
     <TableHead 
-      className="cursor-pointer hover:bg-slate-200/60 select-none text-slate-600 text-[10px] uppercase tracking-wider font-semibold"
+      className="cursor-pointer hover:bg-slate-200/60 select-none text-slate-600 text-[12px] uppercase tracking-wider font-semibold"
       onClick={() => toggleDialogSort(field)}
     >
       <div className="flex items-center gap-1">
@@ -497,9 +497,9 @@ const Analytics = () => {
       <div className="container px-3 sm:px-4 pt-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <h1 className="text-xs font-medium text-slate-600 tracking-widest uppercase truncate">Analytics</h1>
-          <span className="text-[10px] text-slate-600 font-mono shrink-0">{properties.length} imóveis</span>
+          <span className="text-[12px] text-slate-600 font-mono shrink-0">{properties.length} imóveis</span>
         </div>
-        <Button variant="ghost" size="sm" onClick={handleExportExcel} className="text-slate-500 hover:text-slate-800 hover:bg-slate-100 gap-1.5 h-7 px-2 text-[10px] uppercase tracking-wider">
+        <Button variant="ghost" size="sm" onClick={handleExportExcel} className="text-slate-500 hover:text-slate-800 hover:bg-slate-100 gap-1.5 h-7 px-2 text-[12px] uppercase tracking-wider">
           <Download className="h-3 w-3" />
           <span className="hidden sm:inline">Exportar</span>
         </Button>
@@ -509,24 +509,24 @@ const Analytics = () => {
         {/* ─── Value Summary ─── */}
         <div className="grid gap-px grid-cols-2 lg:grid-cols-4 bg-white rounded-lg overflow-hidden border border-slate-200">
           <div onClick={() => openDialog('Valor de Mercado', `${properties.length} imóveis • Total: ${formatCurrency(totalMarketValue)}`, properties)} className="bg-white p-4 cursor-pointer hover:bg-slate-50 transition-colors">
-            <p className="text-[10px] font-medium text-slate-600 uppercase tracking-widest mb-1.5">Valor Mercado</p>
+            <p className="text-[12px] font-medium text-slate-600 uppercase tracking-widest mb-1.5">Valor Mercado</p>
             <p className="text-base font-semibold text-slate-900 tabular-nums tracking-tight">{formatCurrency(totalMarketValue)}</p>
-            <p className="text-[10px] text-slate-600 mt-1 font-mono">{properties.length} imóveis</p>
+            <p className="text-[12px] text-slate-600 mt-1 font-mono">{properties.length} imóveis</p>
           </div>
           <div onClick={() => openDialog('Valor Declarado', `${properties.length} imóveis • Total: ${formatCurrency(totalDeclaredValue)}`, properties)} className="bg-white p-4 cursor-pointer hover:bg-slate-50 transition-colors">
-            <p className="text-[10px] font-medium text-slate-600 uppercase tracking-widest mb-1.5">Valor Declarado</p>
+            <p className="text-[12px] font-medium text-slate-600 uppercase tracking-widest mb-1.5">Valor Declarado</p>
             <p className="text-base font-semibold text-slate-900 tabular-nums tracking-tight">{formatCurrency(totalDeclaredValue)}</p>
-            <p className="text-[10px] text-slate-600 mt-1 font-mono">{properties.length} imóveis</p>
+            <p className="text-[12px] text-slate-600 mt-1 font-mono">{properties.length} imóveis</p>
           </div>
           <div onClick={() => openDialog('Total IPTU', `${properties.length} imóveis • Total: ${formatCurrency(totalIptu)}`, properties)} className="bg-white p-4 cursor-pointer hover:bg-slate-50 transition-colors">
-            <p className="text-[10px] font-medium text-slate-600 uppercase tracking-widest mb-1.5">Total IPTU</p>
+            <p className="text-[12px] font-medium text-slate-600 uppercase tracking-widest mb-1.5">Total IPTU</p>
             <p className="text-base font-semibold text-slate-900 tabular-nums tracking-tight">{formatCurrency(totalIptu)}</p>
-            <p className="text-[10px] text-slate-600 mt-1 font-mono">{properties.length} imóveis</p>
+            <p className="text-[12px] text-slate-600 mt-1 font-mono">{properties.length} imóveis</p>
           </div>
           <div onClick={() => openDialog('Valorização', `${properties.length} imóveis • +${valorizationPercentage}%`, properties)} className="bg-white p-4 cursor-pointer hover:bg-slate-50 transition-colors">
-            <p className="text-[10px] font-medium text-slate-600 uppercase tracking-widest mb-1.5">Valorização</p>
+            <p className="text-[12px] font-medium text-slate-600 uppercase tracking-widest mb-1.5">Valorização</p>
             <p className="text-base font-semibold text-slate-900 tabular-nums tracking-tight">{formatCurrency(valorization)}</p>
-            <p className="text-[10px] text-slate-600 mt-1 font-mono">+{valorizationPercentage}%</p>
+            <p className="text-[12px] text-slate-600 mt-1 font-mono">+{valorizationPercentage}%</p>
           </div>
         </div>
 
@@ -538,24 +538,24 @@ const Analytics = () => {
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-slate-100">
             <div onClick={() => openDialog('IPTU Pago', `${iptuPagoCount} imóveis • Total: ${formatCurrency(iptuPagoValue)}`, iptuPagoProperties)} className="bg-white p-3.5 cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-emerald-400">
-              <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">IPTU Pago</p>
+              <p className="text-[12px] text-slate-600 uppercase tracking-wider mb-1">IPTU Pago</p>
               <p className="text-sm font-semibold text-slate-900 tabular-nums">{formatCurrency(iptuPagoValue)}</p>
-              <p className="text-[10px] text-slate-600 font-mono mt-0.5">{iptuPagoCount} imóveis</p>
+              <p className="text-[12px] text-slate-600 font-mono mt-0.5">{iptuPagoCount} imóveis</p>
             </div>
             <div onClick={() => openDialog('IPTU Pendente', `${iptuPendenteCount} imóveis • Total: ${formatCurrency(iptuPendenteValue)}`, iptuPendenteProperties)} className="bg-white p-3.5 cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-amber-400">
-              <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">IPTU Pendente</p>
+              <p className="text-[12px] text-slate-600 uppercase tracking-wider mb-1">IPTU Pendente</p>
               <p className="text-sm font-semibold text-slate-900 tabular-nums">{formatCurrency(iptuPendenteValue)}</p>
-              <p className="text-[10px] text-slate-600 font-mono mt-0.5">{iptuPendenteCount} imóveis</p>
+              <p className="text-[12px] text-slate-600 font-mono mt-0.5">{iptuPendenteCount} imóveis</p>
             </div>
             <div onClick={() => openDialog('Todos os Imóveis', `${properties.length} imóveis cadastrados`, properties)} className="bg-white p-3.5 cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-sky-400">
-              <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Imóveis</p>
+              <p className="text-[12px] text-slate-600 uppercase tracking-wider mb-1">Imóveis</p>
               <p className="text-sm font-semibold text-slate-900 tabular-nums">{properties.length}</p>
-              <p className="text-[10px] text-slate-600 font-mono mt-0.5">total cadastrado</p>
+              <p className="text-[12px] text-slate-600 font-mono mt-0.5">total cadastrado</p>
             </div>
             <div onClick={() => openDialog('IPTU Pago', `${iptuPagoCount} de ${properties.length} imóveis`, iptuPagoProperties)} className="bg-white p-3.5 cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-slate-300">
-              <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Pagaram</p>
+              <p className="text-[12px] text-slate-600 uppercase tracking-wider mb-1">Pagaram</p>
               <p className="text-sm font-semibold text-slate-900 tabular-nums">{iptuPagoPercentage}%</p>
-              <p className="text-[10px] text-slate-600 font-mono mt-0.5">{iptuPagoCount} de {properties.length}</p>
+              <p className="text-[12px] text-slate-600 font-mono mt-0.5">{iptuPagoCount} de {properties.length}</p>
             </div>
           </div>
         </div>
@@ -568,24 +568,24 @@ const Analytics = () => {
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-slate-100">
             <div onClick={() => openDialog('Aluguel Recebido', `${alugadosCount} imóveis • ${formatCurrency(totalAluguelRecebido)}/mês`, alugadosProperties)} className="bg-white p-3.5 cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-emerald-400">
-              <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Aluguel</p>
+              <p className="text-[12px] text-slate-600 uppercase tracking-wider mb-1">Aluguel</p>
               <p className="text-sm font-semibold text-slate-900 tabular-nums">{formatCurrency(totalAluguelRecebido)}</p>
-              <p className="text-[10px] text-slate-600 font-mono mt-0.5">{alugadosCount} imóveis/mês</p>
+              <p className="text-[12px] text-slate-600 font-mono mt-0.5">{alugadosCount} imóveis/mês</p>
             </div>
             <div onClick={() => openDialog('Total Condomínio', `${properties.length} imóveis • ${formatCurrency(totalCondominio)}/mês`, properties)} className="bg-white p-3.5 cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-amber-400">
-              <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Condomínio</p>
+              <p className="text-[12px] text-slate-600 uppercase tracking-wider mb-1">Condomínio</p>
               <p className="text-sm font-semibold text-slate-900 tabular-nums">{formatCurrency(totalCondominio)}</p>
-              <p className="text-[10px] text-slate-600 font-mono mt-0.5">{properties.length} imóveis/mês</p>
+              <p className="text-[12px] text-slate-600 font-mono mt-0.5">{properties.length} imóveis/mês</p>
             </div>
             <div onClick={() => openDialog('Imóveis Alugados', `${alugadosCount} imóveis alugados`, alugadosProperties)} className="bg-white p-3.5 cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-sky-400">
-              <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Alugados</p>
+              <p className="text-[12px] text-slate-600 uppercase tracking-wider mb-1">Alugados</p>
               <p className="text-sm font-semibold text-slate-900 tabular-nums">{alugadosCount}</p>
-              <p className="text-[10px] text-slate-600 font-mono mt-0.5">de {properties.length}</p>
+              <p className="text-[12px] text-slate-600 font-mono mt-0.5">de {properties.length}</p>
             </div>
             <div onClick={() => openDialog('Taxa de Ocupação', `${alugadosCount} de ${properties.length} alugados`, alugadosProperties)} className="bg-white p-3.5 cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-slate-300">
-              <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Ocupação</p>
+              <p className="text-[12px] text-slate-600 uppercase tracking-wider mb-1">Ocupação</p>
               <p className="text-sm font-semibold text-slate-900 tabular-nums">{alugadosPercentage}%</p>
-              <p className="text-[10px] text-slate-600 font-mono mt-0.5">{alugadosCount} de {properties.length}</p>
+              <p className="text-[12px] text-slate-600 font-mono mt-0.5">{alugadosCount} de {properties.length}</p>
             </div>
           </div>
         </div>
@@ -613,25 +613,25 @@ const Analytics = () => {
                 {/* Receita */}
                 <div className="rounded border border-emerald-200 bg-emerald-50 p-2">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-[9px] text-emerald-700 uppercase tracking-wider font-semibold">Receita</p>
-                    <p className="text-[9px] text-slate-500 font-mono">{row.countAlugados} alug.</p>
+                    <p className="text-[11px] text-emerald-700 uppercase tracking-wider font-semibold">Receita</p>
+                    <p className="text-[11px] text-slate-500 font-mono">{row.countAlugados} alug.</p>
                   </div>
                   <div className="grid grid-cols-4 gap-1 text-center">
                     <div>
-                      <p className="text-[8px] text-slate-500 uppercase">Aluguel</p>
-                      <p className="text-[10px] font-mono tabular-nums text-slate-800">{formatCurrency(row.aluguelBruto)}</p>
+                      <p className="text-[10px] text-slate-500 uppercase">Aluguel</p>
+                      <p className="text-[12px] font-mono tabular-nums text-slate-800">{formatCurrency(row.aluguelBruto)}</p>
                     </div>
                     <div>
-                      <p className="text-[8px] text-slate-500 uppercase">Cond</p>
-                      <p className="text-[10px] font-mono tabular-nums text-slate-600">{formatCurrency(row.condAlugados)}</p>
+                      <p className="text-[10px] text-slate-500 uppercase">Cond</p>
+                      <p className="text-[12px] font-mono tabular-nums text-slate-600">{formatCurrency(row.condAlugados)}</p>
                     </div>
                     <div>
-                      <p className="text-[8px] text-slate-500 uppercase">IPTU</p>
-                      <p className="text-[10px] font-mono tabular-nums text-slate-600">{formatCurrency(row.iptuAlugados)}</p>
+                      <p className="text-[10px] text-slate-500 uppercase">IPTU</p>
+                      <p className="text-[12px] font-mono tabular-nums text-slate-600">{formatCurrency(row.iptuAlugados)}</p>
                     </div>
                     <div>
-                      <p className="text-[8px] text-slate-500 uppercase">Tx Adm</p>
-                      <p className="text-[10px] font-mono tabular-nums text-slate-600">-{formatCurrency(row.taxaAdmAlugados)}</p>
+                      <p className="text-[10px] text-slate-500 uppercase">Tx Adm</p>
+                      <p className="text-[12px] font-mono tabular-nums text-slate-600">-{formatCurrency(row.taxaAdmAlugados)}</p>
                     </div>
                   </div>
                   <div className="text-right mt-1 pt-1 border-t border-emerald-200">
@@ -642,17 +642,17 @@ const Analytics = () => {
                 {/* Despesa */}
                 <div className="rounded border border-red-200 bg-red-50 p-2">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-[9px] text-red-600 uppercase tracking-wider font-semibold">Despesa</p>
-                    <p className="text-[9px] text-slate-500 font-mono">{row.countNaoAlugados} vagos</p>
+                    <p className="text-[11px] text-red-600 uppercase tracking-wider font-semibold">Despesa</p>
+                    <p className="text-[11px] text-slate-500 font-mono">{row.countNaoAlugados} vagos</p>
                   </div>
                   <div className="grid grid-cols-2 gap-1 text-center">
                     <div>
-                      <p className="text-[8px] text-slate-500 uppercase">Cond</p>
-                      <p className="text-[10px] font-mono tabular-nums text-slate-600">{formatCurrency(row.condNaoAlugados)}</p>
+                      <p className="text-[10px] text-slate-500 uppercase">Cond</p>
+                      <p className="text-[12px] font-mono tabular-nums text-slate-600">{formatCurrency(row.condNaoAlugados)}</p>
                     </div>
                     <div>
-                      <p className="text-[8px] text-slate-500 uppercase">IPTU</p>
-                      <p className="text-[10px] font-mono tabular-nums text-slate-600">{formatCurrency(row.iptuNaoAlugados)}</p>
+                      <p className="text-[10px] text-slate-500 uppercase">IPTU</p>
+                      <p className="text-[12px] font-mono tabular-nums text-slate-600">{formatCurrency(row.iptuNaoAlugados)}</p>
                     </div>
                   </div>
                   <div className="text-right mt-1 pt-1 border-t border-red-200">
@@ -662,7 +662,7 @@ const Analytics = () => {
 
                 {/* Total */}
                 <div className="flex items-center justify-between px-1">
-                  <p className="text-[10px] text-slate-500 uppercase font-semibold">Total Geral</p>
+                  <p className="text-[12px] text-slate-500 uppercase font-semibold">Total Geral</p>
                   <p className={`text-[12px] font-mono tabular-nums font-bold ${row.total >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
                     {row.total < 0 ? '-' : ''}{formatCurrency(Math.abs(row.total))}
                   </p>
@@ -679,25 +679,25 @@ const Analytics = () => {
 
               <div className="rounded border border-emerald-300 bg-emerald-50 p-2">
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-[9px] text-emerald-700 uppercase tracking-wider font-bold">Receita</p>
-                  <p className="text-[9px] text-slate-600 font-mono font-bold">{cityFinancialsTotals.countAlugados} alug.</p>
+                  <p className="text-[11px] text-emerald-700 uppercase tracking-wider font-bold">Receita</p>
+                  <p className="text-[11px] text-slate-600 font-mono font-bold">{cityFinancialsTotals.countAlugados} alug.</p>
                 </div>
                 <div className="grid grid-cols-4 gap-1 text-center">
                   <div>
-                    <p className="text-[8px] text-slate-500 uppercase">Aluguel</p>
-                    <p className="text-[10px] font-mono tabular-nums text-slate-900 font-semibold">{formatCurrency(cityFinancialsTotals.aluguelBruto)}</p>
+                    <p className="text-[10px] text-slate-500 uppercase">Aluguel</p>
+                    <p className="text-[12px] font-mono tabular-nums text-slate-900 font-semibold">{formatCurrency(cityFinancialsTotals.aluguelBruto)}</p>
                   </div>
                   <div>
-                    <p className="text-[8px] text-slate-500 uppercase">Cond</p>
-                    <p className="text-[10px] font-mono tabular-nums text-slate-800">{formatCurrency(cityFinancialsTotals.condAlugados)}</p>
+                    <p className="text-[10px] text-slate-500 uppercase">Cond</p>
+                    <p className="text-[12px] font-mono tabular-nums text-slate-800">{formatCurrency(cityFinancialsTotals.condAlugados)}</p>
                   </div>
                   <div>
-                    <p className="text-[8px] text-slate-500 uppercase">IPTU</p>
-                    <p className="text-[10px] font-mono tabular-nums text-slate-800">{formatCurrency(cityFinancialsTotals.iptuAlugados)}</p>
+                    <p className="text-[10px] text-slate-500 uppercase">IPTU</p>
+                    <p className="text-[12px] font-mono tabular-nums text-slate-800">{formatCurrency(cityFinancialsTotals.iptuAlugados)}</p>
                   </div>
                   <div>
-                    <p className="text-[8px] text-slate-500 uppercase">Tx Adm</p>
-                    <p className="text-[10px] font-mono tabular-nums text-slate-800">-{formatCurrency(cityFinancialsTotals.taxaAdmAlugados)}</p>
+                    <p className="text-[10px] text-slate-500 uppercase">Tx Adm</p>
+                    <p className="text-[12px] font-mono tabular-nums text-slate-800">-{formatCurrency(cityFinancialsTotals.taxaAdmAlugados)}</p>
                   </div>
                 </div>
                 <div className="text-right mt-1 pt-1 border-t border-emerald-300">
@@ -707,17 +707,17 @@ const Analytics = () => {
 
               <div className="rounded border border-red-300 bg-red-50 p-2">
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-[9px] text-red-600 uppercase tracking-wider font-bold">Despesa</p>
-                  <p className="text-[9px] text-slate-600 font-mono font-bold">{cityFinancialsTotals.countNaoAlugados} vagos</p>
+                  <p className="text-[11px] text-red-600 uppercase tracking-wider font-bold">Despesa</p>
+                  <p className="text-[11px] text-slate-600 font-mono font-bold">{cityFinancialsTotals.countNaoAlugados} vagos</p>
                 </div>
                 <div className="grid grid-cols-2 gap-1 text-center">
                   <div>
-                    <p className="text-[8px] text-slate-500 uppercase">Cond</p>
-                    <p className="text-[10px] font-mono tabular-nums text-slate-800">{formatCurrency(cityFinancialsTotals.condNaoAlugados)}</p>
+                    <p className="text-[10px] text-slate-500 uppercase">Cond</p>
+                    <p className="text-[12px] font-mono tabular-nums text-slate-800">{formatCurrency(cityFinancialsTotals.condNaoAlugados)}</p>
                   </div>
                   <div>
-                    <p className="text-[8px] text-slate-500 uppercase">IPTU</p>
-                    <p className="text-[10px] font-mono tabular-nums text-slate-800">{formatCurrency(cityFinancialsTotals.iptuNaoAlugados)}</p>
+                    <p className="text-[10px] text-slate-500 uppercase">IPTU</p>
+                    <p className="text-[12px] font-mono tabular-nums text-slate-800">{formatCurrency(cityFinancialsTotals.iptuNaoAlugados)}</p>
                   </div>
                 </div>
                 <div className="text-right mt-1 pt-1 border-t border-red-300">
@@ -726,7 +726,7 @@ const Analytics = () => {
               </div>
 
               <div className="flex items-center justify-between px-1">
-                <p className="text-[10px] text-slate-700 uppercase font-bold tracking-wider">Total Geral</p>
+                <p className="text-[12px] text-slate-700 uppercase font-bold tracking-wider">Total Geral</p>
                 <p className={`text-[13px] font-mono tabular-nums font-bold ${cityFinancialsTotals.total >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
                   {cityFinancialsTotals.total < 0 ? '-' : ''}{formatCurrency(Math.abs(cityFinancialsTotals.total))}
                 </p>
@@ -740,23 +740,23 @@ const Analytics = () => {
               <TableHeader>
                 {/* Header agrupado nível 1 */}
                 <TableRow className="border-slate-200 hover:bg-transparent">
-                  <TableHead rowSpan={2} className="text-[10px] text-slate-700 uppercase tracking-wider font-bold align-bottom">Cidade</TableHead>
-                  <TableHead colSpan={6} className="text-[10px] text-emerald-700 uppercase tracking-wider font-bold text-center border-l border-r border-slate-200 bg-emerald-50">Receita (Alugados)</TableHead>
-                  <TableHead colSpan={4} className="text-[10px] text-red-600 uppercase tracking-wider font-bold text-center border-r border-slate-200 bg-red-50">Despesa (Não Alugados)</TableHead>
-                  <TableHead rowSpan={2} className="text-[10px] text-slate-700 uppercase tracking-wider font-bold text-right align-bottom">Total Geral</TableHead>
+                  <TableHead rowSpan={2} className="text-[12px] text-slate-700 uppercase tracking-wider font-bold align-bottom">Cidade</TableHead>
+                  <TableHead colSpan={6} className="text-[12px] text-emerald-700 uppercase tracking-wider font-bold text-center border-l border-r border-slate-200 bg-emerald-50">Receita (Alugados)</TableHead>
+                  <TableHead colSpan={4} className="text-[12px] text-red-600 uppercase tracking-wider font-bold text-center border-r border-slate-200 bg-red-50">Despesa (Não Alugados)</TableHead>
+                  <TableHead rowSpan={2} className="text-[12px] text-slate-700 uppercase tracking-wider font-bold text-right align-bottom">Total Geral</TableHead>
                 </TableRow>
                 {/* Header agrupado nível 2 */}
                 <TableRow className="border-slate-200 hover:bg-transparent">
-                  <TableHead className="text-[9px] text-slate-500 uppercase font-semibold text-center border-l border-slate-200 bg-emerald-50/60">Qtd</TableHead>
-                  <TableHead className="text-[9px] text-slate-500 uppercase font-semibold text-right bg-emerald-50/60">Aluguel</TableHead>
-                  <TableHead className="text-[9px] text-slate-500 uppercase font-semibold text-right bg-emerald-50/60">Cond</TableHead>
-                  <TableHead className="text-[9px] text-slate-500 uppercase font-semibold text-right bg-emerald-50/60">IPTU</TableHead>
-                  <TableHead className="text-[9px] text-slate-500 uppercase font-semibold text-right bg-emerald-50/60">Tx Adm</TableHead>
-                  <TableHead className="text-[9px] text-emerald-700 uppercase font-bold text-right border-r border-slate-200 bg-emerald-50">Total</TableHead>
-                  <TableHead className="text-[9px] text-slate-500 uppercase font-semibold text-center bg-red-50/60">Qtd</TableHead>
-                  <TableHead className="text-[9px] text-slate-500 uppercase font-semibold text-right bg-red-50/60">Cond</TableHead>
-                  <TableHead className="text-[9px] text-slate-500 uppercase font-semibold text-right bg-red-50/60">IPTU</TableHead>
-                  <TableHead className="text-[9px] text-red-600 uppercase font-bold text-right border-r border-slate-200 bg-red-50">Total</TableHead>
+                  <TableHead className="text-[11px] text-slate-500 uppercase font-semibold text-center border-l border-slate-200 bg-emerald-50/60">Qtd</TableHead>
+                  <TableHead className="text-[11px] text-slate-500 uppercase font-semibold text-right bg-emerald-50/60">Aluguel</TableHead>
+                  <TableHead className="text-[11px] text-slate-500 uppercase font-semibold text-right bg-emerald-50/60">Cond</TableHead>
+                  <TableHead className="text-[11px] text-slate-500 uppercase font-semibold text-right bg-emerald-50/60">IPTU</TableHead>
+                  <TableHead className="text-[11px] text-slate-500 uppercase font-semibold text-right bg-emerald-50/60">Tx Adm</TableHead>
+                  <TableHead className="text-[11px] text-emerald-700 uppercase font-bold text-right border-r border-slate-200 bg-emerald-50">Total</TableHead>
+                  <TableHead className="text-[11px] text-slate-500 uppercase font-semibold text-center bg-red-50/60">Qtd</TableHead>
+                  <TableHead className="text-[11px] text-slate-500 uppercase font-semibold text-right bg-red-50/60">Cond</TableHead>
+                  <TableHead className="text-[11px] text-slate-500 uppercase font-semibold text-right bg-red-50/60">IPTU</TableHead>
+                  <TableHead className="text-[11px] text-red-600 uppercase font-bold text-right border-r border-slate-200 bg-red-50">Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -772,7 +772,7 @@ const Analytics = () => {
                     </TableCell>
                     {/* Receita - clicáveis */}
                     <TableCell
-                      className="text-[10px] font-mono text-slate-500 text-center border-l border-slate-200 cursor-pointer hover:bg-emerald-50 hover:text-emerald-700"
+                      className="text-[12px] font-mono text-slate-500 text-center border-l border-slate-200 cursor-pointer hover:bg-emerald-50 hover:text-emerald-700"
                       onClick={() => row.countAlugados > 0 && openFinancialDialog(`Alugados em ${row.cidade}`, `${row.countAlugados} imóveis · Receita líq. ${formatCurrency(row.receitaTotal)}`, row.propertiesAlugados)}
                     >
                       {row.countAlugados}
@@ -809,7 +809,7 @@ const Analytics = () => {
                     </TableCell>
                     {/* Despesa - clicáveis */}
                     <TableCell
-                      className="text-[10px] font-mono text-slate-500 text-center cursor-pointer hover:bg-red-50 hover:text-red-600"
+                      className="text-[12px] font-mono text-slate-500 text-center cursor-pointer hover:bg-red-50 hover:text-red-600"
                       onClick={() => row.countNaoAlugados > 0 && openFinancialDialog(`Não Alugados em ${row.cidade}`, `${row.countNaoAlugados} imóveis · Despesa ${formatCurrency(row.despesaTotal)}`, row.propertiesNaoAlugados)}
                     >
                       {row.countNaoAlugados}
@@ -845,13 +845,13 @@ const Analytics = () => {
                 {/* Subtotal row */}
                 <TableRow className="border-t-2 border-blue-300 bg-blue-50 hover:bg-blue-100">
                   <TableCell className="text-[11px] text-blue-700 font-bold uppercase">Subtotal</TableCell>
-                  <TableCell className="text-[10px] font-mono text-blue-700 text-center font-bold border-l border-blue-200">{cityFinancialsTotals.countAlugados}</TableCell>
+                  <TableCell className="text-[12px] font-mono text-blue-700 text-center font-bold border-l border-blue-200">{cityFinancialsTotals.countAlugados}</TableCell>
                   <TableCell className="text-[11px] font-mono tabular-nums text-slate-900 text-right font-bold">{formatCurrency(cityFinancialsTotals.aluguelBruto)}</TableCell>
                   <TableCell className="text-[11px] font-mono tabular-nums text-slate-800 text-right font-bold">{formatCurrency(cityFinancialsTotals.condAlugados)}</TableCell>
                   <TableCell className="text-[11px] font-mono tabular-nums text-slate-800 text-right font-bold">{formatCurrency(cityFinancialsTotals.iptuAlugados)}</TableCell>
                   <TableCell className="text-[11px] font-mono tabular-nums text-slate-800 text-right font-bold">{cityFinancialsTotals.taxaAdmAlugados > 0 ? `-${formatCurrency(cityFinancialsTotals.taxaAdmAlugados)}` : formatCurrency(0)}</TableCell>
                   <TableCell className="text-[11px] font-mono tabular-nums text-emerald-700 text-right font-bold border-r border-blue-200">{formatCurrency(cityFinancialsTotals.receitaTotal)}</TableCell>
-                  <TableCell className="text-[10px] font-mono text-blue-700 text-center font-bold">{cityFinancialsTotals.countNaoAlugados}</TableCell>
+                  <TableCell className="text-[12px] font-mono text-blue-700 text-center font-bold">{cityFinancialsTotals.countNaoAlugados}</TableCell>
                   <TableCell className="text-[11px] font-mono tabular-nums text-slate-800 text-right font-bold">{formatCurrency(cityFinancialsTotals.condNaoAlugados)}</TableCell>
                   <TableCell className="text-[11px] font-mono tabular-nums text-slate-800 text-right font-bold">{formatCurrency(cityFinancialsTotals.iptuNaoAlugados)}</TableCell>
                   <TableCell className="text-[11px] font-mono tabular-nums text-red-600 text-right font-bold border-r border-blue-200">-{formatCurrency(cityFinancialsTotals.despesaTotal)}</TableCell>
@@ -876,7 +876,7 @@ const Analytics = () => {
                 <button
                   key={m}
                   onClick={() => setDistributionMetric(m)}
-                  className={`px-2.5 py-1 rounded text-[10px] font-medium uppercase tracking-wider transition-colors ${
+                  className={`px-2.5 py-1 rounded text-[12px] font-medium uppercase tracking-wider transition-colors ${
                     distributionMetric === m
                       ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
@@ -893,7 +893,7 @@ const Analytics = () => {
               <div className="rounded-md border border-slate-200 bg-white shadow-sm">
                 <div className="px-3 py-2 border-b-2 border-slate-200 bg-slate-50 flex items-center gap-2 rounded-t-md">
                   <Building2 className="h-3 w-3 text-primary" />
-                  <span className="text-[10px] font-semibold text-slate-700 uppercase tracking-wider">Por Tipo</span>
+                  <span className="text-[12px] font-semibold text-slate-700 uppercase tracking-wider">Por Tipo</span>
                 </div>
                 <div className="max-h-48 overflow-y-auto">
                   {propertiesByType.map((item, idx) => (
@@ -901,7 +901,7 @@ const Analytics = () => {
                       className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 py-2 px-3 cursor-pointer hover:bg-white transition-colors border-b border-slate-200 last:border-0">
                       <span className="text-[11px] text-slate-600 sm:truncate sm:flex-1 sm:mr-3 break-words">{item.name}</span>
                       <div className="flex items-center justify-end gap-3 shrink-0">
-                        <span className="text-[10px] font-mono text-slate-500">{item.count}</span>
+                        <span className="text-[12px] font-mono text-slate-500">{item.count}</span>
                         <span className="text-[11px] font-semibold text-slate-800 tabular-nums font-mono whitespace-nowrap">{formatCurrency(item.value)}</span>
                       </div>
                     </div>
@@ -912,7 +912,7 @@ const Analytics = () => {
               <div className="rounded-md border border-slate-200 bg-white shadow-sm">
                 <div className="px-3 py-2 border-b-2 border-slate-200 bg-slate-50 flex items-center gap-2 rounded-t-md">
                   <Home className="h-3 w-3 text-primary" />
-                  <span className="text-[10px] font-semibold text-slate-700 uppercase tracking-wider">Por Cidade</span>
+                  <span className="text-[12px] font-semibold text-slate-700 uppercase tracking-wider">Por Cidade</span>
                 </div>
                 <div className="max-h-48 overflow-y-auto">
                   {propertiesByCity.map((item, idx) => (
@@ -920,7 +920,7 @@ const Analytics = () => {
                       className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 py-2 px-3 cursor-pointer hover:bg-white transition-colors border-b border-slate-200 last:border-0">
                       <span className="text-[11px] text-slate-600 sm:truncate sm:flex-1 sm:mr-3 break-words">{item.name}</span>
                       <div className="flex items-center justify-end gap-3 shrink-0">
-                        <span className="text-[10px] font-mono text-slate-500">{item.count}</span>
+                        <span className="text-[12px] font-mono text-slate-500">{item.count}</span>
                         <span className="text-[11px] font-semibold text-slate-800 tabular-nums font-mono whitespace-nowrap">{formatCurrency(item.value)}</span>
                       </div>
                     </div>
@@ -931,7 +931,7 @@ const Analytics = () => {
               <div className="rounded-md border border-slate-200 bg-white shadow-sm">
                 <div className="px-3 py-2 border-b-2 border-slate-200 bg-slate-50 flex items-center gap-2 rounded-t-md">
                   <FileCheck className="h-3 w-3 text-primary" />
-                  <span className="text-[10px] font-semibold text-slate-700 uppercase tracking-wider">Por Proprietário (Papel)</span>
+                  <span className="text-[12px] font-semibold text-slate-700 uppercase tracking-wider">Por Proprietário (Papel)</span>
                 </div>
                 <div className="max-h-48 overflow-y-auto">
                   {proprietariosPapel.map((item, idx) => (
@@ -939,7 +939,7 @@ const Analytics = () => {
                       className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 py-2 px-3 cursor-pointer hover:bg-white transition-colors border-b border-slate-200 last:border-0">
                       <span className="text-[11px] text-slate-600 sm:truncate sm:flex-1 sm:mr-3 break-words">{item.name}</span>
                       <div className="flex items-center justify-end gap-3 shrink-0">
-                        <span className="text-[10px] font-mono text-slate-500">{item.count}</span>
+                        <span className="text-[12px] font-mono text-slate-500">{item.count}</span>
                         <span className="text-[11px] font-semibold text-slate-800 tabular-nums font-mono whitespace-nowrap">{formatCurrency(item.value)}</span>
                       </div>
                     </div>
@@ -950,7 +950,7 @@ const Analytics = () => {
               <div className="rounded-md border border-slate-200 bg-white shadow-sm">
                 <div className="px-3 py-2 border-b-2 border-slate-200 bg-slate-50 flex items-center gap-2 rounded-t-md">
                   <Users className="h-3 w-3 text-primary" />
-                  <span className="text-[10px] font-semibold text-slate-700 uppercase tracking-wider">Por Proprietário (Matrícula)</span>
+                  <span className="text-[12px] font-semibold text-slate-700 uppercase tracking-wider">Por Proprietário (Matrícula)</span>
                 </div>
                 <div className="max-h-48 overflow-y-auto">
                   {proprietariosMatricula.map((item, idx) => (
@@ -958,7 +958,7 @@ const Analytics = () => {
                       className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 py-2 px-3 cursor-pointer hover:bg-white transition-colors border-b border-slate-200 last:border-0">
                       <span className="text-[11px] text-slate-600 sm:truncate sm:flex-1 sm:mr-3 break-words">{item.name}</span>
                       <div className="flex items-center justify-end gap-3 shrink-0">
-                        <span className="text-[10px] font-mono text-slate-500">{item.count}</span>
+                        <span className="text-[12px] font-mono text-slate-500">{item.count}</span>
                         <span className="text-[11px] font-semibold text-slate-800 tabular-nums font-mono whitespace-nowrap">{formatCurrency(item.value)}</span>
                       </div>
                     </div>
@@ -978,7 +978,7 @@ const Analytics = () => {
             </div>
             <div className="flex gap-2">
               <Select value={rankingMetric} onValueChange={(v) => setRankingMetric(v as typeof rankingMetric)}>
-                <SelectTrigger className="w-[130px] h-7 text-[10px] font-medium bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-md shadow-sm">
+                <SelectTrigger className="w-[130px] h-7 text-[12px] font-medium bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-md shadow-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -990,7 +990,7 @@ const Analytics = () => {
                 </SelectContent>
               </Select>
               <Select value={String(rankingLimit)} onValueChange={(v) => setRankingLimit(Number(v))}>
-                <SelectTrigger className="w-[80px] h-7 text-[10px] font-medium bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-md shadow-sm">
+                <SelectTrigger className="w-[80px] h-7 text-[12px] font-medium bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-md shadow-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1002,7 +1002,7 @@ const Analytics = () => {
               </Select>
               <button
                 onClick={() => setRankingSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                className="px-2.5 h-7 rounded-md text-[10px] font-medium bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors flex items-center gap-1 shadow-sm"
+                className="px-2.5 h-7 rounded-md text-[12px] font-medium bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors flex items-center gap-1 shadow-sm"
               >
                 {rankingSortOrder === 'desc' ? <><ArrowDown className="h-3 w-3" /> Top</> : <><ArrowUp className="h-3 w-3" /> Base</>}
               </button>
@@ -1018,16 +1018,16 @@ const Analytics = () => {
                 <Link key={property.id} to={`/property/${property.id}`} className="block px-3 py-2.5 active:bg-white">
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-[10px] font-mono text-slate-500 shrink-0">#{idx + 1}</span>
+                      <span className="text-[12px] font-mono text-slate-500 shrink-0">#{idx + 1}</span>
                       <span className="text-[11px] text-slate-900 font-medium truncate">{getPropertyAddress(property)}</span>
                     </div>
                     {property.alugado ? (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium shrink-0">Alugado</span>
+                      <span className="text-[11px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium shrink-0">Alugado</span>
                     ) : (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-500 font-medium shrink-0">Vago</span>
+                      <span className="text-[11px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-500 font-medium shrink-0">Vago</span>
                     )}
                   </div>
-                  <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1">
+                  <div className="flex items-center justify-between text-[12px] text-slate-500 mb-1">
                     <span>{getTipoLabel(property.tipo_imovel)} • {property.cidade}</span>
                     <span className="text-slate-900 font-mono tabular-nums font-semibold">{formatCurrency(currentValue)}</span>
                   </div>
@@ -1042,13 +1042,13 @@ const Analytics = () => {
             <table className="w-full text-xs table-fixed">
               <thead className="sticky top-0 bg-slate-100 z-10">
                 <tr className="border-b border-slate-200">
-                  <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 w-8">#</th>
-                  <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 w-[35%]">Endereço</th>
-                  <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 w-16">Tipo</th>
-                  <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 w-28">Cidade</th>
-                  <th className="text-right py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 w-28">{getRankingMetricLabel()}</th>
-                  <th className="text-center py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 w-16">Status</th>
-                  <th className="py-2 px-3 text-[10px] text-slate-500 uppercase tracking-widest" />
+                  <th className="text-left py-2 px-3 font-medium text-[12px] uppercase tracking-widest text-slate-500 w-8">#</th>
+                  <th className="text-left py-2 px-3 font-medium text-[12px] uppercase tracking-widest text-slate-500 w-[35%]">Endereço</th>
+                  <th className="text-left py-2 px-3 font-medium text-[12px] uppercase tracking-widest text-slate-500 w-16">Tipo</th>
+                  <th className="text-left py-2 px-3 font-medium text-[12px] uppercase tracking-widest text-slate-500 w-28">Cidade</th>
+                  <th className="text-right py-2 px-3 font-medium text-[12px] uppercase tracking-widest text-slate-500 w-28">{getRankingMetricLabel()}</th>
+                  <th className="text-center py-2 px-3 font-medium text-[12px] uppercase tracking-widest text-slate-500 w-16">Status</th>
+                  <th className="py-2 px-3 text-[12px] text-slate-500 uppercase tracking-widest" />
                 </tr>
               </thead>
               <tbody>
@@ -1058,20 +1058,20 @@ const Analytics = () => {
                   const barWidth = maxValue > 0 ? (currentValue / maxValue) * 100 : 0;
                   return (
                     <tr key={property.id} className="border-b border-slate-200 hover:bg-slate-100 transition-colors">
-                      <td className="py-1.5 px-3 text-slate-600 font-mono text-[10px]">{idx + 1}</td>
+                      <td className="py-1.5 px-3 text-slate-600 font-mono text-[12px]">{idx + 1}</td>
                       <td className="py-1.5 px-3">
                         <Link to={`/property/${property.id}`} className="text-slate-800 text-[11px] hover:text-blue-600 transition-colors truncate block">
                           {getPropertyAddress(property)}
                         </Link>
                       </td>
-                      <td className="py-1.5 px-3 text-[10px] text-slate-500">{getTipoLabel(property.tipo_imovel)}</td>
-                      <td className="py-1.5 px-3 text-[10px] text-slate-500 truncate">{property.cidade}</td>
+                      <td className="py-1.5 px-3 text-[12px] text-slate-500">{getTipoLabel(property.tipo_imovel)}</td>
+                      <td className="py-1.5 px-3 text-[12px] text-slate-500 truncate">{property.cidade}</td>
                       <td className="text-right py-1.5 px-3 font-medium text-slate-900 tabular-nums font-mono text-[11px]">{formatCurrency(currentValue)}</td>
                       <td className="py-1.5 px-3 text-center">
                         {property.alugado ? (
-                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
+                          <span className="text-[11px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
                         ) : (
-                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-500 font-medium">Vago</span>
+                          <span className="text-[11px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-500 font-medium">Vago</span>
                         )}
                       </td>
                       <td className="py-1.5 px-3">
@@ -1090,7 +1090,7 @@ const Analytics = () => {
           <div className="px-4 py-3 border-b border-slate-200 flex items-center gap-2">
             <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
             <h2 className="text-[11px] font-semibold text-blue-700 uppercase tracking-widest">Pendentes de Validação</h2>
-            <span className="text-[10px] font-mono text-amber-600/80 ml-1">{naoValidadosProperties.length}</span>
+            <span className="text-[12px] font-mono text-amber-600/80 ml-1">{naoValidadosProperties.length}</span>
           </div>
           {naoValidadosProperties.length > 0 ? (
             <>
@@ -1100,14 +1100,14 @@ const Analytics = () => {
                   <Link key={property.id} to={`/property/${property.id}`} className="block px-3 py-2.5 active:bg-white">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[10px] font-mono text-slate-500 shrink-0">#{index + 1}</span>
+                        <span className="text-[12px] font-mono text-slate-500 shrink-0">#{index + 1}</span>
                         <span className="text-[11px] text-slate-900 font-medium truncate">{getPropertyAddressForSort(property)}</span>
                       </div>
                     </div>
-                    <div className="text-[10px] text-slate-500 mb-1.5">
+                    <div className="text-[12px] text-slate-500 mb-1.5">
                       {getTipoLabel(property.tipo_imovel)} • {property.cidade} - {property.estado}
                     </div>
-                    <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[12px]">
                       <span className="text-slate-500">Matrícula</span>
                       <span className="text-right font-mono text-slate-600">{property.numero_matricula || '—'}</span>
                       <span className="text-slate-500">Prop. Matr.</span>
@@ -1128,29 +1128,29 @@ const Analytics = () => {
                 <table className="w-full text-xs">
                   <thead className="sticky top-0 bg-slate-100 z-10">
                     <tr className="border-b border-slate-200">
-                      <th className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 w-8">#</th>
-                      <th onClick={() => togglePendentesSort('endereco')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
+                      <th className="text-left py-2 px-3 font-medium text-[12px] uppercase tracking-widest text-slate-500 w-8">#</th>
+                      <th onClick={() => togglePendentesSort('endereco')} className="text-left py-2 px-3 font-medium text-[12px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
                         <div className="flex items-center">Endereço{getSortIcon('endereco')}</div>
                       </th>
-                      <th onClick={() => togglePendentesSort('tipo_imovel')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
+                      <th onClick={() => togglePendentesSort('tipo_imovel')} className="text-left py-2 px-3 font-medium text-[12px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
                         <div className="flex items-center">Tipo{getSortIcon('tipo_imovel')}</div>
                       </th>
-                      <th onClick={() => togglePendentesSort('cidade')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
+                      <th onClick={() => togglePendentesSort('cidade')} className="text-left py-2 px-3 font-medium text-[12px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
                         <div className="flex items-center">Cidade{getSortIcon('cidade')}</div>
                       </th>
-                      <th onClick={() => togglePendentesSort('numero_matricula')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
+                      <th onClick={() => togglePendentesSort('numero_matricula')} className="text-left py-2 px-3 font-medium text-[12px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
                         <div className="flex items-center">Matrícula{getSortIcon('numero_matricula')}</div>
                       </th>
-                      <th onClick={() => togglePendentesSort('proprietario_matricula')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
+                      <th onClick={() => togglePendentesSort('proprietario_matricula')} className="text-left py-2 px-3 font-medium text-[12px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
                         <div className="flex items-center">Prop. Matrícula{getSortIcon('proprietario_matricula')}</div>
                       </th>
-                      <th onClick={() => togglePendentesSort('proprietario_papel')} className="text-left py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
+                      <th onClick={() => togglePendentesSort('proprietario_papel')} className="text-left py-2 px-3 font-medium text-[12px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
                         <div className="flex items-center">Prop. Papel{getSortIcon('proprietario_papel')}</div>
                       </th>
-                      <th onClick={() => togglePendentesSort('declared_value')} className="text-right py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
+                      <th onClick={() => togglePendentesSort('declared_value')} className="text-right py-2 px-3 font-medium text-[12px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
                         <div className="flex items-center justify-end">Declarado{getSortIcon('declared_value')}</div>
                       </th>
-                      <th onClick={() => togglePendentesSort('market_value')} className="text-right py-2 px-3 font-medium text-[10px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
+                      <th onClick={() => togglePendentesSort('market_value')} className="text-right py-2 px-3 font-medium text-[12px] uppercase tracking-widest text-slate-500 cursor-pointer hover:text-slate-800 select-none">
                         <div className="flex items-center justify-end">Mercado{getSortIcon('market_value')}</div>
                       </th>
                     </tr>
@@ -1158,17 +1158,17 @@ const Analytics = () => {
                   <tbody>
                     {naoValidadosProperties.map((property, index) => (
                       <tr key={property.id} className="border-b border-slate-200 hover:bg-slate-100 transition-colors">
-                        <td className="py-1.5 px-3 text-slate-500 font-mono text-[10px]">{index + 1}</td>
+                        <td className="py-1.5 px-3 text-slate-500 font-mono text-[12px]">{index + 1}</td>
                         <td className="py-1.5 px-3">
                           <Link to={`/property/${property.id}`} className="text-slate-800 text-[11px] hover:text-blue-600 transition-colors truncate block max-w-[200px]">
                             {getPropertyAddressForSort(property)}
                           </Link>
                         </td>
-                        <td className="py-1.5 px-3 text-[10px] text-slate-500">{getTipoLabel(property.tipo_imovel)}</td>
-                        <td className="py-1.5 px-3 text-[10px] text-slate-500">{property.cidade} - {property.estado}</td>
-                        <td className="py-1.5 px-3 text-[10px] text-slate-500 font-mono">{property.numero_matricula || '—'}</td>
-                        <td className="py-1.5 px-3 text-[10px] text-slate-500 truncate max-w-[150px]">{property.proprietario_matricula || '—'}</td>
-                        <td className="py-1.5 px-3 text-[10px] text-slate-500 truncate max-w-[150px]">{property.proprietario_papel || '—'}</td>
+                        <td className="py-1.5 px-3 text-[12px] text-slate-500">{getTipoLabel(property.tipo_imovel)}</td>
+                        <td className="py-1.5 px-3 text-[12px] text-slate-500">{property.cidade} - {property.estado}</td>
+                        <td className="py-1.5 px-3 text-[12px] text-slate-500 font-mono">{property.numero_matricula || '—'}</td>
+                        <td className="py-1.5 px-3 text-[12px] text-slate-500 truncate max-w-[150px]">{property.proprietario_matricula || '—'}</td>
+                        <td className="py-1.5 px-3 text-[12px] text-slate-500 truncate max-w-[150px]">{property.proprietario_papel || '—'}</td>
                         <td className="text-right py-1.5 px-3 text-[11px] text-slate-600 font-mono tabular-nums">{formatCurrency(property.declared_value)}</td>
                         <td className="text-right py-1.5 px-3 text-[11px] text-slate-800 font-mono tabular-nums font-medium">{formatCurrency(property.market_value || 0)}</td>
                       </tr>
@@ -1201,7 +1201,7 @@ const Analytics = () => {
                   <Home className="h-4 w-4 text-slate-500 shrink-0" />
                   <span className="truncate">{dialogState.title}</span>
                 </DialogTitle>
-                <p className="text-[10px] sm:text-[11px] text-slate-500 mt-1 font-mono truncate">{dialogState.subtitle}</p>
+                <p className="text-[12px] sm:text-[11px] text-slate-500 mt-1 font-mono truncate">{dialogState.subtitle}</p>
               </div>
               <ExportButtons
                 onExportExcel={() => exportToExcel(sortedDialogProperties, dialogState.title)}
@@ -1229,14 +1229,14 @@ const Analytics = () => {
                             <p className="text-[12px] font-semibold text-slate-900 truncate uppercase" title={getPropertyAddress(property)}>
                               {getPropertyAddress(property)}
                             </p>
-                            <p className="text-[10px] text-slate-500 truncate uppercase">
+                            <p className="text-[12px] text-slate-500 truncate uppercase">
                               {getTipoLabel(property.tipo_imovel)} • {property.cidade} - {property.estado}
                             </p>
                           </div>
                           {property.alugado ? (
-                            <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
+                            <span className="shrink-0 text-[11px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
                           ) : (
-                            <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Vago</span>
+                            <span className="shrink-0 text-[11px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Vago</span>
                           )}
                         </div>
                         {dialogState.mode === 'financial' ? (() => {
@@ -1248,7 +1248,7 @@ const Analytics = () => {
                             ? aluguel - txAdm
                             : -(cond + iptuMes + txAdm);
                           return (
-                            <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] font-mono tabular-nums text-slate-700">
+                            <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[12px] font-mono tabular-nums text-slate-700">
                               <div className="flex justify-between"><span className="text-slate-500">Aluguel</span><span className="font-semibold text-slate-900">{formatCurrency(aluguel)}</span></div>
                               <div className="flex justify-between"><span className="text-slate-500">Cond.</span><span className="text-red-600">-{formatCurrency(cond)}</span></div>
                               <div className="flex justify-between"><span className="text-slate-500">IPTU/mês</span><span className="text-red-600">-{formatCurrency(iptuMes)}</span></div>
@@ -1260,7 +1260,7 @@ const Analytics = () => {
                             </div>
                           );
                         })() : (
-                          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] font-mono tabular-nums text-slate-700">
+                          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[12px] font-mono tabular-nums text-slate-700">
                             <div className="flex justify-between"><span className="text-slate-500">Mercado</span><span className="font-semibold text-slate-900">{formatCurrency(property.market_value || 0)}</span></div>
                             <div className="flex justify-between"><span className="text-slate-500">Declar.</span><span>{formatCurrency(property.declared_value)}</span></div>
                             <div className="flex justify-between"><span className="text-slate-500">Aluguel</span><span>{formatCurrency(property.valor_aluguel || 0)}</span></div>
@@ -1269,7 +1269,7 @@ const Analytics = () => {
                           </div>
                         )}
                         {dialogState.mode !== 'financial' && (property.numero_matricula || property.proprietario_matricula) && (
-                          <div className="mt-1.5 pt-1.5 border-t border-slate-100 text-[9px] text-slate-500 truncate">
+                          <div className="mt-1.5 pt-1.5 border-t border-slate-100 text-[11px] text-slate-500 truncate">
                             {property.numero_matricula && <span className="font-mono">Matr. {property.numero_matricula}</span>}
                             {property.numero_matricula && property.proprietario_matricula && <span> • </span>}
                             {property.proprietario_matricula && <span className="truncate">{property.proprietario_matricula}</span>}
@@ -1297,8 +1297,8 @@ const Analytics = () => {
                           <SortableHeader field="valor_aluguel" label="Aluguel" />
                           <SortableHeader field="valor_condominio" label="Cond." />
                           <SortableHeader field="iptu_value" label="IPTU" />
-                          <th className="text-right py-2 px-3 text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap">Tx Adm</th>
-                          <th className="text-right py-2 px-3 text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap">Total</th>
+                          <th className="text-right py-2 px-3 text-[12px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap">Tx Adm</th>
+                          <th className="text-right py-2 px-3 text-[12px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap">Total</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1317,13 +1317,13 @@ const Analytics = () => {
                                 {getPropertyAddress(property)}
                               </Link>
                             </td>
-                            <td className="py-2 px-3 text-[10px] text-slate-600 uppercase">{getTipoLabel(property.tipo_imovel)}</td>
-                            <td className="py-2 px-3 text-[10px] text-slate-600 whitespace-nowrap uppercase">{property.cidade} - {property.estado}</td>
+                            <td className="py-2 px-3 text-[12px] text-slate-600 uppercase">{getTipoLabel(property.tipo_imovel)}</td>
+                            <td className="py-2 px-3 text-[12px] text-slate-600 whitespace-nowrap uppercase">{property.cidade} - {property.estado}</td>
                             <td className="py-2 px-3 text-center">
                               {property.alugado ? (
-                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
+                                <span className="text-[11px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
                               ) : (
-                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Vago</span>
+                                <span className="text-[11px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Vago</span>
                               )}
                             </td>
                             <td className="text-right py-2 px-3 text-[11px] text-slate-900 font-mono tabular-nums font-semibold whitespace-nowrap">{formatCurrency(property.valor_aluguel || 0)}</td>
@@ -1421,13 +1421,13 @@ const Analytics = () => {
                             {getPropertyAddress(property)}
                           </Link>
                         </td>
-                        <td className="py-2 px-3 text-[10px] text-slate-600">{getTipoLabel(property.tipo_imovel)}</td>
-                        <td className="py-2 px-3 text-[10px] text-slate-600 whitespace-nowrap">{property.cidade} - {property.estado}</td>
-                        <td className="py-2 px-3 text-[10px] text-slate-700 font-mono whitespace-nowrap">{property.numero_matricula || '—'}</td>
-                        <td className="py-2 px-3 text-[10px] text-slate-700 font-mono whitespace-nowrap">{property.numero_contribuinte || '—'}</td>
-                        <td className="py-2 px-3 text-[10px] text-slate-600 max-w-[160px] truncate">{property.proprietario_papel || '—'}</td>
-                        <td className="py-2 px-3 text-[10px] text-slate-600 max-w-[200px] truncate">{property.proprietario_matricula || '—'}</td>
-                        <td className="py-2 px-3 text-[10px] text-slate-600 max-w-[200px] truncate">{property.proprietario_matricula_ii || '—'}</td>
+                        <td className="py-2 px-3 text-[12px] text-slate-600">{getTipoLabel(property.tipo_imovel)}</td>
+                        <td className="py-2 px-3 text-[12px] text-slate-600 whitespace-nowrap">{property.cidade} - {property.estado}</td>
+                        <td className="py-2 px-3 text-[12px] text-slate-700 font-mono whitespace-nowrap">{property.numero_matricula || '—'}</td>
+                        <td className="py-2 px-3 text-[12px] text-slate-700 font-mono whitespace-nowrap">{property.numero_contribuinte || '—'}</td>
+                        <td className="py-2 px-3 text-[12px] text-slate-600 max-w-[160px] truncate">{property.proprietario_papel || '—'}</td>
+                        <td className="py-2 px-3 text-[12px] text-slate-600 max-w-[200px] truncate">{property.proprietario_matricula || '—'}</td>
+                        <td className="py-2 px-3 text-[12px] text-slate-600 max-w-[200px] truncate">{property.proprietario_matricula_ii || '—'}</td>
                         <td className="text-right py-2 px-3 text-[11px] text-slate-700 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.declared_value)}</td>
                         <td className="text-right py-2 px-3 text-[11px] text-slate-900 font-mono tabular-nums font-semibold whitespace-nowrap">{formatCurrency(property.market_value || 0)}</td>
                         <td className="text-right py-2 px-3 text-[11px] text-slate-700 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.valor_condominio || 0)}</td>
@@ -1435,9 +1435,9 @@ const Analytics = () => {
                         <td className="text-right py-2 px-3 text-[11px] text-slate-700 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.valor_aluguel || 0)}</td>
                         <td className="text-center py-2 px-3">
                           {property.alugado ? (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
+                            <span className="text-[11px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Alugado</span>
                           ) : (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Vago</span>
+                            <span className="text-[11px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Vago</span>
                           )}
                         </td>
                       </tr>

@@ -744,7 +744,7 @@ export default function Balancete() {
             />
 
             <div className="flex flex-col gap-0.5 px-3 py-1.5 border-t border-border">
-              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              <label className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">
                 Período
               </label>
               <PeriodFilterButton
@@ -1053,7 +1053,7 @@ export default function Balancete() {
                       >
                         <TableCell className="sticky left-0 bg-card z-10 font-medium text-xs max-w-[260px] align-top">
                           <div className="flex flex-col leading-tight">
-                            <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium truncate">
+                            <span className="text-[12px] uppercase tracking-wide text-muted-foreground font-medium truncate">
                               {r.cidade.toUpperCase() || '—'}
                             </span>
                             <span className="text-[12px] font-semibold truncate">
@@ -1188,7 +1188,7 @@ export default function Balancete() {
                   {cidade && (
                     <div className="flex items-center gap-1.5 mb-1 min-w-0">
                       <span className="h-1 w-1 rounded-full bg-primary shrink-0" />
-                      <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.12em] font-semibold text-muted-foreground truncate">
+                      <span className="text-[11px] sm:text-[12px] uppercase tracking-[0.12em] font-semibold text-muted-foreground truncate">
                         {cidade}
                       </span>
                     </div>
@@ -1196,7 +1196,7 @@ export default function Balancete() {
                   <div className="text-[13px] sm:text-base font-display font-semibold leading-tight truncate text-foreground">
                     {endereco}
                   </div>
-                  <div className="flex items-center gap-1.5 mt-1 text-[10px] text-muted-foreground">
+                  <div className="flex items-center gap-1.5 mt-1 text-[12px] text-muted-foreground">
                     <span className="inline-flex items-center gap-1">
                       <span className="h-1 w-1 rounded-full bg-muted-foreground/60" />
                       Histórico mensal
@@ -1225,10 +1225,10 @@ export default function Balancete() {
 
             <Tabs defaultValue="grafico" className="flex flex-col min-h-0 flex-1">
               <TabsList className="grid grid-cols-4 h-8 mx-2 mt-2 shrink-0">
-                <TabsTrigger value="grafico" className="text-[10px] px-1">Gráfico</TabsTrigger>
-                <TabsTrigger value="anos" className="text-[10px] px-1">Anos</TabsTrigger>
-                <TabsTrigger value="categorias" className="text-[10px] px-1">Categ.</TabsTrigger>
-                <TabsTrigger value="meses" className="text-[10px] px-1">Meses</TabsTrigger>
+                <TabsTrigger value="grafico" className="text-[12px] px-1">Gráfico</TabsTrigger>
+                <TabsTrigger value="anos" className="text-[12px] px-1">Anos</TabsTrigger>
+                <TabsTrigger value="categorias" className="text-[12px] px-1">Categ.</TabsTrigger>
+                <TabsTrigger value="meses" className="text-[12px] px-1">Meses</TabsTrigger>
               </TabsList>
 
               <div className="flex-1 min-h-0 overflow-y-auto px-2.5 pb-3 pt-2">
@@ -1247,14 +1247,14 @@ export default function Balancete() {
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
-                    <div className="flex items-center justify-center gap-3 pt-1 text-[9px] text-muted-foreground">
+                    <div className="flex items-center justify-center gap-3 pt-1 text-[11px] text-muted-foreground">
                       <LegendDot color={CATEGORY_COLORS.aluguel} label="Receita" />
                       <LegendDot color={CATEGORY_COLORS.condominio} label="Despesa" />
                       <LegendDot color="hsl(var(--primary))" label="Líquido" />
                     </div>
                   </div>
-                  <div className="rounded-md border bg-card p-2 text-[10px] space-y-1">
-                    <div className="font-semibold text-[10px] uppercase tracking-wide text-muted-foreground">Médias mensais</div>
+                  <div className="rounded-md border bg-card p-2 text-[12px] space-y-1">
+                    <div className="font-semibold text-[12px] uppercase tracking-wide text-muted-foreground">Médias mensais</div>
                     <AvgRow label="Receita média" value={drilldownRows.length ? (drilldownTotals.aluguel + drilldownTotals.reembolso) / drilldownRows.length : 0} tone="positive" />
                     <AvgRow label="Despesa média" value={drilldownRows.length ? (drilldownTotals.condominio + drilldownTotals.iptu + drilldownTotals.taxa + drilldownTotals.outras) / drilldownRows.length : 0} tone="negative" />
                     <AvgRow label="Líquido médio" value={drilldownRows.length ? drilldownTotals.liquido / drilldownRows.length : 0} tone={drilldownTotals.liquido >= 0 ? 'positive' : 'negative'} bold />
@@ -1283,17 +1283,17 @@ export default function Balancete() {
                     if (last.taxa_administracao) items.push({ label: 'Taxa adm.', value: last.taxa_administracao, tone: 'negative' });
                     if (last.outras_despesas) items.push({ label: 'Outras despesas', value: last.outras_despesas, tone: 'negative' });
                     return (
-                      <div className="rounded-md border bg-card p-2 text-[10px] space-y-1">
+                      <div className="rounded-md border bg-card p-2 text-[12px] space-y-1">
                         <div className="flex items-center justify-between">
-                          <div className="font-semibold text-[10px] uppercase tracking-wide text-muted-foreground">
+                          <div className="font-semibold text-[12px] uppercase tracking-wide text-muted-foreground">
                             Último mês • {MONTHS[last.mes - 1]}/{String(last.ano).slice(2)}
                           </div>
                           {last.alugado && (
-                            <Badge variant="secondary" className="h-4 px-1.5 text-[9px]">Alugado</Badge>
+                            <Badge variant="secondary" className="h-4 px-1.5 text-[11px]">Alugado</Badge>
                           )}
                         </div>
                         {last.locatario && (
-                          <div className="text-[10px] text-muted-foreground truncate">
+                          <div className="text-[12px] text-muted-foreground truncate">
                             Locatário: {last.locatario}
                           </div>
                         )}
@@ -1315,15 +1315,15 @@ export default function Balancete() {
                           ))}
                         </div>
                         <div className="flex items-center justify-between pt-1 mt-1 border-t">
-                          <span className="text-[10px] text-muted-foreground">Receita</span>
+                          <span className="text-[12px] text-muted-foreground">Receita</span>
                           <span className="tabular-nums font-semibold text-emerald-600 dark:text-emerald-400">{fmtBRLFull(receita)}</span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] text-muted-foreground">Despesa</span>
+                          <span className="text-[12px] text-muted-foreground">Despesa</span>
                           <span className="tabular-nums font-semibold text-red-600 dark:text-red-400">{fmtBRLFull(despesa)}</span>
                         </div>
                         <div className="flex items-center justify-between pt-0.5 border-t">
-                          <span className="text-[10px] font-semibold">Líquido</span>
+                          <span className="text-[12px] font-semibold">Líquido</span>
                           <span
                             className={cn(
                               'tabular-nums font-bold',
@@ -1400,10 +1400,10 @@ export default function Balancete() {
                 <div key={r.id} className="rounded-lg border bg-card p-2.5 sm:p-3 min-w-0 overflow-hidden">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-[10px] px-2 py-0 h-5">
+                      <Badge variant="outline" className="text-[12px] px-2 py-0 h-5">
                         {MONTHS[r.mes - 1]}/{r.ano}
                       </Badge>
-                      {r.alugado && <Badge className="text-[10px] px-2 py-0 h-5 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/15">Alugado</Badge>}
+                      {r.alugado && <Badge className="text-[12px] px-2 py-0 h-5 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/15">Alugado</Badge>}
                     </div>
                     <div
                       className={cn(
@@ -1419,7 +1419,7 @@ export default function Balancete() {
                       Locatário: <span className="text-foreground">{r.locatario}</span>
                     </div>
                   )}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1 text-[10px] sm:text-[11px] min-w-0 overflow-hidden">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1 text-[12px] sm:text-[11px] min-w-0 overflow-hidden">
                     <Line2 label="Aluguel" value={r.aluguel} positive />
                     <Line2 label="Taxa adm." value={r.taxa_administracao} />
                     <Line2 label="Condomínio" value={r.condominio} />
@@ -1462,11 +1462,11 @@ export default function Balancete() {
                   {/* Linha 1: Mês/Ano em destaque */}
                   <div className="flex items-baseline gap-1.5 mb-1.5">
                     <span className="h-1 w-1 rounded-full bg-primary" />
-                    <span className="text-[9px] uppercase tracking-widest font-semibold text-muted-foreground">
+                    <span className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground">
                       {cidade || 'Período'}
                     </span>
-                    <span className="text-muted-foreground/40 text-[9px]">·</span>
-                    <span className="text-[10px] font-semibold text-primary">
+                    <span className="text-muted-foreground/40 text-[11px]">·</span>
+                    <span className="text-[12px] font-semibold text-primary">
                       {MONTHS[monthDrilldown.mes - 1]}/{monthDrilldown.ano}
                     </span>
                   </div>
@@ -1518,18 +1518,18 @@ export default function Balancete() {
               <div className="min-w-0 pr-8">
                 <div className="flex items-baseline gap-1.5 mb-1.5">
                   <span className="h-1 w-1 rounded-full bg-primary" />
-                  <span className="text-[9px] uppercase tracking-widest font-semibold text-muted-foreground">
+                  <span className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground">
                     Período
                   </span>
-                  <span className="text-muted-foreground/40 text-[9px]">·</span>
-                  <span className="text-[10px] font-semibold text-primary">
+                  <span className="text-muted-foreground/40 text-[11px]">·</span>
+                  <span className="text-[12px] font-semibold text-primary">
                     {MONTHS[yearMonthDrilldown.mes - 1]}/{yearMonthDrilldown.ano}
                   </span>
                 </div>
                 <div className="text-[13px] font-semibold leading-tight">
                   Imóveis em {MONTHS[yearMonthDrilldown.mes - 1]}/{yearMonthDrilldown.ano}
                 </div>
-                <div className="text-[10px] text-muted-foreground mt-0.5">
+                <div className="text-[12px] text-muted-foreground mt-0.5">
                   {yearMonthRows.length} {yearMonthRows.length === 1 ? 'imóvel' : 'imóveis'} • toque para detalhes
                 </div>
               </div>
@@ -1546,19 +1546,19 @@ export default function Balancete() {
                 {/* Resumo */}
                 <div className="grid grid-cols-3 gap-1.5 mb-2">
                   <div className="rounded-md bg-card border p-2">
-                    <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-medium">Receita</div>
+                    <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">Receita</div>
                     <div className="text-[11px] font-semibold tabular-nums text-emerald-600 dark:text-emerald-400 mt-0.5">
                       {fmtBRL(yearMonthTotals.receita)}
                     </div>
                   </div>
                   <div className="rounded-md bg-card border p-2">
-                    <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-medium">Despesa</div>
+                    <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">Despesa</div>
                     <div className="text-[11px] font-semibold tabular-nums text-red-600 dark:text-red-400 mt-0.5">
                       {fmtBRL(yearMonthTotals.despesa)}
                     </div>
                   </div>
                   <div className="rounded-md bg-card border p-2">
-                    <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-medium">Líquido</div>
+                    <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">Líquido</div>
                     <div className={cn(
                       'text-[11px] font-semibold tabular-nums mt-0.5',
                       yearMonthTotals.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
@@ -1587,9 +1587,9 @@ export default function Balancete() {
                   >
                     <div className="min-w-0 flex-1">
                       <div className="text-[11px] font-medium truncate">{r.label}</div>
-                      <div className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                      <div className="text-[12px] text-muted-foreground mt-0.5 flex items-center gap-1.5">
                         {r.alugado && (
-                          <Badge className="text-[9px] px-1.5 py-0 h-4 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/15">
+                          <Badge className="text-[11px] px-1.5 py-0 h-4 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/15">
                             Alugado
                           </Badge>
                         )}
@@ -1667,9 +1667,9 @@ function MoneyTooltip({ active, payload, label }: TooltipProps<number, string>) 
 function MiniStat({ label, value, tone }: { label: string; value: number; tone: 'positive' | 'negative' }) {
   return (
     <div className="rounded-md border bg-card px-2 py-1.5 sm:p-2 w-full max-w-full min-w-0 overflow-hidden block">
-      <div className="text-[9px] sm:text-[10px] leading-none text-muted-foreground uppercase truncate">{label}</div>
+      <div className="text-[11px] sm:text-[12px] leading-none text-muted-foreground uppercase truncate">{label}</div>
       <div className={cn(
-        'text-[10px] sm:text-xs font-semibold tabular-nums mt-1 truncate leading-none text-left',
+        'text-[12px] sm:text-xs font-semibold tabular-nums mt-1 truncate leading-none text-left',
         tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
       )}>
         {fmtBRL(value)}
@@ -1681,9 +1681,9 @@ function MiniStat({ label, value, tone }: { label: string; value: number; tone: 
 function MobileTotalCell({ label, value, tone }: { label: string; value: number; tone: 'positive' | 'negative' }) {
   return (
     <div className="min-w-0 px-2 py-1.5 border-r last:border-r-0">
-      <div className="text-[8px] uppercase leading-none text-muted-foreground truncate">{label}</div>
+      <div className="text-[10px] uppercase leading-none text-muted-foreground truncate">{label}</div>
       <div className={cn(
-        'text-[10px] font-bold tabular-nums leading-tight truncate mt-0.5',
+        'text-[12px] font-bold tabular-nums leading-tight truncate mt-0.5',
         tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
       )}>
         {fmtBRL(value)}
@@ -1704,15 +1704,15 @@ function MobileHistoryRow({ row, onClick }: { row: BalanceteRow; onClick: () => 
     >
       <div className="flex items-center justify-between gap-2 min-w-0">
         <div className="flex items-center gap-1.5 min-w-0">
-          <Badge variant="outline" className="h-4 px-1.5 text-[9px] shrink-0">
+          <Badge variant="outline" className="h-4 px-1.5 text-[11px] shrink-0">
             {MONTHS[row.mes - 1]}/{String(row.ano).slice(-2)}
           </Badge>
           {row.alugado && (
-            <Badge className="h-4 px-1.5 text-[8px] shrink-0 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/15">
+            <Badge className="h-4 px-1.5 text-[10px] shrink-0 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/15">
               Alugado
             </Badge>
           )}
-          {row.locatario && <span className="text-[9px] text-muted-foreground truncate min-w-0">{row.locatario}</span>}
+          {row.locatario && <span className="text-[11px] text-muted-foreground truncate min-w-0">{row.locatario}</span>}
         </div>
         <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
       </div>
@@ -1729,9 +1729,9 @@ function MobileHistoryRow({ row, onClick }: { row: BalanceteRow; onClick: () => 
 function MobileAmount({ label, value, tone, strong }: { label: string; value: number; tone: 'positive' | 'negative'; strong?: boolean }) {
   return (
     <div className="min-w-0">
-      <div className="text-[8px] text-muted-foreground leading-none truncate">{label}</div>
+      <div className="text-[10px] text-muted-foreground leading-none truncate">{label}</div>
       <div className={cn(
-        'text-[10px] tabular-nums leading-tight truncate',
+        'text-[12px] tabular-nums leading-tight truncate',
         strong ? 'font-bold' : 'font-semibold',
         tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
       )}>
@@ -1776,18 +1776,18 @@ function YearAggTable({ rows }: { rows: BalanceteRow[] }) {
     byYear.set(r.ano, cur);
   });
   const years = Array.from(byYear.entries()).sort((a, b) => a[0] - b[0]);
-  if (!years.length) return <p className="text-[10px] text-muted-foreground text-center py-4">Sem dados.</p>;
+  if (!years.length) return <p className="text-[12px] text-muted-foreground text-center py-4">Sem dados.</p>;
   return (
     <div className="rounded-md border bg-card overflow-hidden">
-      <div className="grid grid-cols-[2.6rem_1fr_1fr_1fr] gap-1 px-1.5 py-1 bg-muted/40 text-[8px] uppercase tracking-wide text-muted-foreground font-semibold">
+      <div className="grid grid-cols-[2.6rem_1fr_1fr_1fr] gap-1 px-1.5 py-1 bg-muted/40 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
         <span>Ano</span>
         <span className="text-right">Rec.</span>
         <span className="text-right">Desp.</span>
         <span className="text-right">Líq.</span>
       </div>
       {years.map(([ano, agg], idx) => (
-        <div key={ano} className={cn('grid grid-cols-[2.6rem_1fr_1fr_1fr] gap-1 px-1.5 py-1 items-center text-[10px] tabular-nums', idx > 0 && 'border-t')}>
-          <span className="font-semibold">{ano}<span className="text-muted-foreground text-[8px] ml-0.5">·{agg.meses}m</span></span>
+        <div key={ano} className={cn('grid grid-cols-[2.6rem_1fr_1fr_1fr] gap-1 px-1.5 py-1 items-center text-[12px] tabular-nums', idx > 0 && 'border-t')}>
+          <span className="font-semibold">{ano}<span className="text-muted-foreground text-[10px] ml-0.5">·{agg.meses}m</span></span>
           <span className="text-right text-emerald-600 dark:text-emerald-400 truncate">{fmtBRL(agg.receita)}</span>
           <span className="text-right text-red-600 dark:text-red-400 truncate">{fmtBRL(agg.despesa)}</span>
           <span className={cn('text-right font-semibold truncate', agg.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}>{fmtBRL(agg.liquido)}</span>
@@ -1806,7 +1806,7 @@ function CategoryAggTable({ totals }: { totals: { aluguel: number; condominio: n
     { label: 'Taxa adm.', value: totals.taxa, tone: 'negative' as const },
     { label: 'Outras desp.', value: totals.outras, tone: 'negative' as const },
   ]).filter(i => i.value !== 0);
-  if (!items.length) return <p className="text-[10px] text-muted-foreground text-center py-4">Sem dados.</p>;
+  if (!items.length) return <p className="text-[12px] text-muted-foreground text-center py-4">Sem dados.</p>;
   const totalAbs = items.reduce((s, i) => s + Math.abs(i.value), 0) || 1;
   return (
     <div className="rounded-md border bg-card overflow-hidden">
@@ -1815,9 +1815,9 @@ function CategoryAggTable({ totals }: { totals: { aluguel: number; condominio: n
         return (
           <div key={i.label} className={cn('px-2 py-1.5 min-w-0', idx > 0 && 'border-t')}>
             <div className="flex items-center justify-between gap-2 min-w-0">
-              <span className="text-[10px] text-muted-foreground truncate">{i.label}</span>
+              <span className="text-[12px] text-muted-foreground truncate">{i.label}</span>
               <span className={cn(
-                'text-[10px] font-semibold tabular-nums whitespace-nowrap shrink-0',
+                'text-[12px] font-semibold tabular-nums whitespace-nowrap shrink-0',
                 i.tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
               )}>{fmtBRL(i.value)}</span>
             </div>
@@ -1880,9 +1880,9 @@ function MonthDrilldownTable({
 
       {/* Status / locatário */}
       {(row.alugado || row.locatario) && (
-        <div className="flex items-center gap-1.5 text-[10px] min-w-0">
+        <div className="flex items-center gap-1.5 text-[12px] min-w-0">
           {row.alugado && (
-            <Badge className="text-[9px] px-1.5 py-0 h-4 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/15 shrink-0">
+            <Badge className="text-[11px] px-1.5 py-0 h-4 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/15 shrink-0">
               Alugado
             </Badge>
           )}
@@ -1897,7 +1897,7 @@ function MonthDrilldownTable({
       {/* Detalhes */}
       {receitaItems.length > 0 && (
         <div className="rounded-md border overflow-hidden">
-          <div className="bg-emerald-500/10 px-2 py-1 text-[9px] uppercase tracking-wide font-semibold text-emerald-700 dark:text-emerald-400">
+          <div className="bg-emerald-500/10 px-2 py-1 text-[11px] uppercase tracking-wide font-semibold text-emerald-700 dark:text-emerald-400">
             Receitas
           </div>
           {receitaItems.map((i, idx) => (
@@ -1908,7 +1908,7 @@ function MonthDrilldownTable({
 
       {despesaItems.length > 0 && (
         <div className="rounded-md border overflow-hidden">
-          <div className="bg-red-500/10 px-2 py-1 text-[9px] uppercase tracking-wide font-semibold text-red-700 dark:text-red-400">
+          <div className="bg-red-500/10 px-2 py-1 text-[11px] uppercase tracking-wide font-semibold text-red-700 dark:text-red-400">
             Despesas
           </div>
           {despesaItems.map((i, idx) => (
@@ -1920,7 +1920,7 @@ function MonthDrilldownTable({
       <button
         type="button"
         onClick={onOpenFull}
-        className="w-full flex items-center justify-center gap-1 py-1.5 px-2 rounded-md text-[10px] font-medium text-primary hover:bg-primary/5 active:bg-primary/10 transition-colors border"
+        className="w-full flex items-center justify-center gap-1 py-1.5 px-2 rounded-md text-[12px] font-medium text-primary hover:bg-primary/5 active:bg-primary/10 transition-colors border"
       >
         <span className="truncate">Ver histórico completo</span>
         <ChevronRight className="h-3 w-3 shrink-0" />
@@ -1934,7 +1934,7 @@ function SummaryRow({
 }: { label: string; value: number; tone: 'positive' | 'negative'; bold?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-2 px-2 py-1.5 min-w-0">
-      <span className={cn('text-[10px] uppercase tracking-wide text-muted-foreground truncate', bold && 'font-semibold text-foreground')}>
+      <span className={cn('text-[12px] uppercase tracking-wide text-muted-foreground truncate', bold && 'font-semibold text-foreground')}>
         {label}
       </span>
       <span
@@ -1955,7 +1955,7 @@ function DetailRow({
 }: { label: string; value: number; positive: boolean; divider?: boolean }) {
   return (
     <div className={cn('flex items-center justify-between gap-2 px-2 py-1.5 min-w-0', divider && 'border-t')}>
-      <span className="text-[10px] text-muted-foreground truncate min-w-0">{label}</span>
+      <span className="text-[12px] text-muted-foreground truncate min-w-0">{label}</span>
       <span
         className={cn(
           'text-[11px] font-medium tabular-nums whitespace-nowrap shrink-0',
@@ -1990,14 +1990,14 @@ function BreakdownLine({
   return (
     <div className="flex items-baseline justify-between gap-2">
       <span className={cn(
-        'text-[10px] sm:text-[11px]',
+        'text-[12px] sm:text-[11px]',
         muted ? 'text-muted-foreground' : 'text-foreground/80',
         bold && 'font-semibold text-foreground'
       )}>
         {label}
       </span>
       <span className={cn(
-        'tabular-nums text-[10px] sm:text-[11px]',
+        'tabular-nums text-[12px] sm:text-[11px]',
         bold ? 'font-bold' : 'font-medium',
         display === 0
           ? 'text-muted-foreground/60'
@@ -2090,17 +2090,17 @@ function YearlyKpis({
             </div>
 
 
-            <div className="ml-auto flex items-center gap-2 sm:gap-4 text-[10px] sm:text-xs flex-wrap justify-end shrink-0">
+            <div className="ml-auto flex items-center gap-2 sm:gap-4 text-[12px] sm:text-xs flex-wrap justify-end shrink-0">
               <div className="flex items-baseline gap-1 tabular-nums">
-                <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium">R</span>
+                <span className="text-[11px] sm:text-[12px] text-muted-foreground font-medium">R</span>
                 <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{fmtBRL(last12.receita)}</span>
               </div>
               <div className="flex items-baseline gap-1 tabular-nums">
-                <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium">D</span>
+                <span className="text-[11px] sm:text-[12px] text-muted-foreground font-medium">D</span>
                 <span className="text-red-600 dark:text-red-400 font-semibold">{fmtBRL(last12.despesa)}</span>
               </div>
               <div className="flex items-baseline gap-1 tabular-nums">
-                <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium">L</span>
+                <span className="text-[11px] sm:text-[12px] text-muted-foreground font-medium">L</span>
                 <span className={cn('font-bold', last12.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}>
                   {fmtBRL(last12.liquido)}
                 </span>
@@ -2114,7 +2114,7 @@ function YearlyKpis({
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
               {/* Receitas */}
               <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 p-2 sm:p-2.5 space-y-1">
-                <div className="text-[9px] uppercase tracking-wide font-bold text-emerald-700 dark:text-emerald-400">
+                <div className="text-[11px] uppercase tracking-wide font-bold text-emerald-700 dark:text-emerald-400">
                   Receitas
                 </div>
                 <BreakdownLine label="Aluguel" value={last12.aluguel} tone="positive" />
@@ -2128,7 +2128,7 @@ function YearlyKpis({
 
               {/* Despesas */}
               <div className="rounded-md border border-red-500/20 bg-red-500/5 p-2 sm:p-2.5 space-y-1">
-                <div className="text-[9px] uppercase tracking-wide font-bold text-red-700 dark:text-red-400">
+                <div className="text-[11px] uppercase tracking-wide font-bold text-red-700 dark:text-red-400">
                   Despesas
                 </div>
                 <BreakdownLine label="Condomínio" value={last12.condominio} tone="negative" />
@@ -2143,12 +2143,12 @@ function YearlyKpis({
 
             {/* Linha do líquido */}
             <div className="rounded-md border bg-muted/30 px-3 py-2 flex items-center justify-between gap-2">
-              <span className="text-[10px] sm:text-xs uppercase tracking-wide font-bold text-foreground">
+              <span className="text-[12px] sm:text-xs uppercase tracking-wide font-bold text-foreground">
                 Resultado líquido
               </span>
               <div className="flex items-baseline gap-2 sm:gap-3 flex-wrap justify-end">
                 {totalReembolso > 0 && (
-                  <span className="text-[9px] sm:text-[10px] text-muted-foreground tabular-nums hidden sm:inline">
+                  <span className="text-[11px] sm:text-[12px] text-muted-foreground tabular-nums hidden sm:inline">
                     reemb. total {fmtBRL(totalReembolso)}
                   </span>
                 )}
@@ -2186,20 +2186,20 @@ function YearlyKpis({
                 <div className="text-base sm:text-lg font-display font-semibold tabular-nums shrink-0">
                   {y.ano}
                 </div>
-                <div className="ml-auto flex items-center gap-2 sm:gap-4 text-[10px] sm:text-xs flex-wrap justify-end">
+                <div className="ml-auto flex items-center gap-2 sm:gap-4 text-[12px] sm:text-xs flex-wrap justify-end">
                   <span className="hidden md:inline text-muted-foreground">
                     {y.imoveisAtivos} imóveis • {mesesCount} {mesesCount === 1 ? 'mês' : 'meses'}
                   </span>
                   <div className="flex items-baseline gap-1 tabular-nums">
-                    <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium">R</span>
+                    <span className="text-[11px] sm:text-[12px] text-muted-foreground font-medium">R</span>
                     <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{fmtBRL(y.receita)}</span>
                   </div>
                   <div className="flex items-baseline gap-1 tabular-nums">
-                    <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium">D</span>
+                    <span className="text-[11px] sm:text-[12px] text-muted-foreground font-medium">D</span>
                     <span className="text-red-600 dark:text-red-400 font-semibold">{fmtBRL(y.despesa)}</span>
                   </div>
                   <div className="flex items-baseline gap-1 tabular-nums">
-                    <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium">L</span>
+                    <span className="text-[11px] sm:text-[12px] text-muted-foreground font-medium">L</span>
                     <span className={cn('font-bold', y.liquido >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}>
                       {fmtBRL(y.liquido)}
                     </span>
@@ -2229,7 +2229,7 @@ function YearlyKpis({
                             : 'bg-card border hover:bg-muted/40 active:bg-muted/60 cursor-pointer'
                         )}
                       >
-                        <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-semibold">
+                        <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">
                           {MONTHS[i]}
                         </div>
                         {empty ? (
@@ -2239,19 +2239,19 @@ function YearlyKpis({
                         ) : (
                           <div className="mt-0.5 space-y-0 leading-tight">
                             <div className="flex items-baseline justify-between gap-1 tabular-nums">
-                              <span className="text-[8px] text-muted-foreground/80 font-medium">R</span>
-                              <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                              <span className="text-[10px] text-muted-foreground/80 font-medium">R</span>
+                              <span className="text-[12px] font-medium text-emerald-600 dark:text-emerald-400">
                                 {fmtBRL(m.receita)}
                               </span>
                             </div>
                             <div className="flex items-baseline justify-between gap-1 tabular-nums">
-                              <span className="text-[8px] text-muted-foreground/80 font-medium">D</span>
-                              <span className="text-[10px] font-medium text-red-600 dark:text-red-400">
+                              <span className="text-[10px] text-muted-foreground/80 font-medium">D</span>
+                              <span className="text-[12px] font-medium text-red-600 dark:text-red-400">
                                 {fmtBRL(m.despesa)}
                               </span>
                             </div>
                             <div className="flex items-baseline justify-between gap-1 tabular-nums border-t border-border/50 pt-0.5 mt-0.5">
-                              <span className="text-[8px] text-muted-foreground font-semibold">L</span>
+                              <span className="text-[10px] text-muted-foreground font-semibold">L</span>
                               <span className={cn(
                                 'text-[11px] font-bold',
                                 m.liquido > 0
@@ -2344,7 +2344,7 @@ function PropertyAccordionRow({
         >
           <div className="min-w-0 flex-1">
             {(row.cidade || '').trim() && (
-              <div className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground leading-tight">
+              <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground leading-tight">
                 {(row.cidade || '').toUpperCase()}
               </div>
             )}
@@ -2352,11 +2352,11 @@ function PropertyAccordionRow({
               {(row.rua || '—').toUpperCase()}
             </div>
             {(row.numero || row.apartamento || row.complemento) && (
-              <div className="text-[10px] text-muted-foreground leading-snug break-words uppercase">
+              <div className="text-[12px] text-muted-foreground leading-snug break-words uppercase">
                 {[row.numero, row.apartamento, row.complemento].filter(Boolean).join(', ').toUpperCase()}
               </div>
             )}
-            <div className="text-[9px] text-muted-foreground mt-0.5">
+            <div className="text-[11px] text-muted-foreground mt-0.5">
               {monthsCount} {monthsCount === 1 ? 'mês' : 'meses'} • toque para detalhes
             </div>
           </div>
@@ -2418,7 +2418,7 @@ function PropertyAccordionRow({
                             : 'bg-card border hover:bg-muted/40 active:bg-muted/60 cursor-pointer'
                         )}
                       >
-                        <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-semibold">
+                        <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">
                           {MONTHS[i]}
                         </div>
                         {empty ? (
@@ -2428,19 +2428,19 @@ function PropertyAccordionRow({
                         ) : (
                           <div className="mt-0.5 space-y-0 leading-tight">
                             <div className="flex items-baseline justify-between gap-1 tabular-nums">
-                              <span className="text-[8px] text-muted-foreground/80 font-medium">R</span>
-                              <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                              <span className="text-[10px] text-muted-foreground/80 font-medium">R</span>
+                              <span className="text-[12px] font-medium text-emerald-600 dark:text-emerald-400">
                                 {fmtBRL(m!.receita)}
                               </span>
                             </div>
                             <div className="flex items-baseline justify-between gap-1 tabular-nums">
-                              <span className="text-[8px] text-muted-foreground/80 font-medium">D</span>
-                              <span className="text-[10px] font-medium text-red-600 dark:text-red-400">
+                              <span className="text-[10px] text-muted-foreground/80 font-medium">D</span>
+                              <span className="text-[12px] font-medium text-red-600 dark:text-red-400">
                                 {fmtBRL(m!.despesa)}
                               </span>
                             </div>
                             <div className="flex items-baseline justify-between gap-1 tabular-nums border-t border-border/50 pt-0.5 mt-0.5">
-                              <span className="text-[8px] text-muted-foreground font-semibold">{METRIC_SHORT[metric]}</span>
+                              <span className="text-[10px] text-muted-foreground font-semibold">{METRIC_SHORT[metric]}</span>
                               <span className={cn(
                                 'text-[11px] font-bold',
                                 m![metric] > 0
@@ -2574,7 +2574,7 @@ function PeriodFilterButton({
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[300px] p-3 space-y-3">
         <div className="space-y-1.5">
-          <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">De</label>
+          <label className="text-[12px] font-medium uppercase tracking-wide text-muted-foreground">De</label>
           <div className="grid grid-cols-2 gap-2">
             <select
               value={fromMonth}
@@ -2601,7 +2601,7 @@ function PeriodFilterButton({
           </div>
         </div>
         <div className="space-y-1.5">
-          <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Até</label>
+          <label className="text-[12px] font-medium uppercase tracking-wide text-muted-foreground">Até</label>
           <div className="grid grid-cols-2 gap-2">
             <select
               value={toMonth}
@@ -2627,7 +2627,7 @@ function PeriodFilterButton({
             </select>
           </div>
         </div>
-        <p className="text-[10px] text-muted-foreground leading-snug">
+        <p className="text-[12px] text-muted-foreground leading-snug">
           Dica: informe apenas o ano para considerar de Jan (De) a Dez (Até).
         </p>
         <div className="flex items-center justify-between pt-1">
@@ -2685,7 +2685,7 @@ function MultiSelectFilter<T extends number>({
             className,
           )}
         >
-          <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+          <span className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">
             {label}
           </span>
           <span className="flex items-center justify-between gap-1.5 h-7">

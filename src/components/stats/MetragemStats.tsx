@@ -195,13 +195,13 @@ export function MetragemStats() {
               >
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[11px] font-medium capitalize">{tipoLabels[group.tipo] || group.tipo}</span>
-                  <span className="text-[10px] text-muted-foreground font-mono">{group.count} {group.count === 1 ? 'imóvel' : 'imóveis'}</span>
+                  <span className="text-[12px] text-muted-foreground font-mono">{group.count} {group.count === 1 ? 'imóvel' : 'imóveis'}</span>
                 </div>
-                <div className="flex items-center justify-between text-[10px]">
+                <div className="flex items-center justify-between text-[12px]">
                   <span className="text-muted-foreground">Metragem</span>
                   <span className="font-semibold tabular-nums">{formatMetragem(group.metragem)}</span>
                 </div>
-                <div className="flex items-center justify-between text-[10px]">
+                <div className="flex items-center justify-between text-[12px]">
                   <span className="text-muted-foreground">Valor de Mercado</span>
                   <span className="font-medium text-success tabular-nums">{formatCurrency(group.marketValue)}</span>
                 </div>
@@ -217,11 +217,11 @@ export function MetragemStats() {
           <table className="w-full text-xs sm:text-sm min-w-[520px]">
             <thead>
               <tr className="border-b bg-muted/50">
-                <th className="text-left px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Cidade</th>
-                <th className="text-left px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Tipo</th>
-                <th className="text-right px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Qtd</th>
-                <th className="text-right px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Metragem</th>
-                <th className="text-right px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground">Valor de Mercado</th>
+                <th className="text-left px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Cidade</th>
+                <th className="text-left px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Tipo</th>
+                <th className="text-right px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Qtd</th>
+                <th className="text-right px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Metragem</th>
+                <th className="text-right px-2 sm:px-3 py-2 text-[12px] sm:text-xs font-semibold text-muted-foreground">Valor de Mercado</th>
               </tr>
             </thead>
             <tbody>
@@ -300,7 +300,7 @@ export function MetragemStats() {
                             {property.rua}{property.numero ? `, ${property.numero}` : ''}
                             {property.apartamento ? ` – Apto ${property.apartamento}` : ''}
                           </p>
-                          <p className="text-[10px] sm:text-xs text-muted-foreground break-words">{property.bairro}, {property.cidade}</p>
+                          <p className="text-[12px] sm:text-xs text-muted-foreground break-words">{property.bairro}, {property.cidade}</p>
                         </Link>
                       </td>
                       <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-right font-semibold text-foreground whitespace-nowrap text-[11px] sm:text-sm">

@@ -41,7 +41,7 @@ export function Header() {
                 <span className="font-display text-base sm:text-xl font-semibold text-foreground truncate">
                   My Home Collection
                 </span>
-                <span className="text-[10px] sm:text-xs text-muted-foreground">
+                <span className="text-[12px] sm:text-xs text-muted-foreground">
                   Gestão de Imóveis
                 </span>
               </div>

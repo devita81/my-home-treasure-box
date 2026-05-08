@@ -138,7 +138,7 @@ const renderSourceBadgeHtml = (src: { label: string; tone: 'itbi' | 'ai' }) => {
   const cls = src.tone === 'itbi'
     ? 'bg-warning/15 text-warning-foreground border-warning/40'
     : 'bg-primary/10 text-primary border-primary/30';
-  return `<span class="mt-1 inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-[0.06em] ${cls}">${src.label}</span>`;
+  return `<span class="mt-1 inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-[0.06em] ${cls}">${src.label}</span>`;
 };
 
 const renderMarkdownTable = (tableLines: string[], hasItbi = false) => {
@@ -168,7 +168,7 @@ const renderMarkdownTable = (tableLines: string[], hasItbi = false) => {
   desktop += '<thead><tr class="border-b-2 border-border bg-muted">';
   headers.forEach((header, index) => {
     const alignClass = index === 0 || (hasNarrativeLastColumn && index === headers.length - 1) ? 'text-left' : 'text-right';
-    desktop += `<th class="px-3 py-2.5 text-[10px] font-bold uppercase tracking-[0.08em] text-foreground/80 ${alignClass} whitespace-nowrap">${header}</th>`;
+    desktop += `<th class="px-3 py-2.5 text-[12px] font-bold uppercase tracking-[0.08em] text-foreground/80 ${alignClass} whitespace-nowrap">${header}</th>`;
   });
   desktop += '</tr></thead><tbody>';
 
@@ -221,14 +221,14 @@ const renderMarkdownTable = (tableLines: string[], hasItbi = false) => {
       if (isNarrativeCell) {
         mobile += '<div class="pt-1.5 mt-1.5 border-t border-border/60">';
         if (header) {
-          mobile += `<dt class="text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1">${header}</dt>`;
+          mobile += `<dt class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1">${header}</dt>`;
         }
         mobile += `<dd class="text-[11px] leading-5 text-muted-foreground break-words">${cell}</dd>`;
         mobile += '</div>';
       } else {
         const valueAlign = isCompactMetricCell(plainText) ? 'tabular-nums' : '';
         mobile += '<div class="flex items-start justify-between gap-3">';
-        mobile += `<dt class="text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground shrink-0">${header}</dt>`;
+        mobile += `<dt class="text-[12px] font-medium uppercase tracking-[0.1em] text-muted-foreground shrink-0">${header}</dt>`;
         mobile += `<dd class="text-[11px] font-medium text-foreground text-right break-words min-w-0 ${valueAlign}">${cell}</dd>`;
         mobile += '</div>';
       }
@@ -575,12 +575,12 @@ const PropertyDetails = () => {
 
   const getStatusBadge = () => {
     if (property.vendido) {
-      return <Badge className="bg-destructive text-destructive-foreground text-[10px] font-medium">Vendido</Badge>;
+      return <Badge className="bg-destructive text-destructive-foreground text-[12px] font-medium">Vendido</Badge>;
     }
     if (property.alugado) {
-      return <Badge className="bg-info text-info-foreground text-[10px] font-medium">Alugado</Badge>;
+      return <Badge className="bg-info text-info-foreground text-[12px] font-medium">Alugado</Badge>;
     }
-    return <Badge className="bg-success text-success-foreground text-[10px] font-medium">Disponível</Badge>;
+    return <Badge className="bg-success text-success-foreground text-[12px] font-medium">Disponível</Badge>;
   };
 
   const hasRealPhotos = property.photos && property.photos.length > 0 && property.photos[0];
@@ -652,12 +652,12 @@ const PropertyDetails = () => {
             <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-1.5 md:gap-2 z-[500] pointer-events-none">
               {getStatusBadge()}
               {property.validado ? (
-                <Badge variant="outline" className="bg-card/90 backdrop-blur-sm border-success text-success text-[10px] font-medium">
+                <Badge variant="outline" className="bg-card/90 backdrop-blur-sm border-success text-success text-[12px] font-medium">
                   <CheckCircle className="h-3 w-3 mr-1" />
                   Validado
                 </Badge>
               ) : (
-                <Badge variant="outline" className="bg-card/90 backdrop-blur-sm border-warning text-warning text-[10px] font-medium">
+                <Badge variant="outline" className="bg-card/90 backdrop-blur-sm border-warning text-warning text-[12px] font-medium">
                   <XCircle className="h-3 w-3 mr-1" />
                   Pendente
                 </Badge>
@@ -683,7 +683,7 @@ const PropertyDetails = () => {
             {/* Valores */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-1.5 text-[10px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
+                <CardTitle className="flex items-center gap-1.5 text-[12px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
                   <DollarSign className="h-3.5 w-3.5 text-primary" />
                   Valores
                 </CardTitle>
@@ -703,7 +703,7 @@ const PropertyDetails = () => {
             {/* Estimativas de Mercado (IA) */}
             <Card className="border-primary/20">
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-1.5 text-[10px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
+                <CardTitle className="flex items-center gap-1.5 text-[12px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
                   <TrendingUp className="h-3.5 w-3.5 text-primary" />
                   Estimativas IA
                 </CardTitle>
@@ -712,36 +712,36 @@ const PropertyDetails = () => {
                 {hasEstimates ? (
                   <>
                     <div className="space-y-1">
-                      <span className="text-[9px] font-medium tracking-wider uppercase text-muted-foreground">Venda</span>
+                      <span className="text-[11px] font-medium tracking-wider uppercase text-muted-foreground">Venda</span>
                       <div className="grid grid-cols-3 gap-1">
                         <div className="text-center p-1.5 bg-secondary rounded">
-                          <div className="text-[8px] text-muted-foreground">Mín</div>
-                          <div className="text-[10px] font-medium truncate">{estimates.vendaMin || '—'}</div>
+                          <div className="text-[10px] text-muted-foreground">Mín</div>
+                          <div className="text-[12px] font-medium truncate">{estimates.vendaMin || '—'}</div>
                         </div>
                         <div className="text-center p-1.5 bg-primary/10 rounded">
-                          <div className="text-[8px] text-muted-foreground">Médio</div>
-                          <div className="text-[10px] font-medium text-primary truncate">{estimates.vendaMed || '—'}</div>
+                          <div className="text-[10px] text-muted-foreground">Médio</div>
+                          <div className="text-[12px] font-medium text-primary truncate">{estimates.vendaMed || '—'}</div>
                         </div>
                         <div className="text-center p-1.5 bg-secondary rounded">
-                          <div className="text-[8px] text-muted-foreground">Máx</div>
-                          <div className="text-[10px] font-medium truncate">{estimates.vendaMax || '—'}</div>
+                          <div className="text-[10px] text-muted-foreground">Máx</div>
+                          <div className="text-[12px] font-medium truncate">{estimates.vendaMax || '—'}</div>
                         </div>
                       </div>
                     </div>
                     <div className="space-y-1">
-                      <span className="text-[9px] font-medium tracking-wider uppercase text-muted-foreground">Aluguel</span>
+                      <span className="text-[11px] font-medium tracking-wider uppercase text-muted-foreground">Aluguel</span>
                       <div className="grid grid-cols-3 gap-1">
                         <div className="text-center p-1.5 bg-secondary rounded">
-                          <div className="text-[8px] text-muted-foreground">Mín</div>
-                          <div className="text-[10px] font-medium truncate">{estimates.aluguelMin || '—'}</div>
+                          <div className="text-[10px] text-muted-foreground">Mín</div>
+                          <div className="text-[12px] font-medium truncate">{estimates.aluguelMin || '—'}</div>
                         </div>
                         <div className="text-center p-1.5 bg-info/10 rounded">
-                          <div className="text-[8px] text-muted-foreground">Médio</div>
-                          <div className="text-[10px] font-medium text-info truncate">{estimates.aluguelMed || '—'}</div>
+                          <div className="text-[10px] text-muted-foreground">Médio</div>
+                          <div className="text-[12px] font-medium text-info truncate">{estimates.aluguelMed || '—'}</div>
                         </div>
                         <div className="text-center p-1.5 bg-secondary rounded">
-                          <div className="text-[8px] text-muted-foreground">Máx</div>
-                          <div className="text-[10px] font-medium truncate">{estimates.aluguelMax || '—'}</div>
+                          <div className="text-[10px] text-muted-foreground">Máx</div>
+                          <div className="text-[12px] font-medium truncate">{estimates.aluguelMax || '—'}</div>
                         </div>
                       </div>
                     </div>
@@ -749,7 +749,7 @@ const PropertyDetails = () => {
                 ) : (
                   <div className="flex flex-col items-center justify-center py-4 text-center">
                     <TrendingUp className="h-6 w-6 text-muted-foreground/30 mb-2" />
-                    <span className="text-[10px] text-muted-foreground">
+                    <span className="text-[12px] text-muted-foreground">
                       Clique em "Análise de Mercado" para gerar estimativas
                     </span>
                   </div>
@@ -760,7 +760,7 @@ const PropertyDetails = () => {
             {/* Custos */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-1.5 text-[10px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
+                <CardTitle className="flex items-center gap-1.5 text-[12px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
                   <FileText className="h-3.5 w-3.5 text-primary" />
                   Custos
                 </CardTitle>
@@ -771,9 +771,9 @@ const PropertyDetails = () => {
                   <div className="flex items-center gap-2">
                     <span className="font-normal text-[11px]">{formatCurrency(property.iptu_value) || '—'}</span>
                     {property.iptu_pago ? (
-                      <Badge variant="outline" className="border-success text-success text-[10px] font-medium">Pago</Badge>
+                      <Badge variant="outline" className="border-success text-success text-[12px] font-medium">Pago</Badge>
                     ) : (
-                      <Badge variant="outline" className="border-warning text-warning text-[10px] font-medium">Pendente</Badge>
+                      <Badge variant="outline" className="border-warning text-warning text-[12px] font-medium">Pendente</Badge>
                     )}
                   </div>
                 </div>
@@ -787,7 +787,7 @@ const PropertyDetails = () => {
             {/* Rentabilidade */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-1.5 text-[10px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
+                <CardTitle className="flex items-center gap-1.5 text-[12px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
                   <Key className="h-3.5 w-3.5 text-primary" />
                   Renda
                 </CardTitle>
@@ -820,7 +820,7 @@ const PropertyDetails = () => {
             {/* Propriedade */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-1.5 text-[10px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
+                <CardTitle className="flex items-center gap-1.5 text-[12px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
                   <Building className="h-3.5 w-3.5 text-primary" />
                   Propriedade
                 </CardTitle>
@@ -868,7 +868,7 @@ const PropertyDetails = () => {
             {/* Características */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-1.5 text-[10px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
+                <CardTitle className="flex items-center gap-1.5 text-[12px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
                   <Home className="h-3.5 w-3.5 text-primary" />
                   Características
                 </CardTitle>
@@ -910,7 +910,7 @@ const PropertyDetails = () => {
             {/* Metragens */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-1.5 text-[10px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
+                <CardTitle className="flex items-center gap-1.5 text-[12px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
                   <Ruler className="h-3.5 w-3.5 text-primary" />
                   Metragens
                 </CardTitle>

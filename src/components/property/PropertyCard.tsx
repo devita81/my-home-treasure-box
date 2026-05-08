@@ -173,7 +173,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                     />
                   ))}
                   {totalSlides > 10 && (
-                    <span className="text-[9px] text-white/70 ml-1">+{totalSlides - 10}</span>
+                    <span className="text-[11px] text-white/70 ml-1">+{totalSlides - 10}</span>
                   )}
                 </div>
               </>
@@ -182,19 +182,19 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
             <div className="absolute inset-0 z-20 pointer-events-none">
               <div className={`absolute ${compact ? 'top-2 left-2 right-10' : 'top-3 left-3 right-12'} flex flex-wrap gap-1.5`}>
                 {property.vendido ? (
-                  <Badge className={`bg-destructive text-destructive-foreground ${compact ? 'text-[9px] px-1.5 py-0' : 'text-[10px]'}`}>Vendido</Badge>
+                  <Badge className={`bg-destructive text-destructive-foreground ${compact ? 'text-[11px] px-1.5 py-0' : 'text-[12px]'}`}>Vendido</Badge>
                 ) : property.alugado ? (
-                  <Badge className={`bg-info text-info-foreground ${compact ? 'text-[9px] px-1.5 py-0' : 'text-[10px]'}`}>Alugado</Badge>
+                  <Badge className={`bg-info text-info-foreground ${compact ? 'text-[11px] px-1.5 py-0' : 'text-[12px]'}`}>Alugado</Badge>
                 ) : (
-                  <Badge className={`bg-success text-success-foreground ${compact ? 'text-[9px] px-1.5 py-0' : 'text-[10px]'}`}>Disponível</Badge>
+                  <Badge className={`bg-success text-success-foreground ${compact ? 'text-[11px] px-1.5 py-0' : 'text-[12px]'}`}>Disponível</Badge>
                 )}
                 {property.validado ? (
-                  <Badge variant="outline" className={`bg-card/90 border-success text-success ${compact ? 'text-[9px] px-1.5 py-0' : 'text-[10px]'}`}>
+                  <Badge variant="outline" className={`bg-card/90 border-success text-success ${compact ? 'text-[11px] px-1.5 py-0' : 'text-[12px]'}`}>
                     <CheckCircle className={compact ? 'h-2 w-2 mr-0.5' : 'h-2.5 w-2.5 mr-0.5'} />
                     Validado
                   </Badge>
                 ) : (
-                  <Badge variant="outline" className={`bg-card/90 border-warning text-warning ${compact ? 'text-[9px] px-1.5 py-0' : 'text-[10px]'}`}>
+                  <Badge variant="outline" className={`bg-card/90 border-warning text-warning ${compact ? 'text-[11px] px-1.5 py-0' : 'text-[12px]'}`}>
                     <XCircle className={compact ? 'h-2 w-2 mr-0.5' : 'h-2.5 w-2.5 mr-0.5'} />
                     Pendente
                   </Badge>
@@ -205,7 +205,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                 <p className={`text-card font-semibold truncate ${compact ? 'text-xs' : 'text-sm'}`}>
                   {getAddressDisplay()}
                 </p>
-                <div className={`flex items-center gap-1 text-card/70 mt-0.5 ${compact ? 'text-[10px]' : 'text-[11px]'}`}>
+                <div className={`flex items-center gap-1 text-card/70 mt-0.5 ${compact ? 'text-[12px]' : 'text-[11px]'}`}>
                   <MapPin className={compact ? 'h-2.5 w-2.5 shrink-0' : 'h-3 w-3 shrink-0'} />
                   <span className="truncate">{property.bairro}, {property.cidade} - {property.estado}</span>
                 </div>
@@ -240,7 +240,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30">
                 <div className="flex items-center gap-1.5 mb-2">
                   <DollarSign className="h-3 w-3 text-primary" />
-                  <h4 className="text-[10px] font-semibold text-primary uppercase tracking-wider">Valores</h4>
+                  <h4 className="text-[12px] font-semibold text-primary uppercase tracking-wider">Valores</h4>
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center justify-between py-0.5 border-b border-border/20">
@@ -257,7 +257,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30">
                 <div className="flex items-center gap-1.5 mb-2">
                   <FileText className="h-3 w-3 text-primary" />
-                  <h4 className="text-[10px] font-semibold text-primary uppercase tracking-wider">Custos</h4>
+                  <h4 className="text-[12px] font-semibold text-primary uppercase tracking-wider">Custos</h4>
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center justify-between py-0.5 border-b border-border/20">
@@ -265,9 +265,9 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                     <div className="flex items-center gap-1">
                       <span className="text-[11px] font-medium">{property.iptu_value ? formatCurrency(property.iptu_value) : '—'}</span>
                       {property.iptu_pago ? (
-                        <Badge className="bg-success/10 text-success border-0 text-[8px] px-1 py-0">Pago</Badge>
+                        <Badge className="bg-success/10 text-success border-0 text-[10px] px-1 py-0">Pago</Badge>
                       ) : property.iptu_value ? (
-                        <Badge className="bg-warning/10 text-warning border-0 text-[8px] px-1 py-0">Pend.</Badge>
+                        <Badge className="bg-warning/10 text-warning border-0 text-[10px] px-1 py-0">Pend.</Badge>
                       ) : null}
                     </div>
                   </div>
@@ -281,7 +281,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               <div className="rounded-lg p-2.5 border border-border/40 bg-muted/30">
                 <div className="flex items-center gap-1.5 mb-2">
                   <Key className="h-3 w-3 text-primary" />
-                  <h4 className="text-[10px] font-semibold text-primary uppercase tracking-wider">Renda</h4>
+                  <h4 className="text-[12px] font-semibold text-primary uppercase tracking-wider">Renda</h4>
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center justify-between py-0.5 border-b border-border/20">
@@ -302,7 +302,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               <div className={`rounded-lg p-2.5 border border-border/40 bg-muted/30 ${compact ? 'hidden sm:block' : 'lg:col-span-2'}`}>
                 <div className="flex items-center gap-1.5 mb-2">
                   <Building className="h-3 w-3 text-primary" />
-                  <h4 className="text-[10px] font-semibold text-primary uppercase tracking-wider">Propriedade</h4>
+                  <h4 className="text-[12px] font-semibold text-primary uppercase tracking-wider">Propriedade</h4>
                 </div>
                 <div className={compact ? 'grid grid-cols-1 gap-x-4 gap-y-0.5' : 'grid grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-0.5'}>
                   <div className="space-y-0.5">
@@ -317,15 +317,15 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                     <div className="flex items-center justify-between py-0.5 border-b border-border/20 gap-2">
                       <span className="text-[11px] text-muted-foreground shrink-0">Prop. Matrícula</span>
                       <div className="flex items-center gap-1 truncate">
-                        <span className="text-[10px] font-medium truncate text-right" title={property.proprietario_matricula || '—'}>{abbreviateOwnerName(property.proprietario_matricula)}</span>
-                        <Badge variant="outline" className="text-[9px] px-1 py-0 shrink-0 font-semibold">{property.percentual_proprietario_matricula ?? 100}%</Badge>
+                        <span className="text-[12px] font-medium truncate text-right" title={property.proprietario_matricula || '—'}>{abbreviateOwnerName(property.proprietario_matricula)}</span>
+                        <Badge variant="outline" className="text-[11px] px-1 py-0 shrink-0 font-semibold">{property.percentual_proprietario_matricula ?? 100}%</Badge>
                       </div>
                     </div>
                     <div className="flex items-center justify-between py-0.5 gap-2">
                       <span className="text-[11px] text-muted-foreground shrink-0">Prop. Matrícula II</span>
                       <div className="flex items-center gap-1 truncate">
-                        <span className="text-[10px] font-medium truncate text-right" title={property.proprietario_matricula_ii || '—'}>{abbreviateOwnerName(property.proprietario_matricula_ii)}</span>
-                        <Badge variant="outline" className="text-[9px] px-1 py-0 shrink-0 font-semibold">{property.percentual_proprietario_matricula_ii ?? 0}%</Badge>
+                        <span className="text-[12px] font-medium truncate text-right" title={property.proprietario_matricula_ii || '—'}>{abbreviateOwnerName(property.proprietario_matricula_ii)}</span>
+                        <Badge variant="outline" className="text-[11px] px-1 py-0 shrink-0 font-semibold">{property.percentual_proprietario_matricula_ii ?? 0}%</Badge>
                       </div>
                     </div>
                   </div>
@@ -341,12 +341,12 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
                     <div className="flex items-center justify-between py-0.5">
                       <span className="text-[11px] text-muted-foreground">Validado</span>
                       {property.validado ? (
-                        <Badge className="bg-success/10 text-success border-0 text-[9px] px-1.5 py-0">
+                        <Badge className="bg-success/10 text-success border-0 text-[11px] px-1.5 py-0">
                           <CheckCircle className="h-2.5 w-2.5 mr-0.5" />
                           Sim
                         </Badge>
                       ) : (
-                        <Badge className="bg-warning/10 text-warning border-0 text-[9px] px-1.5 py-0">
+                        <Badge className="bg-warning/10 text-warning border-0 text-[11px] px-1.5 py-0">
                           <XCircle className="h-2.5 w-2.5 mr-0.5" />
                           Não
                         </Badge>
@@ -359,7 +359,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               <div className={`rounded-lg p-2.5 border border-border/40 bg-muted/30 ${compact ? 'hidden sm:block' : ''}`}>
                 <div className="flex items-center gap-1.5 mb-2">
                   <Home className="h-3 w-3 text-primary" />
-                  <h4 className="text-[10px] font-semibold text-primary uppercase tracking-wider">Características</h4>
+                  <h4 className="text-[12px] font-semibold text-primary uppercase tracking-wider">Características</h4>
                 </div>
                 <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
                   <div className="flex items-center justify-between py-0.5 border-b border-border/20">
@@ -507,19 +507,19 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
 
                 <div className="absolute top-3 left-3 right-16 z-[998] flex flex-wrap gap-1.5 pointer-events-none">
                   {property.vendido ? (
-                    <Badge className="bg-destructive text-destructive-foreground text-[10px]">Vendido</Badge>
+                    <Badge className="bg-destructive text-destructive-foreground text-[12px]">Vendido</Badge>
                   ) : property.alugado ? (
-                    <Badge className="bg-info text-info-foreground text-[10px]">Alugado</Badge>
+                    <Badge className="bg-info text-info-foreground text-[12px]">Alugado</Badge>
                   ) : (
-                    <Badge className="bg-success text-success-foreground text-[10px]">Disponível</Badge>
+                    <Badge className="bg-success text-success-foreground text-[12px]">Disponível</Badge>
                   )}
                   {property.validado ? (
-                    <Badge variant="outline" className="bg-card/90 border-success text-success text-[10px]">
+                    <Badge variant="outline" className="bg-card/90 border-success text-success text-[12px]">
                       <CheckCircle className="h-2.5 w-2.5 mr-0.5" />
                       Validado
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="bg-card/90 border-warning text-warning text-[10px]">
+                    <Badge variant="outline" className="bg-card/90 border-warning text-warning text-[12px]">
                       <XCircle className="h-2.5 w-2.5 mr-0.5" />
                       Pendente
                     </Badge>

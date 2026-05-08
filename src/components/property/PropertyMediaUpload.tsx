@@ -256,7 +256,7 @@ export function PropertyMediaUpload({ propertyId, photos, onPhotosChange }: Prop
                   </div>
                   {/* Position badge */}
                   <div className="absolute bottom-1 left-1 h-5 min-w-5 px-1 rounded bg-black/50 flex items-center justify-center">
-                    <span className="text-[10px] text-white font-medium">{index + 1}</span>
+                    <span className="text-[12px] text-white font-medium">{index + 1}</span>
                   </div>
                   <Button
                     type="button"
