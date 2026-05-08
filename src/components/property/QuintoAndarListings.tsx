@@ -8,7 +8,17 @@ import { useQuintoAndarListings, type QuintoAndarListing } from "@/hooks/useQuin
 import type { Property } from "@/types/property";
 
 interface QuintoAndarListingsProps {
-  property: Pick<Property, "cidade" | "estado" | "bairro" | "rua" | "tipo_imovel" | "quartos">;
+  property: Pick<
+    Property,
+    | "cidade"
+    | "estado"
+    | "bairro"
+    | "rua"
+    | "tipo_imovel"
+    | "quartos"
+    | "latitude"
+    | "longitude"
+  >;
 }
 
 const formatBRL = (value: number | undefined): string => {
