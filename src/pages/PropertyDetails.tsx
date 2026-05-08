@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
+import { buildQuintoAndarSearchUrl } from '@/lib/quinto-andar';
 import { 
   MapPin, 
   Edit, 
@@ -1028,20 +1029,35 @@ const PropertyDetails = () => {
                   variant="outline"
                   className="w-full justify-center gap-2 sm:w-auto"
                   onClick={() => {
-                    const tipoImovel = property.tipo_imovel || 'imovel';
-                    const endereco = `${property.rua} ${property.numero || ''} ${property.bairro} ${property.cidade}`.trim();
-                    const searchQuery = encodeURIComponent(`site:quintoandar.com.br ${endereco} ${tipoImovel}`);
-                    const bingUrl = `https://www.bing.com/search?q=${searchQuery}`;
-                    window.open(bingUrl, '_blank');
+                    const url = buildQuintoAndarSearchUrl(property, 'venda');
+                    window.open(url, '_blank', 'noopener,noreferrer');
                   }}
                 >
-                  <img 
-                    src="https://www.quintoandar.com.br/favicon.ico" 
-                    alt="QuintoAndar" 
+                  <img
+                    src="https://www.quintoandar.com.br/favicon.ico"
+                    alt="QuintoAndar"
                     className="h-4 w-4"
-                    onError={(e) => e.currentTarget.style.display = 'none'}
+                    onError={(e) => (e.currentTarget.style.display = 'none')}
                   />
-                  Buscar no QuintoAndar
+                  QuintoAndar — Venda
+                  <ExternalLink className="h-3 w-3" />
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="w-full justify-center gap-2 sm:w-auto"
+                  onClick={() => {
+                    const url = buildQuintoAndarSearchUrl(property, 'aluguel');
+                    window.open(url, '_blank', 'noopener,noreferrer');
+                  }}
+                >
+                  <img
+                    src="https://www.quintoandar.com.br/favicon.ico"
+                    alt="QuintoAndar"
+                    className="h-4 w-4"
+                    onError={(e) => (e.currentTarget.style.display = 'none')}
+                  />
+                  QuintoAndar — Aluguel
                   <ExternalLink className="h-3 w-3" />
                 </Button>
               </div>
