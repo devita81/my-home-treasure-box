@@ -39,6 +39,7 @@ type SearchType = "venda" | "aluguel";
 
 type ZapPropertyInput = Pick<
   Property,
+  | "id"
   | "cidade"
   | "estado"
   | "bairro"

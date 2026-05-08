@@ -25,6 +25,7 @@ type SearchType = "venda" | "aluguel";
 
 type MarketProperty = Pick<
   Property,
+  | "id"
   | "cidade"
   | "estado"
   | "bairro"

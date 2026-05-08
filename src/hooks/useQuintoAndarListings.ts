@@ -31,6 +31,7 @@ type SearchType = "venda" | "aluguel";
 
 type QuintoAndarPropertyInput = Pick<
   Property,
+  | "id"
   | "cidade"
   | "estado"
   | "bairro"

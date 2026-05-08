@@ -12,7 +12,7 @@
 // exists; their DB stores only street name.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { geocodeAddress } from "../_shared/geocode.ts";
 
 const corsHeaders = {
@@ -34,6 +34,7 @@ type SearchType = "venda" | "aluguel";
 type Precision = "building" | "street" | "neighbourhood";
 
 interface PropertyInput {
+  id?: string | null; // property UUID — when set, geocoded coords are persisted back
   cidade: string;
   estado: string;
   bairro?: string | null;
@@ -243,11 +244,14 @@ function mapHitToListing(hit: QaHit, type: SearchType): Listing | null {
 async function fetchListings(
   input: PropertyInput,
   type: SearchType,
+  supabase: SupabaseClient,
 ): Promise<{ listings: Listing[]; precision: Precision }> {
   // If the property was created before `geocode` was wired up on save,
   // it'll arrive here without coordinates. Resolve them on-the-fly so
   // we still get building-level precision instead of falling all the
-  // way back to the bairro tier.
+  // way back to the bairro tier. The resolved coordinates are also
+  // persisted to the row (fire-and-forget), so the next request skips
+  // geocoding entirely.
   let { latitude, longitude } = input;
   if (typeof latitude !== "number" || typeof longitude !== "number") {
     const resolved = await geocodeAddress(input);
@@ -255,6 +259,15 @@ async function fetchListings(
       latitude = resolved.latitude;
       longitude = resolved.longitude;
       input = { ...input, latitude, longitude };
+      if (input.id) {
+        void supabase
+          .from("properties")
+          .update({ latitude, longitude })
+          .eq("id", input.id)
+          .then(({ error }) => {
+            if (error) console.error("[QA] persist coords failed:", error);
+          });
+      }
     }
   }
 
@@ -332,7 +345,7 @@ serve(async (req) => {
     if (claimsErr || !claims?.claims) return jsonResponse({ error: "Unauthorized" }, 401);
 
     const body = await req.json();
-    const { cidade, estado, bairro, rua, numero, cep, tipo_imovel, quartos, latitude, longitude, type = "venda" } = body;
+    const { id, cidade, estado, bairro, rua, numero, cep, tipo_imovel, quartos, latitude, longitude, type = "venda" } = body;
 
     if (!cidade || typeof cidade !== "string") return jsonResponse({ error: "cidade is required" }, 400);
     if (!estado || typeof estado !== "string") return jsonResponse({ error: "estado is required" }, 400);
@@ -341,9 +354,9 @@ serve(async (req) => {
     }
 
     const input: PropertyInput = {
-      cidade, estado, bairro, rua, numero, cep, tipo_imovel, quartos, latitude, longitude,
+      id, cidade, estado, bairro, rua, numero, cep, tipo_imovel, quartos, latitude, longitude,
     };
-    const { listings, precision } = await fetchListings(input, type);
+    const { listings, precision } = await fetchListings(input, type, supabaseClient);
 
     return jsonResponse({
       searchUrl: buildPublicSearchUrl(input, type),
