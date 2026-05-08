@@ -3,6 +3,12 @@ import { ExternalLink, Search, AlertCircle, Building, MapPin } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
+// Active-tab style: shadcn's default `data-[state=active]:bg-background`
+// is invisible against the card background in this theme. Override with
+// the primary brand color so the user can see what's selected.
+const ACTIVE_TAB =
+  "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm";
 import {
   useQuintoAndarListings,
   type QuintoAndarPrecision,
@@ -41,8 +47,8 @@ export function MarketListings({ property }: MarketListingsProps) {
       <CardContent>
         <Tabs defaultValue="quintoandar" className="w-full">
           <TabsList className="mb-3 grid w-full grid-cols-2 sm:w-auto">
-            <TabsTrigger value="quintoandar">QuintoAndar</TabsTrigger>
-            <TabsTrigger value="zap">ZAP Imóveis</TabsTrigger>
+            <TabsTrigger value="quintoandar" className={ACTIVE_TAB}>QuintoAndar</TabsTrigger>
+            <TabsTrigger value="zap" className={ACTIVE_TAB}>ZAP Imóveis</TabsTrigger>
           </TabsList>
           <TabsContent value="quintoandar">
             <ProviderSection property={property} provider="quintoandar" />
@@ -68,8 +74,8 @@ function ProviderSection({
   return (
     <Tabs defaultValue="venda" className="w-full">
       <TabsList className="grid w-full grid-cols-2 sm:w-auto">
-        <TabsTrigger value="venda">Venda</TabsTrigger>
-        <TabsTrigger value="aluguel">Aluguel</TabsTrigger>
+        <TabsTrigger value="venda" className={ACTIVE_TAB}>Venda</TabsTrigger>
+        <TabsTrigger value="aluguel" className={ACTIVE_TAB}>Aluguel</TabsTrigger>
       </TabsList>
       <TabsContent value="venda" className="pt-4">
         <ListingsGrid property={property} provider={provider} type="venda" />
