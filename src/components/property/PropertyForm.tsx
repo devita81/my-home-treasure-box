@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
-import { Save, ArrowLeft, MapPin, DollarSign, FileText, User, Home, MessageSquare, Maximize2, Minimize2 } from 'lucide-react';
+import { Save, ArrowLeft, MapPin, DollarSign, FileText, User, Home, MessageSquare, Maximize2, Minimize2, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { z } from 'zod';
@@ -161,8 +161,13 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
     };
   }, [draftKey, formData, mode, property?.id]);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Guard against double-submit if user mashes the button.
+    if (isSubmitting) return;
 
     // Validate form data using zod schema
     const result = propertySchema.safeParse(formData);
@@ -176,6 +181,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
     // Use validated data
     const validatedData = result.data;
 
+    setIsSubmitting(true);
     try {
       if (mode === 'add') {
         await addProperty(validatedData as PropertyFormData);
@@ -190,6 +196,8 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
     } catch (error: unknown) {
       logger.error('Error saving property:', error);
       toast.error('Erro ao salvar. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -207,9 +215,17 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar
         </Button>
-        <Button type="submit">
-          <Save className="h-4 w-4 mr-2" />
-          {mode === 'add' ? 'Adicionar Imóvel' : 'Salvar Alterações'}
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <Save className="h-4 w-4 mr-2" />
+          )}
+          {isSubmitting
+            ? 'Salvando...'
+            : mode === 'add'
+              ? 'Adicionar Imóvel'
+              : 'Salvar Alterações'}
         </Button>
       </div>
 

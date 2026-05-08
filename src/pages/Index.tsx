@@ -10,7 +10,7 @@ import { StatsOverview } from '@/components/stats/StatsOverview';
 import { MetragemStats } from '@/components/stats/MetragemStats';
 import { CustosReceitasStats } from '@/components/stats/CustosReceitasStats';
 import { Header } from '@/components/layout/Header';
-import { Home, PlusCircle, AlertTriangle, RefreshCw, FilterX } from 'lucide-react';
+import { Home, PlusCircle, AlertTriangle, RefreshCw, FilterX, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -43,6 +43,7 @@ const Index = () => {
     });
   };
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [density, setDensity] = useGridDensity(1);
   const [syncing, setSyncing] = useState(false);
 
@@ -54,13 +55,15 @@ const Index = () => {
   };
 
   const confirmDelete = async () => {
-    if (!deleteId) return;
+    if (!deleteId || isDeleting) return;
+    setIsDeleting(true);
     try {
       await deleteProperty(deleteId);
       toast.success('Imóvel excluído com sucesso!');
     } catch {
       toast.error('Erro ao excluir imóvel');
     } finally {
+      setIsDeleting(false);
       setDeleteId(null);
     }
   };
@@ -194,7 +197,12 @@ const Index = () => {
         </div>
       </main>
 
-      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+      <AlertDialog
+        open={!!deleteId}
+        // Block closing by clicking outside while delete is in flight, otherwise
+        // the dialog vanishes mid-request and the user has no idea if it worked.
+        onOpenChange={(open) => !open && !isDeleting && setDeleteId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="flex items-center gap-2">
@@ -206,9 +214,14 @@ const Index = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Excluir
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {isDeleting ? 'Excluindo...' : 'Excluir'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
