@@ -37,9 +37,27 @@ export default defineConfig({
   },
 
   projects: [
+    // 1. Setup project: runs auth.setup.ts once and saves a logged-in
+    //    storage state to e2e/.auth/user.json (gitignored).
     {
-      name: 'chromium',
+      name: 'setup',
+      testMatch: /auth\.setup\.ts/,
+    },
+    // 2. Public smoke tests: don't need auth.
+    {
+      name: 'chromium-public',
+      testMatch: /smoke\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
+    },
+    // 3. Authenticated tests: depend on setup, start logged in.
+    {
+      name: 'chromium-auth',
+      testMatch: /authenticated\/.*\.spec\.ts/,
+      dependencies: ['setup'],
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'e2e/.auth/user.json',
+      },
     },
   ],
 
