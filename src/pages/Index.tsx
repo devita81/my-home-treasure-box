@@ -10,7 +10,7 @@ import { StatsOverview } from '@/components/stats/StatsOverview';
 import { MetragemStats } from '@/components/stats/MetragemStats';
 import { CustosReceitasStats } from '@/components/stats/CustosReceitasStats';
 import { Header } from '@/components/layout/Header';
-import { Home, PlusCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Home, PlusCircle, AlertTriangle, RefreshCw, FilterX } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -27,8 +27,21 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const Index = () => {
-  const { getFilteredProperties, deleteProperty, duplicateProperty, refreshProperties, loading } = useProperties();
+  const { getFilteredProperties, deleteProperty, duplicateProperty, refreshProperties, loading, properties, setFilters } = useProperties();
   const filteredProperties = getFilteredProperties();
+
+  // Clear all active filters back to their initial state. Inline-duplicated
+  // from the same shape used in PropertyFilters component — could be DRYed
+  // by exporting initialFilters from PropertyContext, but keeping local
+  // for now to limit blast radius of this PR.
+  const handleClearFilters = () => {
+    setFilters({
+      search: '', estado: '', cidade: '', bairro: '',
+      tipoImovel: '', proprietarioPapel: '', proprietarioMatricula: '',
+      status: 'all', validado: 'all',
+      sortField: 'updated_at', sortOrder: 'desc',
+    });
+  };
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [density, setDensity] = useGridDensity(1);
   const [syncing, setSyncing] = useState(false);
@@ -137,12 +150,13 @@ const Index = () => {
                 <PropertyCardSkeleton key={i} compact={isCompact} />
               ))}
             </div>
-          ) : filteredProperties.length === 0 ? (
+          ) : properties.length === 0 ? (
+            // Truly empty: user has never registered a property. Onboarding CTA.
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-4">
                 <Home className="h-8 w-8 text-muted-foreground" />
               </div>
-              <h3 className="font-display text-lg font-semibold mb-2">Nenhum imóvel encontrado</h3>
+              <h3 className="font-display text-lg font-semibold mb-2">Nenhum imóvel cadastrado</h3>
               <p className="text-muted-foreground mb-4">Adicione seu primeiro imóvel para começar sua coleção.</p>
               <Link to="/add">
                 <Button>
@@ -150,6 +164,23 @@ const Index = () => {
                   Adicionar Imóvel
                 </Button>
               </Link>
+            </div>
+          ) : filteredProperties.length === 0 ? (
+            // Has properties, but the active filter combo matches none. Different
+            // pain — wrong fix would be 'add a property'. Right fix: clear filters.
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-4">
+                <FilterX className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="font-display text-lg font-semibold mb-2">Nenhum imóvel corresponde aos filtros</h3>
+              <p className="text-muted-foreground mb-4">
+                Você tem {properties.length} {properties.length === 1 ? 'imóvel cadastrado' : 'imóveis cadastrados'} —
+                tente ajustar ou limpar os filtros para encontrar o que procura.
+              </p>
+              <Button variant="outline" onClick={handleClearFilters}>
+                <FilterX className="h-4 w-4 mr-2" />
+                Limpar filtros
+              </Button>
             </div>
           ) : (
             <div className={`grid gap-3 sm:gap-4 md:gap-6 ${gridColsClass}`}>
