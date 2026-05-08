@@ -39,7 +39,16 @@ type SearchType = "venda" | "aluguel";
 
 type ZapPropertyInput = Pick<
   Property,
-  "cidade" | "estado" | "bairro" | "rua" | "tipo_imovel" | "quartos" | "latitude" | "longitude"
+  | "cidade"
+  | "estado"
+  | "bairro"
+  | "rua"
+  | "numero"
+  | "cep"
+  | "tipo_imovel"
+  | "quartos"
+  | "latitude"
+  | "longitude"
 >;
 
 /**
