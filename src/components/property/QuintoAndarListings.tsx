@@ -129,7 +129,7 @@ function ListingsGrid({
     return (
       <div className="flex flex-col items-center gap-3 rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-6 text-center">
         <AlertCircle className="h-8 w-8 text-destructive" />
-        <p className="text-sm text-destructive-foreground">
+        <p className="text-sm font-medium text-destructive">
           Não foi possível carregar os anúncios do QuintoAndar.
         </p>
         <Button variant="outline" size="sm" onClick={() => query.refetch()}>
