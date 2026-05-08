@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Property } from "@/types/property";
 
-export interface QuintoAndarListing {
+export interface ZapListing {
   url: string;
   name: string;
   address: string;
@@ -14,42 +14,50 @@ export interface QuintoAndarListing {
 }
 
 /**
- * How precisely the listings were filtered:
- *   - "building": viewport bounding box around lat/lng (~35m). Best.
- *   - "street": bairro search + client-side rua match. No lat/lng.
- *   - "neighbourhood": bairro slug only. Last resort.
+ * How precisely the listings were filtered server-side:
+ *   - "street": addressStreet filter (rua filled)
+ *   - "neighbourhood": bairro only (no rua)
+ *
+ * Note: ZAP doesn't support a viewport bounding box like QuintoAndar, so
+ * "building"-level precision isn't available from this provider.
  */
-export type QuintoAndarPrecision = "building" | "street" | "neighbourhood";
+export type ZapPrecision = "street" | "neighbourhood";
 
-export interface QuintoAndarListingsResponse {
+export interface ZapListingsResponse {
   searchUrl: string;
-  listings: QuintoAndarListing[];
-  precision: QuintoAndarPrecision;
+  listings: ZapListing[];
+  precision: ZapPrecision;
+  /**
+   * True when ZAP's Cloudflare layer blocked the API call. The component
+   * should fall back to opening `searchUrl` in a new tab instead of
+   * showing inline cards.
+   */
+  cloudflareBlocked: boolean;
 }
 
 type SearchType = "venda" | "aluguel";
 
-type QuintoAndarPropertyInput = Pick<
+type ZapPropertyInput = Pick<
   Property,
   "cidade" | "estado" | "bairro" | "rua" | "tipo_imovel" | "quartos" | "latitude" | "longitude"
 >;
 
 /**
- * Fetches QuintoAndar listings similar to a property by calling the
- * `fetch-quinto-andar-listings` edge function. Cached for 24h since
- * listings change slowly.
+ * Fetches ZAP Imóveis listings similar to a property by calling the
+ * `fetch-zap-listings` edge function. Cached for 24h since listings
+ * change slowly.
  *
  * `enabled` controls whether the request fires — pass `true` only after
- * the user opts in (we don't want to call the API on every page load).
+ * the user opts in.
  */
-export function useQuintoAndarListings(
-  property: QuintoAndarPropertyInput,
+export function useZapListings(
+  property: ZapPropertyInput,
   type: SearchType,
   enabled: boolean,
 ) {
-  return useQuery<QuintoAndarListingsResponse>({
+  return useQuery<ZapListingsResponse>({
     queryKey: [
-      "quinto-andar-listings",
+      "zap-listings",
       property.cidade,
       property.estado,
       property.bairro,
@@ -61,8 +69,8 @@ export function useQuintoAndarListings(
       type,
     ],
     queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke<QuintoAndarListingsResponse>(
-        "fetch-quinto-andar-listings",
+      const { data, error } = await supabase.functions.invoke<ZapListingsResponse>(
+        "fetch-zap-listings",
         { body: { ...property, type } },
       );
       if (error) throw error;

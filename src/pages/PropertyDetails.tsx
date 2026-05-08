@@ -6,7 +6,7 @@ import { useProperties } from '@/contexts/PropertyContext';
 import { PropertyCardMap } from '@/components/property/PropertyCardMap';
 import { PropertyReportDialog } from '@/components/property/PropertyReportDialog';
 import { DocumentUpload } from '@/components/property/DocumentUpload';
-import { QuintoAndarListings } from '@/components/property/QuintoAndarListings';
+import { MarketListings } from '@/components/property/MarketListings';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,7 +33,6 @@ import {
   Car,
   Search,
   Loader2,
-  ExternalLink,
   MessageSquare,
   TrendingUp
 } from 'lucide-react';
@@ -990,52 +989,8 @@ const PropertyDetails = () => {
             </CardContent>
           </Card>
 
-          {/* Pesquisa em Sites Externos */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <ExternalLink className="h-5 w-5 text-primary" />
-                Pesquisar em Sites de Imóveis
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-[12px] text-muted-foreground">
-                Compare valores de imóveis similares neste endereço em sites de referência do mercado imobiliário.
-              </p>
-              
-              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <Button
-                  variant="outline"
-                  className="w-full justify-center gap-2 sm:w-auto"
-                  onClick={() => {
-                    const tipoImovel = property.tipo_imovel || 'imovel';
-                    const endereco = `${property.rua} ${property.numero || ''} ${property.bairro} ${property.cidade}`.trim();
-                    const searchQuery = encodeURIComponent(`site:zapimoveis.com.br ${endereco} ${tipoImovel} venda`);
-                    const bingUrl = `https://www.bing.com/search?q=${searchQuery}`;
-                    window.open(bingUrl, '_blank');
-                  }}
-                >
-                  <img 
-                    src="https://www.zapimoveis.com.br/favicon.ico" 
-                    alt="ZAP" 
-                    className="h-4 w-4"
-                    onError={(e) => e.currentTarget.style.display = 'none'}
-                  />
-                  Buscar no ZAP Imóveis
-                  <ExternalLink className="h-3 w-3" />
-                </Button>
-
-                {/* QuintoAndar lives in its own dedicated card below
-                    (QuintoAndarListings) — that one shows real listings
-                    with photos, prices, and direct deep-links. The old
-                    Bing-redirect button used to live here but became
-                    redundant once we have the inline scraper. */}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Anúncios similares no QuintoAndar */}
-          <QuintoAndarListings property={property} />
+          {/* Anúncios similares no mercado — QuintoAndar + ZAP em um único card */}
+          <MarketListings property={property} />
 
           {/* Documentos do Imóvel */}
           <DocumentUpload propertyId={property.id} mode="view" />
