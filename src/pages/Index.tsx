@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useProperties } from '@/contexts/PropertyContext';
 import { PropertyCard } from '@/components/property/PropertyCard';
+import { PropertyCardSkeleton } from '@/components/property/PropertyCardSkeleton';
 import { PropertyFilters } from '@/components/property/PropertyFilters';
 import { GridDensitySelector } from '@/components/property/GridDensitySelector';
 import { useGridDensity } from '@/hooks/useGridDensity';
@@ -26,7 +27,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const Index = () => {
-  const { getFilteredProperties, deleteProperty, duplicateProperty, refreshProperties } = useProperties();
+  const { getFilteredProperties, deleteProperty, duplicateProperty, refreshProperties, loading } = useProperties();
   const filteredProperties = getFilteredProperties();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [density, setDensity] = useGridDensity(1);
@@ -127,7 +128,16 @@ const Index = () => {
             </div>
           </div>
 
-          {filteredProperties.length === 0 ? (
+          {loading ? (
+            // Skeleton grid: 6 placeholder cards while properties stream in from
+            // Supabase. Prevents the misleading 'Nenhum imóvel' empty state from
+            // flashing for users who actually have properties.
+            <div className={`grid gap-3 sm:gap-4 md:gap-6 ${gridColsClass}`}>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <PropertyCardSkeleton key={i} compact={isCompact} />
+              ))}
+            </div>
+          ) : filteredProperties.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-4">
                 <Home className="h-8 w-8 text-muted-foreground" />
