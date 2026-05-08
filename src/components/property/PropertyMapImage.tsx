@@ -268,10 +268,10 @@ export function PropertyMapImage({
               onMouseDown={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-white/80 text-xs">Ângulo: {heading}°</span>
+                <span className="text-white/80 text-sm">Ângulo: {heading}°</span>
                 <button
                   onClick={handleResetHeading}
-                  className="ml-auto text-white/60 hover:text-white text-xs flex items-center gap-1"
+                  className="ml-auto text-white/60 hover:text-white text-sm flex items-center gap-1"
                   title="Resetar ângulo"
                 >
                   <RotateCcw className="h-3 w-3" />
@@ -295,11 +295,11 @@ export function PropertyMapImage({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3">
-              <span className="text-white/80 text-xs font-medium">{images[currentIndex].label}</span>
+              <span className="text-white/80 text-sm font-medium">{images[currentIndex].label}</span>
               {currentIndex === 0 && (
                 <button
                   onClick={toggleHeadingControl}
-                  className={`text-xs flex items-center gap-1 px-2 py-1 rounded transition-colors ${
+                  className={`text-sm flex items-center gap-1 px-2 py-1 rounded transition-colors ${
                     showHeadingControl 
                       ? 'bg-white/20 text-white' 
                       : 'text-white/60 hover:text-white'
@@ -314,7 +314,7 @@ export function PropertyMapImage({
             
             <button
               onClick={handleRefresh}
-              className="text-xs flex items-center gap-1 text-white/60 hover:text-white transition-colors px-2 py-1"
+              className="text-sm flex items-center gap-1 text-white/60 hover:text-white transition-colors px-2 py-1"
               title="Atualizar imagem"
             >
               <RefreshCw className={`h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`} />

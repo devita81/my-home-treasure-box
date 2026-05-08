@@ -263,7 +263,7 @@ export default function ItbiSearch() {
               <Database className="h-5 w-5 text-primary" />
               Pesquisa ITBI — São Paulo
             </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+            <p className="text-sm sm:text-sm text-muted-foreground mt-0.5">
               Consulta na base oficial de transações da Prefeitura. Os filtros são combinados (E).
             </p>
           </div>
@@ -274,7 +274,7 @@ export default function ItbiSearch() {
             <CardTitle className="text-sm font-medium flex items-center justify-between">
               <span>Filtros</span>
               {hasAnyFilter && (
-                <Button variant="ghost" size="sm" onClick={clearAll} className="h-7 text-xs">
+                <Button variant="ghost" size="sm" onClick={clearAll} className="h-7 text-sm">
                   <X className="h-3 w-3 mr-1" /> Limpar
                 </Button>
               )}
@@ -282,7 +282,7 @@ export default function ItbiSearch() {
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
             <div className="lg:col-span-2 space-y-1">
-              <Label className="text-xs">Tipo</Label>
+              <Label className="text-sm">Tipo</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -316,7 +316,7 @@ export default function ItbiSearch() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 w-full text-xs mt-1"
+                        className="h-7 w-full text-sm mt-1"
                         onClick={() => setTipos([])}
                       >
                         Limpar tipos
@@ -327,7 +327,7 @@ export default function ItbiSearch() {
               </Popover>
             </div>
             <div className="lg:col-span-2 space-y-1">
-              <Label className="text-xs">Logradouro (rua, avenida, estrada...)</Label>
+              <Label className="text-sm">Logradouro (rua, avenida, estrada...)</Label>
               <Input
                 value={logradouro}
                 onChange={(e) => setLogradouro(e.target.value)}
@@ -340,7 +340,7 @@ export default function ItbiSearch() {
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">Número</Label>
+              <Label className="text-sm">Número</Label>
               <Input
                 value={numero}
                 onChange={(e) => setNumero(e.target.value)}
@@ -351,7 +351,7 @@ export default function ItbiSearch() {
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">CEP</Label>
+              <Label className="text-sm">CEP</Label>
               <Input
                 value={cep}
                 onChange={(e) => setCep(e.target.value)}
@@ -362,7 +362,7 @@ export default function ItbiSearch() {
               />
             </div>
             <div className="lg:col-span-3 space-y-1">
-              <Label className="text-xs">Bairro</Label>
+              <Label className="text-sm">Bairro</Label>
               <Input
                 value={bairro}
                 onChange={(e) => setBairro(e.target.value)}
@@ -395,11 +395,11 @@ export default function ItbiSearch() {
         {/* Resumo */}
         {stats && (
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            <Card><CardContent className="p-3"><div className="text-[12px] text-muted-foreground uppercase">Transações</div><div className="text-base font-semibold">{stats.count}</div></CardContent></Card>
-            <Card><CardContent className="p-3"><div className="text-[12px] text-muted-foreground uppercase">Mediana</div><div className="text-sm font-semibold tabular-nums">{fmtBRL(stats.mediana)}</div></CardContent></Card>
-            <Card><CardContent className="p-3"><div className="text-[12px] text-muted-foreground uppercase">Média</div><div className="text-sm font-semibold tabular-nums">{fmtBRL(stats.media)}</div></CardContent></Card>
-            <Card><CardContent className="p-3"><div className="text-[12px] text-muted-foreground uppercase">Mínimo</div><div className="text-sm font-semibold tabular-nums">{fmtBRL(stats.min)}</div></CardContent></Card>
-            <Card><CardContent className="p-3"><div className="text-[12px] text-muted-foreground uppercase">Máximo</div><div className="text-sm font-semibold tabular-nums">{fmtBRL(stats.max)}</div></CardContent></Card>
+            <Card><CardContent className="p-3"><div className="text-[13px] text-muted-foreground uppercase">Transações</div><div className="text-base font-semibold">{stats.count}</div></CardContent></Card>
+            <Card><CardContent className="p-3"><div className="text-[13px] text-muted-foreground uppercase">Mediana</div><div className="text-sm font-semibold tabular-nums">{fmtBRL(stats.mediana)}</div></CardContent></Card>
+            <Card><CardContent className="p-3"><div className="text-[13px] text-muted-foreground uppercase">Média</div><div className="text-sm font-semibold tabular-nums">{fmtBRL(stats.media)}</div></CardContent></Card>
+            <Card><CardContent className="p-3"><div className="text-[13px] text-muted-foreground uppercase">Mínimo</div><div className="text-sm font-semibold tabular-nums">{fmtBRL(stats.min)}</div></CardContent></Card>
+            <Card><CardContent className="p-3"><div className="text-[13px] text-muted-foreground uppercase">Máximo</div><div className="text-sm font-semibold tabular-nums">{fmtBRL(stats.max)}</div></CardContent></Card>
           </div>
         )}
 
@@ -420,7 +420,7 @@ export default function ItbiSearch() {
             )}
           </CardHeader>
           {hasSearched && lastSubmittedFilters?.logradouro?.trim() && (
-            <div className="px-6 -mt-2 pb-2 text-[11px] text-muted-foreground">
+            <div className="px-6 -mt-2 pb-2 text-[12px] text-muted-foreground">
               Buscando logradouro contendo: <code className="px-1 py-0.5 bg-muted rounded">{lastSubmittedFilters.logradouro.trim()}</code>
             </div>
           )}
@@ -445,11 +445,11 @@ export default function ItbiSearch() {
                 {/* Mobile: cards */}
                 <div className="sm:hidden space-y-2">
                   <div className="flex items-center gap-2 pb-1">
-                    <Label className="text-[11px] text-muted-foreground whitespace-nowrap">Ordenar:</Label>
+                    <Label className="text-[12px] text-muted-foreground whitespace-nowrap">Ordenar:</Label>
                     <select
                       value={sortField}
                       onChange={(e) => setSortField(e.target.value as keyof ItbiResult)}
-                      className="h-8 flex-1 rounded-md border border-input bg-background px-2 text-xs"
+                      className="h-8 flex-1 rounded-md border border-input bg-background px-2 text-sm"
                     >
                       <option value="data_transacao">Data</option>
                       <option value="valor_transacao">Valor Transação</option>
@@ -470,7 +470,7 @@ export default function ItbiSearch() {
                     </Button>
                   </div>
                   {sortedResults.slice(0, 500).map((r) => (
-                    <div key={r.id} className="border rounded-lg p-3 bg-card text-xs space-y-1">
+                    <div key={r.id} className="border rounded-lg p-3 bg-card text-sm space-y-1">
                       <div className="flex justify-between items-start gap-2">
                         <div className="font-medium">{r.logradouro}{r.numero ? `, ${r.numero}` : ''}</div>
                         <div className="text-muted-foreground whitespace-nowrap">{fmtDate(r.data_transacao)}</div>
@@ -479,11 +479,11 @@ export default function ItbiSearch() {
                       {r.bairro && <div className="text-muted-foreground">{r.bairro}</div>}
                       <div className="flex justify-between pt-1 border-t border-border/50">
                         <div>
-                          <div className="text-[12px] text-muted-foreground">Transação</div>
+                          <div className="text-[13px] text-muted-foreground">Transação</div>
                           <div className="font-semibold tabular-nums">{fmtBRL(r.valor_transacao)}</div>
                         </div>
                         <div className="text-right">
-                          <div className="text-[12px] text-muted-foreground">Venal</div>
+                          <div className="text-[13px] text-muted-foreground">Venal</div>
                           <div className="tabular-nums">{fmtBRL(r.valor_venal)}</div>
                         </div>
                       </div>
@@ -493,7 +493,7 @@ export default function ItbiSearch() {
                     </div>
                   ))}
                   {results.length > 500 && (
-                    <p className="text-xs text-muted-foreground mt-2 text-center">
+                    <p className="text-sm text-muted-foreground mt-2 text-center">
                       Mostrando os primeiros 500 resultados. Refine os filtros para ver mais.
                     </p>
                   )}
@@ -517,7 +517,7 @@ export default function ItbiSearch() {
                         ]).map((col) => (
                           <TableHead
                             key={col.field}
-                            className={`text-xs uppercase tracking-wide cursor-pointer select-none hover:text-foreground transition-colors ${col.align === 'right' ? 'text-right' : ''}`}
+                            className={`text-sm uppercase tracking-wide cursor-pointer select-none hover:text-foreground transition-colors ${col.align === 'right' ? 'text-right' : ''}`}
                             onClick={() => toggleSort(col.field)}
                           >
                             <span className={`inline-flex items-center gap-1 ${col.align === 'right' ? 'flex-row-reverse' : ''}`}>
@@ -531,27 +531,27 @@ export default function ItbiSearch() {
                     <TableBody>
                       {sortedResults.slice(0, 500).map((r, i) => (
                         <TableRow key={r.id} className={i % 2 === 1 ? 'bg-muted/30' : ''}>
-                          <TableCell className="py-2 text-xs whitespace-nowrap">{fmtDate(r.data_transacao)}</TableCell>
-                          <TableCell className="py-2 text-xs">{r.logradouro}</TableCell>
-                          <TableCell className="py-2 text-xs tabular-nums">{r.numero ?? '—'}</TableCell>
-                          <TableCell className="py-2 text-xs">{r.complemento ?? '—'}</TableCell>
-                          <TableCell className="py-2 text-xs">{r.bairro ?? '—'}</TableCell>
-                          <TableCell className="py-2 text-xs text-right tabular-nums whitespace-nowrap">
+                          <TableCell className="py-2 text-sm whitespace-nowrap">{fmtDate(r.data_transacao)}</TableCell>
+                          <TableCell className="py-2 text-sm">{r.logradouro}</TableCell>
+                          <TableCell className="py-2 text-sm tabular-nums">{r.numero ?? '—'}</TableCell>
+                          <TableCell className="py-2 text-sm">{r.complemento ?? '—'}</TableCell>
+                          <TableCell className="py-2 text-sm">{r.bairro ?? '—'}</TableCell>
+                          <TableCell className="py-2 text-sm text-right tabular-nums whitespace-nowrap">
                             {r.area_construida != null ? `${Number(r.area_construida).toLocaleString('pt-BR')} m²` : '—'}
                           </TableCell>
-                          <TableCell className="py-2 text-xs text-right tabular-nums whitespace-nowrap font-semibold">
+                          <TableCell className="py-2 text-sm text-right tabular-nums whitespace-nowrap font-semibold">
                             {fmtBRL(r.valor_transacao)}
                           </TableCell>
-                          <TableCell className="py-2 text-xs text-right tabular-nums whitespace-nowrap text-muted-foreground">
+                          <TableCell className="py-2 text-sm text-right tabular-nums whitespace-nowrap text-muted-foreground">
                             {fmtBRL(r.valor_venal)}
                           </TableCell>
-                          <TableCell className="py-2 text-xs text-muted-foreground">{r.sql_iptu ?? '—'}</TableCell>
+                          <TableCell className="py-2 text-sm text-muted-foreground">{r.sql_iptu ?? '—'}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                   {results.length > 500 && (
-                    <p className="text-xs text-muted-foreground mt-2 text-center">
+                    <p className="text-sm text-muted-foreground mt-2 text-center">
                       Mostrando os primeiros 500 resultados. Refine os filtros para ver mais.
                     </p>
                   )}

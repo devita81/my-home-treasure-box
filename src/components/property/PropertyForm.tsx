@@ -730,7 +730,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
                   isObservacaoExpanded ? "min-h-[400px]" : "min-h-[120px]"
                 )}
               />
-              <p className="text-xs text-muted-foreground text-right">
+              <p className="text-sm text-muted-foreground text-right">
                 {(formData.observacao || '').length.toLocaleString('pt-BR')} caracteres
               </p>
             </div>

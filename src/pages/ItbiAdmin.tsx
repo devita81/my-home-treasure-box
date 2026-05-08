@@ -153,7 +153,7 @@ const ItbiAdmin = () => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="ano" className="text-xs">Ano de referência</Label>
+                <Label htmlFor="ano" className="text-sm">Ano de referência</Label>
                 <Input
                   id="ano"
                   type="number"
@@ -164,7 +164,7 @@ const ItbiAdmin = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="mes" className="text-xs">Mês (opcional, 1-12)</Label>
+                <Label htmlFor="mes" className="text-sm">Mês (opcional, 1-12)</Label>
                 <Input
                   id="mes"
                   type="number"
@@ -177,14 +177,14 @@ const ItbiAdmin = () => {
               </div>
             </div>
             <div>
-              <Label htmlFor="url" className="text-xs">URL do XLSX da Prefeitura</Label>
+              <Label htmlFor="url" className="text-sm">URL do XLSX da Prefeitura</Label>
               <Input
                 id="url"
                 value={sourceUrl}
                 onChange={(e) => setSourceUrl(e.target.value)}
                 placeholder="https://prefeitura.sp.gov.br/.../itbi_2025.xlsx"
               />
-              <p className="text-[11px] text-muted-foreground mt-1">
+              <p className="text-[12px] text-muted-foreground mt-1">
                 Fonte oficial:{' '}
                 <a
                   href="https://prefeitura.sp.gov.br/web/fazenda/w/acesso_a_informacao/31501"
@@ -203,7 +203,7 @@ const ItbiAdmin = () => {
                 <><Download className="h-4 w-4 mr-2" />Iniciar importação</>
               )}
             </Button>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-[12px] text-muted-foreground">
               ⚠️ Arquivos grandes (&gt;50MB) podem causar timeout na edge function. Para a carga inicial dos 36 meses, recomenda-se importar 1 ano por vez.
             </p>
           </CardContent>
@@ -219,7 +219,7 @@ const ItbiAdmin = () => {
             ) : (
               <div className="space-y-2">
                 {logs.map((log) => (
-                  <div key={log.id} className="flex items-center justify-between p-3 border rounded-md text-xs">
+                  <div key={log.id} className="flex items-center justify-between p-3 border rounded-md text-sm">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-medium">

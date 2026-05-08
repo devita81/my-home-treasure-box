@@ -360,7 +360,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
               )}
               {isUploading ? 'Enviando...' : 'Enviar Documento (PDF)'}
             </Button>
-            <p className="text-xs text-muted-foreground text-center">
+            <p className="text-sm text-muted-foreground text-center">
               Máximo 12MB • Apenas PDF
             </p>
           </div>
@@ -386,7 +386,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
                   <FileText className="h-8 w-8 text-primary shrink-0" />
                   <div className="min-w-0 flex-1">
                     <p className="font-medium truncate text-sm">{doc.file_name}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                       {formatFileSize(doc.file_size)} • {formatDate(doc.created_at)}
                     </p>
                   </div>
@@ -482,7 +482,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
               </div>
             )}
           </div>
-          <div className="border-t p-3 text-xs text-muted-foreground text-center">
+          <div className="border-t p-3 text-sm text-muted-foreground text-center">
             A matrícula é renderizada dentro do aplicativo. Se preferir, abra em nova aba ou baixe o PDF.
           </div>
         </DialogContent>

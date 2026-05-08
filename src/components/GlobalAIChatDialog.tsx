@@ -220,10 +220,10 @@ const ResponsiveTable = ({ children }: { children: ReactNode }) => {
                 if (!value || value === '-') return null;
                 return (
                   <div key={j} className="flex gap-2 py-0.5 border-b border-border/40 last:border-0">
-                    <span className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wide shrink-0 w-[35%]">
+                    <span className="text-[13px] font-semibold text-muted-foreground uppercase tracking-wide shrink-0 w-[35%]">
                       {label}
                     </span>
-                    <span className="text-[11px] text-foreground/90 flex-1 break-words">
+                    <span className="text-[12px] text-foreground/90 flex-1 break-words">
                       {value}
                     </span>
                   </div>
@@ -235,7 +235,7 @@ const ResponsiveTable = ({ children }: { children: ReactNode }) => {
       </div>
       {/* Desktop: tabela tradicional */}
       <div className="hidden sm:block my-2 -mx-1 overflow-x-auto rounded-md border border-border bg-card text-card-foreground">
-        <table className="w-full border-collapse text-[11px]">{children}</table>
+        <table className="w-full border-collapse text-[12px]">{children}</table>
       </div>
     </>
   );
@@ -325,7 +325,7 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
             </div>
             <span className="truncate">Assistente IA — Imóveis</span>
           </DialogTitle>
-          <p className="text-[12px] sm:text-[11px] text-muted-foreground">
+          <p className="text-[13px] sm:text-[12px] text-muted-foreground">
             Pergunte sobre seus imóveis, valores, rentabilidade...
           </p>
         </DialogHeader>
@@ -338,7 +338,7 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
                   <Sparkles className="h-7 w-7 text-primary" />
                 </div>
                 <p className="text-sm mb-2">Tenho acesso aos seus {properties.length} imóveis.</p>
-                <p className="text-[11px] text-muted-foreground px-4">
+                <p className="text-[12px] text-muted-foreground px-4">
                   Ex: "Qual meu imóvel mais rentável?", "Quanto recebo de aluguel líquido?"
                 </p>
               </div>
@@ -357,7 +357,7 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
                       : 'bg-secondary max-w-[92%] sm:max-w-[88%] w-full'
                   }`}>
                     {msg.role === 'assistant' ? (
-                      <div className="text-[12px] leading-relaxed space-y-2 [&_p]:my-1 [&_h1]:text-[14px] [&_h1]:font-bold [&_h1]:mt-3 [&_h1]:mb-1 [&_h2]:text-[13px] [&_h2]:font-semibold [&_h2]:mt-3 [&_h2]:mb-1 [&_h3]:text-[12px] [&_h3]:font-semibold [&_h3]:mt-2 [&_h3]:mb-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_li]:my-0.5 [&_strong]:font-semibold [&_code]:bg-background/60 [&_code]:px-1 [&_code]:rounded [&_code]:text-[11px]">
+                      <div className="text-[13px] leading-relaxed space-y-2 [&_p]:my-1 [&_h1]:text-[14px] [&_h1]:font-bold [&_h1]:mt-3 [&_h1]:mb-1 [&_h2]:text-[13px] [&_h2]:font-semibold [&_h2]:mt-3 [&_h2]:mb-1 [&_h3]:text-[13px] [&_h3]:font-semibold [&_h3]:mt-2 [&_h3]:mb-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_li]:my-0.5 [&_strong]:font-semibold [&_code]:bg-background/60 [&_code]:px-1 [&_code]:rounded [&_code]:text-[12px]">
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm]}
                           components={{
@@ -382,7 +382,7 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
                         </ReactMarkdown>
                       </div>
                     ) : (
-                      <p className="text-[12px] whitespace-pre-wrap">{msg.content}</p>
+                      <p className="text-[13px] whitespace-pre-wrap">{msg.content}</p>
                     )}
                   </div>
                   {msg.role === 'user' && (

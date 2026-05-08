@@ -75,7 +75,7 @@ export const AIChatDialog = ({ open, onOpenChange, propertyContext }: AIChatDial
             <MessageSquare className="h-5 w-5 text-primary" />
             Chat com IA — ChatGPT
           </DialogTitle>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-[12px] text-muted-foreground">
             Pergunte qualquer coisa sobre este imóvel ou mercado imobiliário
           </p>
         </DialogHeader>
@@ -102,11 +102,11 @@ export const AIChatDialog = ({ open, onOpenChange, propertyContext }: AIChatDial
                       : 'bg-secondary'
                   }`}>
                     {msg.role === 'assistant' ? (
-                      <div className="prose prose-sm dark:prose-invert max-w-none text-[12px]">
+                      <div className="prose prose-sm dark:prose-invert max-w-none text-[13px]">
                         <ReactMarkdown>{msg.content}</ReactMarkdown>
                       </div>
                     ) : (
-                      <p className="text-[12px] whitespace-pre-wrap">{msg.content}</p>
+                      <p className="text-[13px] whitespace-pre-wrap">{msg.content}</p>
                     )}
                   </div>
                   {msg.role === 'user' && (

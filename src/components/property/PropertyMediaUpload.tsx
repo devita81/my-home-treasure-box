@@ -196,7 +196,7 @@ export function PropertyMediaUpload({ propertyId, photos, onPhotosChange }: Prop
             <div className="flex flex-col items-center gap-2">
               <Upload className="h-8 w-8 text-muted-foreground" />
               <p className="text-sm font-medium">Arraste arquivos ou clique para selecionar</p>
-              <p className="text-xs text-muted-foreground">JPG, PNG, WebP, MP4, MOV, WebM • Máx 50MB</p>
+              <p className="text-sm text-muted-foreground">JPG, PNG, WebP, MP4, MOV, WebM • Máx 50MB</p>
             </div>
           )}
         </div>
@@ -218,7 +218,7 @@ export function PropertyMediaUpload({ propertyId, photos, onPhotosChange }: Prop
         {/* Reorderable media grid */}
         {photos.length > 0 && (
           <>
-            <p className="text-xs text-muted-foreground">Arraste para reordenar</p>
+            <p className="text-sm text-muted-foreground">Arraste para reordenar</p>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {photos.map((url, index) => (
                 <div
@@ -256,7 +256,7 @@ export function PropertyMediaUpload({ propertyId, photos, onPhotosChange }: Prop
                   </div>
                   {/* Position badge */}
                   <div className="absolute bottom-1 left-1 h-5 min-w-5 px-1 rounded bg-black/50 flex items-center justify-center">
-                    <span className="text-[12px] text-white font-medium">{index + 1}</span>
+                    <span className="text-[13px] text-white font-medium">{index + 1}</span>
                   </div>
                   <Button
                     type="button"
@@ -277,7 +277,7 @@ export function PropertyMediaUpload({ propertyId, photos, onPhotosChange }: Prop
         )}
 
         {photos.length > 0 && (
-          <p className="text-xs text-muted-foreground text-right">
+          <p className="text-sm text-muted-foreground text-right">
             {photos.length} arquivo(s)
           </p>
         )}
