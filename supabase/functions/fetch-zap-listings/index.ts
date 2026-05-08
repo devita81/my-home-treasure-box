@@ -1,6 +1,7 @@
 // fetch-zap-listings: searches ZAP Imóveis for listings near a property.
 // Calls ZAP's internal Glue API at glue-api.zapimoveis.com.br/v2/listings.
-// Deployment marker: v1 (geocoding + persist coords + cloudflare fallback).
+// Deployment marker: v2 (drop addressNeighborhood when addressStreet is set —
+// ZAP's neighborhood model often disagrees with user-entered bairros).
 //
 // Three precision tiers, picked automatically:
 //   1. street         — filters by `addressStreet` server-side (best, when rua is filled)
@@ -168,11 +169,18 @@ function buildQueryParams(
     from: "0",
     includeFields: "facets,search(totalCount)",
   });
-  if (input.bairro) params.set("addressNeighborhood", input.bairro);
+  // Filter mode logic:
+  //   • With `rua` → use ONLY street + lat/lng. Don't pass bairro because
+  //     ZAP's neighborhood model doesn't always match what users type
+  //     (e.g. "Rua Marc Chagall" sits in Água Branca for ZAP, but the
+  //     user may have registered the property as "Lapa"). Passing the
+  //     wrong bairro filters the street out entirely → 0 hits.
+  //   • Without `rua` → use bairro as the primary filter.
   if (input.rua) {
     params.set("addressStreet", input.rua);
     params.set("addressType", "street");
   } else if (input.bairro) {
+    params.set("addressNeighborhood", input.bairro);
     params.set("addressType", "neighborhood");
   }
   if (typeof input.latitude === "number") {
