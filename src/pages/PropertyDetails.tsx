@@ -6,6 +6,7 @@ import { useProperties } from '@/contexts/PropertyContext';
 import { PropertyCardMap } from '@/components/property/PropertyCardMap';
 import { PropertyReportDialog } from '@/components/property/PropertyReportDialog';
 import { DocumentUpload } from '@/components/property/DocumentUpload';
+import { QuintoAndarListings } from '@/components/property/QuintoAndarListings';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -1047,6 +1048,9 @@ const PropertyDetails = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Anúncios similares no QuintoAndar */}
+          <QuintoAndarListings property={property} />
 
           {/* Documentos do Imóvel */}
           <DocumentUpload propertyId={property.id} mode="view" />
