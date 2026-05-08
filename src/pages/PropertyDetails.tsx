@@ -1025,26 +1025,11 @@ const PropertyDetails = () => {
                   <ExternalLink className="h-3 w-3" />
                 </Button>
 
-                <Button
-                  variant="outline"
-                  className="w-full justify-center gap-2 sm:w-auto"
-                  onClick={() => {
-                    const tipoImovel = property.tipo_imovel || 'imovel';
-                    const endereco = `${property.rua} ${property.numero || ''} ${property.bairro} ${property.cidade}`.trim();
-                    const searchQuery = encodeURIComponent(`site:quintoandar.com.br ${endereco} ${tipoImovel}`);
-                    const bingUrl = `https://www.bing.com/search?q=${searchQuery}`;
-                    window.open(bingUrl, '_blank');
-                  }}
-                >
-                  <img 
-                    src="https://www.quintoandar.com.br/favicon.ico" 
-                    alt="QuintoAndar" 
-                    className="h-4 w-4"
-                    onError={(e) => e.currentTarget.style.display = 'none'}
-                  />
-                  Buscar no QuintoAndar
-                  <ExternalLink className="h-3 w-3" />
-                </Button>
+                {/* QuintoAndar lives in its own dedicated card below
+                    (QuintoAndarListings) — that one shows real listings
+                    with photos, prices, and direct deep-links. The old
+                    Bing-redirect button used to live here but became
+                    redundant once we have the inline scraper. */}
               </div>
             </CardContent>
           </Card>
