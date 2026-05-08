@@ -8,7 +8,7 @@ import { useQuintoAndarListings, type QuintoAndarListing } from "@/hooks/useQuin
 import type { Property } from "@/types/property";
 
 interface QuintoAndarListingsProps {
-  property: Pick<Property, "cidade" | "estado" | "bairro" | "tipo_imovel" | "quartos">;
+  property: Pick<Property, "cidade" | "estado" | "bairro" | "rua" | "tipo_imovel" | "quartos">;
 }
 
 const formatBRL = (value: number | undefined): string => {
@@ -95,7 +95,9 @@ function ListingsGrid({
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
         <p className="max-w-md text-sm text-muted-foreground">
-          Buscar até 12 anúncios similares no QuintoAndar baseado no bairro, tipo e número de quartos.
+          {property.rua
+            ? `Buscar anúncios ativos na ${property.rua} no QuintoAndar.`
+            : "Buscar anúncios similares no QuintoAndar baseado no bairro, tipo e número de quartos."}
         </p>
         <Button onClick={() => setEnabled(true)} variant="default">
           <Search className="mr-2 h-4 w-4" />
@@ -141,10 +143,13 @@ function ListingsGrid({
 
   const data = query.data;
   if (!data || data.listings.length === 0) {
+    const filteredByRua = data?.filteredByRua;
     return (
       <div className="flex flex-col items-center gap-2 py-8 text-center">
-        <p className="text-sm text-muted-foreground">
-          Nenhum anúncio encontrado para esses critérios.
+        <p className="max-w-md text-sm text-muted-foreground">
+          {filteredByRua && property.rua
+            ? `Nenhum anúncio ativo na ${property.rua} no momento.`
+            : "Nenhum anúncio encontrado para esses critérios."}
         </p>
         {data?.searchUrl ? (
           <a
@@ -153,7 +158,9 @@ function ListingsGrid({
             rel="noopener noreferrer"
             className="text-sm text-primary underline-offset-4 hover:underline"
           >
-            Ver no QuintoAndar →
+            {filteredByRua
+              ? `Ver anúncios no bairro ${property.bairro || ""} →`
+              : "Ver no QuintoAndar →"}
           </a>
         ) : null}
       </div>

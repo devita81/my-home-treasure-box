@@ -6,6 +6,12 @@
 // the search HTML — much cleaner than parsing DOM. We just regex-extract
 // every <script type="application/ld+json"> and filter by @type.
 //
+// When `rua` is provided, we post-filter the JSON-LD address (first segment)
+// against the user's street, normalizing prefixes ("Rua", "Av", etc.) so
+// "Marc Chagall" matches "Rua Marc Chagall". QuintoAndar does NOT expose
+// the street number on the search page, so number-level matching would
+// require fetching each listing page individually (deferred).
+//
 // No paid API needed; ~50 properties × on-demand × 24h client cache means
 // load on QuintoAndar is negligible. If they ever block us, we fall back
 // to a search API (Brave / Bing).
@@ -22,6 +28,7 @@ interface PropertyInput {
   cidade: string;
   estado: string;
   bairro?: string | null;
+  rua?: string | null;
   tipo_imovel?: string | null;
   quartos?: number | null;
 }
@@ -49,6 +56,36 @@ const slugify = (text: string): string =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+
+// Brazilian street type prefixes we want to strip when comparing street names.
+// QuintoAndar may format as "Avenida Paulista" while the user typed "Av Paulista"
+// or just "Paulista" — normalize both sides before comparison.
+const STREET_PREFIX_RE =
+  /^(rua|r|avenida|av|alameda|al|travessa|trav|tv|estrada|est|praca|praça|rodovia|rod|largo|viela|via|servidao|servidão|beco|ladeira)\s+/i;
+
+// Lowercase, strip diacritics, drop street type prefix, collapse whitespace.
+const normalizeStreet = (s: string): string =>
+  s
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replace(STREET_PREFIX_RE, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+// Decide whether a listing's address matches the user's street.
+// JSON-LD address is comma-separated: "Rua X, Bairro, Cidade" — first segment
+// is the street. We compare normalized forms with bidirectional includes() so
+// "Marc Chagall" matches "Rua Marc Chagall" and short streets like "XV de
+// Novembro" still match longer "Rua XV de Novembro" listings.
+function matchesStreet(listingAddress: string | undefined, targetStreet: string): boolean {
+  if (!listingAddress) return false;
+  const segment = listingAddress.split(",")[0] ?? "";
+  const a = normalizeStreet(segment);
+  const b = normalizeStreet(targetStreet);
+  if (!a || !b) return false;
+  return a === b || a.includes(b) || b.includes(a);
+}
 
 function buildSearchUrl(input: PropertyInput, type: SearchType): string {
   const action = type === "venda" ? "comprar" : "alugar";
@@ -171,7 +208,7 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { cidade, estado, bairro, tipo_imovel, quartos, type = "venda" } = body;
+    const { cidade, estado, bairro, rua, tipo_imovel, quartos, type = "venda" } = body;
 
     if (!cidade || typeof cidade !== "string") {
       return new Response(JSON.stringify({ error: "cidade is required" }), {
@@ -193,10 +230,25 @@ serve(async (req) => {
     }
 
     const searchUrl = buildSearchUrl({ cidade, estado, bairro, tipo_imovel, quartos }, type);
-    const listings = await scrapeListings(searchUrl);
+    // When filtering by rua, scrape the whole page (up to ~50 results on a
+    // single search page) so we have enough matches after filtering. Without
+    // a rua filter, 12 is plenty for the UI.
+    const rawListings = await scrapeListings(searchUrl, rua ? 100 : 12);
+
+    const listings =
+      rua && typeof rua === "string" && rua.trim()
+        ? rawListings.filter((l) => matchesStreet(l.address, rua)).slice(0, 12)
+        : rawListings;
 
     return new Response(
-      JSON.stringify({ searchUrl, listings, fetchedAt: new Date().toISOString() }),
+      JSON.stringify({
+        searchUrl,
+        listings,
+        fetchedAt: new Date().toISOString(),
+        // Tell the client whether we filtered by rua, so it can show an
+        // appropriate empty-state message.
+        filteredByRua: Boolean(rua && typeof rua === "string" && rua.trim()),
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {

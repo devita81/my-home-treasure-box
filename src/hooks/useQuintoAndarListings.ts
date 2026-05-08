@@ -19,6 +19,7 @@ export interface QuintoAndarListingsResponse {
   searchUrl: string;
   listings: QuintoAndarListing[];
   fetchedAt: string;
+  filteredByRua?: boolean;
 }
 
 type SearchType = "venda" | "aluguel";
@@ -32,7 +33,7 @@ type SearchType = "venda" | "aluguel";
  * user explicitly opts in (we don't want to scrape on every page load).
  */
 export function useQuintoAndarListings(
-  property: Pick<Property, "cidade" | "estado" | "bairro" | "tipo_imovel" | "quartos">,
+  property: Pick<Property, "cidade" | "estado" | "bairro" | "rua" | "tipo_imovel" | "quartos">,
   type: SearchType,
   enabled: boolean,
 ) {
@@ -42,6 +43,7 @@ export function useQuintoAndarListings(
       property.cidade,
       property.estado,
       property.bairro,
+      property.rua,
       property.tipo_imovel,
       property.quartos,
       type,
@@ -54,6 +56,7 @@ export function useQuintoAndarListings(
             cidade: property.cidade,
             estado: property.estado,
             bairro: property.bairro,
+            rua: property.rua,
             tipo_imovel: property.tipo_imovel,
             quartos: property.quartos,
             type,
