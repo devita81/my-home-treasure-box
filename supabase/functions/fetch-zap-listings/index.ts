@@ -1,8 +1,9 @@
 // fetch-zap-listings: searches ZAP Imóveis for listings near a property.
 // Calls ZAP's internal Glue API at glue-api.zapimoveis.com.br/v2/listings.
-// Deployment marker: v3 (AI-powered location resolver — translates
-// user-entered bairros to ZAP-indexed equivalents via OpenAI, cached
-// permanently on properties.resolved_location).
+// Deployment marker: v4 (drop addressLocationId from API call — its
+// format is fragile and a single wrong char like "SP" instead of
+// "Sao Paulo" zeroes the search; street + bairro + zone + lat/lng
+// suffice).
 //
 // Three precision tiers, picked automatically:
 //   1. street         — filters by `addressStreet` server-side (best, when rua is filled)
@@ -199,18 +200,20 @@ function buildQueryParams(
   if (addressStreet) {
     params.set("addressStreet", addressStreet);
     params.set("addressType", "street");
-    // When AI resolved the bairro/zone/locationId, pass them too — they
-    // help ZAP rank and disambiguate streets that exist in multiple
-    // neighborhoods. We trust the AI's bairro because it's been verified
-    // against the actual street location.
+    // When AI resolved the bairro/zone, pass them — they help ZAP
+    // rank and disambiguate streets that exist in multiple neighborhoods.
     if (resolved && addressNeighborhood) params.set("addressNeighborhood", addressNeighborhood);
     if (resolved && addressZone) params.set("addressZone", addressZone);
-    if (resolved && addressLocationId) params.set("addressLocationId", addressLocationId);
+    // We deliberately DO NOT pass `addressLocationId` even when the AI
+    // returns one. Its format is fragile ("BR>{full state name}>NULL>
+    // {city}>{zone}>{neighborhood}", diacritics stripped) and a single
+    // wrong character (e.g. "SP" instead of "Sao Paulo") makes ZAP
+    // return 0 results. The street + bairro + zone + lat/lng combo is
+    // already specific enough to find the right listings.
   } else if (addressNeighborhood) {
     params.set("addressNeighborhood", addressNeighborhood);
     params.set("addressType", "neighborhood");
     if (resolved && addressZone) params.set("addressZone", addressZone);
-    if (resolved && addressLocationId) params.set("addressLocationId", addressLocationId);
   }
 
   if (typeof input.latitude === "number") {
