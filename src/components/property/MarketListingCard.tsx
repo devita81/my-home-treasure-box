@@ -1,5 +1,7 @@
 import { Bed, Bath, Ruler } from "lucide-react";
 
+export type MarketProvider = "quintoandar" | "zap";
+
 export interface MarketListing {
   url: string;
   name: string;
@@ -9,7 +11,21 @@ export interface MarketListing {
   bathrooms?: number;
   price?: number;
   imageUrl?: string;
+  /** Set by the consumer when merging multiple providers into one
+   *  view, used for the corner badge and chart colour. */
+  provider?: MarketProvider;
 }
+
+const PROVIDER_BADGE: Record<MarketProvider, { label: string; className: string }> = {
+  quintoandar: {
+    label: "QA",
+    className: "bg-emerald-600 text-white",
+  },
+  zap: {
+    label: "ZAP",
+    className: "bg-orange-500 text-white",
+  },
+};
 
 const formatBRL = (value: number | undefined): string => {
   if (value == null) return "—";
@@ -27,14 +43,15 @@ const formatBRL = (value: number | undefined): string => {
  * (the user can compare two columns at a glance).
  */
 export function MarketListingCard({ listing }: { listing: MarketListing }) {
+  const badge = listing.provider ? PROVIDER_BADGE[listing.provider] : null;
   return (
     <a
       href={listing.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-primary/40 hover:shadow-md"
+      className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-primary/40 hover:shadow-md"
     >
-      <div className="aspect-[4/3] w-full overflow-hidden bg-muted">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
         {listing.imageUrl ? (
           <img
             src={listing.imageUrl}
@@ -45,6 +62,13 @@ export function MarketListingCard({ listing }: { listing: MarketListing }) {
               e.currentTarget.style.display = "none";
             }}
           />
+        ) : null}
+        {badge ? (
+          <span
+            className={`absolute right-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${badge.className}`}
+          >
+            {badge.label}
+          </span>
         ) : null}
       </div>
 
