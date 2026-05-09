@@ -1,8 +1,9 @@
 // fetch-zap-listings: searches ZAP Imóveis for listings near a property.
 // Calls ZAP's internal Glue API at glue-api.zapimoveis.com.br/v2/listings.
-// Deployment marker: v5 (separation of concerns — LLM resolver returns
-// only canonical address fields; this function builds ZAP-specific
-// params deterministically. No more brittle AI-generated formats).
+// Deployment marker: v6 (re-add addressLocationId, but built in CODE
+// from canonical fields with deterministic ASCII normalization — ZAP
+// requires it when addressType=street; AI-generated version was the
+// brittle one).
 //
 // Three precision tiers, picked automatically:
 //   1. street         — filters by `addressStreet` server-side (best, when rua is filled)
@@ -19,7 +20,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { geocodeAddress } from "../_shared/geocode.ts";
-import { resolveLocation, type ResolvedLocation, type CanonicalAddress } from "../_shared/resolve-location.ts";
+import { resolveLocation, type ResolvedLocation, type CanonicalAddress, ascii } from "../_shared/resolve-location.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -165,12 +166,23 @@ function buildPublicSearchUrl(
 // string formatting — all geographical knowledge lives in the LLM
 // resolver upstream, this function is just a translator.
 function zapFieldsFromCanonical(c: CanonicalAddress) {
+  // ZAP's addressLocationId is a slash-delimited path through their
+  // location hierarchy: "BR>{state}>NULL>{city}>{zone}>{neighborhood}".
+  // Diacritics MUST be stripped (their hierarchy is keyed in ASCII).
+  // Empirically, when `addressType=street` is set, ZAP returns 0 hits
+  // without this param even with addressStreet/addressNeighborhood/lat/lng
+  // present — so we always include it when we have the components.
+  const haveAllParts = Boolean(c.state_full && c.city && c.zone && c.neighborhood);
+  const addressLocationId = haveAllParts
+    ? `BR>${ascii(c.state_full)}>NULL>${ascii(c.city)}>${ascii(c.zone!)}>${ascii(c.neighborhood!)}`
+    : null;
   return {
     addressCity: c.city,
     addressState: c.state_full, // ZAP wants full state name, not "SP"
     addressStreet: c.street,
     addressNeighborhood: c.neighborhood,
     addressZone: c.zone,
+    addressLocationId,
   };
 }
 
@@ -191,6 +203,7 @@ function buildQueryParams(
   const addressStreet = fromCanonical?.addressStreet ?? input.rua ?? null;
   const addressNeighborhood = fromCanonical?.addressNeighborhood ?? input.bairro ?? null;
   const addressZone = fromCanonical?.addressZone ?? null;
+  const addressLocationId = fromCanonical?.addressLocationId ?? null;
 
   const params = new URLSearchParams({
     business: businessType,
@@ -215,13 +228,15 @@ function buildQueryParams(
     // raw user `bairro` here would re-introduce the over-filter bug.
     if (fromCanonical && addressNeighborhood) params.set("addressNeighborhood", addressNeighborhood);
     if (fromCanonical && addressZone) params.set("addressZone", addressZone);
-    // addressLocationId intentionally omitted — its format is too
-    // fragile (full state name + ASCII + exact spelling) and an error
-    // there zeroes the search. The other geo fields suffice.
+    // addressLocationId is built deterministically by zapFieldsFromCanonical
+    // (no AI string formatting), so it's safe to send. Empirically ZAP
+    // requires this when addressType=street to actually return hits.
+    if (addressLocationId) params.set("addressLocationId", addressLocationId);
   } else if (addressNeighborhood) {
     params.set("addressNeighborhood", addressNeighborhood);
     params.set("addressType", "neighborhood");
     if (fromCanonical && addressZone) params.set("addressZone", addressZone);
+    if (addressLocationId) params.set("addressLocationId", addressLocationId);
   }
 
   if (typeof input.latitude === "number") {
