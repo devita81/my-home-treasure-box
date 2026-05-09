@@ -1,8 +1,8 @@
 // fetch-zap-listings: searches ZAP Imóveis for listings near a property.
 // Calls ZAP's internal Glue API at glue-api.zapimoveis.com.br/v2/listings.
-// Deployment marker: v3 (AI-powered location resolver — translates
-// user-entered bairros to ZAP-indexed equivalents via OpenAI, cached
-// permanently on properties.resolved_location).
+// Deployment marker: v5 (separation of concerns — LLM resolver returns
+// only canonical address fields; this function builds ZAP-specific
+// params deterministically. No more brittle AI-generated formats).
 //
 // Three precision tiers, picked automatically:
 //   1. street         — filters by `addressStreet` server-side (best, when rua is filled)
@@ -19,7 +19,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { geocodeAddress } from "../_shared/geocode.ts";
-import { resolveLocation, type ResolvedLocation } from "../_shared/resolve-location.ts";
+import { resolveLocation, type ResolvedLocation, type CanonicalAddress } from "../_shared/resolve-location.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -161,6 +161,19 @@ function buildPublicSearchUrl(
   return url.toString();
 }
 
+// Build ZAP-specific address fields from the canonical address. Pure
+// string formatting — all geographical knowledge lives in the LLM
+// resolver upstream, this function is just a translator.
+function zapFieldsFromCanonical(c: CanonicalAddress) {
+  return {
+    addressCity: c.city,
+    addressState: c.state_full, // ZAP wants full state name, not "SP"
+    addressStreet: c.street,
+    addressNeighborhood: c.neighborhood,
+    addressZone: c.zone,
+  };
+}
+
 function buildQueryParams(
   input: PropertyInput,
   type: SearchType,
@@ -169,17 +182,15 @@ function buildQueryParams(
 ): URLSearchParams {
   const businessType = type === "venda" ? "SALE" : "RENTAL";
 
-  // Prefer AI-resolved values when available — they correct mismatches
-  // like user-entered "LAPA" → ZAP-indexed "Água Branca". Fall back to
-  // the raw user-entered fields if the LLM is offline or the property
-  // hasn't been resolved yet.
-  const z = resolved?.zap;
-  const addressCity = z?.addressCity ?? input.cidade;
-  const addressState = z?.addressState ?? input.estado;
-  const addressStreet = z?.addressStreet ?? input.rua ?? null;
-  const addressNeighborhood = z?.addressNeighborhood ?? input.bairro ?? null;
-  const addressZone = z?.addressZone ?? null;
-  const addressLocationId = z?.addressLocationId ?? null;
+  // When the AI resolver succeeded, all geo fields come from the
+  // canonical address. When it didn't, fall back to the raw user fields
+  // (less accurate but still functional).
+  const fromCanonical = resolved ? zapFieldsFromCanonical(resolved.canonical) : null;
+  const addressCity = fromCanonical?.addressCity ?? input.cidade;
+  const addressState = fromCanonical?.addressState ?? input.estado;
+  const addressStreet = fromCanonical?.addressStreet ?? input.rua ?? null;
+  const addressNeighborhood = fromCanonical?.addressNeighborhood ?? input.bairro ?? null;
+  const addressZone = fromCanonical?.addressZone ?? null;
 
   const params = new URLSearchParams({
     business: businessType,
@@ -199,18 +210,18 @@ function buildQueryParams(
   if (addressStreet) {
     params.set("addressStreet", addressStreet);
     params.set("addressType", "street");
-    // When AI resolved the bairro/zone/locationId, pass them too — they
-    // help ZAP rank and disambiguate streets that exist in multiple
-    // neighborhoods. We trust the AI's bairro because it's been verified
-    // against the actual street location.
-    if (resolved && addressNeighborhood) params.set("addressNeighborhood", addressNeighborhood);
-    if (resolved && addressZone) params.set("addressZone", addressZone);
-    if (resolved && addressLocationId) params.set("addressLocationId", addressLocationId);
+    // Bairro + zone help ZAP rank and disambiguate streets present in
+    // multiple bairros. Trust them only when AI verified them; using
+    // raw user `bairro` here would re-introduce the over-filter bug.
+    if (fromCanonical && addressNeighborhood) params.set("addressNeighborhood", addressNeighborhood);
+    if (fromCanonical && addressZone) params.set("addressZone", addressZone);
+    // addressLocationId intentionally omitted — its format is too
+    // fragile (full state name + ASCII + exact spelling) and an error
+    // there zeroes the search. The other geo fields suffice.
   } else if (addressNeighborhood) {
     params.set("addressNeighborhood", addressNeighborhood);
     params.set("addressType", "neighborhood");
-    if (resolved && addressZone) params.set("addressZone", addressZone);
-    if (resolved && addressLocationId) params.set("addressLocationId", addressLocationId);
+    if (fromCanonical && addressZone) params.set("addressZone", addressZone);
   }
 
   if (typeof input.latitude === "number") {
