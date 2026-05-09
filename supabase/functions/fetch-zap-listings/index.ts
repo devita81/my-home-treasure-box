@@ -141,15 +141,23 @@ function buildListingUrl(href?: string, id?: string): string {
 }
 
 // Fallback search URL — used for "Ver mais" link and as the redirect
-// target when Cloudflare blocks the API.
-function buildPublicSearchUrl(input: PropertyInput, type: SearchType): string {
+// target when Cloudflare blocks the API. Uses the AI-resolved bairro
+// when available so the link points at the correct neighbourhood (e.g.
+// "agua-branca" instead of user-entered "lapa" for Marc Chagall).
+function buildPublicSearchUrl(
+  input: PropertyInput,
+  type: SearchType,
+  resolved: ResolvedLocation | null,
+): string {
   const action = type === "venda" ? "venda" : "aluguel";
   const cidade = slugify(input.cidade);
   const estado = input.estado.toLowerCase();
-  const bairro = input.bairro ? slugify(input.bairro) : "";
+  const bairroRaw = resolved?.canonical.neighborhood ?? input.bairro ?? "";
+  const bairro = bairroRaw ? slugify(bairroRaw) : "";
   const path = bairro ? `${estado}+${cidade}+${bairro}` : `${estado}+${cidade}`;
   const url = new URL(`https://www.zapimoveis.com.br/${action}/imoveis/${path}/`);
-  if (input.rua) url.searchParams.set("onde", input.rua);
+  const ruaForOnde = resolved?.canonical.street ?? input.rua;
+  if (ruaForOnde) url.searchParams.set("onde", ruaForOnde);
   return url.toString();
 }
 
@@ -270,6 +278,8 @@ async function fetchListings(
   listings: Listing[];
   precision: Precision;
   cloudflareBlocked: boolean;
+  resolved: ResolvedLocation | null;
+  apiUrl: string;
 }> {
   // Resolve missing coordinates so ZAP can rank by proximity. Same
   // fallback the QuintoAndar function uses, including persistence so
@@ -297,11 +307,12 @@ async function fetchListings(
   const hasStreet = Boolean(resolved?.zap.addressStreet ?? input.rua);
   const pageSize = hasStreet ? 30 : 12;
   const params = buildQueryParams(input, type, pageSize, resolved);
+  const apiUrl = `${ZAP_API_URL}?${params.toString()}`;
 
   // Headers must mimic a real Chrome request closely or Cloudflare's bot
   // manager will return 403. The combination below was captured from a
   // working browser request.
-  const response = await fetch(`${ZAP_API_URL}?${params.toString()}`, {
+  const response = await fetch(apiUrl, {
     method: "GET",
     headers: {
       "accept": "*/*",
@@ -323,7 +334,7 @@ async function fetchListings(
   // Cloudflare returns HTML challenge pages with 403. We don't try to
   // solve it — frontend falls back to a deep-link redirect.
   if (response.status === 403) {
-    return { listings: [], precision: "neighbourhood", cloudflareBlocked: true };
+    return { listings: [], precision: "neighbourhood", cloudflareBlocked: true, resolved, apiUrl };
   }
   if (!response.ok) {
     throw new Error(`ZAP API returned HTTP ${response.status}`);
@@ -342,6 +353,8 @@ async function fetchListings(
     listings: listings.slice(0, MAX_LISTINGS_RETURNED),
     precision,
     cloudflareBlocked: false,
+    resolved,
+    apiUrl,
   };
 }
 
@@ -389,11 +402,17 @@ serve(async (req) => {
       id, cidade, estado, bairro, rua, numero, cep, tipo_imovel, quartos,
       latitude, longitude, resolved_location,
     };
-    const { listings, precision, cloudflareBlocked } = await fetchListings(input, type, supabaseClient);
+    const { listings, precision, cloudflareBlocked, resolved, apiUrl } =
+      await fetchListings(input, type, supabaseClient);
 
     return jsonResponse({
-      searchUrl: buildPublicSearchUrl(input, type),
+      searchUrl: buildPublicSearchUrl(input, type, resolved),
       listings,
+      // TEMPORARY DEBUG: surfaces the AI-resolved data and the actual
+      // ZAP API URL we hit, so we can diagnose 0-result situations
+      // (was the AI even called? did it return Água Branca? what URL
+      // did we send?). Remove once the resolver is verified working.
+      debug: { resolved, apiUrl },
       precision,
       cloudflareBlocked,
     });
