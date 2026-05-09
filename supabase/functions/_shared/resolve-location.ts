@@ -1,48 +1,42 @@
 // resolve-location: AI-powered translator from a user-entered Brazilian
-// address to provider-specific query parameters for QuintoAndar and ZAP.
+// address to a *clean canonical address*. The AI does the part it's good
+// at — semantic knowledge ("the street Marc Chagall sits in Água Branca,
+// not Lapa") — and nothing else. Provider-specific URL/param formatting
+// is built deterministically from the canonical fields by each edge
+// function, because that's where AI tends to make brittle mistakes
+// ("SP" vs "Sao Paulo", missing diacritic strip, wrong slug shape).
 //
-// Why this exists: users register properties with a `bairro` they're
-// familiar with ("Lapa") that doesn't always match the official bairro
-// each provider indexes the street under (ZAP indexes Rua Marc Chagall
-// under "Água Branca"). Hardcoded if/else for these mappings doesn't
-// scale — there are thousands of edge cases. An LLM that knows
-// Brazilian geography gets 95%+ of them right with a single call.
-//
-// Strategy: cache the resolved JSON on `properties.resolved_location`
+// Strategy: cache the canonical JSON on `properties.resolved_location`
 // so each property only pays the LLM cost once in its lifetime.
-// Listings calls read the cache; cold properties fall back to the raw
+// Listings calls read the cache; cold properties fall back to raw user
 // fields if the LLM/key is unavailable.
 
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-export interface ResolvedZap {
-  addressStreet: string | null;
-  addressNeighborhood: string | null;
-  addressZone: string | null;
-  addressLocationId: string | null;
-  addressCity: string;
-  addressState: string;
-}
-
-export interface ResolvedQuintoAndar {
-  /** "<bairro>-<cidade>-<uf>-brasil" or "<cidade>-<uf>-brasil" */
-  slug: string;
-}
-
-export interface ResolvedCanonical {
+export interface CanonicalAddress {
+  /** Street name with prefix, e.g. "Rua Marc Chagall". */
   street: string | null;
   number: string | null;
+  /** Actual neighbourhood — corrected if the user-entered one was wrong. */
   neighborhood: string | null;
+  /** São Paulo only: "Zona Oeste|Sul|Norte|Leste|Centro". null elsewhere. */
   zone: string | null;
   city: string;
+  /** Two-letter state code, e.g. "SP". */
   state: string;
+  /** Full state name, e.g. "São Paulo". */
+  state_full: string;
   cep: string | null;
 }
 
+/**
+ * The persisted shape on `properties.resolved_location`. Currently just
+ * a thin wrapper around CanonicalAddress so we can extend later without
+ * breaking the cache. Earlier versions stored provider-specific fields
+ * here; those are now built on demand from `canonical`.
+ */
 export interface ResolvedLocation {
-  canonical: ResolvedCanonical;
-  zap: ResolvedZap;
-  quintoandar: ResolvedQuintoAndar;
+  canonical: CanonicalAddress;
 }
 
 interface ResolveInput {
@@ -56,16 +50,16 @@ interface ResolveInput {
   latitude?: number | null;
   longitude?: number | null;
   /** If already cached on the property row, skip the LLM call. */
-  resolved_location?: ResolvedLocation | null;
+  resolved_location?: ResolvedLocation | unknown | null;
 }
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
-const SYSTEM_PROMPT = `You are a Brazilian real estate location resolver. Given a property address, you return canonical location data formatted for QuintoAndar and ZAP Imóveis.
+const SYSTEM_PROMPT = `You normalize Brazilian property addresses. Your only job is to return a clean canonical address — DO NOT format anything for downstream APIs, slugs, or URLs. The calling code handles that.
 
-You have detailed knowledge of São Paulo (the most common case) and major Brazilian cities. If the user-entered \`bairro\` doesn't match the actual neighborhood the street belongs to (a common mistake — users confuse the broader region with the specific neighborhood), CORRECT it. Use lat/lng if provided to disambiguate.
+Specifically: if the user-entered \`bairro\` doesn't match the actual neighborhood the street belongs to (a common mistake — users confuse the broader region with the specific bairro), CORRECT it. Use lat/lng if provided to disambiguate.
 
-Output JSON in EXACTLY this shape (no extra fields, no commentary):
+Return JSON in EXACTLY this shape (no extra fields, no commentary):
 {
   "canonical": {
     "street": "Rua Marc Chagall",
@@ -74,48 +68,37 @@ Output JSON in EXACTLY this shape (no extra fields, no commentary):
     "zone": "Zona Oeste",
     "city": "São Paulo",
     "state": "SP",
+    "state_full": "São Paulo",
     "cep": "05036-170"
-  },
-  "zap": {
-    "addressStreet": "Rua Marc Chagall",
-    "addressNeighborhood": "Água Branca",
-    "addressZone": "Zona Oeste",
-    "addressLocationId": "BR>Sao Paulo>NULL>Sao Paulo>Zona Oeste>Agua Branca",
-    "addressCity": "São Paulo",
-    "addressState": "São Paulo"
-  },
-  "quintoandar": {
-    "slug": "agua-branca-sao-paulo-sp-brasil"
   }
 }
 
 Rules:
-- \`canonical.street\` MUST include the street type prefix ("Rua", "Avenida", etc.) properly capitalized.
-- \`canonical.zone\`: only meaningful for São Paulo ("Zona Oeste|Sul|Norte|Leste" or "Centro"). Use null elsewhere.
-- \`zap.addressLocationId\` format: "BR>{State}>NULL>{City}>{Zone}>{Neighborhood}", with diacritics REMOVED (Água → Agua, São → Sao). Use null if zone is null.
-- \`zap.addressZone\`: same — null if zone is null.
-- \`quintoandar.slug\`: lowercase, ASCII-only, hyphen-separated. Format: "<bairro-slug>-<cidade-slug>-<uf-lowercase>-brasil" (or "<cidade-slug>-<uf-lowercase>-brasil" if neighborhood is unknown).
+- \`street\` MUST include the street type prefix ("Rua", "Avenida", etc.) properly capitalized.
+- \`zone\`: only meaningful for São Paulo ("Zona Oeste|Sul|Norte|Leste" or "Centro"). Use null elsewhere.
+- \`state\`: ALWAYS the two-letter UF code ("SP", "RJ", "MG", etc.).
+- \`state_full\`: ALWAYS the full state name ("São Paulo", "Rio de Janeiro", "Minas Gerais", etc.).
+- Keep diacritics in all string fields. The calling code strips them where needed.
 - Use null for any field you can't determine with high confidence.
 - DO NOT invent street names, neighborhoods, or CEPs. If unclear, use null.`;
 
 /**
- * Resolves an address to provider-specific query data. Returns null if the
- * LLM is unavailable; callers should fall back to their own logic in that
- * case (e.g. raw `bairro`/`rua` fields).
+ * Resolves an address to canonical Brazilian fields. Returns null if the
+ * LLM is unavailable; callers should fall back to raw user fields then.
  *
- * Caches the result on `properties.resolved_location` so subsequent calls
- * for the same property skip the LLM entirely.
+ * Caches the result on `properties.resolved_location` so subsequent
+ * calls for the same property skip the LLM entirely.
  */
 export async function resolveLocation(
   input: ResolveInput,
   supabase: SupabaseClient,
 ): Promise<ResolvedLocation | null> {
-  // Cache hit (frontend already passed the cached row)
+  // Cache hit
   if (input.resolved_location && isValidResolved(input.resolved_location)) {
     return input.resolved_location;
   }
 
-  // No API key → graceful fallback (caller uses raw fields)
+  // No API key → graceful fallback
   if (!OPENAI_API_KEY) {
     console.warn("[resolve-location] OPENAI_API_KEY missing — falling back to raw fields");
     return null;
@@ -146,9 +129,9 @@ export async function resolveLocation(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        // gpt-4o-mini is ~10x cheaper than gpt-4o and accurate enough for
-        // address normalization. Test cost: ~500 tokens in + ~200 tokens out
-        // ≈ $0.0002 per property. Lifetime cost for 50 properties: ~$0.01.
+        // gpt-4o-mini handles canonical address normalization just fine
+        // (~500 in / ~150 out ≈ $0.0001 per resolve). Cached forever
+        // per property.
         model: "gpt-4o-mini",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
@@ -171,7 +154,7 @@ export async function resolveLocation(
       console.error("[resolve-location] OpenAI returned malformed shape:", content);
       return null;
     }
-    resolved = parsed as ResolvedLocation;
+    resolved = parsed;
   } catch (e) {
     console.error("[resolve-location] OpenAI call failed:", e);
     return null;
@@ -192,17 +175,29 @@ export async function resolveLocation(
   return resolved;
 }
 
-// Cheap structural validation. We don't need every field present, but the
-// top-level shape must be there or downstream code will crash.
+// Validates the new (post-refactor) canonical shape. Old cached rows
+// from the previous AI prompt — which had `zap` and `quintoandar`
+// sub-objects — fail this check, so they get re-resolved transparently
+// on the next listings call.
 function isValidResolved(x: unknown): x is ResolvedLocation {
   if (!x || typeof x !== "object") return false;
   const o = x as Record<string, unknown>;
-  return (
-    typeof o.canonical === "object" &&
-    typeof o.zap === "object" &&
-    typeof o.quintoandar === "object" &&
-    o.canonical !== null &&
-    o.zap !== null &&
-    o.quintoandar !== null
-  );
+  if (!o.canonical || typeof o.canonical !== "object") return false;
+  const c = o.canonical as Record<string, unknown>;
+  // `state_full` is the canonical field that didn't exist in the
+  // earlier shape — its presence reliably distinguishes new from old.
+  return typeof c.state_full === "string" && typeof c.city === "string";
+}
+
+// ─── ASCII normalizer (used by edge functions to build provider params) ──
+
+/**
+ * Strip diacritics and combining marks. Used when a provider's API
+ * insists on ASCII (ZAP's addressLocationId, slugs, etc.).
+ *
+ *   "São Paulo"   → "Sao Paulo"
+ *   "Água Branca" → "Agua Branca"
+ */
+export function ascii(s: string): string {
+  return s.normalize("NFD").replace(/\p{M}/gu, "");
 }

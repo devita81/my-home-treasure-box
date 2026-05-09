@@ -1,8 +1,8 @@
 // fetch-quinto-andar-listings: searches QuintoAndar for listings near a
 // property. Calls QA's internal POST endpoint at
 // apigw.prod.quintoandar.com.br/house-listing-search/v2/search/list.
-// Deployment marker: v3 (AI-resolved bairro slug via OpenAI cache,
-// piggybacks on properties.resolved_location).
+// Deployment marker: v4 (separation of concerns — LLM returns only
+// canonical address; this function derives the QA slug from it).
 //
 // Three precision tiers, picked automatically:
 //   1. building       — viewport bounding box ~35m around lat/lng (best)
@@ -16,7 +16,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { geocodeAddress } from "../_shared/geocode.ts";
-import { resolveLocation, type ResolvedLocation } from "../_shared/resolve-location.ts";
+import { resolveLocation, type ResolvedLocation, type CanonicalAddress } from "../_shared/resolve-location.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -119,10 +119,19 @@ function matchesStreet(streetName: string | undefined, target: string): boolean 
 
 // ─── URL + payload building ───────────────────────────────────────────
 
+// Build QA's URL slug from canonical fields. Pure string formatting;
+// all the "is the bairro correct" thinking happens upstream in the AI
+// resolver. Format: "<bairro>-<cidade>-<uf>-brasil" (or no-bairro
+// variant when neighborhood is unknown).
+function quintoAndarSlugFromCanonical(c: CanonicalAddress): string {
+  const cidade = slugify(c.city);
+  const estado = c.state.toLowerCase();
+  const bairro = c.neighborhood ? slugify(c.neighborhood) : null;
+  return bairro ? `${bairro}-${cidade}-${estado}-brasil` : `${cidade}-${estado}-brasil`;
+}
+
 function buildLocationSlug(input: PropertyInput, resolved: ResolvedLocation | null): string {
-  // Prefer the AI-resolved slug — it uses the *correct* bairro
-  // (e.g. "agua-branca-..." instead of user's "lapa-..." when wrong).
-  if (resolved?.quintoandar.slug) return resolved.quintoandar.slug;
+  if (resolved) return quintoAndarSlugFromCanonical(resolved.canonical);
   const cidade = slugify(input.cidade);
   const estado = input.estado.toLowerCase();
   const bairro = input.bairro ? slugify(input.bairro) : null;
