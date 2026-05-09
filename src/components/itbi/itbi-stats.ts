@@ -1,13 +1,10 @@
 // ITBI types + the small bit of stats logic that's ITBI-specific
 // (latest/earliest dates). The price summary itself is delegated to
-// the shared `src/lib/price-stats.ts` helper.
+// the shared `src/lib/price-stats.ts` helper. Display-formatting
+// helpers (fmtBRL / fmtDate / fmtBRLCompact) live in `@/lib/format` —
+// import them from there directly.
 
 import { priceStats, type PriceStats } from "@/lib/price-stats";
-
-// Re-export shared formatters so callers can keep importing them
-// from `itbi-stats` without churn. New code should import directly
-// from `@/lib/format`.
-export { fmtBRL, fmtBRLCompact, fmtDate } from "@/lib/format";
 
 export interface ItbiResult {
   id: string;

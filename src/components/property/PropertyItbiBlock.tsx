@@ -63,6 +63,13 @@ export function PropertyItbiBlock({ property, onCacheUpdated }: PropertyItbiBloc
   );
 
   const refreshMutation = useMutation({
+    // One retry on transient failure (DNS hiccup, edge function cold
+    // start, brief network blip). 600 ms back-off — long enough to
+    // dodge the immediate retry, short enough that the user doesn't
+    // wonder if the click was registered. Beyond one retry we surface
+    // the error so they can take action instead of waiting forever.
+    retry: 1,
+    retryDelay: 600,
     mutationFn: async (): Promise<{ next: ItbiCache; persisted: boolean }> => {
       const { data, error } = await supabase.functions.invoke<{
         results?: ItbiResult[];

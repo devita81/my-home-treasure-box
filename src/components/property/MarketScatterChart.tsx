@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import {
   CartesianGrid,
   ResponsiveContainer,
@@ -8,7 +9,7 @@ import {
   YAxis,
 } from "recharts";
 import type { MarketListing } from "./MarketListingCard";
-import { fmtBRL } from "@/lib/format";
+import { fmtBRL, fmtBRLAxis } from "@/lib/format";
 
 interface MarketScatterChartProps {
   listings: MarketListing[];
@@ -28,24 +29,43 @@ const PROVIDER_FILL = {
   unknown: "#94a3b8", // slate-400 (no provider tag)
 } as const;
 
+/** Plot height in px — matches the ITBI chart for visual consistency
+ *  while leaving the market view a touch shorter (one fewer dimension
+ *  to communicate, no Legend row to stack). */
+const CHART_HEIGHT_PX = 280;
+
+const CHART_MARGIN = { top: 8, right: 8, bottom: 8, left: 8 } as const;
+
 /**
  * Scatter plot of price × m². Each dot is one listing, coloured by
  * provider. Click a dot to open the listing's detail page.
  *
  * Listings without both a price AND a floor size are dropped — they
  * can't be plotted meaningfully.
+ *
+ * Wrapped in `React.memo` because the parent (`ProviderView`) re-renders
+ * on every sort/filter/pin change, and rebuilding the recharts tree
+ * for unchanged data is wasteful.
  */
-export function MarketScatterChart({ listings, onListingClick }: MarketScatterChartProps) {
-  const points: { zap: ChartPoint[]; unknown: ChartPoint[] } = {
-    zap: [],
-    unknown: [],
-  };
-  for (const l of listings) {
-    if (typeof l.price !== "number" || typeof l.floorSize !== "number") continue;
-    const point: ChartPoint = { x: l.floorSize, y: l.price, listing: l };
-    if (l.provider === "zap") points.zap.push(point);
-    else points.unknown.push(point);
-  }
+export const MarketScatterChart = memo(function MarketScatterChart({
+  listings,
+  onListingClick,
+}: MarketScatterChartProps) {
+  // Bucket points by provider once. Memoised on `listings` identity so
+  // unrelated parent state (sort, filter, pin) doesn't re-bucket.
+  const points = useMemo(() => {
+    const acc: { zap: ChartPoint[]; unknown: ChartPoint[] } = {
+      zap: [],
+      unknown: [],
+    };
+    for (const l of listings) {
+      if (typeof l.price !== "number" || typeof l.floorSize !== "number") continue;
+      const point: ChartPoint = { x: l.floorSize, y: l.price, listing: l };
+      if (l.provider === "zap") acc.zap.push(point);
+      else acc.unknown.push(point);
+    }
+    return acc;
+  }, [listings]);
 
   const totalPoints = points.zap.length + points.unknown.length;
   if (totalPoints === 0) return null;
@@ -59,9 +79,9 @@ export function MarketScatterChart({ listings, onListingClick }: MarketScatterCh
       <p className="mb-2 text-xs text-muted-foreground">
         Dispersão preço × metragem (clique numa bolinha para isolar o anúncio na lista)
       </p>
-      <div className="h-[280px] w-full">
+      <div className="w-full" style={{ height: CHART_HEIGHT_PX }}>
         <ResponsiveContainer>
-          <ScatterChart margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+          <ScatterChart margin={CHART_MARGIN}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
               type="number"
@@ -76,11 +96,7 @@ export function MarketScatterChart({ listings, onListingClick }: MarketScatterCh
               dataKey="y"
               name="Preço"
               tick={{ fontSize: 11 }}
-              tickFormatter={(v) => {
-                if (v >= 1_000_000) return `R$ ${(v / 1_000_000).toFixed(1)}M`;
-                if (v >= 1_000) return `R$ ${Math.round(v / 1_000)}k`;
-                return `R$ ${v}`;
-              }}
+              tickFormatter={fmtBRLAxis}
             />
             <Tooltip
               cursor={{ strokeDasharray: "3 3" }}
@@ -119,4 +135,4 @@ export function MarketScatterChart({ listings, onListingClick }: MarketScatterCh
       </div>
     </div>
   );
-}
+});
