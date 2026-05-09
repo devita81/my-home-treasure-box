@@ -1,11 +1,8 @@
 // fetch-quinto-andar-listings: searches QuintoAndar for listings near a
 // property. Calls QA's internal POST endpoint at
 // apigw.prod.quintoandar.com.br/house-listing-search/v2/search/list.
-// Deployment marker: v6 (hybrid building isolation — when
-// `quinto_andar_url` is set on the property we resolve it to a numeric
-// condoId and filter strictly via `condoIds`; otherwise we widen the
-// viewport to ~150m and dedupe results to whichever building dominates.
-// Removes the always-debug field now that the resolver is proven).
+// Deployment marker: v7 (drop stale `forSale=false` / `forRent=false`
+// hits so we don't link the user to /indisponivel/{id} pages).
 //
 // Three precision tiers, picked automatically:
 //   1. building       — viewport bounding box ~75m around lat/lng (best)
@@ -97,6 +94,12 @@ interface QaHit {
     /** QA's internal numeric ID for the building. Used to dedupe results
      *  by building (every listing in the same building shares one). */
     condoId?: number;
+    /** Whether the listing is currently available for sale. Sometimes
+     *  out-of-sync with the search index — a listing with forSale=false
+     *  in a sale search is a stale hit that will land on /indisponivel/. */
+    forSale?: boolean;
+    /** Same as `forSale` but for rentals. */
+    forRent?: boolean;
   };
 }
 
@@ -239,6 +242,12 @@ function buildSearchPayload(
       "id", "type", "area", "bedrooms", "bathrooms", "totalCost", "rent",
       "salePrice", "address", "neighbourhood", "city", "coverImage", "imageList",
       "condoId",
+      // forSale / forRent reflect whether the listing is currently
+      // available for that business mode. We use them to drop stale
+      // entries that QA's search index still shows but whose actual
+      // detail page has flipped to another mode (and would land the
+      // user on /indisponivel/...).
+      "forSale", "forRent",
     ],
     filters: {
       availability: "ANY",
@@ -436,6 +445,17 @@ async function fetchListings(
 
   const data = (await response.json()) as QaResponse;
   let hits = data.hits?.hits ?? [];
+
+  // Drop stale hits: QA's search index sometimes returns listings whose
+  // mode flag (forSale/forRent) doesn't match the search context. Those
+  // would click through to /indisponivel/ on the live site. Only filter
+  // if the field was returned at all — when undefined we trust the
+  // search-context assumption.
+  const wantedModeKey = type === "venda" ? "forSale" : "forRent";
+  hits = hits.filter((h) => {
+    const modeFlag = h._source?.[wantedModeKey];
+    return modeFlag !== false;
+  });
 
   // Mode A — auto-dedupe: keep only listings whose condoId matches the
   // dominant building in the viewport result. Skipped when we already
