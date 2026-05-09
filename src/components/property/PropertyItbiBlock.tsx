@@ -78,9 +78,13 @@ export function PropertyItbiBlock({ property, onCacheUpdated }: PropertyItbiBloc
       };
 
       if (property.id) {
+        // The generated Supabase types lag the schema until someone
+        // re-runs `supabase gen types`, so a freshly-added column like
+        // `itbi_cache` looks unknown to the type-checker even though
+        // the runtime accepts it. The cast below is the common workaround.
         const { error: updateErr } = await supabase
           .from("properties")
-          .update({ itbi_cache: next })
+          .update({ itbi_cache: next } as never)
           .eq("id", property.id);
         if (updateErr) throw updateErr;
       }
