@@ -1,29 +1,18 @@
-// Bucket helpers specific to market-listings. The price summary is
-// delegated to `src/lib/price-stats.ts` (shared with ITBI); only the
-// area-bucketing logic lives here because nothing else needs it.
-
-import { priceStats, type PriceStats } from "@/lib/price-stats";
-import type { MarketListing } from "./MarketListingCard";
-
-export type { PriceStats };
+// Áreas-padrão (buckets) usadas pelos filtros da `<AnalisePreco>`.
+// Antes esse arquivo também guardava `computePriceStats` /
+// `computeBucketStats` específicos para listings, mas com a
+// migração para a `AnalisePreco` o cálculo de stats virou
+// responsabilidade do shared `@/lib/price-stats` e cada adapter
+// chama direto. Aqui sobrou só o universo de buckets.
 
 /**
- * Summary stats over the price field of a list of market listings.
- * Thin wrapper around the shared `priceStats()`.
- */
-export function computePriceStats(listings: MarketListing[]): PriceStats {
-  return priceStats(listings.map((l) => l.price));
-}
-
-/**
- * Fixed area buckets — ranges follow what's natural for SP apartments.
- * The last bucket is open-ended (everything ≥300m²).
+ * Faixa fixa de área. O último bucket é open-ended (tudo ≥300m²).
+ * Calibrado para o que é natural em apartamentos de SP.
  */
 export interface AreaBucket {
-  /** Display label, e.g. "50–80 m²". */
   label: string;
   minArea: number;
-  /** Upper bound (exclusive). null = open-ended on the right. */
+  /** Limite superior (exclusive). `null` = sem limite. */
   maxArea: number | null;
 }
 
@@ -36,25 +25,9 @@ export const AREA_BUCKETS: AreaBucket[] = [
   { label: "300+ m²", minArea: 300, maxArea: null },
 ];
 
-export interface BucketStats extends PriceStats {
-  bucket: AreaBucket;
-}
-
 export function isInBucket(area: number | undefined, bucket: AreaBucket): boolean {
   if (typeof area !== "number" || !Number.isFinite(area)) return false;
   if (area < bucket.minArea) return false;
   if (bucket.maxArea !== null && area >= bucket.maxArea) return false;
   return true;
-}
-
-/**
- * Bucket listings by floor size and compute price stats per bucket.
- * Returns only buckets that contain at least one listing — empty
- * buckets are filtered out for a tidier table.
- */
-export function computeBucketStats(listings: MarketListing[]): BucketStats[] {
-  return AREA_BUCKETS.map((bucket) => {
-    const inBucket = listings.filter((l) => isInBucket(l.floorSize, bucket));
-    return { bucket, ...computePriceStats(inBucket) };
-  }).filter((b) => b.count > 0);
 }
