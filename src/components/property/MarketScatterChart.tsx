@@ -8,7 +8,7 @@ import {
   YAxis,
 } from "recharts";
 import type { MarketListing } from "./MarketListingCard";
-import { fmtBRL } from "./market-stats";
+import { fmtBRL } from "@/lib/format";
 
 interface MarketScatterChartProps {
   listings: MarketListing[];
