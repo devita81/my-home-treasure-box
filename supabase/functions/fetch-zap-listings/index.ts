@@ -1,8 +1,8 @@
 // fetch-zap-listings: searches ZAP Imóveis for listings near a property.
 // Calls ZAP's internal Glue API at glue-api.zapimoveis.com.br/v2/listings.
-// Deployment marker: v7 (drop `includeFields` projection — its presence
-// was filtering out `search.result.listings` from the response, hence
-// the always-empty listings array even with a valid query).
+// Deployment marker: v8 (defensive image-field probing for `images` /
+// `medias`, numeric coercion for area/bedrooms, plus first-hit key
+// dump in debug to verify shape).
 //
 // Three precision tiers, picked automatically:
 //   1. street         — filters by `addressStreet` server-side (best, when rua is filled)
@@ -78,16 +78,27 @@ interface ZapPricingInfo {
   rentalTotalPrice?: string;
 }
 
+// ZAP returns photo data under different shapes depending on the
+// request params and listing source. We've seen at least:
+//   - images: string[]
+//   - images: { url: string }[]
+//   - medias: { url: string, type?: string }[]
+// Use a permissive type and probe in mapHitToListing.
+type ZapImage = string | { url?: string };
+
 interface ZapListingItem {
   id?: string;
   unitTypes?: string[]; // ["APARTMENT"], ["HOME"], etc.
   address?: ZapAddress;
-  bedrooms?: number[];
-  bathrooms?: number[];
-  parkingSpaces?: number[];
-  usableAreas?: number[];
+  // Numeric arrays sometimes arrive as strings ("171") instead of
+  // numbers (171); we coerce in mapHitToListing.
+  bedrooms?: Array<number | string>;
+  bathrooms?: Array<number | string>;
+  parkingSpaces?: Array<number | string>;
+  usableAreas?: Array<number | string>;
   pricingInfos?: ZapPricingInfo[];
-  images?: string[]; // already full URLs
+  images?: ZapImage[];
+  medias?: ZapImage[];
 }
 
 interface ZapResponseListing {
@@ -255,6 +266,32 @@ function buildQueryParams(
 
 // ─── response mapping ─────────────────────────────────────────────────
 
+// Coerce ZAP's number-or-string array entries into proper numbers.
+// "171" → 171, 171 → 171, undefined → undefined.
+function num(v: unknown): number | undefined {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string") {
+    const n = Number(v);
+    if (Number.isFinite(n)) return n;
+  }
+  return undefined;
+}
+
+// Pull a usable photo URL out of whichever shape ZAP happened to send.
+// Handles both `images` and `medias`, and items that are either bare
+// strings or `{ url }` objects.
+function extractImageUrl(l: ZapListingItem): string | undefined {
+  for (const candidates of [l.images, l.medias]) {
+    if (!Array.isArray(candidates) || candidates.length === 0) continue;
+    const first = candidates[0];
+    if (typeof first === "string" && first.length > 0) return first;
+    if (first && typeof first === "object" && typeof first.url === "string" && first.url.length > 0) {
+      return first.url;
+    }
+  }
+  return undefined;
+}
+
 function mapHitToListing(
   hit: ZapResponseListing,
   type: SearchType,
@@ -267,8 +304,9 @@ function mapHitToListing(
     .filter(Boolean)
     .join(", ");
 
-  const bedrooms = l.bedrooms?.[0];
-  const area = l.usableAreas?.[0];
+  const bedrooms = num(l.bedrooms?.[0]);
+  const bathrooms = num(l.bathrooms?.[0]);
+  const area = num(l.usableAreas?.[0]);
   const namePieces = [
     unitTypeLabel(l.unitTypes),
     bedrooms ? `${bedrooms}q` : "",
@@ -293,9 +331,9 @@ function mapHitToListing(
     address: fullAddress,
     floorSize: area,
     bedrooms,
-    bathrooms: l.bathrooms?.[0],
+    bathrooms,
     price,
-    imageUrl: l.images?.[0],
+    imageUrl: extractImageUrl(l),
   };
 }
 
@@ -311,6 +349,10 @@ async function fetchListings(
   cloudflareBlocked: boolean;
   resolved: ResolvedLocation | null;
   apiUrl: string;
+  /** TEMP: keys present on the first listing's `_source`, to verify
+   *  defensive image-field probing is hitting the right shape. Drop
+   *  in the next polish pass once images are confirmed working. */
+  firstHitKeys: string[] | null;
 }> {
   // Resolve missing coordinates so ZAP can rank by proximity. Same
   // fallback the QuintoAndar function uses, including persistence so
@@ -365,7 +407,14 @@ async function fetchListings(
   // Cloudflare returns HTML challenge pages with 403. We don't try to
   // solve it — frontend falls back to a deep-link redirect.
   if (response.status === 403) {
-    return { listings: [], precision: "neighbourhood", cloudflareBlocked: true, resolved, apiUrl };
+    return {
+      listings: [],
+      precision: "neighbourhood",
+      cloudflareBlocked: true,
+      resolved,
+      apiUrl,
+      firstHitKeys: null,
+    };
   }
   if (!response.ok) {
     throw new Error(`ZAP API returned HTTP ${response.status}`);
@@ -373,6 +422,10 @@ async function fetchListings(
 
   const data = (await response.json()) as ZapResponse;
   const hits = data.search?.result?.listings ?? [];
+
+  const firstHitKeys = hits[0]?.listing
+    ? Object.keys(hits[0].listing as Record<string, unknown>)
+    : null;
 
   const listings = hits
     .map((hit) => mapHitToListing(hit, type))
@@ -386,6 +439,7 @@ async function fetchListings(
     cloudflareBlocked: false,
     resolved,
     apiUrl,
+    firstHitKeys,
   };
 }
 
@@ -433,17 +487,18 @@ serve(async (req) => {
       id, cidade, estado, bairro, rua, numero, cep, tipo_imovel, quartos,
       latitude, longitude, resolved_location,
     };
-    const { listings, precision, cloudflareBlocked, resolved, apiUrl } =
+    const { listings, precision, cloudflareBlocked, resolved, apiUrl, firstHitKeys } =
       await fetchListings(input, type, supabaseClient);
 
     return jsonResponse({
       searchUrl: buildPublicSearchUrl(input, type, resolved),
       listings,
-      // TEMPORARY DEBUG: surfaces the AI-resolved data and the actual
-      // ZAP API URL we hit, so we can diagnose 0-result situations
-      // (was the AI even called? did it return Água Branca? what URL
-      // did we send?). Remove once the resolver is verified working.
-      debug: { resolved, apiUrl },
+      // TEMPORARY DEBUG: surfaces resolver state, the URL we hit, and
+      // the keys of the first listing's `_source`. The keys help us
+      // verify defensive image-field probing is hitting the right
+      // shape (we expect to see "images" or "medias" in the list).
+      // Drop once images are confirmed working in the UI.
+      debug: { resolved, apiUrl, firstHitKeys },
       precision,
       cloudflareBlocked,
     });
