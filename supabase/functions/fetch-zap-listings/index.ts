@@ -330,7 +330,7 @@ async function fetchListings(
   // bairros/cities to ZAP-indexed equivalents so we don't over-filter.
   const resolved = await resolveLocation(input, supabase);
 
-  const hasStreet = Boolean(resolved?.zap.addressStreet ?? input.rua);
+  const hasStreet = Boolean(resolved?.canonical.street ?? input.rua);
   const pageSize = hasStreet ? 30 : 12;
   const params = buildQueryParams(input, type, pageSize, resolved);
   const apiUrl = `${ZAP_API_URL}?${params.toString()}`;
