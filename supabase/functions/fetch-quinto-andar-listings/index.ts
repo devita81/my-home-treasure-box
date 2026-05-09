@@ -1,11 +1,12 @@
 // fetch-quinto-andar-listings: searches QuintoAndar for listings near a
 // property. Calls QA's internal POST endpoint at
 // apigw.prod.quintoandar.com.br/house-listing-search/v2/search/list.
-// Deployment marker: v4 (separation of concerns — LLM returns only
-// canonical address; this function derives the QA slug from it).
+// Deployment marker: v5 (widen viewport radius from 35m to 75m so we
+// don't lose the user's building when the Google geocoder places the
+// point ~150-200m off-target).
 //
 // Three precision tiers, picked automatically:
-//   1. building       — viewport bounding box ~35m around lat/lng (best)
+//   1. building       — viewport bounding box ~75m around lat/lng (best)
 //   2. street         — bairro search + post-filter by `rua` (no coords)
 //   3. neighbourhood  — bairro search only (no coords, no rua)
 //
@@ -26,10 +27,18 @@ const corsHeaders = {
 const QA_API_URL =
   "https://apigw.prod.quintoandar.com.br/house-listing-search/v2/search/list";
 
-// 35m radius isolates a single building in São Paulo (lots are typically
-// 30-50m wide, geocoder centers near the building face). Bigger values
-// bleed into neighbours; smaller may miss the building entirely.
-const BUILDING_RADIUS_METERS = 35;
+// 75m radius — compromise between precision and recall:
+//
+//   - 35m used to isolate a single building cleanly *when* the geocoder
+//     was near-perfect, but Google sometimes places the point 150-200m
+//     off the actual building (observed for "Marc Chagall 397, Lapa":
+//     geocoded ~190m away, so the 35m bbox missed the user's building
+//     entirely and caught only a stale entry from a different lot).
+//   - 200m+ would be robust to bad geocoding but bleeds across 3-5
+//     neighbours.
+//   - 75m catches the user's building plus 1-2 immediate neighbours —
+//     better recall, still clearly "your block" rather than the bairro.
+const BUILDING_RADIUS_METERS = 75;
 
 const MAX_LISTINGS_RETURNED = 12;
 

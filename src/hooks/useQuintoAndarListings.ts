@@ -15,7 +15,7 @@ export interface QuintoAndarListing {
 
 /**
  * How precisely the listings were filtered:
- *   - "building": viewport bounding box around lat/lng (~35m). Best.
+ *   - "building": viewport bounding box around lat/lng (~75m). Best.
  *   - "street": bairro search + client-side rua match. No lat/lng.
  *   - "neighbourhood": bairro slug only. Last resort.
  */
