@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import {
   type ItbiCache,
@@ -60,7 +61,7 @@ export function PropertyItbiBlock({ property, onCacheUpdated }: PropertyItbiBloc
   // / cep are too noisy and would over-filter.
   const params = useMemo<ItbiSearchParams>(
     () => ({
-      tipos: [normalizeTipo(property.tipo_imovel)],
+      tipos: tiposForProperty(property.tipo_imovel),
       logradouro: property.rua,
       numero: property.numero,
     }),
@@ -68,7 +69,7 @@ export function PropertyItbiBlock({ property, onCacheUpdated }: PropertyItbiBloc
   );
 
   const refreshMutation = useMutation({
-    mutationFn: async (): Promise<ItbiCache> => {
+    mutationFn: async (): Promise<{ next: ItbiCache; persisted: boolean }> => {
       const { data, error } = await supabase.functions.invoke<{
         results?: ItbiResult[];
         total?: number;
@@ -83,26 +84,40 @@ export function PropertyItbiBlock({ property, onCacheUpdated }: PropertyItbiBloc
         results: data.results ?? [],
       };
 
+      // Persistence is opportunistic. If the row update fails (RLS
+      // denial, transient network error, etc.) we still want the
+      // user to see the freshly-fetched results — just with a
+      // visible warning that the cache wasn't saved, so the next
+      // page-load will re-fetch instead of showing stale data.
+      let persisted = false;
       if (property.id) {
-        // The generated Supabase types lag the schema until someone
-        // re-runs `supabase gen types`, so a freshly-added column like
-        // `itbi_cache` looks unknown to the type-checker even though
-        // the runtime accepts it. The cast below is the common workaround.
         const { error: updateErr } = await supabase
           .from("properties")
-          .update({ itbi_cache: next } as never)
+          .update({ itbi_cache: next as unknown as Json })
           .eq("id", property.id);
-        if (updateErr) throw updateErr;
+        if (updateErr) {
+          console.error("[ITBI] failed to persist cache:", updateErr);
+        } else {
+          persisted = true;
+        }
       }
-      return next;
+      return { next, persisted };
     },
-    onSuccess: (next) => {
+    onSuccess: ({ next, persisted }) => {
+      // Always update the local view — the search itself succeeded.
       setCache(next);
       onCacheUpdated?.(next);
-      toast.success(`ITBI atualizado — ${next.results.length} transações`);
+      if (persisted) {
+        toast.success(`ITBI atualizado — ${next.results.length} transações`);
+      } else {
+        toast.warning("Resultados carregados mas não salvos", {
+          description:
+            "Na próxima visita o histórico será buscado de novo. Verifique sua conexão.",
+        });
+      }
     },
     onError: (err) => {
-      toast.error("Falha ao atualizar ITBI", {
+      toast.error("Falha ao buscar ITBI", {
         description: err instanceof Error ? err.message : "Erro desconhecido",
       });
     },
@@ -152,6 +167,7 @@ export function PropertyItbiBlock({ property, onCacheUpdated }: PropertyItbiBloc
             <>
               <RefreshHeader
                 fetchedAt={cache.fetched_at}
+                tipos={cache.params.tipos ?? []}
                 isLoading={refreshMutation.isPending}
                 onRefresh={() => refreshMutation.mutate()}
               />
@@ -212,16 +228,21 @@ function EmptyState({ isLoading, onRefresh }: { isLoading: boolean; onRefresh: (
 
 function RefreshHeader({
   fetchedAt,
+  tipos,
   isLoading,
   onRefresh,
 }: {
   fetchedAt: string;
+  tipos: string[];
   isLoading: boolean;
   onRefresh: () => void;
 }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-      <span>Última atualização: {fmtDate(fetchedAt)}</span>
+      <span>
+        Última atualização: {fmtDate(fetchedAt)} · Filtrando por:{" "}
+        <span className="font-medium text-foreground">{describeTipos(tipos)}</span>
+      </span>
       <Button onClick={onRefresh} disabled={isLoading} variant="outline" size="sm">
         {isLoading ? (
           <>
@@ -355,11 +376,27 @@ function ItbiTransactionDetails({ row }: { row: ItbiResult }) {
 
 // ─── helpers ─────────────────────────────────────────────────────────
 
-function normalizeTipo(tipo: string | null | undefined): string {
-  const t = (tipo ?? "").toLowerCase();
-  if (t === "apartamento" || t === "casa") return t;
-  // Default: residential broad search (matches both apartamento + casa)
-  return "apartamento";
+/**
+ * Map the property's `tipo_imovel` to the ITBI search filter array.
+ *
+ * Critical: when the property's tipo isn't a recognised category we
+ * return an empty array (no tipo filter), which makes the search
+ * return ALL categories. The previous behaviour silently defaulted to
+ * `["apartamento"]`, so a user with a `Casa` would see an apartment-
+ * only history without any indication that filtering was happening.
+ */
+function tiposForProperty(tipo: string | null | undefined): string[] {
+  const t = (tipo ?? "").toLowerCase().trim();
+  if (t === "apartamento" || t === "casa") return [t];
+  return []; // unknown / missing → no tipo filter, return everything
+}
+
+/** Human-readable label for the tipo filter currently in use. */
+function describeTipos(tipos: string[]): string {
+  if (tipos.length === 0) return "Todos os tipos";
+  return tipos
+    .map((t) => (t === "apartamento" ? "Apartamentos" : t === "casa" ? "Casas" : t))
+    .join(" + ");
 }
 
 /**

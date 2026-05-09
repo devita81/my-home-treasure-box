@@ -5,6 +5,8 @@ import {
   AlertCircle,
   MapPin,
   X as XIcon,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -237,7 +239,28 @@ function ProviderView({
 
   return (
     <div className="space-y-4">
-      <PrecisionPill precision={zap.data?.precision} property={property} />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <PrecisionPill precision={zap.data?.precision} property={property} />
+        <Button
+          onClick={() => void zap.refetch()}
+          disabled={zap.isFetching}
+          variant="ghost"
+          size="sm"
+          className="h-7 text-xs"
+        >
+          {zap.isFetching ? (
+            <>
+              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+              Atualizando…
+            </>
+          ) : (
+            <>
+              <RefreshCw className="mr-1 h-3 w-3" />
+              Atualizar
+            </>
+          )}
+        </Button>
+      </div>
       <MarketStatsRow stats={stats} modeLabel={modeLabel} />
       <MarketScatterChart
         listings={allListings}

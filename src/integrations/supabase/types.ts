@@ -277,6 +277,7 @@ export type Database = {
           area_total: number | null
           bairro: string
           banheiros: number | null
+          cep: string | null
           cidade: string
           complemento: string | null
           created_at: string
@@ -287,6 +288,7 @@ export type Database = {
           inquilino: string | null
           iptu_pago: boolean | null
           iptu_value: number | null
+          itbi_cache: Json | null
           latitude: number | null
           longitude: number | null
           market_value: number | null
@@ -302,6 +304,7 @@ export type Database = {
           proprietario_matricula_ii: string | null
           proprietario_papel: string | null
           quartos: number | null
+          resolved_location: Json | null
           rua: string
           street_view_heading: number | null
           suites: number | null
@@ -330,6 +333,7 @@ export type Database = {
           area_total?: number | null
           bairro?: string
           banheiros?: number | null
+          cep?: string | null
           cidade?: string
           complemento?: string | null
           created_at?: string
@@ -340,6 +344,7 @@ export type Database = {
           inquilino?: string | null
           iptu_pago?: boolean | null
           iptu_value?: number | null
+          itbi_cache?: Json | null
           latitude?: number | null
           longitude?: number | null
           market_value?: number | null
@@ -355,6 +360,7 @@ export type Database = {
           proprietario_matricula_ii?: string | null
           proprietario_papel?: string | null
           quartos?: number | null
+          resolved_location?: Json | null
           rua: string
           street_view_heading?: number | null
           suites?: number | null
@@ -383,6 +389,7 @@ export type Database = {
           area_total?: number | null
           bairro?: string
           banheiros?: number | null
+          cep?: string | null
           cidade?: string
           complemento?: string | null
           created_at?: string
@@ -393,6 +400,7 @@ export type Database = {
           inquilino?: string | null
           iptu_pago?: boolean | null
           iptu_value?: number | null
+          itbi_cache?: Json | null
           latitude?: number | null
           longitude?: number | null
           market_value?: number | null
@@ -408,6 +416,7 @@ export type Database = {
           proprietario_matricula_ii?: string | null
           proprietario_papel?: string | null
           quartos?: number | null
+          resolved_location?: Json | null
           rua?: string
           street_view_heading?: number | null
           suites?: number | null
