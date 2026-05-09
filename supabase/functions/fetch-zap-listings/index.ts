@@ -1,6 +1,8 @@
 // fetch-zap-listings: searches ZAP Imóveis for listings near a property.
 // Calls ZAP's internal Glue API at glue-api.zapimoveis.com.br/v2/listings.
-// Deployment marker: v1 (geocoding + persist coords + cloudflare fallback).
+// Deployment marker: v3 (AI-powered location resolver — translates
+// user-entered bairros to ZAP-indexed equivalents via OpenAI, cached
+// permanently on properties.resolved_location).
 //
 // Three precision tiers, picked automatically:
 //   1. street         — filters by `addressStreet` server-side (best, when rua is filled)
@@ -17,6 +19,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { geocodeAddress } from "../_shared/geocode.ts";
+import { resolveLocation, type ResolvedLocation } from "../_shared/resolve-location.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -42,6 +45,8 @@ interface PropertyInput {
   quartos?: number | null;
   latitude?: number | null;
   longitude?: number | null;
+  /** AI-resolved provider-specific location, cached on the property row. */
+  resolved_location?: ResolvedLocation | null;
 }
 
 interface Listing {
@@ -152,8 +157,22 @@ function buildQueryParams(
   input: PropertyInput,
   type: SearchType,
   pageSize: number,
+  resolved: ResolvedLocation | null,
 ): URLSearchParams {
   const businessType = type === "venda" ? "SALE" : "RENTAL";
+
+  // Prefer AI-resolved values when available — they correct mismatches
+  // like user-entered "LAPA" → ZAP-indexed "Água Branca". Fall back to
+  // the raw user-entered fields if the LLM is offline or the property
+  // hasn't been resolved yet.
+  const z = resolved?.zap;
+  const addressCity = z?.addressCity ?? input.cidade;
+  const addressState = z?.addressState ?? input.estado;
+  const addressStreet = z?.addressStreet ?? input.rua ?? null;
+  const addressNeighborhood = z?.addressNeighborhood ?? input.bairro ?? null;
+  const addressZone = z?.addressZone ?? null;
+  const addressLocationId = z?.addressLocationId ?? null;
+
   const params = new URLSearchParams({
     business: businessType,
     parentId: "null",
@@ -161,20 +180,31 @@ function buildQueryParams(
     images: "webp",
     categoryPage: "RESULT",
     user: crypto.randomUUID(),
-    addressCity: input.cidade,
-    addressState: input.estado,
+    addressCity,
+    addressState,
     page: "1",
     size: String(pageSize),
     from: "0",
     includeFields: "facets,search(totalCount)",
   });
-  if (input.bairro) params.set("addressNeighborhood", input.bairro);
-  if (input.rua) {
-    params.set("addressStreet", input.rua);
+
+  if (addressStreet) {
+    params.set("addressStreet", addressStreet);
     params.set("addressType", "street");
-  } else if (input.bairro) {
+    // When AI resolved the bairro/zone/locationId, pass them too — they
+    // help ZAP rank and disambiguate streets that exist in multiple
+    // neighborhoods. We trust the AI's bairro because it's been verified
+    // against the actual street location.
+    if (resolved && addressNeighborhood) params.set("addressNeighborhood", addressNeighborhood);
+    if (resolved && addressZone) params.set("addressZone", addressZone);
+    if (resolved && addressLocationId) params.set("addressLocationId", addressLocationId);
+  } else if (addressNeighborhood) {
+    params.set("addressNeighborhood", addressNeighborhood);
     params.set("addressType", "neighborhood");
+    if (resolved && addressZone) params.set("addressZone", addressZone);
+    if (resolved && addressLocationId) params.set("addressLocationId", addressLocationId);
   }
+
   if (typeof input.latitude === "number") {
     params.set("addressPointLat", String(input.latitude));
   }
@@ -245,13 +275,13 @@ async function fetchListings(
   // fallback the QuintoAndar function uses, including persistence so
   // we don't re-geocode on every refresh.
   if (typeof input.latitude !== "number" || typeof input.longitude !== "number") {
-    const resolved = await geocodeAddress(input);
-    if (resolved) {
-      input = { ...input, latitude: resolved.latitude, longitude: resolved.longitude };
+    const coords = await geocodeAddress(input);
+    if (coords) {
+      input = { ...input, latitude: coords.latitude, longitude: coords.longitude };
       if (input.id) {
         void supabase
           .from("properties")
-          .update({ latitude: resolved.latitude, longitude: resolved.longitude })
+          .update({ latitude: coords.latitude, longitude: coords.longitude })
           .eq("id", input.id)
           .then(({ error }) => {
             if (error) console.error("[ZAP] persist coords failed:", error);
@@ -260,9 +290,13 @@ async function fetchListings(
     }
   }
 
-  const filteringByRua = Boolean(input.rua && input.rua.trim());
-  const pageSize = filteringByRua ? 30 : 12;
-  const params = buildQueryParams(input, type, pageSize);
+  // AI-resolved location (cached on the row). Translates user-entered
+  // bairros/cities to ZAP-indexed equivalents so we don't over-filter.
+  const resolved = await resolveLocation(input, supabase);
+
+  const hasStreet = Boolean(resolved?.zap.addressStreet ?? input.rua);
+  const pageSize = hasStreet ? 30 : 12;
+  const params = buildQueryParams(input, type, pageSize, resolved);
 
   // Headers must mimic a real Chrome request closely or Cloudflare's bot
   // manager will return 403. The combination below was captured from a
@@ -302,7 +336,7 @@ async function fetchListings(
     .map((hit) => mapHitToListing(hit, type))
     .filter((l): l is Listing => l !== null);
 
-  const precision: Precision = filteringByRua ? "street" : "neighbourhood";
+  const precision: Precision = hasStreet ? "street" : "neighbourhood";
 
   return {
     listings: listings.slice(0, MAX_LISTINGS_RETURNED),
@@ -340,7 +374,10 @@ serve(async (req) => {
     if (claimsErr || !claims?.claims) return jsonResponse({ error: "Unauthorized" }, 401);
 
     const body = await req.json();
-    const { id, cidade, estado, bairro, rua, numero, cep, tipo_imovel, quartos, latitude, longitude, type = "venda" } = body;
+    const {
+      id, cidade, estado, bairro, rua, numero, cep, tipo_imovel, quartos,
+      latitude, longitude, resolved_location, type = "venda",
+    } = body;
 
     if (!cidade || typeof cidade !== "string") return jsonResponse({ error: "cidade is required" }, 400);
     if (!estado || typeof estado !== "string") return jsonResponse({ error: "estado is required" }, 400);
@@ -349,7 +386,8 @@ serve(async (req) => {
     }
 
     const input: PropertyInput = {
-      id, cidade, estado, bairro, rua, numero, cep, tipo_imovel, quartos, latitude, longitude,
+      id, cidade, estado, bairro, rua, numero, cep, tipo_imovel, quartos,
+      latitude, longitude, resolved_location,
     };
     const { listings, precision, cloudflareBlocked } = await fetchListings(input, type, supabaseClient);
 

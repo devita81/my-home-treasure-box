@@ -1,7 +1,8 @@
 // fetch-quinto-andar-listings: searches QuintoAndar for listings near a
 // property. Calls QA's internal POST endpoint at
 // apigw.prod.quintoandar.com.br/house-listing-search/v2/search/list.
-// Deployment marker: v2 (geocoding + viewport + persist coords).
+// Deployment marker: v3 (AI-resolved bairro slug via OpenAI cache,
+// piggybacks on properties.resolved_location).
 //
 // Three precision tiers, picked automatically:
 //   1. building       — viewport bounding box ~35m around lat/lng (best)
@@ -15,6 +16,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { geocodeAddress } from "../_shared/geocode.ts";
+import { resolveLocation, type ResolvedLocation } from "../_shared/resolve-location.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -46,6 +48,8 @@ interface PropertyInput {
   quartos?: number | null;
   latitude?: number | null;
   longitude?: number | null;
+  /** AI-resolved provider-specific location, cached on the property row. */
+  resolved_location?: ResolvedLocation | null;
 }
 
 interface Listing {
@@ -115,7 +119,10 @@ function matchesStreet(streetName: string | undefined, target: string): boolean 
 
 // ─── URL + payload building ───────────────────────────────────────────
 
-function buildLocationSlug(input: PropertyInput): string {
+function buildLocationSlug(input: PropertyInput, resolved: ResolvedLocation | null): string {
+  // Prefer the AI-resolved slug — it uses the *correct* bairro
+  // (e.g. "agua-branca-..." instead of user's "lapa-..." when wrong).
+  if (resolved?.quintoandar.slug) return resolved.quintoandar.slug;
   const cidade = slugify(input.cidade);
   const estado = input.estado.toLowerCase();
   const bairro = input.bairro ? slugify(input.bairro) : null;
@@ -124,9 +131,13 @@ function buildLocationSlug(input: PropertyInput): string {
 
 // "Ver mais resultados" link — always points at the bairro/cidade search,
 // not the building, so the user can broaden the view.
-function buildPublicSearchUrl(input: PropertyInput, type: SearchType): string {
+function buildPublicSearchUrl(
+  input: PropertyInput,
+  type: SearchType,
+  resolved: ResolvedLocation | null,
+): string {
   const action = type === "venda" ? "comprar" : "alugar";
-  const url = new URL(`https://www.quintoandar.com.br/${action}/imovel/${buildLocationSlug(input)}`);
+  const url = new URL(`https://www.quintoandar.com.br/${action}/imovel/${buildLocationSlug(input, resolved)}`);
   if (input.tipo_imovel) {
     const t = input.tipo_imovel.toLowerCase();
     if (t === "apartamento" || t === "casa") url.searchParams.set("tipos", t);
@@ -150,8 +161,13 @@ function metersToBoundingBox(lat: number, lng: number, radiusMeters: number) {
   };
 }
 
-function buildSearchPayload(input: PropertyInput, type: SearchType, pageSize: number) {
-  const slug = buildLocationSlug(input);
+function buildSearchPayload(
+  input: PropertyInput,
+  type: SearchType,
+  pageSize: number,
+  resolved: ResolvedLocation | null,
+) {
+  const slug = buildLocationSlug(input, resolved);
   const businessContext = type === "venda" ? "SALE" : "RENT";
   const hasCoords =
     typeof input.latitude === "number" && typeof input.longitude === "number";
@@ -246,7 +262,11 @@ async function fetchListings(
   input: PropertyInput,
   type: SearchType,
   supabase: SupabaseClient,
-): Promise<{ listings: Listing[]; precision: Precision }> {
+): Promise<{
+  listings: Listing[];
+  precision: Precision;
+  resolved: ResolvedLocation | null;
+}> {
   // If the property was created before `geocode` was wired up on save,
   // it'll arrive here without coordinates. Resolve them on-the-fly so
   // we still get building-level precision instead of falling all the
@@ -255,10 +275,10 @@ async function fetchListings(
   // geocoding entirely.
   let { latitude, longitude } = input;
   if (typeof latitude !== "number" || typeof longitude !== "number") {
-    const resolved = await geocodeAddress(input);
-    if (resolved) {
-      latitude = resolved.latitude;
-      longitude = resolved.longitude;
+    const coords = await geocodeAddress(input);
+    if (coords) {
+      latitude = coords.latitude;
+      longitude = coords.longitude;
       input = { ...input, latitude, longitude };
       if (input.id) {
         void supabase
@@ -271,6 +291,11 @@ async function fetchListings(
       }
     }
   }
+
+  // AI-resolved location (cached). Improves the bairro slug used in
+  // the search URL and locationDescriptions even though our actual
+  // filter is the lat/lng viewport.
+  const resolved = await resolveLocation(input, supabase);
 
   const hasCoords = typeof latitude === "number" && typeof longitude === "number";
   const filteringByRua = !hasCoords && Boolean(input.rua && input.rua.trim());
@@ -289,7 +314,7 @@ async function fetchListings(
       "User-Agent":
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     },
-    body: JSON.stringify(buildSearchPayload(input, type, pageSize)),
+    body: JSON.stringify(buildSearchPayload(input, type, pageSize, resolved)),
   });
 
   if (!response.ok) {
@@ -313,7 +338,7 @@ async function fetchListings(
     ? "street"
     : "neighbourhood";
 
-  return { listings: listings.slice(0, MAX_LISTINGS_RETURNED), precision };
+  return { listings: listings.slice(0, MAX_LISTINGS_RETURNED), precision, resolved };
 }
 
 // ─── HTTP handler ─────────────────────────────────────────────────────
@@ -346,7 +371,10 @@ serve(async (req) => {
     if (claimsErr || !claims?.claims) return jsonResponse({ error: "Unauthorized" }, 401);
 
     const body = await req.json();
-    const { id, cidade, estado, bairro, rua, numero, cep, tipo_imovel, quartos, latitude, longitude, type = "venda" } = body;
+    const {
+      id, cidade, estado, bairro, rua, numero, cep, tipo_imovel, quartos,
+      latitude, longitude, resolved_location, type = "venda",
+    } = body;
 
     if (!cidade || typeof cidade !== "string") return jsonResponse({ error: "cidade is required" }, 400);
     if (!estado || typeof estado !== "string") return jsonResponse({ error: "estado is required" }, 400);
@@ -355,12 +383,13 @@ serve(async (req) => {
     }
 
     const input: PropertyInput = {
-      id, cidade, estado, bairro, rua, numero, cep, tipo_imovel, quartos, latitude, longitude,
+      id, cidade, estado, bairro, rua, numero, cep, tipo_imovel, quartos,
+      latitude, longitude, resolved_location,
     };
-    const { listings, precision } = await fetchListings(input, type, supabaseClient);
+    const { listings, precision, resolved } = await fetchListings(input, type, supabaseClient);
 
     return jsonResponse({
-      searchUrl: buildPublicSearchUrl(input, type),
+      searchUrl: buildPublicSearchUrl(input, type, resolved),
       listings,
       precision,
     });
