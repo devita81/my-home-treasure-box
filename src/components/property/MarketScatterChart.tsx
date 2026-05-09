@@ -1,6 +1,5 @@
 import {
   CartesianGrid,
-  Legend,
   ResponsiveContainer,
   Scatter,
   ScatterChart,
@@ -13,7 +12,8 @@ import { fmtBRL } from "./market-stats";
 
 interface MarketScatterChartProps {
   listings: MarketListing[];
-  /** Click on a dot — typically opens the listing in a new tab. */
+  /** Click on a dot. Caller decides what happens — typically used to
+   *  filter the cards grid to that single listing rather than navigate. */
   onListingClick?: (listing: MarketListing) => void;
 }
 
@@ -24,9 +24,8 @@ interface ChartPoint {
 }
 
 const PROVIDER_FILL = {
-  quintoandar: "#10b981", // emerald-500
-  zap: "#f97316",         // orange-500
-  unknown: "#94a3b8",     // slate-400
+  zap: "#f97316",     // orange-500 (ZAP brand)
+  unknown: "#94a3b8", // slate-400 (no provider tag)
 } as const;
 
 /**
@@ -37,30 +36,28 @@ const PROVIDER_FILL = {
  * can't be plotted meaningfully.
  */
 export function MarketScatterChart({ listings, onListingClick }: MarketScatterChartProps) {
-  const points: { quintoandar: ChartPoint[]; zap: ChartPoint[]; unknown: ChartPoint[] } = {
-    quintoandar: [],
+  const points: { zap: ChartPoint[]; unknown: ChartPoint[] } = {
     zap: [],
     unknown: [],
   };
   for (const l of listings) {
     if (typeof l.price !== "number" || typeof l.floorSize !== "number") continue;
     const point: ChartPoint = { x: l.floorSize, y: l.price, listing: l };
-    points[l.provider ?? "unknown"].push(point);
+    if (l.provider === "zap") points.zap.push(point);
+    else points.unknown.push(point);
   }
 
-  const totalPoints =
-    points.quintoandar.length + points.zap.length + points.unknown.length;
+  const totalPoints = points.zap.length + points.unknown.length;
   if (totalPoints === 0) return null;
 
   const handleClick = (point: ChartPoint) => {
-    if (onListingClick) onListingClick(point.listing);
-    else window.open(point.listing.url, "_blank", "noopener,noreferrer");
+    onListingClick?.(point.listing);
   };
 
   return (
     <div className="rounded-lg border border-border bg-card p-3">
       <p className="mb-2 text-xs text-muted-foreground">
-        Dispersão preço × metragem (clique numa bolinha para ir ao anúncio)
+        Dispersão preço × metragem (clique numa bolinha para isolar o anúncio na lista)
       </p>
       <div className="h-[280px] w-full">
         <ResponsiveContainer>
@@ -99,23 +96,9 @@ export function MarketScatterChart({ listings, onListingClick }: MarketScatterCh
                 );
               }}
             />
-            <Legend
-              iconSize={10}
-              wrapperStyle={{ fontSize: 11 }}
-              formatter={(v) => (v === "quintoandar" ? "QuintoAndar" : v === "zap" ? "ZAP" : "Outros")}
-            />
-            {points.quintoandar.length > 0 && (
-              <Scatter
-                name="quintoandar"
-                data={points.quintoandar}
-                fill={PROVIDER_FILL.quintoandar}
-                cursor="pointer"
-                onClick={(p) => handleClick(p as ChartPoint)}
-              />
-            )}
             {points.zap.length > 0 && (
               <Scatter
-                name="zap"
+                name="ZAP"
                 data={points.zap}
                 fill={PROVIDER_FILL.zap}
                 cursor="pointer"
@@ -124,7 +107,7 @@ export function MarketScatterChart({ listings, onListingClick }: MarketScatterCh
             )}
             {points.unknown.length > 0 && (
               <Scatter
-                name="unknown"
+                name="Outros"
                 data={points.unknown}
                 fill={PROVIDER_FILL.unknown}
                 cursor="pointer"
