@@ -30,13 +30,16 @@ export interface CanonicalAddress {
 }
 
 /**
- * The persisted shape on `properties.resolved_location`. Currently just
- * a thin wrapper around CanonicalAddress so we can extend later without
- * breaking the cache. Earlier versions stored provider-specific fields
- * here; those are now built on demand from `canonical`.
+ * The persisted shape on `properties.resolved_location`. Holds the
+ * AI-resolved canonical address plus a small cache of provider-specific
+ * IDs we couldn't otherwise derive (numeric IDs that don't appear in
+ * URLs and would require a network round-trip to look up every time).
  */
 export interface ResolvedLocation {
   canonical: CanonicalAddress;
+  /** QuintoAndar's numeric building ID — filled lazily the first time
+   *  we resolve `properties.quinto_andar_url`. */
+  quinto_andar_condo_id?: number | null;
 }
 
 interface ResolveInput {

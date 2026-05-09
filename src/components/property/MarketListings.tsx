@@ -39,6 +39,9 @@ type MarketProperty = Pick<
 > & {
   /** AI-resolved provider-specific location (cached on the row). */
   resolved_location?: unknown;
+  /** Optional manual override: QuintoAndar /condominio URL for exact
+   *  building precision. */
+  quinto_andar_url?: string | null;
 };
 
 interface MarketListingsProps {
@@ -177,7 +180,11 @@ function ListingsGrid({
 
   return (
     <div className="space-y-3">
-      <PrecisionBadge precision={data.precision} property={property} />
+      <PrecisionBadge
+        precision={data.precision}
+        property={property}
+        verified={data.buildingVerified}
+      />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {data.listings.map((l) => (
           <MarketListingCard key={l.url} listing={l} />
@@ -210,6 +217,10 @@ interface NormalizedState {
   searchUrl: string;
   precision: Precision;
   cloudflareBlocked: boolean;
+  /** QA-only: true when the building was identified via the manual
+   *  `quinto_andar_url` override rather than auto-dedupe. ZAP doesn't
+   *  have a building-level filter, so this is always false there. */
+  buildingVerified: boolean;
 }
 
 function useProviderListings(
@@ -233,6 +244,8 @@ function useProviderListings(
     precision: (q.data?.precision ?? "neighbourhood") as Precision,
     cloudflareBlocked:
       provider === "zap" && Boolean(zap.data?.cloudflareBlocked),
+    buildingVerified:
+      provider === "quintoandar" && Boolean(qa.data?.buildingVerified),
   };
 }
 
@@ -310,14 +323,16 @@ function EmptyState({
 function PrecisionBadge({
   precision,
   property,
+  verified,
 }: {
   precision: Precision;
   property: MarketProperty;
+  verified?: boolean;
 }) {
   const config = {
     building: {
       icon: Building,
-      label: "Próximo ao seu prédio",
+      label: verified ? "No seu prédio (verificado)" : "Próximo ao seu prédio",
       tone: "text-emerald-700 dark:text-emerald-400",
     },
     street: {
