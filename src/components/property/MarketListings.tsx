@@ -317,7 +317,7 @@ function PrecisionBadge({
   const config = {
     building: {
       icon: Building,
-      label: "No seu prédio (raio ~35m)",
+      label: "Próximo ao seu prédio",
       tone: "text-emerald-700 dark:text-emerald-400",
     },
     street: {
