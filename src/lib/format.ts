@@ -28,6 +28,23 @@ export function fmtBRLCompact(value: number | null | undefined): string {
   return `R$ ${Math.round(value)}`;
 }
 
+/**
+ * Ultra-compact BRL for chart axis ticks where horizontal space is
+ * scarce. Same idea as `fmtBRLCompact` but uses English shorthand
+ * ("M" / "k") that fits in fewer pixels:
+ *   ≥ 1M  → "R$ 1.2M"
+ *   ≥ 1k  → "R$ 850k"
+ *   else  → "R$ 250"
+ *
+ * Used by both `MarketScatterChart` and `ItbiScatterChart` — keeping
+ * the formatter in one place avoids the two copies drifting apart.
+ */
+export function fmtBRLAxis(value: number): string {
+  if (value >= 1_000_000) return `R$ ${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `R$ ${Math.round(value / 1_000)}k`;
+  return `R$ ${value}`;
+}
+
 /** "DD/MM/YYYY" from ISO/Date string. Returns "—" for null, original
  *  on parse failure (better than crashing). */
 export function fmtDate(s: string | null | undefined): string {

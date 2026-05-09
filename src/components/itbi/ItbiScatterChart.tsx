@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import {
   CartesianGrid,
   Legend,
@@ -8,7 +9,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { type ItbiResult, fmtBRL, fmtDate } from "./itbi-stats";
+import { type ItbiResult } from "./itbi-stats";
+import { fmtBRL, fmtBRLAxis, fmtDate } from "@/lib/format";
 
 interface ItbiScatterChartProps {
   results: ItbiResult[];
@@ -34,6 +36,12 @@ const YEAR_PALETTE = [
   "#ea580c", // orange-600
   "#dc2626", // red-600 (newest)
 ] as const;
+
+/** Plot height in px — slightly taller than the market chart because
+ *  this one carries an extra Legend row at the bottom. */
+const CHART_HEIGHT_PX = 320;
+
+const CHART_MARGIN = { top: 8, right: 8, bottom: 8, left: 8 } as const;
 
 /**
  * Pick a year colour deterministically. We sort the unique years asc,
@@ -84,45 +92,60 @@ function yearOf(s: string | null | undefined): number | null {
  * lists them and the user can see at a glance which dots are recent
  * (warm) vs old (cool). Tooltip surfaces date, value, area and
  * complemento.
+ *
+ * Memoised — the parent (`PropertyItbiBlock`) re-renders for unrelated
+ * reasons (header expand/collapse, refresh state) and the recharts
+ * tree is expensive to rebuild.
  */
-export function ItbiScatterChart({ results }: ItbiScatterChartProps) {
-  const points: Point[] = [];
-  for (const r of results) {
-    const x =
-      typeof r.area_construida === "number"
-        ? r.area_construida
-        : Number(r.area_construida);
-    const y =
-      typeof r.valor_transacao === "number"
-        ? r.valor_transacao
-        : Number(r.valor_transacao);
-    const year = yearOf(r.data_transacao);
-    if (!Number.isFinite(x) || x <= 0) continue;
-    if (!Number.isFinite(y) || y <= 0) continue;
-    if (year == null) continue;
-    points.push({ x, y, year, result: r });
-  }
-  if (points.length === 0) return null;
+export const ItbiScatterChart = memo(function ItbiScatterChart({
+  results,
+}: ItbiScatterChartProps) {
+  // Build the point set + per-year groupings + colour map once per
+  // results identity. The earlier inline implementation rebuilt all
+  // of this on every parent render even when nothing changed.
+  const { byYear, orderedYears, colorMap, totalPoints } = useMemo(() => {
+    const points: Point[] = [];
+    for (const r of results) {
+      const x =
+        typeof r.area_construida === "number"
+          ? r.area_construida
+          : Number(r.area_construida);
+      const y =
+        typeof r.valor_transacao === "number"
+          ? r.valor_transacao
+          : Number(r.valor_transacao);
+      const year = yearOf(r.data_transacao);
+      if (!Number.isFinite(x) || x <= 0) continue;
+      if (!Number.isFinite(y) || y <= 0) continue;
+      if (year == null) continue;
+      points.push({ x, y, year, result: r });
+    }
 
-  // Group by year for separate <Scatter> series — that's how recharts
-  // assigns one colour + one legend entry per group.
-  const byYear = new Map<number, Point[]>();
-  for (const p of points) {
-    const arr = byYear.get(p.year) ?? [];
-    arr.push(p);
-    byYear.set(p.year, arr);
-  }
-  const colorMap = buildYearColorMap([...byYear.keys()]);
-  const orderedYears = [...byYear.keys()].sort((a, b) => a - b);
+    const grouped = new Map<number, Point[]>();
+    for (const p of points) {
+      const arr = grouped.get(p.year) ?? [];
+      arr.push(p);
+      grouped.set(p.year, arr);
+    }
+    const ordered = [...grouped.keys()].sort((a, b) => a - b);
+    return {
+      byYear: grouped,
+      orderedYears: ordered,
+      colorMap: buildYearColorMap(ordered),
+      totalPoints: points.length,
+    };
+  }, [results]);
+
+  if (totalPoints === 0) return null;
 
   return (
     <div className="rounded-lg border border-border bg-card p-3">
       <p className="mb-2 text-xs text-muted-foreground">
-        Dispersão valor × metragem × ano ({points.length} transações; cor = ano)
+        Dispersão valor × metragem × ano ({totalPoints} transações; cor = ano)
       </p>
-      <div className="h-[320px] w-full">
+      <div className="w-full" style={{ height: CHART_HEIGHT_PX }}>
         <ResponsiveContainer>
-          <ScatterChart margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+          <ScatterChart margin={CHART_MARGIN}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
               type="number"
@@ -137,11 +160,7 @@ export function ItbiScatterChart({ results }: ItbiScatterChartProps) {
               dataKey="y"
               name="Valor"
               tick={{ fontSize: 11 }}
-              tickFormatter={(v) => {
-                if (v >= 1_000_000) return `R$ ${(v / 1_000_000).toFixed(1)}M`;
-                if (v >= 1_000) return `R$ ${Math.round(v / 1_000)}k`;
-                return `R$ ${v}`;
-              }}
+              tickFormatter={fmtBRLAxis}
             />
             <Tooltip
               cursor={{ strokeDasharray: "3 3" }}
@@ -180,4 +199,4 @@ export function ItbiScatterChart({ results }: ItbiScatterChartProps) {
       </div>
     </div>
   );
-}
+});
