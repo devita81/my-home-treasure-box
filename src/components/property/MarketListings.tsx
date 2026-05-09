@@ -3,7 +3,6 @@ import {
   ExternalLink,
   Search,
   AlertCircle,
-  Building,
   MapPin,
   X as XIcon,
 } from "lucide-react";
@@ -17,16 +16,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  useQuintoAndarListings,
-  type QuintoAndarPrecision,
-} from "@/hooks/useQuintoAndarListings";
 import { useZapListings, type ZapPrecision } from "@/hooks/useZapListings";
 import {
   MarketListingCard,
   MarketListingCardSkeleton,
   type MarketListing,
-  type MarketProvider,
 } from "./MarketListingCard";
 import { MarketStatsRow } from "./MarketStatsRow";
 import { MarketScatterChart } from "./MarketScatterChart";
@@ -61,7 +55,6 @@ type MarketProperty = Pick<
   | "longitude"
 > & {
   resolved_location?: unknown;
-  quinto_andar_url?: string | null;
 };
 
 interface MarketListingsProps {
@@ -69,11 +62,16 @@ interface MarketListingsProps {
 }
 
 /**
- * Consolidated market view: pulls listings from QuintoAndar AND ZAP
- * in parallel, then renders shared stats / scatter chart / clickable
- * stats-by-area / sorted+filterable card grid. The user picks a
- * business mode (venda / aluguel) at the top — providers fetch for
- * that mode and results are merged client-side.
+ * Market view — pulls listings from ZAP Imóveis and renders the stats
+ * row, scatter chart, clickable stats-by-area table, and sortable +
+ * filterable card grid. The user picks a business mode (venda /
+ * aluguel) at the top.
+ *
+ * QuintoAndar was previously a second provider here but was dropped
+ * because its search index frequently returned stale entries (links
+ * to /indisponivel/...) and added significant complexity for diminishing
+ * value. ZAP carries comparable inventory in São Paulo and its
+ * `addressStreet` filter is reliable.
  */
 export function MarketListings({ property }: MarketListingsProps) {
   return (
@@ -92,10 +90,10 @@ export function MarketListings({ property }: MarketListingsProps) {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="venda" className="pt-2">
-            <ConsolidatedView property={property} type="venda" />
+            <ProviderView property={property} type="venda" />
           </TabsContent>
           <TabsContent value="aluguel" className="pt-2">
-            <ConsolidatedView property={property} type="aluguel" />
+            <ProviderView property={property} type="aluguel" />
           </TabsContent>
         </Tabs>
       </CardContent>
@@ -103,7 +101,7 @@ export function MarketListings({ property }: MarketListingsProps) {
   );
 }
 
-// ─── consolidated provider view ──────────────────────────────────────
+// ─── ZAP-backed view ─────────────────────────────────────────────────
 
 type SortMode = "price-asc" | "price-desc" | "area-asc" | "area-desc";
 
@@ -114,7 +112,7 @@ const SORT_OPTIONS: Record<SortMode, { label: string; cmp: (a: MarketListing, b:
   "area-desc": { label: "Maior metragem", cmp: (a, b) => (b.floorSize ?? -Infinity) - (a.floorSize ?? -Infinity) },
 };
 
-function ConsolidatedView({
+function ProviderView({
   property,
   type,
 }: {
@@ -124,31 +122,32 @@ function ConsolidatedView({
   const [enabled, setEnabled] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("price-asc");
   const [areaFilter, setAreaFilter] = useState<AreaBucket | null>(null);
+  // Set when the user clicks a dot in the scatter chart — narrows the
+  // cards grid to that single listing. Cleared via the chip in the
+  // results header.
+  const [pinnedListingUrl, setPinnedListingUrl] = useState<string | null>(null);
 
-  // Both providers fetch in parallel — they're independent and the
-  // merge happens client-side below.
-  const qa = useQuintoAndarListings(property, type, enabled);
   const zap = useZapListings(property, type, enabled);
 
-  // Tag each listing with its provider so the chart/badges can colour
-  // them. Source data is otherwise identical (shared MarketListing shape).
   const allListings = useMemo<MarketListing[]>(() => {
-    const out: MarketListing[] = [];
-    if (qa.data) {
-      for (const l of qa.data.listings) out.push({ ...l, provider: "quintoandar" });
-    }
-    if (zap.data) {
-      for (const l of zap.data.listings) out.push({ ...l, provider: "zap" });
-    }
-    return out;
-  }, [qa.data, zap.data]);
+    if (!zap.data) return [];
+    // Tag listings with provider so MarketListingCard renders the
+    // brand badge and the chart/stats can recognise them.
+    return zap.data.listings.map((l) => ({ ...l, provider: "zap" as const }));
+  }, [zap.data]);
+
+  const pinnedListing = useMemo(
+    () => allListings.find((l) => l.url === pinnedListingUrl) ?? null,
+    [allListings, pinnedListingUrl],
+  );
 
   const filteredListings = useMemo<MarketListing[]>(() => {
+    if (pinnedListing) return [pinnedListing];
     const base = areaFilter
       ? allListings.filter((l) => isInBucket(l.floorSize, areaFilter))
       : allListings;
     return [...base].sort(SORT_OPTIONS[sortMode].cmp);
-  }, [allListings, areaFilter, sortMode]);
+  }, [allListings, areaFilter, sortMode, pinnedListing]);
 
   const stats = useMemo(() => computePriceStats(allListings), [allListings]);
   const bucketStats = useMemo(() => computeBucketStats(allListings), [allListings]);
@@ -159,11 +158,8 @@ function ConsolidatedView({
     return <OptInPrompt property={property} type={type} onEnable={() => setEnabled(true)} />;
   }
 
-  const isPending =
-    (qa.isPending && qa.fetchStatus !== "idle") ||
-    (zap.isPending && zap.fetchStatus !== "idle");
-  const bothErrored = qa.isError && zap.isError;
-  const noListings = !isPending && allListings.length === 0;
+  const isPending = zap.isPending && zap.fetchStatus !== "idle";
+  const cloudflareBlocked = Boolean(zap.data?.cloudflareBlocked);
 
   if (isPending && allListings.length === 0) {
     return (
@@ -175,34 +171,62 @@ function ConsolidatedView({
     );
   }
 
-  if (bothErrored) {
+  if (cloudflareBlocked) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-6 text-center">
-        <AlertCircle className="h-8 w-8 text-destructive" />
-        <p className="text-sm font-medium text-destructive">
-          Não foi possível carregar os anúncios em nenhum provedor.
+      <div className="flex flex-col items-center gap-3 py-8 text-center">
+        <p className="max-w-md text-sm text-muted-foreground">
+          O ZAP está bloqueando a busca direta. Veja os anúncios diretamente no site deles.
         </p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            void qa.refetch();
-            void zap.refetch();
-          }}
-        >
-          Tentar novamente
+        <Button asChild variant="default">
+          <a href={zap.data?.searchUrl ?? "https://www.zapimoveis.com.br/"} target="_blank" rel="noopener noreferrer">
+            Abrir ZAP Imóveis
+            <ExternalLink className="ml-2 h-4 w-4" />
+          </a>
         </Button>
       </div>
     );
   }
 
-  if (noListings) {
+  if (zap.isError) {
+    return (
+      <div className="flex flex-col items-center gap-3 rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-6 text-center">
+        <AlertCircle className="h-8 w-8 text-destructive" />
+        <p className="text-sm font-medium text-destructive">
+          Não foi possível carregar os anúncios.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => void zap.refetch()}>
+            Tentar novamente
+          </Button>
+          {zap.data?.searchUrl ? (
+            <Button asChild variant="ghost" size="sm">
+              <a href={zap.data.searchUrl} target="_blank" rel="noopener noreferrer">
+                Abrir direto
+                <ExternalLink className="ml-1 h-3 w-3" />
+              </a>
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
+  if (allListings.length === 0) {
     return (
       <div className="flex flex-col items-center gap-2 py-8 text-center">
         <p className="max-w-md text-sm text-muted-foreground">
           Nenhum anúncio ativo encontrado para esses critérios.
         </p>
-        <ProviderLinks qa={qa.data?.searchUrl} zap={zap.data?.searchUrl} />
+        {zap.data?.searchUrl ? (
+          <a
+            href={zap.data.searchUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-primary underline-offset-4 hover:underline"
+          >
+            Ver mais no ZAP →
+          </a>
+        ) : null}
       </div>
     );
   }
@@ -213,15 +237,23 @@ function ConsolidatedView({
 
   return (
     <div className="space-y-4">
-      <ProviderPills
-        qaPrecision={qa.data?.precision}
-        qaVerified={Boolean(qa.data?.buildingVerified)}
-        zapPrecision={zap.data?.precision}
-        property={property}
-      />
+      <PrecisionPill precision={zap.data?.precision} property={property} />
       <MarketStatsRow stats={stats} modeLabel={modeLabel} />
-      <MarketScatterChart listings={allListings} />
-      <MarketStatsByArea rows={bucketStats} selected={areaFilter} onSelect={setAreaFilter} />
+      <MarketScatterChart
+        listings={allListings}
+        onListingClick={(l) => {
+          setPinnedListingUrl(l.url);
+          setAreaFilter(null);
+        }}
+      />
+      <MarketStatsByArea
+        rows={bucketStats}
+        selected={areaFilter}
+        onSelect={(bucket) => {
+          setAreaFilter(bucket);
+          setPinnedListingUrl(null);
+        }}
+      />
 
       <ResultsHeader
         total={allListings.length}
@@ -230,15 +262,29 @@ function ConsolidatedView({
         onSortChange={setSortMode}
         areaFilter={areaFilter}
         onClearFilter={() => setAreaFilter(null)}
+        pinnedListing={pinnedListing}
+        onClearPinned={() => setPinnedListingUrl(null)}
       />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {filteredListings.map((l) => (
-          <MarketListingCard key={`${l.provider}-${l.url}`} listing={l} />
+          <MarketListingCard key={l.url} listing={l} />
         ))}
       </div>
 
-      <ProviderLinks qa={qa.data?.searchUrl} zap={zap.data?.searchUrl} />
+      {zap.data?.searchUrl ? (
+        <p className="pt-1 text-right text-sm">
+          <a
+            href={zap.data.searchUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"
+          >
+            Ver mais resultados no ZAP
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -254,11 +300,7 @@ function OptInPrompt({
   type: SearchType;
   onEnable: () => void;
 }) {
-  const hasCoords =
-    typeof property.latitude === "number" && typeof property.longitude === "number";
-  const summary = hasCoords
-    ? "Buscar anúncios ativos próximos ao seu prédio."
-    : property.rua
+  const summary = property.rua
     ? `Buscar anúncios ativos na ${formatStreet(property.rua)}.`
     : property.bairro
     ? `Buscar anúncios ativos no bairro ${property.bairro}.`
@@ -274,57 +316,30 @@ function OptInPrompt({
   );
 }
 
-/**
- * Two precision pills, one per provider — shows the user how
- * precisely each search was filtered (building / street / bairro).
- */
-function ProviderPills({
-  qaPrecision,
-  qaVerified,
-  zapPrecision,
+function PrecisionPill({
+  precision,
   property,
 }: {
-  qaPrecision: QuintoAndarPrecision | undefined;
-  qaVerified: boolean;
-  zapPrecision: ZapPrecision | undefined;
+  precision: ZapPrecision | undefined;
   property: MarketProperty;
 }) {
+  if (!precision) return null;
+  const label =
+    precision === "street"
+      ? property.rua
+        ? `Na ${formatStreet(property.rua)}`
+        : "Na sua rua"
+      : property.bairro
+      ? `No bairro ${property.bairro}`
+      : "No bairro";
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-      {qaPrecision && (
-        <span className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400">
-          <Building className="h-3.5 w-3.5" />
-          QA: {precisionLabel(qaPrecision, property, qaVerified)}
-        </span>
-      )}
-      {zapPrecision && (
-        <span className="inline-flex items-center gap-1.5 text-orange-600 dark:text-orange-400">
-          <MapPin className="h-3.5 w-3.5" />
-          ZAP: {precisionLabel(zapPrecision, property, false)}
-        </span>
-      )}
+    <div className="flex items-center gap-1.5 text-xs text-orange-600 dark:text-orange-400">
+      <MapPin className="h-3.5 w-3.5" />
+      <span>{label}</span>
     </div>
   );
 }
 
-function precisionLabel(
-  precision: QuintoAndarPrecision | ZapPrecision,
-  property: MarketProperty,
-  verified: boolean,
-): string {
-  if (precision === "building") {
-    return verified ? "no seu prédio (verificado)" : "próximo ao seu prédio";
-  }
-  if (precision === "street") {
-    return property.rua ? `na ${formatStreet(property.rua)}` : "na sua rua";
-  }
-  return property.bairro ? `no bairro ${property.bairro}` : "no bairro";
-}
-
-/**
- * Header above the cards grid: shown/total count, active filter chip,
- * and sort dropdown.
- */
 function ResultsHeader({
   total,
   shown,
@@ -332,6 +347,8 @@ function ResultsHeader({
   onSortChange,
   areaFilter,
   onClearFilter,
+  pinnedListing,
+  onClearPinned,
 }: {
   total: number;
   shown: number;
@@ -339,13 +356,26 @@ function ResultsHeader({
   onSortChange: (s: SortMode) => void;
   areaFilter: AreaBucket | null;
   onClearFilter: () => void;
+  pinnedListing: MarketListing | null;
+  onClearPinned: () => void;
 }) {
+  const isFiltered = Boolean(areaFilter || pinnedListing);
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-      <div className="flex items-center gap-2 text-sm">
+      <div className="flex flex-wrap items-center gap-2 text-sm">
         <span className="text-muted-foreground">
-          {areaFilter ? `${shown} de ${total} anúncios` : `${total} de ${total} anúncios`}
+          {isFiltered ? `${shown} de ${total} anúncios` : `${total} de ${total} anúncios`}
         </span>
+        {pinnedListing ? (
+          <button
+            type="button"
+            onClick={onClearPinned}
+            className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-2 py-0.5 text-xs hover:bg-secondary/80"
+          >
+            Anúncio fixado
+            <XIcon className="h-3 w-3" />
+          </button>
+        ) : null}
         {areaFilter ? (
           <button
             type="button"
@@ -376,35 +406,6 @@ function ResultsHeader({
   );
 }
 
-function ProviderLinks({ qa, zap }: { qa?: string; zap?: string }) {
-  return (
-    <p className="flex flex-wrap justify-end gap-x-4 gap-y-1 pt-1 text-sm">
-      {qa ? (
-        <a
-          href={qa}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"
-        >
-          Ver mais no QuintoAndar
-          <ExternalLink className="h-3 w-3" />
-        </a>
-      ) : null}
-      {zap ? (
-        <a
-          href={zap}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"
-        >
-          Ver mais no ZAP
-          <ExternalLink className="h-3 w-3" />
-        </a>
-      ) : null}
-    </p>
-  );
-}
-
 // ─── small string helpers ────────────────────────────────────────────
 
 const STREET_PREFIX_RE =
@@ -418,7 +419,3 @@ function formatStreet(rua: string): string {
     .join("");
   return STREET_PREFIX_RE.test(titled) ? titled : `Rua ${titled}`;
 }
-
-// Keeps the file-level export shape compatible with previous imports.
-// (No additional exports needed; MarketProvider lives in MarketListingCard.)
-export type { MarketProvider };

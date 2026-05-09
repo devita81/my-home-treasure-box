@@ -12,9 +12,6 @@ verify_jwt = false
 [functions.search-property-info]
 verify_jwt = false
 
-[functions.fetch-quinto-andar-listings]
-verify_jwt = false
-
 [functions.fetch-zap-listings]
 verify_jwt = false
 

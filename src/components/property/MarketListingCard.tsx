@@ -1,6 +1,13 @@
 import { Bed, Bath, Ruler } from "lucide-react";
 
-export type MarketProvider = "quintoandar" | "zap";
+/**
+ * Identifier for which marketplace a listing came from. Currently only
+ * ZAP is integrated — this used to also include QuintoAndar but we
+ * dropped that provider after persistent stale-listing issues.
+ * Keeping it as a discriminated string in case we add OLX / VivaReal
+ * later.
+ */
+export type MarketProvider = "zap";
 
 export interface MarketListing {
   url: string;
@@ -11,16 +18,11 @@ export interface MarketListing {
   bathrooms?: number;
   price?: number;
   imageUrl?: string;
-  /** Set by the consumer when merging multiple providers into one
-   *  view, used for the corner badge and chart colour. */
+  /** Set by the consumer to drive the corner badge / chart colour. */
   provider?: MarketProvider;
 }
 
 const PROVIDER_BADGE: Record<MarketProvider, { label: string; className: string }> = {
-  quintoandar: {
-    label: "QA",
-    className: "bg-emerald-600 text-white",
-  },
   zap: {
     label: "ZAP",
     className: "bg-orange-500 text-white",
