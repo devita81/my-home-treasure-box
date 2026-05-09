@@ -7,6 +7,7 @@ import { PropertyCardMap } from '@/components/property/PropertyCardMap';
 import { PropertyReportDialog } from '@/components/property/PropertyReportDialog';
 import { DocumentUpload } from '@/components/property/DocumentUpload';
 import { MarketListings } from '@/components/property/MarketListings';
+import { PropertyItbiBlock } from '@/components/property/PropertyItbiBlock';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -991,6 +992,9 @@ const PropertyDetails = () => {
 
           {/* Anúncios similares no mercado — QuintoAndar + ZAP em um único card */}
           <MarketListings property={property} />
+
+          {/* Histórico ITBI deste prédio (cache + atualizar) */}
+          <PropertyItbiBlock property={property} />
 
           {/* Documentos do Imóvel */}
           <DocumentUpload propertyId={property.id} mode="view" />

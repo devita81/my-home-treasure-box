@@ -12,6 +12,9 @@ import { Search, Loader2, Database, Download, X, ArrowUpDown, ArrowUp, ArrowDown
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
+import { computeItbiStats, type ItbiResult as ItbiStatsResult } from '@/components/itbi/itbi-stats';
+import { ItbiStatsRow } from '@/components/itbi/ItbiStatsRow';
+import { ItbiScatterChart } from '@/components/itbi/ItbiScatterChart';
 
 interface ItbiResult {
   id: string;
@@ -442,6 +445,14 @@ export default function ItbiSearch() {
             )}
             {results.length > 0 && (
               <>
+                {/* Estatísticas + dispersão sobre o conjunto retornado.
+                    Mesmos componentes do PropertyItbiBlock — um único
+                    "language" visual entre as duas telas. */}
+                <div className="space-y-3 pb-4">
+                  <ItbiStatsRow stats={computeItbiStats(results as ItbiStatsResult[])} />
+                  <ItbiScatterChart results={results as ItbiStatsResult[]} />
+                </div>
+
                 {/* Mobile: cards */}
                 <div className="sm:hidden space-y-2">
                   <div className="flex items-center gap-2 pb-1">
