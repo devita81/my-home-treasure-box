@@ -21,45 +21,45 @@ interface Point {
   result: ItbiResult;
 }
 
-// Sequential palette over years, cool→warm. Recent years are more
-// visually prominent (warm/saturated), older ones recede (cool/light).
-// Picked from a perceptually-uniform-ish sequence so a quick glance
-// at the legend tells you which dots are recent.
+// Sequential palette over years, cool → warm. Cool = older, warm =
+// recent. Hues are picked at maximum saturation so adjacent slots are
+// visibly different (blue → cyan → green → lime → amber → orange →
+// red), not subtle gradient steps.
 const YEAR_PALETTE = [
-  "#93c5fd", // blue-300 (oldest visible)
-  "#60a5fa", // blue-400
-  "#06b6d4", // cyan-500
-  "#10b981", // emerald-500
+  "#2563eb", // blue-600 (oldest)
+  "#0891b2", // cyan-600
+  "#16a34a", // green-600
   "#84cc16", // lime-500
-  "#eab308", // yellow-500
-  "#f59e0b", // amber-500
-  "#f97316", // orange-500
-  "#ef4444", // red-500
+  "#ca8a04", // yellow-600
+  "#ea580c", // orange-600
   "#dc2626", // red-600 (newest)
 ] as const;
 
 /**
  * Pick a year colour deterministically. We sort the unique years asc,
- * then map each to a slot in YEAR_PALETTE. If there are more years
- * than colours we just stretch the palette across the range — never
- * pretty, but the legend still labels every series.
+ * then EVENLY SPREAD them across the full palette — first year always
+ * gets the coolest colour, last year always the warmest, and any
+ * middle years are interpolated between. With 3 years that lands
+ * blue / green / red (maximally distinct); with 7 years each year
+ * gets its own slot; with more than 7 years some slots repeat at
+ * the ends but the spread stays sane.
+ *
+ * Earlier "right-align" version stuffed everything into the last few
+ * slots — fine for many years but pointless for 2-4 years where every
+ * dot ended up some shade of orange.
  */
 function buildYearColorMap(years: number[]): Record<number, string> {
   const sorted = [...new Set(years)].sort((a, b) => a - b);
   const map: Record<number, string> = {};
   if (sorted.length === 0) return map;
-  if (sorted.length <= YEAR_PALETTE.length) {
-    // Right-align: use the latest slots so the most recent year always
-    // gets the warmest colour, regardless of how many years exist.
-    const offset = YEAR_PALETTE.length - sorted.length;
-    for (let i = 0; i < sorted.length; i++) {
-      map[sorted[i]] = YEAR_PALETTE[offset + i];
-    }
-  } else {
-    for (let i = 0; i < sorted.length; i++) {
-      const slot = Math.round((i / (sorted.length - 1)) * (YEAR_PALETTE.length - 1));
-      map[sorted[i]] = YEAR_PALETTE[slot];
-    }
+  if (sorted.length === 1) {
+    // Single year: pick the warmest slot (it IS the most recent).
+    map[sorted[0]] = YEAR_PALETTE[YEAR_PALETTE.length - 1];
+    return map;
+  }
+  for (let i = 0; i < sorted.length; i++) {
+    const slot = Math.round((i / (sorted.length - 1)) * (YEAR_PALETTE.length - 1));
+    map[sorted[i]] = YEAR_PALETTE[slot];
   }
   return map;
 }
