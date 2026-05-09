@@ -1,8 +1,7 @@
 // fetch-zap-listings: searches ZAP Imóveis for listings near a property.
 // Calls ZAP's internal Glue API at glue-api.zapimoveis.com.br/v2/listings.
-// Deployment marker: v8 (defensive image-field probing for `images` /
-// `medias`, numeric coercion for area/bedrooms, plus first-hit key
-// dump in debug to verify shape).
+// Deployment marker: v9 (probe images at hit level too — ZAP places
+// medias as siblings of `listing` for many sources, not inside it).
 //
 // Three precision tiers, picked automatically:
 //   1. street         — filters by `addressStreet` server-side (best, when rua is filled)
@@ -104,6 +103,11 @@ interface ZapListingItem {
 interface ZapResponseListing {
   listing?: ZapListingItem;
   link?: { href?: string };
+  // Photos for ZAP listings sometimes hang off the hit itself rather
+  // than the nested `listing` object, depending on the listing source.
+  // We probe both levels in extractImageUrl below.
+  medias?: ZapImage[];
+  images?: ZapImage[];
 }
 
 interface ZapResponse {
@@ -278,12 +282,20 @@ function num(v: unknown): number | undefined {
 }
 
 // Pull a usable photo URL out of whichever shape ZAP happened to send.
-// Handles both `images` and `medias`, and items that are either bare
-// strings or `{ url }` objects.
-function extractImageUrl(l: ZapListingItem): string | undefined {
-  for (const candidates of [l.images, l.medias]) {
-    if (!Array.isArray(candidates) || candidates.length === 0) continue;
-    const first = candidates[0];
+// Probes BOTH the hit level (siblings of `listing`) and the listing
+// level, and accepts string entries as well as `{ url }` objects.
+// Empirical: ZAP's response for `business=SALE&listingType=USED` puts
+// medias at the hit level, not inside listing.
+function extractImageUrl(hit: ZapResponseListing): string | undefined {
+  const candidates: Array<ZapImage[] | undefined> = [
+    hit.medias,
+    hit.images,
+    hit.listing?.images,
+    hit.listing?.medias,
+  ];
+  for (const arr of candidates) {
+    if (!Array.isArray(arr) || arr.length === 0) continue;
+    const first = arr[0];
     if (typeof first === "string" && first.length > 0) return first;
     if (first && typeof first === "object" && typeof first.url === "string" && first.url.length > 0) {
       return first.url;
@@ -333,7 +345,7 @@ function mapHitToListing(
     bedrooms,
     bathrooms,
     price,
-    imageUrl: extractImageUrl(l),
+    imageUrl: extractImageUrl(hit),
   };
 }
 
@@ -349,10 +361,11 @@ async function fetchListings(
   cloudflareBlocked: boolean;
   resolved: ResolvedLocation | null;
   apiUrl: string;
-  /** TEMP: keys present on the first listing's `_source`, to verify
-   *  defensive image-field probing is hitting the right shape. Drop
-   *  in the next polish pass once images are confirmed working. */
+  /** TEMP: keys present on the first hit and its inner listing, to
+   *  verify defensive image-field probing is hitting the right shape.
+   *  Drop in the next polish pass once images are confirmed working. */
   firstHitKeys: string[] | null;
+  firstHitListingKeys: string[] | null;
 }> {
   // Resolve missing coordinates so ZAP can rank by proximity. Same
   // fallback the QuintoAndar function uses, including persistence so
@@ -414,6 +427,7 @@ async function fetchListings(
       resolved,
       apiUrl,
       firstHitKeys: null,
+      firstHitListingKeys: null,
     };
   }
   if (!response.ok) {
@@ -423,8 +437,12 @@ async function fetchListings(
   const data = (await response.json()) as ZapResponse;
   const hits = data.search?.result?.listings ?? [];
 
-  const firstHitKeys = hits[0]?.listing
-    ? Object.keys(hits[0].listing as Record<string, unknown>)
+  const firstHit = hits[0];
+  const firstHitKeys = firstHit
+    ? Object.keys(firstHit as unknown as Record<string, unknown>)
+    : null;
+  const firstHitListingKeys = firstHit?.listing
+    ? Object.keys(firstHit.listing as Record<string, unknown>)
     : null;
 
   const listings = hits
@@ -440,6 +458,7 @@ async function fetchListings(
     resolved,
     apiUrl,
     firstHitKeys,
+    firstHitListingKeys,
   };
 }
 
@@ -487,18 +506,18 @@ serve(async (req) => {
       id, cidade, estado, bairro, rua, numero, cep, tipo_imovel, quartos,
       latitude, longitude, resolved_location,
     };
-    const { listings, precision, cloudflareBlocked, resolved, apiUrl, firstHitKeys } =
-      await fetchListings(input, type, supabaseClient);
+    const {
+      listings, precision, cloudflareBlocked, resolved, apiUrl,
+      firstHitKeys, firstHitListingKeys,
+    } = await fetchListings(input, type, supabaseClient);
 
     return jsonResponse({
       searchUrl: buildPublicSearchUrl(input, type, resolved),
       listings,
-      // TEMPORARY DEBUG: surfaces resolver state, the URL we hit, and
-      // the keys of the first listing's `_source`. The keys help us
-      // verify defensive image-field probing is hitting the right
-      // shape (we expect to see "images" or "medias" in the list).
-      // Drop once images are confirmed working in the UI.
-      debug: { resolved, apiUrl, firstHitKeys },
+      // TEMPORARY DEBUG: keys at hit level (medias/images may live here)
+      // and at listing level. We probe both in extractImageUrl. Drop
+      // once images are confirmed working.
+      debug: { resolved, apiUrl, firstHitKeys, firstHitListingKeys },
       precision,
       cloudflareBlocked,
     });
