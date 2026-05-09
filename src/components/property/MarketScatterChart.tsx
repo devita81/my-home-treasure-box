@@ -13,7 +13,8 @@ import { fmtBRL } from "./market-stats";
 
 interface MarketScatterChartProps {
   listings: MarketListing[];
-  /** Click on a dot — typically opens the listing in a new tab. */
+  /** Click on a dot. Caller decides what happens — typically used to
+   *  filter the cards grid to that single listing rather than navigate. */
   onListingClick?: (listing: MarketListing) => void;
 }
 
@@ -53,14 +54,13 @@ export function MarketScatterChart({ listings, onListingClick }: MarketScatterCh
   if (totalPoints === 0) return null;
 
   const handleClick = (point: ChartPoint) => {
-    if (onListingClick) onListingClick(point.listing);
-    else window.open(point.listing.url, "_blank", "noopener,noreferrer");
+    onListingClick?.(point.listing);
   };
 
   return (
     <div className="rounded-lg border border-border bg-card p-3">
       <p className="mb-2 text-xs text-muted-foreground">
-        Dispersão preço × metragem (clique numa bolinha para ir ao anúncio)
+        Dispersão preço × metragem (clique numa bolinha para isolar o anúncio na lista)
       </p>
       <div className="h-[280px] w-full">
         <ResponsiveContainer>

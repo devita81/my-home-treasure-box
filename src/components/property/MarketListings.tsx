@@ -124,6 +124,10 @@ function ConsolidatedView({
   const [enabled, setEnabled] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("price-asc");
   const [areaFilter, setAreaFilter] = useState<AreaBucket | null>(null);
+  // Set when the user clicks a dot in the scatter chart — narrows the
+  // cards grid to that single listing. Cleared via the chip in the
+  // results header.
+  const [pinnedListingUrl, setPinnedListingUrl] = useState<string | null>(null);
 
   // Both providers fetch in parallel — they're independent and the
   // merge happens client-side below.
@@ -143,12 +147,18 @@ function ConsolidatedView({
     return out;
   }, [qa.data, zap.data]);
 
+  const pinnedListing = useMemo(
+    () => allListings.find((l) => l.url === pinnedListingUrl) ?? null,
+    [allListings, pinnedListingUrl],
+  );
+
   const filteredListings = useMemo<MarketListing[]>(() => {
+    if (pinnedListing) return [pinnedListing];
     const base = areaFilter
       ? allListings.filter((l) => isInBucket(l.floorSize, areaFilter))
       : allListings;
     return [...base].sort(SORT_OPTIONS[sortMode].cmp);
-  }, [allListings, areaFilter, sortMode]);
+  }, [allListings, areaFilter, sortMode, pinnedListing]);
 
   const stats = useMemo(() => computePriceStats(allListings), [allListings]);
   const bucketStats = useMemo(() => computeBucketStats(allListings), [allListings]);
@@ -220,8 +230,21 @@ function ConsolidatedView({
         property={property}
       />
       <MarketStatsRow stats={stats} modeLabel={modeLabel} />
-      <MarketScatterChart listings={allListings} />
-      <MarketStatsByArea rows={bucketStats} selected={areaFilter} onSelect={setAreaFilter} />
+      <MarketScatterChart
+        listings={allListings}
+        onListingClick={(l) => {
+          setPinnedListingUrl(l.url);
+          setAreaFilter(null); // Pinned listing supersedes any bucket filter.
+        }}
+      />
+      <MarketStatsByArea
+        rows={bucketStats}
+        selected={areaFilter}
+        onSelect={(bucket) => {
+          setAreaFilter(bucket);
+          setPinnedListingUrl(null);
+        }}
+      />
 
       <ResultsHeader
         total={allListings.length}
@@ -230,6 +253,8 @@ function ConsolidatedView({
         onSortChange={setSortMode}
         areaFilter={areaFilter}
         onClearFilter={() => setAreaFilter(null)}
+        pinnedListing={pinnedListing}
+        onClearPinned={() => setPinnedListingUrl(null)}
       />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -332,6 +357,8 @@ function ResultsHeader({
   onSortChange,
   areaFilter,
   onClearFilter,
+  pinnedListing,
+  onClearPinned,
 }: {
   total: number;
   shown: number;
@@ -339,13 +366,26 @@ function ResultsHeader({
   onSortChange: (s: SortMode) => void;
   areaFilter: AreaBucket | null;
   onClearFilter: () => void;
+  pinnedListing: MarketListing | null;
+  onClearPinned: () => void;
 }) {
+  const isFiltered = Boolean(areaFilter || pinnedListing);
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-      <div className="flex items-center gap-2 text-sm">
+      <div className="flex flex-wrap items-center gap-2 text-sm">
         <span className="text-muted-foreground">
-          {areaFilter ? `${shown} de ${total} anúncios` : `${total} de ${total} anúncios`}
+          {isFiltered ? `${shown} de ${total} anúncios` : `${total} de ${total} anúncios`}
         </span>
+        {pinnedListing ? (
+          <button
+            type="button"
+            onClick={onClearPinned}
+            className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-2 py-0.5 text-xs hover:bg-secondary/80"
+          >
+            Anúncio fixado
+            <XIcon className="h-3 w-3" />
+          </button>
+        ) : null}
         {areaFilter ? (
           <button
             type="button"

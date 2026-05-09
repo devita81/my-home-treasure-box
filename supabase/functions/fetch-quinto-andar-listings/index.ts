@@ -1,8 +1,9 @@
 // fetch-quinto-andar-listings: searches QuintoAndar for listings near a
 // property. Calls QA's internal POST endpoint at
 // apigw.prod.quintoandar.com.br/house-listing-search/v2/search/list.
-// Deployment marker: v7 (drop stale `forSale=false` / `forRent=false`
-// hits so we don't link the user to /indisponivel/{id} pages).
+// Deployment marker: v8 (stricter stale-hit filter — also require a
+// positive salePrice/totalCost for the requested mode, since QA's
+// `forSale`/`forRent` index lags).
 //
 // Three precision tiers, picked automatically:
 //   1. building       — viewport bounding box ~75m around lat/lng (best)
@@ -448,13 +449,24 @@ async function fetchListings(
 
   // Drop stale hits: QA's search index sometimes returns listings whose
   // mode flag (forSale/forRent) doesn't match the search context. Those
-  // would click through to /indisponivel/ on the live site. Only filter
-  // if the field was returned at all — when undefined we trust the
-  // search-context assumption.
+  // would click through to /indisponivel/ on the live site.
+  //
+  // Belt-and-suspenders: also drop hits without a positive price for
+  // the requested business mode. Empirically the `forSale=false` flag
+  // doesn't always make it into the search index in time, but a missing
+  // / zero `salePrice` is a stronger signal that the listing isn't
+  // currently for sale (and likewise for `totalCost`/`rent` on aluguel).
   const wantedModeKey = type === "venda" ? "forSale" : "forRent";
   hits = hits.filter((h) => {
-    const modeFlag = h._source?.[wantedModeKey];
-    return modeFlag !== false;
+    const src = h._source;
+    if (!src) return false;
+    if (src[wantedModeKey] === false) return false;
+    if (type === "venda") {
+      return typeof src.salePrice === "number" && src.salePrice > 0;
+    }
+    // aluguel — totalCost is rent + iptu + condo, fallback to plain rent.
+    const rentish = src.totalCost ?? src.rent;
+    return typeof rentish === "number" && rentish > 0;
   });
 
   // Mode A — auto-dedupe: keep only listings whose condoId matches the
