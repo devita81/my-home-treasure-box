@@ -1,9 +1,8 @@
 // fetch-zap-listings: searches ZAP Imóveis for listings near a property.
 // Calls ZAP's internal Glue API at glue-api.zapimoveis.com.br/v2/listings.
-// Deployment marker: v6 (re-add addressLocationId, but built in CODE
-// from canonical fields with deterministic ASCII normalization — ZAP
-// requires it when addressType=street; AI-generated version was the
-// brittle one).
+// Deployment marker: v7 (drop `includeFields` projection — its presence
+// was filtering out `search.result.listings` from the response, hence
+// the always-empty listings array even with a valid query).
 //
 // Three precision tiers, picked automatically:
 //   1. street         — filters by `addressStreet` server-side (best, when rua is filled)
@@ -217,7 +216,13 @@ function buildQueryParams(
     page: "1",
     size: String(pageSize),
     from: "0",
-    includeFields: "facets,search(totalCount)",
+    // NOTE: we deliberately do NOT pass `includeFields` here. The cURL
+    // we originally captured used `includeFields=facets,search(totalCount)`
+    // which is a projection — it asks ZAP for only those fields and
+    // OMITS `search.result.listings`. That's why the array kept coming
+    // back empty even with a perfectly valid query. Without
+    // `includeFields`, ZAP returns its default payload (listings
+    // included).
   });
 
   if (addressStreet) {
