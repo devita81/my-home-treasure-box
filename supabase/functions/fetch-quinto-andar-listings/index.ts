@@ -1,9 +1,11 @@
 // fetch-quinto-andar-listings: searches QuintoAndar for listings near a
 // property. Calls QA's internal POST endpoint at
 // apigw.prod.quintoandar.com.br/house-listing-search/v2/search/list.
-// Deployment marker: v5 (widen viewport radius from 35m to 75m so we
-// don't lose the user's building when the Google geocoder places the
-// point ~150-200m off-target).
+// Deployment marker: v6 (hybrid building isolation — when
+// `quinto_andar_url` is set on the property we resolve it to a numeric
+// condoId and filter strictly via `condoIds`; otherwise we widen the
+// viewport to ~150m and dedupe results to whichever building dominates.
+// Removes the always-debug field now that the resolver is proven).
 //
 // Three precision tiers, picked automatically:
 //   1. building       — viewport bounding box ~75m around lat/lng (best)
@@ -18,6 +20,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { geocodeAddress } from "../_shared/geocode.ts";
 import { resolveLocation, type ResolvedLocation, type CanonicalAddress } from "../_shared/resolve-location.ts";
+import { extractQuintoAndarCondoId } from "../_shared/quinto-andar-condo.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -59,6 +62,10 @@ interface PropertyInput {
   longitude?: number | null;
   /** AI-resolved provider-specific location, cached on the property row. */
   resolved_location?: ResolvedLocation | null;
+  /** Optional manual override: a `/condominio/{slug}` URL on
+   *  quintoandar.com.br pointing at the user's exact building. When
+   *  set, we filter by condoId for perfect per-building precision. */
+  quinto_andar_url?: string | null;
 }
 
 interface Listing {
@@ -87,6 +94,9 @@ interface QaHit {
     neighbourhood?: string;
     coverImage?: string;
     imageList?: string[];
+    /** QA's internal numeric ID for the building. Used to dedupe results
+     *  by building (every listing in the same building shares one). */
+    condoId?: number;
   };
 }
 
@@ -179,33 +189,47 @@ function metersToBoundingBox(lat: number, lng: number, radiusMeters: number) {
   };
 }
 
+interface PayloadOpts {
+  /** Override radius. Default = BUILDING_RADIUS_METERS. Used by the
+   *  auto-dedupe path which intentionally searches a wider area. */
+  radiusMeters?: number;
+  /** When set, filter strictly by these QA building IDs (mode B —
+   *  manual override). Skips the viewport entirely. */
+  condoIds?: number[];
+}
+
 function buildSearchPayload(
   input: PropertyInput,
   type: SearchType,
   pageSize: number,
   resolved: ResolvedLocation | null,
+  opts: PayloadOpts = {},
 ) {
   const slug = buildLocationSlug(input, resolved);
   const businessContext = type === "venda" ? "SALE" : "RENT";
   const hasCoords =
     typeof input.latitude === "number" && typeof input.longitude === "number";
+  const useCondoFilter = Array.isArray(opts.condoIds) && opts.condoIds.length > 0;
 
   const bedroomRange =
     input.quartos && input.quartos > 0
       ? { range: { min: input.quartos, max: input.quartos } }
       : { range: {} };
 
-  // Viewport is a hard server-side filter. Without it, `enableFlexibleSearch`
-  // helps QA broaden the bairro search to nearby areas.
-  const location = hasCoords
-    ? {
-        viewport: metersToBoundingBox(
-          input.latitude!,
-          input.longitude!,
-          BUILDING_RADIUS_METERS,
-        ),
-      }
-    : {};
+  // condoIds filter is the most precise — when present, viewport
+  // doesn't add anything and could even contradict it. Drop the
+  // viewport in that mode. Otherwise the bbox does the heavy lifting.
+  const radius = opts.radiusMeters ?? BUILDING_RADIUS_METERS;
+  const location =
+    !useCondoFilter && hasCoords
+      ? {
+          viewport: metersToBoundingBox(
+            input.latitude!,
+            input.longitude!,
+            radius,
+          ),
+        }
+      : {};
 
   return {
     slug,
@@ -214,13 +238,16 @@ function buildSearchPayload(
     fields: [
       "id", "type", "area", "bedrooms", "bathrooms", "totalCost", "rent",
       "salePrice", "address", "neighbourhood", "city", "coverImage", "imageList",
+      "condoId",
     ],
     filters: {
       availability: "ANY",
       blocklist: [],
       businessContext,
       categories: [],
-      enableFlexibleSearch: !hasCoords,
+      // With condoIds we want exact matches, no broadening. Same when
+      // viewport is set. Only relaxed when neither geo signal exists.
+      enableFlexibleSearch: !hasCoords && !useCondoFilter,
       excludedSpecialConditions: [],
       houseSpecs: {
         amenities: [],
@@ -238,6 +265,7 @@ function buildSearchPayload(
       priceRange: [],
       selectedHouses: [],
       specialConditions: [],
+      ...(useCondoFilter && { condoIds: opts.condoIds }),
     },
     locationDescriptions: [{ description: slug }],
     pagination: { pageSize, offset: 0 },
@@ -276,6 +304,35 @@ function mapHitToListing(hit: QaHit, type: SearchType): Listing | null {
 
 // ─── core search logic ────────────────────────────────────────────────
 
+// When auto-dedupe should kick in (Mode A), the viewport is widened to
+// this radius so we catch the user's building even if the geocoder
+// placed the point ~100-200m off. The dedupe step then narrows back
+// down to a single condoId.
+const WIDE_DEDUPE_RADIUS_METERS = 150;
+
+// Pick the most-frequent condoId among a list of hits, but only if it
+// dominates strongly enough to be confident it's the user's building
+// rather than a busy neighbour.
+function findDominantCondoId(hits: QaHit[]): number | null {
+  if (hits.length === 0) return null;
+  const counts = new Map<number, number>();
+  for (const hit of hits) {
+    const id = hit._source?.condoId;
+    if (typeof id === "number") counts.set(id, (counts.get(id) ?? 0) + 1);
+  }
+  if (counts.size === 0) return null;
+
+  const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  const [topId, topCount] = ranked[0];
+
+  // Confidence gates: at least 2 listings AND ≥40% of total. If a
+  // single building doesn't meet those, we can't honestly call the
+  // result "building precision" — fall back to neighbourhood.
+  if (topCount < 2) return null;
+  if (topCount / hits.length < 0.4) return null;
+  return topId;
+}
+
 async function fetchListings(
   input: PropertyInput,
   type: SearchType,
@@ -284,13 +341,12 @@ async function fetchListings(
   listings: Listing[];
   precision: Precision;
   resolved: ResolvedLocation | null;
+  /** True when the building was identified via a manually-provided
+   *  `quinto_andar_url`. Distinguishes "exact match" from auto-dedupe. */
+  buildingVerified: boolean;
 }> {
   // If the property was created before `geocode` was wired up on save,
-  // it'll arrive here without coordinates. Resolve them on-the-fly so
-  // we still get building-level precision instead of falling all the
-  // way back to the bairro tier. The resolved coordinates are also
-  // persisted to the row (fire-and-forget), so the next request skips
-  // geocoding entirely.
+  // it'll arrive here without coordinates. Resolve them on-the-fly.
   let { latitude, longitude } = input;
   if (typeof latitude !== "number" || typeof longitude !== "number") {
     const coords = await geocodeAddress(input);
@@ -310,17 +366,56 @@ async function fetchListings(
     }
   }
 
-  // AI-resolved location (cached). Improves the bairro slug used in
-  // the search URL and locationDescriptions even though our actual
-  // filter is the lat/lng viewport.
+  // AI-resolved canonical address (cached). Used for slug + URL
+  // building. Doesn't affect the geo filter itself.
   const resolved = await resolveLocation(input, supabase);
+
+  // Mode B — manual URL override. If the property has a
+  // /condominio/{slug} URL, resolve it to the numeric condoId once
+  // and cache the result on `resolved_location`.
+  let manualCondoId: number | null = null;
+  if (input.quinto_andar_url) {
+    const cached = resolved?.quinto_andar_condo_id;
+    if (typeof cached === "number" && cached > 0) {
+      manualCondoId = cached;
+    } else {
+      const fresh = await extractQuintoAndarCondoId(input.quinto_andar_url);
+      if (fresh) {
+        manualCondoId = fresh;
+        if (input.id && resolved) {
+          const updated = { ...resolved, quinto_andar_condo_id: fresh };
+          void supabase
+            .from("properties")
+            .update({ resolved_location: updated })
+            .eq("id", input.id)
+            .then(({ error }) => {
+              if (error) console.error("[QA] persist condoId failed:", error);
+            });
+        }
+      }
+    }
+  }
 
   const hasCoords = typeof latitude === "number" && typeof longitude === "number";
   const filteringByRua = !hasCoords && Boolean(input.rua && input.rua.trim());
 
-  // Pull more raw results when filtering client-side; viewport already
-  // narrows server-side so 30 is plenty of headroom.
-  const pageSize = hasCoords ? 30 : filteringByRua ? 100 : 12;
+  // Decide which search mode we're in:
+  //   Mode B : manualCondoId set    → strict condoIds filter
+  //   Mode A : hasCoords            → wide viewport + dedupe by dominant condoId
+  //   bairro : neither              → fall back to bairro/rua
+  let payload;
+  if (manualCondoId) {
+    payload = buildSearchPayload(input, type, 30, resolved, {
+      condoIds: [manualCondoId],
+    });
+  } else if (hasCoords) {
+    payload = buildSearchPayload(input, type, 60, resolved, {
+      radiusMeters: WIDE_DEDUPE_RADIUS_METERS,
+    });
+  } else {
+    const pageSize = filteringByRua ? 100 : 12;
+    payload = buildSearchPayload(input, type, pageSize, resolved);
+  }
 
   const response = await fetch(QA_API_URL, {
     method: "POST",
@@ -332,7 +427,7 @@ async function fetchListings(
       "User-Agent":
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     },
-    body: JSON.stringify(buildSearchPayload(input, type, pageSize, resolved)),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
@@ -340,7 +435,18 @@ async function fetchListings(
   }
 
   const data = (await response.json()) as QaResponse;
-  const hits = data.hits?.hits ?? [];
+  let hits = data.hits?.hits ?? [];
+
+  // Mode A — auto-dedupe: keep only listings whose condoId matches the
+  // dominant building in the viewport result. Skipped when we already
+  // have a manualCondoId (Mode B already filtered server-side).
+  let dedupedToCondoId: number | null = null;
+  if (!manualCondoId && hasCoords) {
+    dedupedToCondoId = findDominantCondoId(hits);
+    if (dedupedToCondoId) {
+      hits = hits.filter((h) => h._source?.condoId === dedupedToCondoId);
+    }
+  }
 
   let listings = hits
     .map((hit) => mapHitToListing(hit, type))
@@ -350,13 +456,24 @@ async function fetchListings(
     listings = listings.filter((l) => matchesStreet(l.address.split(",")[0], input.rua!));
   }
 
-  const precision: Precision = hasCoords
-    ? "building"
-    : filteringByRua
-    ? "street"
-    : "neighbourhood";
+  // Precision honest-labelling:
+  //   building       → identified a single building (manual or auto)
+  //   street         → fell back to street-name match (no coords)
+  //   neighbourhood  → coords were available but no dominant building
+  //                    found (or no geo signal at all)
+  const precision: Precision =
+    manualCondoId || dedupedToCondoId
+      ? "building"
+      : filteringByRua
+      ? "street"
+      : "neighbourhood";
 
-  return { listings: listings.slice(0, MAX_LISTINGS_RETURNED), precision, resolved };
+  return {
+    listings: listings.slice(0, MAX_LISTINGS_RETURNED),
+    precision,
+    resolved,
+    buildingVerified: Boolean(manualCondoId),
+  };
 }
 
 // ─── HTTP handler ─────────────────────────────────────────────────────
@@ -391,7 +508,8 @@ serve(async (req) => {
     const body = await req.json();
     const {
       id, cidade, estado, bairro, rua, numero, cep, tipo_imovel, quartos,
-      latitude, longitude, resolved_location, type = "venda",
+      latitude, longitude, resolved_location, quinto_andar_url,
+      type = "venda",
     } = body;
 
     if (!cidade || typeof cidade !== "string") return jsonResponse({ error: "cidade is required" }, 400);
@@ -402,18 +520,16 @@ serve(async (req) => {
 
     const input: PropertyInput = {
       id, cidade, estado, bairro, rua, numero, cep, tipo_imovel, quartos,
-      latitude, longitude, resolved_location,
+      latitude, longitude, resolved_location, quinto_andar_url,
     };
-    const { listings, precision, resolved } = await fetchListings(input, type, supabaseClient);
+    const { listings, precision, resolved, buildingVerified } =
+      await fetchListings(input, type, supabaseClient);
 
     return jsonResponse({
       searchUrl: buildPublicSearchUrl(input, type, resolved),
       listings,
       precision,
-      // TEMPORARY DEBUG: same as the ZAP function — confirms the AI
-      // resolver actually ran and produced sensible output. Remove once
-      // verified.
-      debug: { resolved },
+      buildingVerified,
     });
   } catch (e) {
     console.error("fetch-quinto-andar-listings error:", e);

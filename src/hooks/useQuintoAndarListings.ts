@@ -15,9 +15,12 @@ export interface QuintoAndarListing {
 
 /**
  * How precisely the listings were filtered:
- *   - "building": viewport bounding box around lat/lng (~75m). Best.
+ *   - "building": single QA building isolated, either via a manually
+ *     provided `quinto_andar_url` (see `buildingVerified`) or via
+ *     auto-dedupe of viewport hits to the dominant condoId.
  *   - "street": bairro search + client-side rua match. No lat/lng.
- *   - "neighbourhood": bairro slug only. Last resort.
+ *   - "neighbourhood": bairro slug only or viewport without a clear
+ *     dominant building.
  */
 export type QuintoAndarPrecision = "building" | "street" | "neighbourhood";
 
@@ -25,6 +28,11 @@ export interface QuintoAndarListingsResponse {
   searchUrl: string;
   listings: QuintoAndarListing[];
   precision: QuintoAndarPrecision;
+  /** True when the building was identified via a manually-provided
+   *  QuintoAndar `/condominio/{slug}` URL — i.e. the listings are
+   *  guaranteed to be from the user's exact building, not a heuristic
+   *  dedupe. False for auto-dedupe. */
+  buildingVerified?: boolean;
 }
 
 type SearchType = "venda" | "aluguel";
@@ -45,6 +53,9 @@ type QuintoAndarPropertyInput = Pick<
 > & {
   /** AI-resolved provider-specific location (cached on the row). */
   resolved_location?: unknown;
+  /** Optional manual override: a `/condominio/{slug}` URL on
+   *  quintoandar.com.br pointing at the user's exact building. */
+  quinto_andar_url?: string | null;
 };
 
 /**
