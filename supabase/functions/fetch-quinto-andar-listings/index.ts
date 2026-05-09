@@ -392,6 +392,10 @@ serve(async (req) => {
       searchUrl: buildPublicSearchUrl(input, type, resolved),
       listings,
       precision,
+      // TEMPORARY DEBUG: same as the ZAP function — confirms the AI
+      // resolver actually ran and produced sensible output. Remove once
+      // verified.
+      debug: { resolved },
     });
   } catch (e) {
     console.error("fetch-quinto-andar-listings error:", e);
