@@ -235,8 +235,6 @@ function ProviderView({
 
   // ─── happy path ───────────────────────────────────────────────
 
-  const modeLabel = type === "venda" ? "VENDA" : "ALUGUEL";
-
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -261,7 +259,7 @@ function ProviderView({
           )}
         </Button>
       </div>
-      <MarketStatsRow stats={stats} modeLabel={modeLabel} />
+      <MarketStatsRow stats={stats} />
       <MarketScatterChart
         listings={allListings}
         onListingClick={(l) => {

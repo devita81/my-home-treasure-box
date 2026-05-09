@@ -3,12 +3,6 @@ import { useMutation } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, RefreshCw, Database, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { toast } from "sonner";
@@ -17,11 +11,11 @@ import {
   type ItbiResult,
   type ItbiSearchParams,
   computeItbiStats,
-  fmtBRL,
-  fmtDate,
 } from "@/components/itbi/itbi-stats";
+import { fmtDate } from "@/lib/format";
 import { ItbiStatsRow } from "@/components/itbi/ItbiStatsRow";
 import { ItbiScatterChart } from "@/components/itbi/ItbiScatterChart";
+import { ItbiResultsTable } from "@/components/itbi/ItbiResultsTable";
 import type { Property } from "@/types/property";
 
 type ItbiPropertyInput = Pick<
@@ -256,120 +250,6 @@ function RefreshHeader({
           </>
         )}
       </Button>
-    </div>
-  );
-}
-
-function ItbiResultsTable({ results }: { results: ItbiResult[] }) {
-  // Sort newest first; cap at 50 visible rows so the block doesn't
-  // explode on long histories. The full set is still in the cache
-  // and the user can hit the standalone search page for deep dives.
-  const rows = useMemo(() => {
-    return [...results]
-      .sort((a, b) => (b.data_transacao ?? "").localeCompare(a.data_transacao ?? ""))
-      .slice(0, 50);
-  }, [results]);
-
-  // Selected row drives the details dialog. Null = closed.
-  const [selected, setSelected] = useState<ItbiResult | null>(null);
-
-  return (
-    <>
-      <div className="overflow-hidden rounded-lg border border-border bg-card">
-        <p className="border-b border-border px-3 py-2 text-xs text-muted-foreground">
-          Transações ({rows.length} de {results.length} mostradas) — clique em uma linha para detalhes
-        </p>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="text-xs text-muted-foreground">
-              <tr className="border-b border-border">
-                <th className="px-3 py-2 text-left font-medium">Data</th>
-                <th className="px-3 py-2 text-left font-medium">Compl.</th>
-                <th className="px-3 py-2 text-right font-medium">Área</th>
-                <th className="px-3 py-2 text-right font-medium">Valor</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr
-                  key={r.id}
-                  onClick={() => setSelected(r)}
-                  className="cursor-pointer border-b border-border transition-colors last:border-0 hover:bg-muted/50"
-                >
-                  <td className="px-3 py-1.5">{fmtDate(r.data_transacao)}</td>
-                  <td className="px-3 py-1.5 text-muted-foreground">{r.complemento ?? "—"}</td>
-                  <td className="px-3 py-1.5 text-right tabular-nums">
-                    {r.area_construida != null ? `${r.area_construida} m²` : "—"}
-                  </td>
-                  <td className="px-3 py-1.5 text-right tabular-nums font-medium">
-                    {fmtBRL(r.valor_transacao)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <Dialog open={selected !== null} onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Detalhes da transação</DialogTitle>
-          </DialogHeader>
-          {selected ? <ItbiTransactionDetails row={selected} /> : null}
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}
-
-/**
- * Read-only field list for one ITBI transaction. Headline shows the
- * transaction date + value; below, a definition list with everything
- * the row carries (address parts, areas, valor venal, SQL IPTU).
- */
-function ItbiTransactionDetails({ row }: { row: ItbiResult }) {
-  const fullAddress = [
-    row.logradouro,
-    row.numero,
-    row.complemento,
-  ]
-    .filter(Boolean)
-    .join(", ");
-
-  const fields: Array<{ label: string; value: string }> = [
-    { label: "Endereço", value: fullAddress || "—" },
-    { label: "Bairro", value: row.bairro ?? "—" },
-    { label: "CEP", value: row.cep ?? "—" },
-    {
-      label: "Área construída",
-      value: row.area_construida != null ? `${row.area_construida} m²` : "—",
-    },
-    { label: "Valor venal", value: fmtBRL(row.valor_venal) },
-    { label: "SQL / IPTU", value: row.sql_iptu ?? "—" },
-  ];
-
-  return (
-    <div className="space-y-4">
-      {/* Headline */}
-      <div className="rounded-lg border border-border bg-muted/40 p-3">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">
-          Transação em {fmtDate(row.data_transacao)}
-        </p>
-        <p className="mt-1 text-2xl font-semibold tabular-nums">
-          {fmtBRL(row.valor_transacao)}
-        </p>
-      </div>
-
-      {/* Field list */}
-      <dl className="grid grid-cols-3 gap-x-3 gap-y-2 text-sm">
-        {fields.map((f) => (
-          <div key={f.label} className="contents">
-            <dt className="text-muted-foreground">{f.label}</dt>
-            <dd className="col-span-2 break-words text-foreground">{f.value}</dd>
-          </div>
-        ))}
-      </dl>
     </div>
   );
 }

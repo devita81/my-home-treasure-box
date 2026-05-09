@@ -1,6 +1,13 @@
-// Shared ITBI shape + statistics helpers. Used by both the per-property
-// ITBI block (PropertyItbiBlock) and the standalone search page
-// (ItbiSearch). Pure functions; no React.
+// ITBI types + the small bit of stats logic that's ITBI-specific
+// (latest/earliest dates). The price summary itself is delegated to
+// the shared `src/lib/price-stats.ts` helper.
+
+import { priceStats, type PriceStats } from "@/lib/price-stats";
+
+// Re-export shared formatters so callers can keep importing them
+// from `itbi-stats` without churn. New code should import directly
+// from `@/lib/format`.
+export { fmtBRL, fmtBRLCompact, fmtDate } from "@/lib/format";
 
 export interface ItbiResult {
   id: string;
@@ -30,12 +37,7 @@ export interface ItbiCache {
   results: ItbiResult[];
 }
 
-export interface ItbiStats {
-  count: number;
-  min: number | null;
-  max: number | null;
-  mean: number | null;
-  median: number | null;
+export interface ItbiStats extends PriceStats {
   /** Most recent transaction's price + date. */
   latestPrice: number | null;
   latestDate: string | null;
@@ -44,88 +46,32 @@ export interface ItbiStats {
 }
 
 export function computeItbiStats(results: ItbiResult[]): ItbiStats {
-  const prices: number[] = [];
+  // Min/max/mean/median come from the shared helper.
+  const base = priceStats(results.map((r) => r.valor_transacao));
+
+  // Walk the rows once to surface the temporal extremes — both for
+  // the headline "último preço (com data)" stat card, and to label
+  // the chart's date range.
   let latestPrice: number | null = null;
   let latestDate: string | null = null;
   let earliestDate: string | null = null;
 
   for (const r of results) {
-    const v =
-      typeof r.valor_transacao === "number"
-        ? r.valor_transacao
-        : Number(r.valor_transacao);
-    if (Number.isFinite(v) && v > 0) prices.push(v);
-
     const d = r.data_transacao;
-    if (d) {
-      // String compare works for ISO YYYY-MM-DD dates.
-      if (latestDate === null || d > latestDate) {
-        latestDate = d;
-        latestPrice = Number.isFinite(v) && v > 0 ? v : latestPrice;
-      }
-      if (earliestDate === null || d < earliestDate) {
-        earliestDate = d;
-      }
+    if (!d) continue;
+    // ISO YYYY-MM-DD orders correctly via string compare.
+    if (latestDate === null || d > latestDate) {
+      latestDate = d;
+      const v =
+        typeof r.valor_transacao === "number"
+          ? r.valor_transacao
+          : Number(r.valor_transacao);
+      latestPrice = Number.isFinite(v) && v > 0 ? v : latestPrice;
+    }
+    if (earliestDate === null || d < earliestDate) {
+      earliestDate = d;
     }
   }
 
-  if (prices.length === 0) {
-    return {
-      count: results.length,
-      min: null,
-      max: null,
-      mean: null,
-      median: null,
-      latestPrice,
-      latestDate,
-      earliestDate,
-    };
-  }
-
-  prices.sort((a, b) => a - b);
-  const sum = prices.reduce((acc, p) => acc + p, 0);
-  const mid = Math.floor(prices.length / 2);
-  const median =
-    prices.length % 2 === 0 ? (prices[mid - 1] + prices[mid]) / 2 : prices[mid];
-
-  return {
-    count: prices.length,
-    min: prices[0],
-    max: prices[prices.length - 1],
-    mean: sum / prices.length,
-    median,
-    latestPrice,
-    latestDate,
-    earliestDate,
-  };
-}
-
-// ─── formatting helpers (shared with market-stats but inlined here
-// to avoid cross-module imports). ──────────────────────────────────
-
-const BRL = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 0,
-});
-
-export function fmtBRL(value: number | null | undefined): string {
-  return value == null ? "—" : BRL.format(value);
-}
-
-export function fmtBRLCompact(value: number | null | undefined): string {
-  if (value == null) return "—";
-  if (value >= 1_000_000) return `R$ ${(value / 1_000_000).toFixed(2).replace(".", ",")} mi`;
-  if (value >= 1_000) return `R$ ${Math.round(value / 1_000)} mil`;
-  return `R$ ${Math.round(value)}`;
-}
-
-export function fmtDate(s: string | null | undefined): string {
-  if (!s) return "—";
-  try {
-    return new Date(s).toLocaleDateString("pt-BR");
-  } catch {
-    return s;
-  }
+  return { ...base, latestPrice, latestDate, earliestDate };
 }

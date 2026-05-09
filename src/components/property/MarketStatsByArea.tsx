@@ -1,4 +1,5 @@
-import { type AreaBucket, type BucketStats, fmtBRL } from "./market-stats";
+import { type AreaBucket, type BucketStats } from "./market-stats";
+import { fmtBRL } from "@/lib/format";
 
 interface MarketStatsByAreaProps {
   rows: BucketStats[];
