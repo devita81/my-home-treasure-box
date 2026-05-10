@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v12";
+export const APP_VERSION = "v13";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,17 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v13",
+    date: "10/mai/2026",
+    notes:
+      "Force redeploy do chat-ia pra Lovable pegar o config.toml novo do " +
+      "v12. Mudança só em config.toml não aciona redeploy de edge function " +
+      "— só mudança no index.ts força. Adicionado um DEPLOYMENT_MARKER no " +
+      "topo do chat-ia/index.ts pra trigger redeploy. Este é o mesmo " +
+      "padrão que funcionou no v2 (deployment marker da edge function que " +
+      "Lovable insistia em não redeployar).",
+  },
   {
     version: "v12",
     date: "10/mai/2026",

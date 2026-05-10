@@ -1,3 +1,9 @@
+// DEPLOYMENT_MARKER: v13 — força o Lovable a redeployar a function pra
+// pegar o `verify_jwt = false` que entrou no config.toml no v12.
+// Mudanças só em config.toml não acionam redeploy de edge function;
+// só mudança no index.ts força. Bumpe esse marker em qualquer push
+// futuro que dependa de uma config.toml nova entrando em vigor.
+//
 // Edge function `chat-ia` — assistente IA do app, GPT-4o com tool
 // calling. Substitui as antigas `chat-global` e `chat-property` que
 // usavam o Lovable AI Gateway (Gemini Flash) com `propertiesContext`
