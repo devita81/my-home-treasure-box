@@ -48,6 +48,7 @@ type ZapPropertyInput = Pick<
   | "cep"
   | "tipo_imovel"
   | "quartos"
+  | "metragem"
   | "latitude"
   | "longitude"
 > & {
@@ -77,6 +78,7 @@ export function useZapListings(
       property.rua,
       property.tipo_imovel,
       property.quartos,
+      property.metragem,
       property.latitude,
       property.longitude,
       type,

@@ -15,6 +15,7 @@ type AnunciosPropertyInput = Pick<
   | "cep"
   | "tipo_imovel"
   | "quartos"
+  | "metragem"
   | "latitude"
   | "longitude"
 > & {

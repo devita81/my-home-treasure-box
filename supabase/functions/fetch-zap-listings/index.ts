@@ -43,6 +43,8 @@ interface PropertyInput {
   cep?: string | null;
   tipo_imovel?: string | null;
   quartos?: number | null;
+  /** Área útil em m² — usada para construir o range `usableAreasMin`/`Max`. */
+  metragem?: number | null;
   latitude?: number | null;
   longitude?: number | null;
   /** AI-resolved provider-specific location, cached on the property row. */
@@ -270,7 +272,57 @@ function buildQueryParams(
   if (typeof input.longitude === "number") {
     params.set("addressPointLon", String(input.longitude));
   }
+
+  // ─── Refinamento por tipo / quartos / metragem ─────────────────────
+  // Antes a busca só filtrava por endereço, então retornava casas
+  // comerciais, terrenos, lojas, garagens — qualquer coisa naquela rua.
+  // Os 3 filtros abaixo são o que move a busca de "anúncios na rua"
+  // para "anúncios comparáveis ao imóvel cadastrado".
+
+  const unitType = mapTipoImovelToUnitType(input.tipo_imovel);
+  if (unitType) {
+    params.set("unitTypes", unitType);
+  }
+
+  // Bedrooms: ZAP aceita um número exato. Filtramos só se houver `quartos`
+  // cadastrado e > 0 — caso contrário, não restringe.
+  if (typeof input.quartos === "number" && input.quartos > 0) {
+    params.set("bedrooms", String(input.quartos));
+  }
+
+  // Área: ZAP aceita range via `usableAreasMin` + `usableAreasMax`.
+  // Construímos ±30% pra capturar comparáveis sem ser muito rígido —
+  // imóveis no mesmo prédio costumam variar dentro disso.
+  if (typeof input.metragem === "number" && input.metragem > 0) {
+    const min = Math.max(1, Math.round(input.metragem * 0.7));
+    const max = Math.round(input.metragem * 1.3);
+    params.set("usableAreasMin", String(min));
+    params.set("usableAreasMax", String(max));
+  }
+
   return params;
+}
+
+// Mapeia o `tipo_imovel` cadastrado no app para o vocabulário do ZAP.
+// Tipos cadastrados que o ZAP não tem equivalente direto (ex: garagem)
+// retornam `null` — a busca não envia o filtro de tipo, ficando como
+// estava antes do refinamento.
+function mapTipoImovelToUnitType(
+  tipo: string | null | undefined,
+): string | null {
+  if (!tipo) return null;
+  switch (tipo.toLowerCase().trim()) {
+    case "apartamento":
+      return "APARTMENT";
+    case "casa":
+      return "HOME";
+    case "terreno":
+      return "RESIDENTIAL_ALLOTMENT_LAND";
+    case "conjunto_comercial":
+      return "COMMERCIAL_BUILDING";
+    default:
+      return null;
+  }
 }
 
 // ─── response mapping ─────────────────────────────────────────────────
