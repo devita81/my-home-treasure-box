@@ -1,10 +1,10 @@
 // fetch-zap-listings: searches ZAP Imóveis for listings near a property.
 // Calls ZAP's internal Glue API at glue-api.zapimoveis.com.br/v2/listings.
-// Deployment marker: v11 (filtros locais de TIPO + ÁREA com range
-// progressivo, params PT+EN no request, payload `_debug` na resposta).
-// Bump intencional: o response em produção continua sem `_debug` e
-// devolvendo Casa/195m² mesmo após PRs #71-#73 mergeados — Lovable
-// não pegou os merges de edge function. Esse bump força redeploy.
+// Deployment marker: v12 (mesmas features de v11 — filtros locais TIPO
+// + ÁREA com range progressivo, params PT+EN, payload `_debug` na
+// resposta). Re-bump porque o redeploy v11 do Lovable não pegou: a
+// resposta em prod continua sem `_debug` e voltou um listing 333m² pra
+// Harmonia 83m². Esse bump força detecção de diff novamente.
 //
 // Three precision tiers, picked automatically:
 //   1. street         — filters by `addressStreet` server-side (best, when rua is filled)
