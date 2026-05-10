@@ -29,3 +29,21 @@ verify_jwt = false
 
 [functions.handle-email-suppression]
 verify_jwt = false
+
+# Functions de chat IA — fazem verificação de JWT manualmente no
+# código (com supabase.auth.getClaims) em vez de delegar pra gateway.
+# Sem isso, a gateway Supabase responde 401 ao preflight OPTIONS
+# (que vem sem Authorization), o browser bloqueia com CORS error
+# "Response to preflight request doesn't pass access control check:
+# It does not have HTTP ok status." e o frontend nunca consegue
+# chamar a função. chat-global e chat-property tinham essa config
+# definida só no painel do Lovable (sem commit no toml) — agora
+# fica versionada junto com o código.
+[functions.chat-global]
+verify_jwt = false
+
+[functions.chat-property]
+verify_jwt = false
+
+[functions.chat-ia]
+verify_jwt = false
