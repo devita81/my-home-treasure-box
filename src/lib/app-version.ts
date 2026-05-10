@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v3";
+export const APP_VERSION = "v4";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,15 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v4",
+    date: "10/mai/2026",
+    notes:
+      "Gráficos com eixos auto-fit + padding (chega de pontos esmagados " +
+      "no canto). Estimativa IA virou faixa de referência sobreposta aos " +
+      "charts de ITBI e Anúncios em vez de gráfico próprio (range bar " +
+      "removido). Layout passa de 3 colunas pra 2.",
+  },
   {
     version: "v3",
     date: "10/mai/2026",
