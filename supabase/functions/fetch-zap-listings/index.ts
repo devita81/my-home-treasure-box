@@ -503,6 +503,25 @@ async function fetchListings(
   const params = buildQueryParams(input, type, pageSize, resolved);
   const apiUrl = `${ZAP_API_URL}?${params.toString()}`;
 
+  // Diagnóstico: log do que estamos pedindo ao ZAP e quais refinamentos
+  // estão ativos. Útil pra responder "por que vieram resultados ruins?":
+  // se o tipo/quartos/metragem não aparece no log, o filtro não foi
+  // enviado (campo vazio no cadastro), e a resposta volta ampla.
+  console.log(
+    "[ZAP] input refinamentos:",
+    JSON.stringify({
+      tipo_imovel: input.tipo_imovel ?? null,
+      quartos: input.quartos ?? null,
+      metragem: input.metragem ?? null,
+      filtros_enviados: {
+        unitTypes: params.get("unitTypes"),
+        bedrooms: params.get("bedrooms"),
+        usableAreasMin: params.get("usableAreasMin"),
+        usableAreasMax: params.get("usableAreasMax"),
+      },
+    }),
+  );
+
   // Headers must mimic a real Chrome request closely or Cloudflare's bot
   // manager will return 403. The combination below was captured from a
   // working browser request.
@@ -553,6 +572,26 @@ async function fetchListings(
       Object.keys(firstAddr).join(","),
       "| values:",
       JSON.stringify(firstAddr),
+    );
+  }
+
+  // Diagnóstico: distribuição das metragens devolvidas. Se mandamos
+  // um range usableAreasMin/Max e mesmo assim vier muito fora, o ZAP
+  // não está honrando o filtro (ou estamos usando o nome errado).
+  const areasReturned = hits
+    .map((h) => num(h.listing?.usableAreas?.[0]))
+    .filter((a): a is number => typeof a === "number");
+  if (areasReturned.length > 0) {
+    const sorted = [...areasReturned].sort((a, b) => a - b);
+    console.log(
+      "[ZAP] areas devolvidas:",
+      JSON.stringify({
+        n: sorted.length,
+        min: sorted[0],
+        median: sorted[Math.floor(sorted.length / 2)],
+        max: sorted[sorted.length - 1],
+        primeiras: sorted.slice(0, 10),
+      }),
     );
   }
 
