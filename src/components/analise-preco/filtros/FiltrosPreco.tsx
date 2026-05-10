@@ -42,7 +42,7 @@ export function FiltrosPreco({
 
   return (
     <div className="space-y-2">
-      <Linha label="Faixa de área">
+      <Linha label="Faixa de área (anúncios)">
         {AREA_BUCKETS.map((b) => {
           const ativo = faixaArea?.label === b.label;
           return (
