@@ -20,12 +20,19 @@ export function fmtBRL(value: number | null | undefined): string {
  *   ≥ 1M  → "R$ 1,23 mi"
  *   ≥ 1k  → "R$ 850 mil"
  *   else  → "R$ 250"
+ *
+ * Negativos são bucketados pelo valor absoluto e o sinal vai antes
+ * do "R$" — ex.: -50166 → "-R$ 50 mil" (em vez de cair no fallback
+ * e virar "R$ -50166", quebrando a consistência visual em rows de
+ * receita/despesa).
  */
 export function fmtBRLCompact(value: number | null | undefined): string {
   if (value == null) return "—";
-  if (value >= 1_000_000) return `R$ ${(value / 1_000_000).toFixed(2).replace(".", ",")} mi`;
-  if (value >= 1_000) return `R$ ${Math.round(value / 1_000)} mil`;
-  return `R$ ${Math.round(value)}`;
+  const sign = value < 0 ? "-" : "";
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000) return `${sign}R$ ${(abs / 1_000_000).toFixed(2).replace(".", ",")} mi`;
+  if (abs >= 1_000) return `${sign}R$ ${Math.round(abs / 1_000)} mil`;
+  return `${sign}R$ ${Math.round(abs)}`;
 }
 
 /**
