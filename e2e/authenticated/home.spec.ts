@@ -20,12 +20,23 @@ test.describe('Authenticated — home', () => {
     await expect(page.getByRole('link', { name: /adicionar/i }).first()).toBeVisible();
   });
 
-  test('header navigation is rendered', async ({ page }) => {
+  test('main navigation is rendered', async ({ page }) => {
     await page.goto('/');
 
-    // The Header component on protected routes — just verify *something*
-    // header-like is on the page. Specific links can break easily, so we
-    // just check the topbar landmark exists.
-    await expect(page.locator('header').first()).toBeVisible();
+    // O <Sidebar /> renderiza um <aside> que é a nav principal nas
+    // rotas autenticadas. No desktop fica fixo à esquerda; no mobile
+    // vira drawer (translate-x-full por padrão), mas o elemento ainda
+    // existe no DOM. Antes era <header> mas isso virou só topbar
+    // mobile (lg:hidden) — não estava visível em desktop CI.
+    //
+    // Verificamos o aside existir na DOM (é a landmark principal de
+    // navegação) sem exigir visibilidade — pois no mobile ele entra
+    // off-canvas.
+    await expect(page.locator('aside').first()).toBeAttached();
+
+    // Sanity check: links principais da nav existem.
+    await expect(page.getByRole('link', { name: /carteira/i })).toBeAttached();
+    await expect(page.getByRole('link', { name: /balancete/i })).toBeAttached();
+    await expect(page.getByRole('link', { name: /analytics/i })).toBeAttached();
   });
 });

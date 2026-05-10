@@ -10,6 +10,7 @@ import { PropertyProvider } from "@/contexts/PropertyContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorFallback } from "@/components/ErrorFallback";
+import { AppLayout } from "@/components/layout/AppLayout";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import ScrollToTop from "./components/ScrollToTop";
 
@@ -56,16 +57,96 @@ const App = () => (
                 <ScrollToTop />
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
+                    {/* Páginas SEM o sidebar/layout (auth e routes
+                        públicas) — renderizam standalone. */}
                     <Route path="/auth" element={<Auth />} />
-                    <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-                    <Route path="/add" element={<ProtectedRoute><AddProperty /></ProtectedRoute>} />
-                    <Route path="/edit/:id" element={<ProtectedRoute><EditProperty /></ProtectedRoute>} />
-                    <Route path="/property/:id" element={<ProtectedRoute><PropertyDetails /></ProtectedRoute>} />
-                    <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-                    <Route path="/balancete" element={<ProtectedRoute><Balancete /></ProtectedRoute>} />
-                    <Route path="/admin/itbi" element={<ProtectedRoute><ItbiAdmin /></ProtectedRoute>} />
-                    <Route path="/itbi-search" element={<ProtectedRoute><ItbiSearch /></ProtectedRoute>} />
                     <Route path="/unsubscribe" element={<Unsubscribe />} />
+
+                    {/* Páginas autenticadas — todas embrulhadas em
+                        <AppLayout> que provê a sidebar de navegação e
+                        a top bar mobile. As páginas em si NÃO renderizam
+                        mais o <Header /> — isso vive no layout. */}
+                    <Route
+                      path="/"
+                      element={
+                        <ProtectedRoute>
+                          <AppLayout>
+                            <Index />
+                          </AppLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/add"
+                      element={
+                        <ProtectedRoute>
+                          <AppLayout>
+                            <AddProperty />
+                          </AppLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/edit/:id"
+                      element={
+                        <ProtectedRoute>
+                          <AppLayout>
+                            <EditProperty />
+                          </AppLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/property/:id"
+                      element={
+                        <ProtectedRoute>
+                          <AppLayout>
+                            <PropertyDetails />
+                          </AppLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/analytics"
+                      element={
+                        <ProtectedRoute>
+                          <AppLayout>
+                            <Analytics />
+                          </AppLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/balancete"
+                      element={
+                        <ProtectedRoute>
+                          <AppLayout>
+                            <Balancete />
+                          </AppLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/itbi"
+                      element={
+                        <ProtectedRoute>
+                          <AppLayout>
+                            <ItbiAdmin />
+                          </AppLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/itbi-search"
+                      element={
+                        <ProtectedRoute>
+                          <AppLayout>
+                            <ItbiSearch />
+                          </AppLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

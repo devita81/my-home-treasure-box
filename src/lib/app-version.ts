@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v5";
+export const APP_VERSION = "v6";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,17 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v6",
+    date: "10/mai/2026",
+    notes:
+      "Nav reestruturada — antigo <Header /> horizontal substituído " +
+      "por <Sidebar /> vertical fixa à esquerda no desktop (drawer no " +
+      "mobile). Itens nomeados (Carteira, Balancete, Analytics, " +
+      "Pesquisa de preço, IA, + Imóvel) com hierarquia visual e menu " +
+      "de conta no rodapé. Step 1 de 2 do redesign — próximo PR refaz " +
+      "os big numbers e filtros da home.",
+  },
   {
     version: "v5",
     date: "10/mai/2026",

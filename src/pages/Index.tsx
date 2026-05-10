@@ -9,7 +9,6 @@ import { useGridDensity } from '@/hooks/useGridDensity';
 import { StatsOverview } from '@/components/stats/StatsOverview';
 import { MetragemStats } from '@/components/stats/MetragemStats';
 import { CustosReceitasStats } from '@/components/stats/CustosReceitasStats';
-import { Header } from '@/components/layout/Header';
 import { APP_VERSION, APP_VERSION_DATE } from '@/lib/app-version';
 import { Home, PlusCircle, AlertTriangle, RefreshCw, FilterX, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -100,8 +99,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-      
       <main className="container mx-auto px-4 py-8 space-y-8">
         <StatsOverview />
         <MetragemStats />

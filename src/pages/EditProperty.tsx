@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
-import { Header } from '@/components/layout/Header';
 import { PropertyForm } from '@/components/property/PropertyForm';
 import { useProperties } from '@/contexts/PropertyContext';
 import { Property } from '@/types/property';
@@ -38,7 +37,6 @@ const EditProperty = () => {
 
     return (
       <div className="min-h-screen overflow-x-hidden bg-background">
-        <Header />
         <main className="container mx-auto overflow-x-hidden px-4 py-8">
           <div className="mx-auto max-w-4xl min-w-0 overflow-x-hidden">
             <div className="mb-8">
@@ -53,7 +51,6 @@ const EditProperty = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
-      <Header />
 
       <main className="container mx-auto overflow-x-hidden px-4 py-8">
         <div className="mx-auto max-w-4xl min-w-0 overflow-x-hidden">

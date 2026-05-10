@@ -4,7 +4,6 @@ import { ArrowLeft, X, ChevronRight, ChevronDown, Search, ArrowUpDown, ArrowUp, 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
-import { Header } from '@/components/layout/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -661,7 +660,6 @@ export default function Balancete() {
       className="min-h-screen bg-background"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <Header />
 
       <main
         className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 max-w-7xl"
