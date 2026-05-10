@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v2";
+export const APP_VERSION = "v3";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,17 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v3",
+    date: "10/mai/2026",
+    notes:
+      "Filtro local de tipo + área (range progressivo) movido pra " +
+      "FRONTEND em `useDadosAnuncios`. Decisão tática depois de 4 " +
+      "tentativas falhas de redeploy de edge function via Lovable. O " +
+      "frontend deploya confiavelmente, então a inteligência fica aqui. " +
+      "Não vê mais 333m² na busca pra um imóvel de 83m², mesmo se a " +
+      "edge function rodar uma versão antiga.",
+  },
   {
     version: "v2",
     date: "10/mai/2026",
