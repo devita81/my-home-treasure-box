@@ -110,11 +110,13 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
   return (
     <>
       <div className="bg-card rounded-xl border-2 border-border shadow-md hover:shadow-lg hover:border-primary/40 transition-all overflow-hidden ring-1 ring-foreground/5">
-        {/* Quando o card está fechado, força layout em coluna (mapa cheio
-            em cima); quando aberto e não-compact, volta ao flex-row no
-            desktop com a imagem em 30% e o conteúdo ao lado. */}
-        <div className={compact || !expanded ? 'flex flex-col' : 'flex flex-col sm:flex-row'}>
-          <div className={compact || !expanded
+        {/* Layout: no desktop (sm+) é sempre flex-row com imagem em 30%
+            e o conteúdo do lado, e o conteúdo é SEMPRE visível (sem
+            colapso). No mobile, layout em coluna e o conteúdo só
+            aparece quando `expanded` for true. O botão Detalhes/Recolher
+            também é mobile-only (`sm:hidden`). */}
+        <div className={compact ? 'flex flex-col' : 'flex flex-col sm:flex-row'}>
+          <div className={compact
             ? 'relative isolate w-full aspect-[4/3] overflow-hidden bg-black shrink-0'
             : 'relative isolate w-full sm:w-[30%] aspect-[4/3] sm:aspect-auto sm:min-h-[280px] overflow-hidden bg-black shrink-0'}>
             <div
@@ -232,15 +234,17 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               <MapPin className="h-3.5 w-3.5" />
             </button>
 
-            {/* Toggle expandir/colapsar — vive sobre o canto inferior-direito
-                da imagem, logo acima do banner de endereço. Click separado
-                do banner pra não interferir na navegação no mobile. */}
+            {/* Toggle expandir/colapsar — APENAS NO MOBILE. No desktop
+                (sm+) o conteúdo já fica sempre visível ao lado da imagem,
+                então o botão é supérfluo. Posição: canto inferior-direito
+                da imagem, separado do banner de endereço pra não
+                interferir na navegação no mobile. */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 setExpanded((v) => !v);
               }}
-              className="absolute bottom-2 right-2 z-30 inline-flex items-center gap-1 rounded-full bg-card/95 px-2.5 py-1 text-[12px] font-medium text-primary shadow-md transition-colors hover:bg-card"
+              className="absolute bottom-2 right-2 z-30 inline-flex items-center gap-1 rounded-full bg-card/95 px-2.5 py-1 text-[12px] font-medium text-primary shadow-md transition-colors hover:bg-card sm:hidden"
               title={expanded ? 'Recolher detalhes' : 'Expandir detalhes'}
               aria-expanded={expanded}
             >
@@ -258,9 +262,12 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
             </button>
           </div>
 
-          {expanded ? (
+          {/* Conteúdo: sempre visível no desktop (`sm:flex`), e no mobile
+              só quando `expanded` é true. */}
           <div
-            className={compact ? 'flex-1 p-2 flex flex-col cursor-pointer sm:cursor-default' : 'flex-1 p-3 flex flex-col cursor-pointer sm:cursor-default'}
+            className={`${expanded ? 'flex' : 'hidden sm:flex'} ${
+              compact ? 'flex-1 p-2 flex-col cursor-pointer sm:cursor-default' : 'flex-1 p-3 flex-col cursor-pointer sm:cursor-default'
+            }`}
             onClick={() => {
               // Only navigate on mobile (below sm breakpoint - 640px)
               if (typeof window !== 'undefined' && window.innerWidth < 640) {
@@ -508,7 +515,6 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
               )}
             </div>
           </div>
-          ) : null}
         </div>
       </div>
 
