@@ -276,39 +276,52 @@ function buildQueryParams(
   // ─── Refinamento por tipo / quartos / metragem ─────────────────────
   // Antes a busca só filtrava por endereço, então retornava casas
   // comerciais, terrenos, lojas, garagens — qualquer coisa naquela rua.
-  // Os 3 filtros abaixo são o que move a busca de "anúncios na rua"
-  // para "anúncios comparáveis ao imóvel cadastrado".
   //
-  // IMPORTANTE — naming dos params: o ZAP usa SINGULAR para os filtros
-  // mesmo quando os campos da resposta são plurais. A primeira tentativa
-  // usou `unitTypes` / `usableAreasMin` (plurais, espelhando o JSON de
-  // resposta) e o ZAP simplesmente IGNOROU esses params silenciosamente,
-  // devolvendo todos os imóveis da rua sem filtro. Os nomes corretos
-  // (singular) foram confirmados via documentação Apify do scraper:
-  //   • `unitType` (não `unitTypes`)
-  //   • `usableAreaMin` / `usableAreaMax` (não `usableAreas…`)
+  // SAGA dos nomes dos params (deixei aqui pra economizar a próxima
+  // pessoa que mexer):
+  //
+  //  • Tentativa 1 (plural inglês): `usableAreasMin/Max`, `unitTypes`.
+  //    Errado — ZAP ignorou silenciosamente.
+  //
+  //  • Tentativa 2 (singular inglês, conforme Apify scraper docs):
+  //    `usableAreaMin/Max`, `unitType`. Também não funcionou no
+  //    glue-api (filtro continuou sendo ignorado).
+  //
+  //  • Tentativa 3 (português, confirmada via URL real do site
+  //    público do ZAP — ex: `?tipos=apartamento_residencial&areaMinima=
+  //    50&areaMaxima=100`): convenção que está em produção.
+  //
+  // Mando AMBAS as convenções (português PRIMÁRIO, inglês fallback)
+  // pra maximizar chance de o glue-api aceitar uma delas. Os logs
+  // de `[ZAP] areas devolvidas:` confirmam qual foi honrada.
+
+  const tipoZapPt = mapTipoImovelToZapPt(input.tipo_imovel);
+  if (tipoZapPt) {
+    params.set("tipos", tipoZapPt);
+  }
 
   const unitType = mapTipoImovelToUnitType(input.tipo_imovel);
   if (unitType) {
     params.set("unitType", unitType);
   }
 
-  // Bedrooms: ZAP aceita um número exato. Filtramos só se houver `quartos`
-  // cadastrado e > 0 — caso contrário, não restringe.
+  // Quartos — manda em ambas convenções.
   if (typeof input.quartos === "number" && input.quartos > 0) {
     params.set("bedrooms", String(input.quartos));
+    params.set("quartos", String(input.quartos));
   }
 
-  // Área: range ±30% pra capturar comparáveis sem ser muito rígido.
+  // Área — range ±30% em ambas convenções.
   if (typeof input.metragem === "number" && input.metragem > 0) {
     const min = Math.max(1, Math.round(input.metragem * 0.7));
     const max = Math.round(input.metragem * 1.3);
+    params.set("areaMinima", String(min));
+    params.set("areaMaxima", String(max));
     params.set("usableAreaMin", String(min));
     params.set("usableAreaMax", String(max));
   }
 
-  // Uso residencial vs comercial — ajuda a separar quando o `unitType`
-  // sozinho não basta (ex: edifícios mistos).
+  // Uso residencial vs comercial (Apify doc).
   const unitUsage = mapTipoImovelToUnitUsage(input.tipo_imovel);
   if (unitUsage) {
     params.set("unitUsage", unitUsage);
@@ -317,12 +330,27 @@ function buildQueryParams(
   return params;
 }
 
-// Mapeia o `tipo_imovel` cadastrado no app para o vocabulário do ZAP.
-// Vocabulário oficial confirmado via Apify scraper:
-//   ALLOTMENT_LAND, APARTMENT, BUILDING, BUSINESS, FARM, HOME, HOTEL,
-//   OFFICE, SHED_DEPOSIT_WAREHOUSE
-// Tipos sem equivalente direto (ex: garagem) retornam `null` — a busca
-// não envia o filtro, ficando como antes do refinamento.
+// Mapeia o `tipo_imovel` cadastrado para o vocabulário PORTUGUÊS
+// observado em URLs reais do ZAP público (ex: `tipos=apartamento_
+// residencial`). Casa/terreno são suposições baseadas na convenção —
+// se o glue-api retornar zero hits pra eles, é onde investigar.
+function mapTipoImovelToZapPt(tipo: string | null | undefined): string | null {
+  if (!tipo) return null;
+  switch (tipo.toLowerCase().trim()) {
+    case "apartamento":
+      return "apartamento_residencial"; // confirmado via URL pública
+    case "casa":
+      return "casa_residencial"; // suposição (segue convenção)
+    case "terreno":
+      return "terreno_padrao"; // suposição (convenção comum)
+    case "conjunto_comercial":
+      return "conjunto_comercial"; // já é categoria comercial
+    default:
+      return null;
+  }
+}
+
+// Mapeia para o vocabulário INGLÊS conforme Apify scraper docs.
 function mapTipoImovelToUnitType(
   tipo: string | null | undefined,
 ): string | null {
@@ -341,8 +369,7 @@ function mapTipoImovelToUnitType(
   }
 }
 
-// Distingue uso residencial vs comercial. Conjunto comercial é
-// claramente comercial; demais são residenciais. `null` = sem filtro.
+// Distingue uso residencial vs comercial.
 function mapTipoImovelToUnitUsage(
   tipo: string | null | undefined,
 ): string | null {
@@ -548,6 +575,12 @@ async function fetchListings(
       quartos: input.quartos ?? null,
       metragem: input.metragem ?? null,
       filtros_enviados: {
+        // português (confirmado via URL pública do ZAP)
+        tipos: params.get("tipos"),
+        quartos: params.get("quartos"),
+        areaMinima: params.get("areaMinima"),
+        areaMaxima: params.get("areaMaxima"),
+        // inglês (Apify scraper docs)
         unitType: params.get("unitType"),
         unitUsage: params.get("unitUsage"),
         bedrooms: params.get("bedrooms"),
