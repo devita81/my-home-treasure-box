@@ -1,31 +1,24 @@
-// Cálculos derivados a partir dos campos financeiros já cadastrados
-// na propriedade. Funções puras — não acessam Supabase nem React.
+// Cálculos derivados puros sobre os campos cadastrais da propriedade.
+// Hoje só fica `yieldBrutoAnual` aqui — basta o aluguel cadastrado
+// + valor de mercado, sem precisar de transações.
 //
-// **Modelo de custos (importante):**
-// Em locação residencial brasileira o INQUILINO paga IPTU e condomínio
-// — esses não saem do bolso do proprietário, então NÃO entram no
-// cálculo de renda líquida. O único custo recorrente do proprietário
-// é a `taxa_administracao` (quando uma imobiliária administra).
-//
-// Convenções:
-//  • Todos os campos de entrada são tratados como BRL mensais ou nulos.
-//  • Retornam `null` quando os ingredientes não dão pra fazer a conta.
-//  • Yields voltam em DECIMAL (0.054 = 5.4%); o formatter cuida
-//    de multiplicar por 100.
+// Os cálculos LÍQUIDOS (renda líquida, yield líquido) NÃO vivem aqui
+// porque dependem da movimentação real do imóvel (aluguel recebido,
+// reembolsos, despesas) — essa fonte de verdade está na view
+// `property_balancete`. Veja `useReceitaLiquidaImovel` em
+// `src/hooks/useReceitaLiquidaImovel.ts`.
 
 import type { Property } from "@/types/property";
 
-type FinanceiroInput = Pick<
-  Property,
-  "market_value" | "valor_aluguel" | "taxa_administracao"
->;
+type FinanceiroInput = Pick<Property, "market_value" | "valor_aluguel">;
 
 /**
  * Yield bruto anual: aluguel × 12 / valor de mercado.
  *
- * Retorno em decimal — multiplicar por 100 pra exibir como percentual.
- * "Bruto" = ignora taxa de administração; pra o líquido use
- * `yieldLiquidoAnual`.
+ * Decimal — multiplicar por 100 pra exibir como percentual.
+ * Estimativa baseada nos campos cadastrados; pode divergir do real
+ * se o aluguel atual difere do cadastro. Para "yield líquido" use
+ * a média mensal real do `useReceitaLiquidaImovel` × 12 / valor.
  */
 export function yieldBrutoAnual(p: FinanceiroInput): number | null {
   const aluguel = positivo(p.valor_aluguel);
@@ -35,42 +28,16 @@ export function yieldBrutoAnual(p: FinanceiroInput): number | null {
 }
 
 /**
- * Yield líquido anual: (aluguel − taxa de administração) × 12 / valor.
- *
- * Mesmas premissas do bruto, descontando só a taxa de administração
- * (custo recorrente do proprietário). IPTU e condomínio NÃO entram —
- * em locação residencial brasileira são repassados ao inquilino.
+ * Yield líquido a partir da média mensal real do Balancete e do
+ * valor de mercado cadastrado. Decimal anual.
  */
-export function yieldLiquidoAnual(p: FinanceiroInput): number | null {
-  const aluguel = positivo(p.valor_aluguel);
-  const valor = positivo(p.market_value);
-  if (aluguel == null || valor == null) return null;
-  const admin = p.taxa_administracao ?? 0;
-  return ((aluguel - admin) * 12) / valor;
-}
-
-/**
- * Custo mensal do proprietário: apenas `taxa_administracao`.
- * Retorna `null` se a taxa não estiver cadastrada — não faz sentido
- * mostrar "R$ 0" só porque o campo está vazio (mesmo um proprietário
- * sem imobiliária tem custos esporádicos).
- */
-export function custoMensalTotal(p: FinanceiroInput): number | null {
-  const admin = p.taxa_administracao;
-  if (admin == null) return null;
-  return admin;
-}
-
-/**
- * Renda mensal líquida: aluguel − taxa de administração. Aluguel é
- * obrigatório; taxa opcional (vira zero se ausente). Pode dar negativo
- * (raro mas possível se a taxa for maior que o aluguel — sinaliza
- * cadastro suspeito).
- */
-export function rendaMensalLiquida(p: FinanceiroInput): number | null {
-  const aluguel = positivo(p.valor_aluguel);
-  if (aluguel == null) return null;
-  return aluguel - (p.taxa_administracao ?? 0);
+export function yieldLiquidoFromMedia(
+  liquidoMedioMensal: number | null,
+  marketValue: number | null | undefined,
+): number | null {
+  const valor = positivo(marketValue);
+  if (valor == null || liquidoMedioMensal == null) return null;
+  return (liquidoMedioMensal * 12) / valor;
 }
 
 // ─── helpers ─────────────────────────────────────────────────────────
