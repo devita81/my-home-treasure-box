@@ -1,10 +1,8 @@
-import { Header } from '@/components/layout/Header';
 import { PropertyForm } from '@/components/property/PropertyForm';
 
 const AddProperty = () => {
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
-      <Header />
       
       <main className="container mx-auto overflow-x-hidden px-4 py-8">
         <div className="mx-auto max-w-4xl min-w-0 overflow-x-hidden">

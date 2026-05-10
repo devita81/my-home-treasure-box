@@ -45,7 +45,6 @@ import {
 import { useState, useMemo } from 'react';
 import { Property } from '@/types/property';
 import { Link } from 'react-router-dom';
-import { Header } from '@/components/layout/Header';
 import * as XLSX from 'xlsx';
 
 interface GroupedData {
@@ -492,7 +491,6 @@ const Analytics = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
 
       <div className="container px-3 sm:px-4 pt-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">

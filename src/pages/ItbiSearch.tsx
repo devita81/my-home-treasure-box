@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Header } from "@/components/layout/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -66,7 +65,6 @@ export default function ItbiSearch() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
       <main className="container mx-auto space-y-4 px-3 py-4 sm:px-4 sm:py-6">
         <div>
           <h1 className="font-display flex items-center gap-2 text-xl font-semibold sm:text-2xl">

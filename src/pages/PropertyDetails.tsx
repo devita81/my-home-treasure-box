@@ -1,6 +1,5 @@
 import { useParams, Navigate, Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { Header } from '@/components/layout/Header';
 import { AIChatDialog } from '@/components/property/AIChatDialog';
 import { useProperties } from '@/contexts/PropertyContext';
 import { PropertyCardMap } from '@/components/property/PropertyCardMap';
@@ -74,7 +73,6 @@ const PropertyDetails = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
-      <Header />
       
       <main className="container mx-auto overflow-x-hidden px-4 py-8">
         <div className="mx-auto max-w-6xl min-w-0 space-y-6 overflow-x-hidden">
