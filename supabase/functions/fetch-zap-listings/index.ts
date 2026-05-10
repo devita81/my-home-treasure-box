@@ -1,8 +1,10 @@
 // fetch-zap-listings: searches ZAP Imóveis for listings near a property.
 // Calls ZAP's internal Glue API at glue-api.zapimoveis.com.br/v2/listings.
-// Deployment marker: v10 (substitute `{description}/{action}/{width}/
-// {height}` placeholders in image URLs + skip video tour entries that
-// sometimes land at medias[0]; drop the diagnostic `debug` field).
+// Deployment marker: v11 (filtros locais de TIPO + ÁREA com range
+// progressivo, params PT+EN no request, payload `_debug` na resposta).
+// Bump intencional: o response em produção continua sem `_debug` e
+// devolvendo Casa/195m² mesmo após PRs #71-#73 mergeados — Lovable
+// não pegou os merges de edge function. Esse bump força redeploy.
 //
 // Three precision tiers, picked automatically:
 //   1. street         — filters by `addressStreet` server-side (best, when rua is filled)

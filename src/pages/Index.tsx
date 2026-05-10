@@ -10,6 +10,7 @@ import { StatsOverview } from '@/components/stats/StatsOverview';
 import { MetragemStats } from '@/components/stats/MetragemStats';
 import { CustosReceitasStats } from '@/components/stats/CustosReceitasStats';
 import { Header } from '@/components/layout/Header';
+import { APP_VERSION, APP_VERSION_DATE } from '@/lib/app-version';
 import { Home, PlusCircle, AlertTriangle, RefreshCw, FilterX, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -202,6 +203,20 @@ const Index = () => {
           )}
         </div>
       </main>
+
+      {/* Marcador de versão visível — incrementado a cada deploy estrutural
+          (ver `src/lib/app-version.ts`). Permite confirmar rapidamente se
+          o último redeploy do Lovable pegou: se o número aqui bate com o
+          que combinamos, está atualizado. */}
+      <footer className="border-t border-border/40 bg-muted/30 py-3">
+        <div className="container mx-auto px-4">
+          <p className="text-center text-[11px] text-muted-foreground">
+            <span className="font-mono font-medium">{APP_VERSION}</span>
+            <span className="mx-1.5 text-muted-foreground/50">·</span>
+            <span>{APP_VERSION_DATE}</span>
+          </p>
+        </div>
+      </footer>
 
       <AlertDialog
         open={!!deleteId}
