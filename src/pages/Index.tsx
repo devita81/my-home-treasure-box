@@ -6,9 +6,7 @@ import { PropertyFilters } from '@/components/property/PropertyFilters';
 import { GridDensitySelector } from '@/components/property/GridDensitySelector';
 import { useGridDensity } from '@/hooks/useGridDensity';
 
-import { StatsOverview } from '@/components/stats/StatsOverview';
-import { MetragemStats } from '@/components/stats/MetragemStats';
-import { CustosReceitasStats } from '@/components/stats/CustosReceitasStats';
+import { CarteiraStats } from '@/components/stats/CarteiraStats';
 import { APP_VERSION, APP_VERSION_DATE } from '@/lib/app-version';
 import { Home, PlusCircle, AlertTriangle, RefreshCw, FilterX, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -99,10 +97,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 py-8 space-y-8">
-        <StatsOverview />
-        <MetragemStats />
-        <CustosReceitasStats />
+      <main className="container mx-auto space-y-6 px-4 py-6">
+        <CarteiraStats />
         <PropertyFilters />
 
         <div className="space-y-4">
