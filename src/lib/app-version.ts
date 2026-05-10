@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v7";
+export const APP_VERSION = "v8";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,17 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v8",
+    date: "10/mai/2026",
+    notes:
+      "Fix de formatação no card Financeiro/Mês — `fmtBRLCompact` agora " +
+      "trata negativos corretamente. Antes: receita renderizava 'R$ 81 mil' " +
+      "mas despesa caía no fallback e virava 'R$-50166' (sem sufixo, sem " +
+      "espaço, quebra visual). Agora bucketa pelo absoluto e prefixa o " +
+      "sinal: '-R$ 50 mil'. Afeta qualquer lugar que use fmtBRLCompact " +
+      "com valor negativo.",
+  },
   {
     version: "v7",
     date: "10/mai/2026",
