@@ -7,7 +7,6 @@ import { GridDensitySelector } from '@/components/property/GridDensitySelector';
 import { useGridDensity } from '@/hooks/useGridDensity';
 
 import { CarteiraStats } from '@/components/stats/CarteiraStats';
-import { APP_VERSION, APP_VERSION_DATE } from '@/lib/app-version';
 import { Home, PlusCircle, AlertTriangle, RefreshCw, FilterX, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -197,19 +196,9 @@ const Index = () => {
         </div>
       </main>
 
-      {/* Marcador de versão visível — incrementado a cada deploy estrutural
-          (ver `src/lib/app-version.ts`). Permite confirmar rapidamente se
-          o último redeploy do Lovable pegou: se o número aqui bate com o
-          que combinamos, está atualizado. */}
-      <footer className="border-t border-border/40 bg-muted/30 py-3">
-        <div className="container mx-auto px-4">
-          <p className="text-center text-[11px] text-muted-foreground">
-            <span className="font-mono font-medium">{APP_VERSION}</span>
-            <span className="mx-1.5 text-muted-foreground/50">·</span>
-            <span>{APP_VERSION_DATE}</span>
-          </p>
-        </div>
-      </footer>
+      {/* Marker de versão migrou pro rodapé da `<Sidebar />` — agora
+          aparece em todas as páginas (não só na home) e fica visível
+          mesmo com sidebar desktop sempre presente. */}
 
       <AlertDialog
         open={!!deleteId}

@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   BarChart3,
+  Bot,
   Home as HomeIcon,
   LogOut,
   PlusCircle,
-  Sparkles,
   Wallet,
   Search,
   ChevronLeft,
@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { GlobalAIChatDialog } from "@/components/GlobalAIChatDialog";
+import { APP_VERSION, APP_VERSION_DATE } from "@/lib/app-version";
 import { toast } from "sonner";
 
 interface NavItem {
@@ -177,12 +178,12 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             }}
             className="flex w-full items-center gap-2.5 rounded-md bg-gradient-to-r from-primary/10 to-primary/5 px-2.5 py-2 text-sm font-medium text-primary ring-1 ring-primary/20 transition-colors hover:from-primary/20 hover:to-primary/10"
           >
-            <Sparkles className="h-4 w-4 shrink-0" />
-            <span>Assistente IA</span>
+            <Bot className="h-4 w-4 shrink-0" />
+            <span>Consultor IA</span>
           </button>
         </nav>
 
-        {/* Rodapé: ação primária + menu de conta.
+        {/* Rodapé: ação primária + menu de conta + marker de versão.
             Wrapper externo aplica `pb-safe-bottom` pra compensar o home
             indicator do iPhone — sem isso o botão "Adicionar imóvel"
             ou o email/logout ficam atrás da barra preta no PWA. */}
@@ -211,6 +212,14 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 </Button>
               </div>
             ) : null}
+            {/* Marker de versão — agora vive aqui (antes ficava no
+                rodapé do Index). Permite confirmar deploy sem precisar
+                voltar pra home. Ver `src/lib/app-version.ts`. */}
+            <p className="px-2 pt-1 text-center text-[10px] text-muted-foreground/70">
+              <span className="font-mono font-medium">{APP_VERSION}</span>
+              <span className="mx-1 text-muted-foreground/40">·</span>
+              <span>{APP_VERSION_DATE}</span>
+            </p>
           </div>
         </div>
       </aside>
