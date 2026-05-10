@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { priceStats } from "@/lib/price-stats";
 import { useZapListings, type ZapListing } from "@/hooks/useZapListings";
+import { filterZapListings } from "@/lib/zap-listing-filter";
 import type { Property } from "@/types/property";
 import type { DadosFonte, ModoPreco, PontoPreco } from "./tipos";
 
@@ -41,10 +42,27 @@ export function useDadosAnuncios(
 
   const pontos = useMemo<PontoPreco[]>(() => {
     if (!zap.data) return [];
-    return zap.data.listings
+    // Filtro local de tipo + área no FRONTEND. Necessário porque a
+    // edge function `fetch-zap-listings` tem deploys flaky no Lovable
+    // (mesmo após várias tentativas, o código novo não chegou a rodar
+    // em prod). Aplicar aqui garante que o usuário NUNCA vê listings
+    // de tipo errado ou tamanho 2x maior que o cadastrado, mesmo se
+    // o ZAP server-side ignorar nossos filtros e a edge function
+    // estiver rodando uma versão antiga sem filtragem local.
+    const { listings: filtered, debug } = filterZapListings({
+      listings: zap.data.listings,
+      tipo_imovel: property.tipo_imovel,
+      metragem: property.metragem,
+    });
+    // Log no console do navegador — diagnóstico equivalente ao
+    // `[ZAP] filtro local de area:` que estaria nos Supabase Logs.
+    // Visível em DevTools → Console quando o usuário clica "Atualizar".
+    console.log("[Anuncios] filtro frontend:", debug);
+
+    return filtered
       .map((l) => listingParaPonto(l, modo))
       .filter((p): p is PontoPreco => p !== null);
-  }, [zap.data, modo]);
+  }, [zap.data, modo, property.tipo_imovel, property.metragem]);
 
   const stats = useMemo(() => {
     const base = priceStats(pontos.map((p) => p.preco));
