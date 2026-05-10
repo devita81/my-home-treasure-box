@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v6";
+export const APP_VERSION = "v7";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,18 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v7",
+    date: "10/mai/2026",
+    notes:
+      "Home redesign step 2/2 — substituiu os 5 stat-cards genéricos + " +
+      "duas seções accordion (Visão de Metragem, Custos e Receitas) por " +
+      "<CarteiraStats /> com 4 big-numbers segmentados: Carteira (total " +
+      "+ valor mercado), Por Tipo (apartamento/casa/comercial), Status " +
+      "(alugado/disponível/vendido), Financeiro do Mês (receita/líquido/" +
+      "yield bruto, vindo do Balancete). Filtros compactos: busca " +
+      "prominent + botão Filtros expansível com chips dos ativos.",
+  },
   {
     version: "v6",
     date: "10/mai/2026",
