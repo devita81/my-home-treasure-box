@@ -26,6 +26,7 @@ type FinanceiroProperty = Pick<
   | "alugado"
   | "valor_aluguel"
   | "inquilino"
+  | "taxa_administracao"
 >;
 
 interface PropertyFinanceiroSectionProps {
@@ -89,12 +90,12 @@ export function PropertyFinanceiroSection({
           </CardHeader>
           <CardContent className="space-y-1.5">
             <div className="flex items-center justify-between rounded-md bg-secondary px-2.5 py-1.5">
-              <span className="text-[12px] text-muted-foreground">
-                IPTU (mensal)
-              </span>
+              <span className="text-[12px] text-muted-foreground">IPTU</span>
               <div className="flex items-center gap-2">
                 <span className="text-[12px] font-normal">
-                  {fmtOrDash(property.iptu_value)}
+                  {property.iptu_value
+                    ? `${fmtBRL(property.iptu_value)}/mês`
+                    : "—"}
                 </span>
                 {property.iptu_pago ? (
                   <Badge
@@ -118,6 +119,14 @@ export function PropertyFinanceiroSection({
               valor={
                 property.valor_condominio
                   ? `${fmtBRL(property.valor_condominio)}/mês`
+                  : "—"
+              }
+            />
+            <Linha
+              rotulo="Taxa de admin."
+              valor={
+                property.taxa_administracao
+                  ? `${fmtBRL(property.taxa_administracao)}/mês`
                   : "—"
               }
             />
@@ -182,7 +191,7 @@ export function PropertyFinanceiroSection({
               <Derivado
                 rotulo="Yield líquido"
                 valor={fmtYield(yieldLiquido)}
-                ajuda="(Aluguel − IPTU − condomínio) × 12 ÷ valor"
+                ajuda="(Aluguel − taxa de administração) × 12 ÷ valor"
                 negativo={yieldLiquido != null && yieldLiquido < 0}
               />
               <Derivado
@@ -192,7 +201,7 @@ export function PropertyFinanceiroSection({
                     ? `${fmtBRLCompact(custoMensal)}/mês`
                     : "—"
                 }
-                ajuda="IPTU + condomínio"
+                ajuda="Taxa de administração (IPTU e condomínio são pagos pelo inquilino)"
               />
               <Derivado
                 rotulo="Renda líquida"
@@ -201,7 +210,7 @@ export function PropertyFinanceiroSection({
                     ? `${fmtBRLCompact(rendaLiquida)}/mês`
                     : "—"
                 }
-                ajuda="Aluguel − IPTU − condomínio"
+                ajuda="Aluguel − taxa de administração"
                 negativo={rendaLiquida != null && rendaLiquida < 0}
               />
             </div>
