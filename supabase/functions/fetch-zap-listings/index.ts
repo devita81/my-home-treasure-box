@@ -67,7 +67,11 @@ interface ZapAddress {
   neighborhood?: string;
   city?: string;
   state?: string;
-  streetNumber?: string;
+  // ZAP usa nomes diferentes para o número do endereço dependendo da
+  // origem do listing. Já vimos `streetNumber` e `number` na prática;
+  // tipamos os dois e probamos ambos em `extractStreetNumber()`.
+  streetNumber?: string | number;
+  number?: string | number;
 }
 
 interface ZapPricingInfo {
@@ -335,6 +339,28 @@ function extractImageUrl(hit: ZapResponseListing): string | undefined {
   return undefined;
 }
 
+// Probe os nomes possíveis do número do endereço. ZAP devolve
+// `streetNumber` em alguns listings e `number` em outros (depende
+// da fonte/idade do anúncio). Aceita também `number` numérico, que
+// já vimos em listings antigos. Retorna `undefined` quando o número
+// está genuinamente ausente — alguns anunciantes omitem por
+// privacidade. Nesses casos fica só a rua, igual antes.
+function extractStreetNumber(
+  addr: ZapAddress | undefined,
+): string | undefined {
+  if (!addr) return undefined;
+  const candidates: Array<string | number | undefined> = [
+    addr.streetNumber,
+    addr.number,
+  ];
+  for (const c of candidates) {
+    if (c == null) continue;
+    const s = typeof c === "number" ? String(c) : c.trim();
+    if (s.length > 0) return s;
+  }
+  return undefined;
+}
+
 function mapHitToListing(
   hit: ZapResponseListing,
   type: SearchType,
@@ -343,13 +369,11 @@ function mapHitToListing(
   if (!l?.id || !l.address?.street) return null;
 
   const addr = l.address;
-  // Quando o ZAP devolve `streetNumber`, anexamos à rua para ficar
-  // "Rua Pio XI, 123" em vez de só "Rua Pio XI". Nem todo anúncio
-  // traz o número (alguns omitem propositalmente para anonimizar
-  // o imóvel) — nesse caso fica só a rua, como antes.
-  const ruaComNumero = addr.streetNumber
-    ? `${addr.street}, ${addr.streetNumber}`
-    : addr.street;
+  // O ZAP usa nomes inconsistentes para o número do endereço (já vimos
+  // `streetNumber` e `number`). `extractStreetNumber()` proba ambos e
+  // tolera tipos `number` ou `string`.
+  const numero = extractStreetNumber(addr);
+  const ruaComNumero = numero ? `${addr.street}, ${numero}` : addr.street;
   const fullAddress = [ruaComNumero, addr.neighborhood, addr.city]
     .filter(Boolean)
     .join(", ");
@@ -465,6 +489,20 @@ async function fetchListings(
 
   const data = (await response.json()) as ZapResponse;
   const hits = data.search?.result?.listings ?? [];
+
+  // Diagnóstico: dump as keys do `address` do PRIMEIRO listing pra
+  // ver no log do Supabase quais campos o ZAP está mandando. Útil
+  // pra detectar se o número do endereço veio em outro nome (já
+  // mudou no passado entre `streetNumber` e `number`).
+  const firstAddr = hits[0]?.listing?.address;
+  if (firstAddr && typeof firstAddr === "object") {
+    console.log(
+      "[ZAP] sample address keys:",
+      Object.keys(firstAddr).join(","),
+      "| values:",
+      JSON.stringify(firstAddr),
+    );
+  }
 
   const listings = hits
     .map((hit) => mapHitToListing(hit, type))
