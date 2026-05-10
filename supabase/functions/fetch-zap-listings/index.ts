@@ -719,6 +719,7 @@ async function fetchListings(
   // ZAP ignorou os params e o filtro server-side falhou silenciosamente.
   const tiposAceitos = getZapUnitTypesAceitaveis(input.tipo_imovel);
   let hitsFiltrados = hits;
+  let debugFiltroTipo: Record<string, unknown> | null = null;
   if (tiposAceitos) {
     hitsFiltrados = hits.filter((h) => {
       const t = h.listing?.unitTypes?.[0]?.toUpperCase();
@@ -731,16 +732,14 @@ async function fetchListings(
           .filter((t): t is string => typeof t === "string"),
       ),
     ];
-    console.log(
-      "[ZAP] filtro local de tipo:",
-      JSON.stringify({
-        cadastro: input.tipo_imovel,
-        aceitos: [...tiposAceitos],
-        observados_no_zap: tiposObservados,
-        total_recebido: hits.length,
-        dentro_do_tipo: hitsFiltrados.length,
-      }),
-    );
+    debugFiltroTipo = {
+      cadastro: input.tipo_imovel,
+      aceitos: [...tiposAceitos],
+      observados_no_zap: tiposObservados,
+      total_recebido: hits.length,
+      dentro_do_tipo: hitsFiltrados.length,
+    };
+    console.log("[ZAP] filtro local de tipo:", JSON.stringify(debugFiltroTipo));
   }
 
   const allListings = hitsFiltrados
@@ -759,6 +758,7 @@ async function fetchListings(
   // (que era o caso anterior, deixando passar 195m² pra um imóvel de
   // 83m²). Se metragem não está cadastrada, retorna todos sem filtro.
   let listings = allListings;
+  let debugFiltroArea: Record<string, unknown> | null = null;
   if (typeof input.metragem === "number" && input.metragem > 0) {
     const ranges = [
       { pct: 0.3, label: "±30%" },
@@ -787,16 +787,14 @@ async function fetchListings(
     if (escolhido) {
       const min = input.metragem * (1 - escolhido.pct);
       const max = input.metragem * (1 + escolhido.pct);
-      console.log(
-        "[ZAP] filtro local de area:",
-        JSON.stringify({
-          metragem_cadastrada: input.metragem,
-          range_aplicado: escolhido.label,
-          limites: [Math.round(min), Math.round(max)],
-          total_recebido: allListings.length,
-          dentro_do_range: escolhido.filtered.length,
-        }),
-      );
+      debugFiltroArea = {
+        metragem_cadastrada: input.metragem,
+        range_aplicado: escolhido.label,
+        limites: [Math.round(min), Math.round(max)],
+        total_recebido: allListings.length,
+        dentro_do_range: escolhido.filtered.length,
+      };
+      console.log("[ZAP] filtro local de area:", JSON.stringify(debugFiltroArea));
       listings = escolhido.filtered;
     }
   }
@@ -808,6 +806,15 @@ async function fetchListings(
     precision,
     cloudflareBlocked: false,
     resolved,
+    // Marcador de versão visível no DevTools — permite confirmar
+    // qual versão da edge function está deployada sem precisar de
+    // acesso aos logs do Supabase. Bumpe quando lançar mudanças
+    // estruturais, e o frontend ignora (campo opcional).
+    _debug: {
+      version: "tipo+area-local-2026-05-10",
+      filtroDeTipo: debugFiltroTipo,
+      filtroDeArea: debugFiltroArea,
+    },
   };
 }
 
