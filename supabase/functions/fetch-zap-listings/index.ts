@@ -663,9 +663,43 @@ async function fetchListings(
     );
   }
 
-  const listings = hits
+  const allListings = hits
     .map((hit) => mapHitToListing(hit, type))
     .filter((l): l is Listing => l !== null);
+
+  // Filtro local de ÁREA — fallback porque o ZAP ignora nossos params
+  // `areaMinima/Maxima` e `usableAreaMin/Max` (testado em prod: tipos
+  // e quartos são honrados, mas área não, mesmo com 4 nomes diferentes
+  // tentados). Filtramos aqui ±30% pra garantir que o usuário só vê
+  // imóveis comparáveis ao cadastrado.
+  //
+  // Se sobrar muito pouco resultado (<3) por inventário restrito naquela
+  // rua, soltamos o filtro pra não devolver array vazio — o frontend
+  // mostra todos com nota visual de que é uma comparação ampla.
+  let listings = allListings;
+  if (typeof input.metragem === "number" && input.metragem > 0) {
+    const min = input.metragem * 0.7;
+    const max = input.metragem * 1.3;
+    const dentroRange = allListings.filter(
+      (l) =>
+        typeof l.floorSize === "number" &&
+        l.floorSize >= min &&
+        l.floorSize <= max,
+    );
+    console.log(
+      "[ZAP] filtro local de area:",
+      JSON.stringify({
+        metragem_cadastrada: input.metragem,
+        range: [Math.round(min), Math.round(max)],
+        total_recebido: allListings.length,
+        dentro_do_range: dentroRange.length,
+        aplicou_filtro: dentroRange.length >= 3,
+      }),
+    );
+    if (dentroRange.length >= 3) {
+      listings = dentroRange;
+    }
+  }
 
   const precision: Precision = hasStreet ? "street" : "neighbourhood";
 
