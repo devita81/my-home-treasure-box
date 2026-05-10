@@ -670,34 +670,54 @@ async function fetchListings(
   // Filtro local de ÁREA — fallback porque o ZAP ignora nossos params
   // `areaMinima/Maxima` e `usableAreaMin/Max` (testado em prod: tipos
   // e quartos são honrados, mas área não, mesmo com 4 nomes diferentes
-  // tentados). Filtramos aqui ±30% pra garantir que o usuário só vê
-  // imóveis comparáveis ao cadastrado.
+  // tentados).
   //
-  // Se sobrar muito pouco resultado (<3) por inventário restrito naquela
-  // rua, soltamos o filtro pra não devolver array vazio — o frontend
-  // mostra todos com nota visual de que é uma comparação ampla.
+  // Estratégia: range progressivo. Tenta ±30% primeiro (resultado mais
+  // próximo ao cadastrado); se devolver poucos, abre pra ±50%, depois
+  // ±100%, sempre exigindo no mínimo 3 comparáveis. Se nem ±100% achar
+  // 3, mantém o cap em ±100% mesmo com poucos — nunca devolve todos
+  // (que era o caso anterior, deixando passar 195m² pra um imóvel de
+  // 83m²). Se metragem não está cadastrada, retorna todos sem filtro.
   let listings = allListings;
   if (typeof input.metragem === "number" && input.metragem > 0) {
-    const min = input.metragem * 0.7;
-    const max = input.metragem * 1.3;
-    const dentroRange = allListings.filter(
-      (l) =>
-        typeof l.floorSize === "number" &&
-        l.floorSize >= min &&
-        l.floorSize <= max,
-    );
-    console.log(
-      "[ZAP] filtro local de area:",
-      JSON.stringify({
-        metragem_cadastrada: input.metragem,
-        range: [Math.round(min), Math.round(max)],
-        total_recebido: allListings.length,
-        dentro_do_range: dentroRange.length,
-        aplicou_filtro: dentroRange.length >= 3,
-      }),
-    );
-    if (dentroRange.length >= 3) {
-      listings = dentroRange;
+    const ranges = [
+      { pct: 0.3, label: "±30%" },
+      { pct: 0.5, label: "±50%" },
+      { pct: 1.0, label: "±100%" },
+    ];
+    let escolhido: {
+      pct: number;
+      label: string;
+      filtered: Listing[];
+    } | null = null;
+    for (const r of ranges) {
+      const min = input.metragem * (1 - r.pct);
+      const max = input.metragem * (1 + r.pct);
+      const filtered = allListings.filter(
+        (l) =>
+          typeof l.floorSize === "number" &&
+          l.floorSize >= min &&
+          l.floorSize <= max,
+      );
+      if (filtered.length >= 3 || r.pct === 1.0) {
+        escolhido = { pct: r.pct, label: r.label, filtered };
+        break;
+      }
+    }
+    if (escolhido) {
+      const min = input.metragem * (1 - escolhido.pct);
+      const max = input.metragem * (1 + escolhido.pct);
+      console.log(
+        "[ZAP] filtro local de area:",
+        JSON.stringify({
+          metragem_cadastrada: input.metragem,
+          range_aplicado: escolhido.label,
+          limites: [Math.round(min), Math.round(max)],
+          total_recebido: allListings.length,
+          dentro_do_range: escolhido.filtered.length,
+        }),
+      );
+      listings = escolhido.filtered;
     }
   }
 
