@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v9";
+export const APP_VERSION = "v10";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,21 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v10",
+    date: "10/mai/2026",
+    notes:
+      "IA refator step 2/3 — frontend integrado com a nova edge function " +
+      "`chat-ia` (GPT-4o + tool calling, deployada no v? do PR backend). " +
+      "GlobalAIChatDialog e AIChatDialog deixam de montar context manualmente " +
+      "no frontend; a function busca via tools (get_properties, get_balancete, " +
+      "get_itbi_comparables, get_ai_estimate, etc). Mudanças visuais: ícone " +
+      "Sparkles → Bot, label 'Assistente IA' → 'Consultor IA', botão 'Testar' " +
+      "no header dos dialogs (health check + toast com latência). Versão do " +
+      "app migrou do rodapé da home pro rodapé da sidebar (visível em todas " +
+      "as páginas). Sem streaming na v1 — resposta de uma vez com loading " +
+      "'Pensando...'.",
+  },
   {
     version: "v9",
     date: "10/mai/2026",
