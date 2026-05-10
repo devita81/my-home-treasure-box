@@ -369,6 +369,54 @@ function mapTipoImovelToUnitType(
   }
 }
 
+// Conjunto de unitTypes ZAP que aceitamos como comparável pra cada
+// `tipo_imovel` cadastrado. Usado no FILTRO LOCAL pós-resposta —
+// independente de o ZAP filtrar ou não server-side, garantimos
+// aqui que listings de tipo errado não vazam.
+//
+// O conjunto é mais permissivo que o `mapTipoImovelToUnitType` (que
+// envia apenas 1 valor pra ZAP) porque o ZAP usa nomes diferentes
+// pra variações do mesmo conceito (ex: TWO_STORY_HOUSE pra casa
+// sobrado). Listamos todos os razoáveis.
+//
+// Caso real que motivou: imóvel da Rua Monte Alegre cadastrado como
+// conjunto_comercial mas ZAP devolveu apartamentos misturados — o
+// filtro server-side de tipo, mesmo enviando `unitType=OFFICE`, não
+// foi suficiente.
+function getZapUnitTypesAceitaveis(
+  tipo: string | null | undefined,
+): Set<string> | null {
+  if (!tipo) return null;
+  switch (tipo.toLowerCase().trim()) {
+    case "apartamento":
+      return new Set(["APARTMENT", "FLAT", "PENTHOUSE", "KITNET"]);
+    case "casa":
+      return new Set([
+        "HOME",
+        "TWO_STORY_HOUSE",
+        "SINGLE_STORY_HOUSE",
+        "VILLAGE_HOUSE",
+        "CONDOMINIUM_HOUSE",
+      ]);
+    case "terreno":
+      return new Set([
+        "ALLOTMENT_LAND",
+        "RESIDENTIAL_ALLOTMENT_LAND",
+        "COMMERCIAL_ALLOTMENT_LAND",
+      ]);
+    case "conjunto_comercial":
+      return new Set([
+        "OFFICE",
+        "COMMERCIAL_BUILDING",
+        "COMMERCIAL_PROPERTY",
+        "BUSINESS",
+        "COMMERCIAL_OFFICE",
+      ]);
+    default:
+      return null; // tipos sem mapping (ex: garagem) — sem filtro
+  }
+}
+
 // Distingue uso residencial vs comercial.
 function mapTipoImovelToUnitUsage(
   tipo: string | null | undefined,
@@ -663,7 +711,39 @@ async function fetchListings(
     );
   }
 
-  const allListings = hits
+  // Filtro local de TIPO — segunda camada, descarta hits cujo
+  // unitType não bate com o cadastrado. Aplicado ANTES do map pra
+  // evitar processar listings que vão sair de qualquer jeito.
+  // Caso real: Monte Alegre (conjunto_comercial) trazia apartamentos
+  // mesmo enviando `tipos=conjunto_comercial` + `unitType=OFFICE` — o
+  // ZAP ignorou os params e o filtro server-side falhou silenciosamente.
+  const tiposAceitos = getZapUnitTypesAceitaveis(input.tipo_imovel);
+  let hitsFiltrados = hits;
+  if (tiposAceitos) {
+    hitsFiltrados = hits.filter((h) => {
+      const t = h.listing?.unitTypes?.[0]?.toUpperCase();
+      return t ? tiposAceitos.has(t) : false;
+    });
+    const tiposObservados = [
+      ...new Set(
+        hits
+          .map((h) => h.listing?.unitTypes?.[0])
+          .filter((t): t is string => typeof t === "string"),
+      ),
+    ];
+    console.log(
+      "[ZAP] filtro local de tipo:",
+      JSON.stringify({
+        cadastro: input.tipo_imovel,
+        aceitos: [...tiposAceitos],
+        observados_no_zap: tiposObservados,
+        total_recebido: hits.length,
+        dentro_do_tipo: hitsFiltrados.length,
+      }),
+    );
+  }
+
+  const allListings = hitsFiltrados
     .map((hit) => mapHitToListing(hit, type))
     .filter((l): l is Listing => l !== null);
 
