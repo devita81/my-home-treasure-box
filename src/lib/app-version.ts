@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v10";
+export const APP_VERSION = "v11";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,18 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v11",
+    date: "10/mai/2026",
+    notes:
+      "Hotfix CORS na edge function chat-ia — botão 'Testar' falhava com " +
+      "'Failed to fetch' porque a lista de Access-Control-Allow-Headers " +
+      "não incluía os headers `x-supabase-client-platform`, `x-supabase-" +
+      "client-runtime` (e versões) que o cliente JS @supabase/supabase-js " +
+      "manda automaticamente. Browser bloqueava no preflight OPTIONS antes " +
+      "do request chegar no backend. Replicamos a lista completa de chat-" +
+      "global (que sempre funcionou) + Access-Control-Allow-Methods.",
+  },
   {
     version: "v10",
     date: "10/mai/2026",
