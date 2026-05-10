@@ -21,32 +21,7 @@ import {
 import type { TooltipProps } from 'recharts';
 import { cn } from '@/lib/utils';
 import { ImportBalanceteDialog } from '@/components/balancete/ImportBalanceteDialog';
-
-interface BalanceteRow {
-  id: string;
-  external_id: string | null;
-  property_id: string | null;
-  ano: number;
-  mes: number;
-  cidade: string | null;
-  bairro: string | null;
-  rua: string | null;
-  numero: string | null;
-  apartamento: string | null;
-  complemento: string | null;
-  alugado: boolean | null;
-  locatario: string | null;
-  periodo_contrato: string | null;
-  aluguel: number;
-  condominio: number;
-  reembolso_condominio: number;
-  iptu: number;
-  reembolso_iptu: number;
-  taxa_administracao: number;
-  outras_despesas: number;
-  reembolso_outras_despesas: number;
-  liquido: number;
-}
+import { type BalanceteRow, rowTotals } from '@/lib/balancete-stats';
 
 const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'] as const;
 type MetricLabel = 'receita' | 'despesa' | 'liquido' | 'aluguel';
@@ -73,20 +48,9 @@ const monthKey = (ano: number, mes: number) => `${ano}-${String(mes).padStart(2,
 // Label compacto Mai/25
 const formatMonthLabel = (ano: number, mes: number) => `${MONTHS[mes - 1]}/${String(ano).slice(2)}`;
 
-// Cálculo padronizado de totais por linha (evita repetir Math.max/Math.min em vários memos)
-function rowTotals(r: BalanceteRow) {
-  const aluguel = Math.max(0, r.aluguel);
-  const reembolsoCond = Math.max(0, r.reembolso_condominio);
-  const reembolsoIptu = Math.max(0, r.reembolso_iptu);
-  const reembolsoOutras = Math.max(0, r.reembolso_outras_despesas);
-  const condominio = Math.min(0, r.condominio);
-  const iptu = Math.min(0, r.iptu);
-  const taxa = Math.min(0, r.taxa_administracao);
-  const outras = Math.min(0, r.outras_despesas);
-  const receita = aluguel + reembolsoCond + reembolsoIptu + reembolsoOutras;
-  const despesa = condominio + iptu + taxa + outras;
-  return { aluguel, reembolsoCond, reembolsoIptu, reembolsoOutras, condominio, iptu, taxa, outras, receita, despesa };
-}
+// `BalanceteRow` e `rowTotals` foram extraídos para `@/lib/balancete-stats`
+// para que `<PropertyFinanceiroSection>` use a mesma fórmula. Continuam
+// sendo importados acima.
 
 function formatAddress(r: BalanceteRow) {
   const parts = [r.rua, r.numero, r.apartamento].filter(Boolean);

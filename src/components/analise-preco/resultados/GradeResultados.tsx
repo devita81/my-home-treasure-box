@@ -79,8 +79,15 @@ export function GradeResultados({
   }, [dados, fontesAtivas]);
 
   const filtrados = useMemo<PontoPreco[]>(() => {
+    // A faixa de área só faz sentido pra anúncios — varia muito de
+    // imóvel pra imóvel. ITBI já vem filtrado por logradouro+número
+    // (transações do mesmo prédio) e a Estimativa IA é sobre o imóvel
+    // específico. Aplicar o filtro neles eliminaria pontos válidos
+    // sem motivo, então passam direto.
     const base = faixaArea
-      ? todosPontos.filter((p) => isInBucket(p.area, faixaArea))
+      ? todosPontos.filter(
+          (p) => p.fonte !== "anuncios" || isInBucket(p.area, faixaArea),
+        )
       : todosPontos;
     return [...base].sort(OPCOES_ORDEM[ordem].cmp).slice(0, LIMITE_VISIVEL);
   }, [todosPontos, faixaArea, ordem]);

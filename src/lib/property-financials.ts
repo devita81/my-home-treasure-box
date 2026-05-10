@@ -1,28 +1,24 @@
-// Cálculos derivados a partir dos campos financeiros já cadastrados
-// na propriedade (`market_value`, `valor_aluguel`, `iptu_value`,
-// `valor_condominio`). Funções puras — não acessam Supabase nem
-// React. Reusáveis em qualquer card/relatório.
+// Cálculos derivados puros sobre os campos cadastrais da propriedade.
+// Hoje só fica `yieldBrutoAnual` aqui — basta o aluguel cadastrado
+// + valor de mercado, sem precisar de transações.
 //
-// Convenções:
-//  • Todos os campos de entrada são tratados como BRL inteiros ou
-//    nulos. `null`/`undefined`/0 invalidam o cálculo.
-//  • Retornam `null` quando os ingredientes não dão pra fazer a
-//    conta — a UI decide como renderizar a ausência ("—").
-//  • Yields voltam em DECIMAL (0.054 = 5.4%); o formatter cuida
-//    de multiplicar por 100 e formatar.
+// Os cálculos LÍQUIDOS (renda líquida, yield líquido) NÃO vivem aqui
+// porque dependem da movimentação real do imóvel (aluguel recebido,
+// reembolsos, despesas) — essa fonte de verdade está na view
+// `property_balancete`. Veja `useReceitaLiquidaImovel` em
+// `src/hooks/useReceitaLiquidaImovel.ts`.
 
 import type { Property } from "@/types/property";
 
-type FinanceiroInput = Pick<
-  Property,
-  "market_value" | "valor_aluguel" | "iptu_value" | "valor_condominio"
->;
+type FinanceiroInput = Pick<Property, "market_value" | "valor_aluguel">;
 
 /**
  * Yield bruto anual: aluguel × 12 / valor de mercado.
  *
  * Decimal — multiplicar por 100 pra exibir como percentual.
- * Bruto = ignora custos. Pra o "líquido" use `yieldLiquidoAnual`.
+ * Estimativa baseada nos campos cadastrados; pode divergir do real
+ * se o aluguel atual difere do cadastro. Para "yield líquido" use
+ * a média mensal real do `useReceitaLiquidaImovel` × 12 / valor.
  */
 export function yieldBrutoAnual(p: FinanceiroInput): number | null {
   const aluguel = positivo(p.valor_aluguel);
@@ -32,40 +28,16 @@ export function yieldBrutoAnual(p: FinanceiroInput): number | null {
 }
 
 /**
- * Yield líquido anual: (aluguel − IPTU − condomínio) × 12 / valor de mercado.
- *
- * Mesmas premissas do bruto, descontando os custos mensais conhecidos.
- * Pode dar negativo — a UI mostra do jeito que vier (vermelho).
+ * Yield líquido a partir da média mensal real do Balancete e do
+ * valor de mercado cadastrado. Decimal anual.
  */
-export function yieldLiquidoAnual(p: FinanceiroInput): number | null {
-  const aluguel = positivo(p.valor_aluguel);
-  const valor = positivo(p.market_value);
-  if (aluguel == null || valor == null) return null;
-  const custos = (p.iptu_value ?? 0) + (p.valor_condominio ?? 0);
-  return ((aluguel - custos) * 12) / valor;
-}
-
-/**
- * Custo mensal total: IPTU + condomínio. Soma dos dois mesmo se um
- * estiver zerado. Retorna `null` se ambos estiverem ausentes (não
- * faz sentido mostrar "R$ 0").
- */
-export function custoMensalTotal(p: FinanceiroInput): number | null {
-  const iptu = p.iptu_value ?? null;
-  const condo = p.valor_condominio ?? null;
-  if (iptu == null && condo == null) return null;
-  return (iptu ?? 0) + (condo ?? 0);
-}
-
-/**
- * Renda mensal líquida: aluguel − IPTU − condomínio. Aluguel é
- * obrigatório; custos opcionais (somam zero quando ausentes).
- * Pode dar negativo — útil pra sinalizar quando o imóvel "vaza".
- */
-export function rendaMensalLiquida(p: FinanceiroInput): number | null {
-  const aluguel = positivo(p.valor_aluguel);
-  if (aluguel == null) return null;
-  return aluguel - (p.iptu_value ?? 0) - (p.valor_condominio ?? 0);
+export function yieldLiquidoFromMedia(
+  liquidoMedioMensal: number | null,
+  marketValue: number | null | undefined,
+): number | null {
+  const valor = positivo(marketValue);
+  if (valor == null || liquidoMedioMensal == null) return null;
+  return (liquidoMedioMensal * 12) / valor;
 }
 
 // ─── helpers ─────────────────────────────────────────────────────────
