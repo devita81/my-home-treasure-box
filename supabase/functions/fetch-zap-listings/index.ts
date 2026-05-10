@@ -278,10 +278,19 @@ function buildQueryParams(
   // comerciais, terrenos, lojas, garagens — qualquer coisa naquela rua.
   // Os 3 filtros abaixo são o que move a busca de "anúncios na rua"
   // para "anúncios comparáveis ao imóvel cadastrado".
+  //
+  // IMPORTANTE — naming dos params: o ZAP usa SINGULAR para os filtros
+  // mesmo quando os campos da resposta são plurais. A primeira tentativa
+  // usou `unitTypes` / `usableAreasMin` (plurais, espelhando o JSON de
+  // resposta) e o ZAP simplesmente IGNOROU esses params silenciosamente,
+  // devolvendo todos os imóveis da rua sem filtro. Os nomes corretos
+  // (singular) foram confirmados via documentação Apify do scraper:
+  //   • `unitType` (não `unitTypes`)
+  //   • `usableAreaMin` / `usableAreaMax` (não `usableAreas…`)
 
   const unitType = mapTipoImovelToUnitType(input.tipo_imovel);
   if (unitType) {
-    params.set("unitTypes", unitType);
+    params.set("unitType", unitType);
   }
 
   // Bedrooms: ZAP aceita um número exato. Filtramos só se houver `quartos`
@@ -290,23 +299,30 @@ function buildQueryParams(
     params.set("bedrooms", String(input.quartos));
   }
 
-  // Área: ZAP aceita range via `usableAreasMin` + `usableAreasMax`.
-  // Construímos ±30% pra capturar comparáveis sem ser muito rígido —
-  // imóveis no mesmo prédio costumam variar dentro disso.
+  // Área: range ±30% pra capturar comparáveis sem ser muito rígido.
   if (typeof input.metragem === "number" && input.metragem > 0) {
     const min = Math.max(1, Math.round(input.metragem * 0.7));
     const max = Math.round(input.metragem * 1.3);
-    params.set("usableAreasMin", String(min));
-    params.set("usableAreasMax", String(max));
+    params.set("usableAreaMin", String(min));
+    params.set("usableAreaMax", String(max));
+  }
+
+  // Uso residencial vs comercial — ajuda a separar quando o `unitType`
+  // sozinho não basta (ex: edifícios mistos).
+  const unitUsage = mapTipoImovelToUnitUsage(input.tipo_imovel);
+  if (unitUsage) {
+    params.set("unitUsage", unitUsage);
   }
 
   return params;
 }
 
 // Mapeia o `tipo_imovel` cadastrado no app para o vocabulário do ZAP.
-// Tipos cadastrados que o ZAP não tem equivalente direto (ex: garagem)
-// retornam `null` — a busca não envia o filtro de tipo, ficando como
-// estava antes do refinamento.
+// Vocabulário oficial confirmado via Apify scraper:
+//   ALLOTMENT_LAND, APARTMENT, BUILDING, BUSINESS, FARM, HOME, HOTEL,
+//   OFFICE, SHED_DEPOSIT_WAREHOUSE
+// Tipos sem equivalente direto (ex: garagem) retornam `null` — a busca
+// não envia o filtro, ficando como antes do refinamento.
 function mapTipoImovelToUnitType(
   tipo: string | null | undefined,
 ): string | null {
@@ -317,9 +333,27 @@ function mapTipoImovelToUnitType(
     case "casa":
       return "HOME";
     case "terreno":
-      return "RESIDENTIAL_ALLOTMENT_LAND";
+      return "ALLOTMENT_LAND";
     case "conjunto_comercial":
-      return "COMMERCIAL_BUILDING";
+      return "OFFICE";
+    default:
+      return null;
+  }
+}
+
+// Distingue uso residencial vs comercial. Conjunto comercial é
+// claramente comercial; demais são residenciais. `null` = sem filtro.
+function mapTipoImovelToUnitUsage(
+  tipo: string | null | undefined,
+): string | null {
+  if (!tipo) return null;
+  switch (tipo.toLowerCase().trim()) {
+    case "apartamento":
+    case "casa":
+    case "terreno":
+      return "RESIDENTIAL";
+    case "conjunto_comercial":
+      return "COMMERCIAL";
     default:
       return null;
   }
@@ -514,10 +548,11 @@ async function fetchListings(
       quartos: input.quartos ?? null,
       metragem: input.metragem ?? null,
       filtros_enviados: {
-        unitTypes: params.get("unitTypes"),
+        unitType: params.get("unitType"),
+        unitUsage: params.get("unitUsage"),
         bedrooms: params.get("bedrooms"),
-        usableAreasMin: params.get("usableAreasMin"),
-        usableAreasMax: params.get("usableAreasMax"),
+        usableAreaMin: params.get("usableAreaMin"),
+        usableAreaMax: params.get("usableAreaMax"),
       },
     }),
   );
@@ -576,7 +611,7 @@ async function fetchListings(
   }
 
   // Diagnóstico: distribuição das metragens devolvidas. Se mandamos
-  // um range usableAreasMin/Max e mesmo assim vier muito fora, o ZAP
+  // um range usableAreaMin/Max e mesmo assim vier muito fora, o ZAP
   // não está honrando o filtro (ou estamos usando o nome errado).
   const areasReturned = hits
     .map((h) => num(h.listing?.usableAreas?.[0]))
