@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v8";
+export const APP_VERSION = "v9";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,17 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v9",
+    date: "10/mai/2026",
+    notes:
+      "Safe area do iOS — top bar mobile (sticky em <AppLayout>) e topo + " +
+      "rodapé do <Sidebar /> agora usam env(safe-area-inset-*). Antes, em " +
+      "PWA instalado no iPhone, a Dynamic Island/notch sobrepunha o botão " +
+      "hambúrguer e o logo, e o home indicator cobria o botão 'Adicionar " +
+      "imóvel'. Adicionados utilitários `pt-safe-top` / `pb-safe-bottom` " +
+      "no Tailwind config pra reuso futuro.",
+  },
   {
     version: "v8",
     date: "10/mai/2026",

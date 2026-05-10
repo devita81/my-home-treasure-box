@@ -100,8 +100,13 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           open ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        {/* Topo: logo + título */}
-        <div className="flex items-center justify-between border-b border-border/60 px-4 py-3.5">
+        {/* Topo: logo + título.
+            Wrapper externo aplica `pt-safe-top` pra compensar a notch
+            do iPhone — quando rodando como PWA com status bar
+            translucente, sem isso o logo + botão de fechar ficam
+            cobertos pela Dynamic Island. */}
+        <div className="border-b border-border/60 pt-safe-top">
+          <div className="flex items-center justify-between px-4 py-3.5">
           <Link
             to="/"
             className="group flex min-w-0 items-center gap-2.5"
@@ -130,6 +135,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
+          </div>
         </div>
 
         {/* Nav principal — ocupa espaço disponível */}
@@ -176,31 +182,36 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           </button>
         </nav>
 
-        {/* Rodapé: ação primária + menu de conta */}
-        <div className="border-t border-border/60 p-3 space-y-2">
-          <Link to="/add" onClick={onClose}>
-            <Button className="w-full justify-start gap-2" size="sm">
-              <PlusCircle className="h-4 w-4" />
-              Adicionar imóvel
-            </Button>
-          </Link>
-          {user ? (
-            <div className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-[12px] text-muted-foreground">
-              <span className="truncate" title={user.email ?? ""}>
-                {user.email ?? "—"}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLogout}
-                className="h-7 w-7 shrink-0 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                title="Sair"
-                aria-label="Sair"
-              >
-                <LogOut className="h-3.5 w-3.5" />
+        {/* Rodapé: ação primária + menu de conta.
+            Wrapper externo aplica `pb-safe-bottom` pra compensar o home
+            indicator do iPhone — sem isso o botão "Adicionar imóvel"
+            ou o email/logout ficam atrás da barra preta no PWA. */}
+        <div className="border-t border-border/60 pb-safe-bottom">
+          <div className="p-3 space-y-2">
+            <Link to="/add" onClick={onClose}>
+              <Button className="w-full justify-start gap-2" size="sm">
+                <PlusCircle className="h-4 w-4" />
+                Adicionar imóvel
               </Button>
-            </div>
-          ) : null}
+            </Link>
+            {user ? (
+              <div className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-[12px] text-muted-foreground">
+                <span className="truncate" title={user.email ?? ""}>
+                  {user.email ?? "—"}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="h-7 w-7 shrink-0 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  title="Sair"
+                  aria-label="Sair"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            ) : null}
+          </div>
         </div>
       </aside>
 

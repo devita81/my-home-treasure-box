@@ -26,12 +26,17 @@ export function AppLayout({ children }: AppLayoutProps) {
       <Sidebar open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Top bar slim — só no mobile, com hambúrguer */}
-        <header className="sticky top-0 z-30 flex h-12 items-center gap-2 border-b border-border bg-card px-3 shadow-sm lg:hidden">
-          <SidebarTrigger onClick={() => setDrawerOpen(true)} />
-          <span className="font-display text-sm font-semibold">
-            My Home Collection
-          </span>
+        {/* Top bar slim — só no mobile, com hambúrguer.
+            `pt-safe-top` extende o bg-card pra dentro da safe area do
+            iOS (notch / status bar) — sem isso a Dynamic Island
+            sobrepõe o botão hambúrguer no PWA. */}
+        <header className="sticky top-0 z-30 border-b border-border bg-card pt-safe-top shadow-sm lg:hidden">
+          <div className="flex h-12 items-center gap-2 px-3">
+            <SidebarTrigger onClick={() => setDrawerOpen(true)} />
+            <span className="font-display text-sm font-semibold">
+              My Home Collection
+            </span>
+          </div>
         </header>
 
         <main className="flex-1 overflow-x-hidden">{children}</main>
