@@ -17,6 +17,18 @@ export default {
         sans: ['Calibri', 'Carlito', 'sans-serif'],
         display: ['Calibri', 'Carlito', 'sans-serif'],
       },
+      // Helpers pra safe-area do iOS (notch + home indicator). Uso:
+      // `pt-safe-top`, `pb-safe-bottom`, `pl-safe-left`, `pr-safe-right`.
+      // Necessário porque `index.html` usa `viewport-fit=cover` +
+      // `apple-mobile-web-app-status-bar-style: black-translucent` —
+      // ou seja, a status bar / notch sobrepõem o conteúdo, e qualquer
+      // barra fixa precisa compensar com env(safe-area-inset-*).
+      padding: {
+        "safe-top": "env(safe-area-inset-top)",
+        "safe-bottom": "env(safe-area-inset-bottom)",
+        "safe-left": "env(safe-area-inset-left)",
+        "safe-right": "env(safe-area-inset-right)",
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
