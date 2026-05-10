@@ -7,25 +7,19 @@ import { PropertyCardMap } from '@/components/property/PropertyCardMap';
 import { PropertyReportDialog } from '@/components/property/PropertyReportDialog';
 import { DocumentUpload } from '@/components/property/DocumentUpload';
 import { AnalisePreco } from '@/components/analise-preco/AnalisePreco';
+import { PropertyCadastroSection } from '@/components/property/sections/PropertyCadastroSection';
+import { PropertyFinanceiroSection } from '@/components/property/sections/PropertyFinanceiroSection';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   MapPin,
   Edit,
   ArrowLeft,
-  DollarSign,
   FileText,
   CheckCircle,
   XCircle,
   Calendar,
-  Home,
-  Key,
-  Building,
-  Ruler,
-  BedDouble,
-  Bath,
-  Car,
   MessageSquare,
 } from 'lucide-react';
 
@@ -45,15 +39,6 @@ const PropertyDetails = () => {
     return <Navigate to="/" replace />;
   }
 
-  const formatCurrency = (value: number | null | undefined) => {
-    if (value === null || value === undefined) return null;
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      minimumFractionDigits: 0,
-    }).format(value);
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -65,12 +50,6 @@ const PropertyDetails = () => {
   const toSentenceCase = (text: string) => {
     if (!text) return '';
     return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
-  };
-
-  const abbreviateOwnerName = (name: string | null | undefined) => {
-    if (!name) return '—';
-    if (name.toUpperCase().includes('DV')) return 'DV';
-    return name;
   };
 
   const getAddressDisplay = () => {
@@ -185,204 +164,17 @@ const PropertyDetails = () => {
             </div>
           </div>
 
-          {/* Content Grid - Row 1 */}
-          {/* Estimativas IA migraram para a seção <AnalisePreco /> abaixo —
-              esse grid passou de 4 colunas para 3 (Valores + Custos + Renda). */}
-          <div className="grid gap-4 lg:grid-cols-3">
-            {/* Valores */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-1.5 text-[13px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
-                  <DollarSign className="h-3.5 w-3.5 text-primary" />
-                  Valores
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1.5">
-                <div className="flex justify-between items-center px-2.5 py-1.5 bg-primary/10 rounded-md">
-                  <span className="text-[12px] text-muted-foreground">Mercado</span>
-                  <span className="font-normal text-[12px] text-primary">{formatCurrency(property.market_value) || '—'}</span>
-                </div>
-                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
-                  <span className="text-[12px] text-muted-foreground">Valor Declarado</span>
-                  <span className="font-normal text-[12px]">{formatCurrency(property.declared_value) || '—'}</span>
-                </div>
-              </CardContent>
-            </Card>
+          {/* ── 1. CADASTRO ──
+              Identificação (tipo, proprietários, matrícula, contribuinte)
+              + Atributos físicos (cômodos, áreas).
+              Antes eram 3 cards heterogêneos espalhados; agora 2 colunas. */}
+          <PropertyCadastroSection property={property} />
 
-            {/* Custos */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-1.5 text-[13px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
-                  <FileText className="h-3.5 w-3.5 text-primary" />
-                  Custos
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1.5">
-                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
-                  <span className="text-[12px] text-muted-foreground">IPTU (mensal)</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-normal text-[12px]">{formatCurrency(property.iptu_value) || '—'}</span>
-                    {property.iptu_pago ? (
-                      <Badge variant="outline" className="border-success text-success text-[13px] font-medium">Pago</Badge>
-                    ) : (
-                      <Badge variant="outline" className="border-warning text-warning text-[13px] font-medium">Pendente</Badge>
-                    )}
-                  </div>
-                </div>
-                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
-                  <span className="text-[12px] text-muted-foreground">Condomínio</span>
-                  <span className="font-normal text-[12px]">{property.valor_condominio ? `${formatCurrency(property.valor_condominio)}/mês` : '—'}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Rentabilidade */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-1.5 text-[13px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
-                  <Key className="h-3.5 w-3.5 text-primary" />
-                  Renda
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1.5">
-                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
-                  <span className="text-[12px] text-muted-foreground">Status</span>
-                  <span className={`font-normal text-[12px] ${property.alugado ? 'text-info' : ''}`}>
-                    {property.alugado ? 'Alugado' : 'Não alugado'}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
-                  <span className="text-[12px] text-muted-foreground">Aluguel</span>
-                  <span className={`font-normal text-[12px] ${property.alugado && property.valor_aluguel ? 'text-info' : ''}`}>
-                    {property.valor_aluguel ? `${formatCurrency(property.valor_aluguel)}/mês` : '—'}
-                  </span>
-                </div>
-                {property.alugado && property.inquilino && (
-                  <div className="flex justify-between items-center px-2.5 py-1.5 bg-info/10 rounded-md">
-                    <span className="text-[12px] text-muted-foreground">Inquilino</span>
-                    <span className="font-normal text-[12px]">{property.inquilino}</span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Content Grid - Row 2 */}
-          <div className="grid gap-4 lg:grid-cols-3">
-            {/* Propriedade */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-1.5 text-[13px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
-                  <Building className="h-3.5 w-3.5 text-primary" />
-                  Propriedade
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1.5">
-                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
-                  <span className="text-[12px] text-muted-foreground">Tipo</span>
-                  <span className="font-normal text-[12px] capitalize">{property.tipo_imovel || 'Apartamento'}</span>
-                </div>
-                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
-                  <span className="text-[12px] text-muted-foreground">Proprietário (Papel)</span>
-                  <span className="font-normal text-[12px]">{abbreviateOwnerName(property.proprietario_papel)}</span>
-                </div>
-                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
-                  <span className="text-[12px] text-muted-foreground">Proprietário (Matrícula)</span>
-                  <span className="font-normal text-[12px]">
-                    {abbreviateOwnerName(property.proprietario_matricula)}
-                    {property.percentual_proprietario_matricula != null && property.percentual_proprietario_matricula !== 100 && (
-                      <span className="text-muted-foreground ml-1">({property.percentual_proprietario_matricula}%)</span>
-                    )}
-                  </span>
-                </div>
-                {property.proprietario_matricula_ii && (
-                  <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
-                    <span className="text-[12px] text-muted-foreground">Proprietário 2 (Matrícula)</span>
-                    <span className="font-normal text-[12px]">
-                      {abbreviateOwnerName(property.proprietario_matricula_ii)}
-                      {property.percentual_proprietario_matricula_ii != null && property.percentual_proprietario_matricula_ii > 0 && (
-                        <span className="text-muted-foreground ml-1">({property.percentual_proprietario_matricula_ii}%)</span>
-                      )}
-                    </span>
-                  </div>
-                )}
-                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
-                  <span className="text-[12px] text-muted-foreground">Nº Matrícula</span>
-                  <span className="font-mono font-normal text-[12px]">{property.numero_matricula || '—'}</span>
-                </div>
-                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
-                  <span className="text-[12px] text-muted-foreground">Nº Contribuinte</span>
-                  <span className="font-mono font-normal text-[12px]">{property.numero_contribuinte || '—'}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Características */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-1.5 text-[13px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
-                  <Home className="h-3.5 w-3.5 text-primary" />
-                  Características
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1.5">
-                <div className="grid grid-cols-2 gap-1.5">
-                  <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <BedDouble className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-[12px] text-muted-foreground">Quartos</span>
-                    </div>
-                    <span className="font-normal text-[12px]">{property.quartos || '—'}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <BedDouble className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-[12px] text-muted-foreground">Suítes</span>
-                    </div>
-                    <span className="font-normal text-[12px]">{property.suites || '—'}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Bath className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-[12px] text-muted-foreground">Banheiros</span>
-                    </div>
-                    <span className="font-normal text-[12px]">{property.banheiros || '—'}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Car className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-[12px] text-muted-foreground">Garagens</span>
-                    </div>
-                    <span className="font-normal text-[12px]">{property.garagens || '—'}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Metragens */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-1.5 text-[13px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
-                  <Ruler className="h-3.5 w-3.5 text-primary" />
-                  Metragens
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1.5">
-                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
-                  <span className="text-[12px] text-muted-foreground">Área Útil</span>
-                  <span className="font-normal text-[12px]">{property.metragem ? `${property.metragem} m²` : '—'}</span>
-                </div>
-                <div className="flex justify-between items-center px-2.5 py-1.5 bg-secondary rounded-md">
-                  <span className="text-[12px] text-muted-foreground">Área Comum</span>
-                  <span className="font-normal text-[12px]">{property.area_comum ? `${property.area_comum} m²` : '—'}</span>
-                </div>
-                <div className="flex justify-between items-center px-2.5 py-1.5 bg-primary/10 rounded-md">
-                  <span className="text-[12px] text-muted-foreground">Área Total</span>
-                  <span className="font-normal text-[12px] text-primary">{property.area_total ? `${property.area_total} m²` : '—'}</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {/* ── 2. FINANCEIRO ──
+              Valores + Custos + Renda em 3 colunas, com faixa de
+              indicadores derivados (yield bruto/líquido, custo mensal,
+              renda líquida) calculados em `lib/property-financials`. */}
+          <PropertyFinanceiroSection property={property} />
 
           {/* Análise de Preço — substitui os ex-blocos MarketListings,
               PropertyItbiBlock e o card "Estimativas IA". As 3 fontes
