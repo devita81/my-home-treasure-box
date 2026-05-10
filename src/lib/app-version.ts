@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v1";
+export const APP_VERSION = "v2";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,15 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v2",
+    date: "10/mai/2026",
+    notes:
+      "Migration idempotente adicionando `cep` à `properties` (resolve " +
+      "build do sandbox Lovable). Reference explícita a `google.maps` no " +
+      "`InteractiveMap`. Re-bump do deployment marker da edge function " +
+      "(v11→v12) — o redeploy v11 do Lovable não pegou.",
+  },
   {
     version: "v1",
     date: "10/mai/2026",
