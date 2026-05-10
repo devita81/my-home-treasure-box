@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v4";
+export const APP_VERSION = "v5";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,16 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v5",
+    date: "10/mai/2026",
+    notes:
+      "Página /itbi-search agora reusa <AnalisePreco /> integralmente — " +
+      "mesma UX do detalhamento (ITBI + ZAP + IA, charts, cards, filtros) " +
+      "para um imóvel não-cadastrado. Form captura tipo + endereço + " +
+      "quartos + metragem; submit constrói Property sintética e renderiza. " +
+      "Sem persistência (id vazio = adapters pulam o write).",
+  },
   {
     version: "v4",
     date: "10/mai/2026",
