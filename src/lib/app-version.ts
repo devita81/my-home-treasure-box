@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v11";
+export const APP_VERSION = "v12";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,20 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v12",
+    date: "10/mai/2026",
+    notes:
+      "Fix definitivo no chat-ia: o problema do v11 não era CORS no código " +
+      "da function — era o `verify_jwt = true` default do gateway Supabase. " +
+      "Sem `[functions.chat-ia] verify_jwt = false` no config.toml, a gateway " +
+      "rejeitava o preflight OPTIONS (que vem sem Authorization) com 401 " +
+      "antes do nosso código rodar. Browser via 'It does not have HTTP ok " +
+      "status' e bloqueava por CORS. Adicionado chat-global, chat-property " +
+      "e chat-ia ao config.toml com verify_jwt=false (chat-global/property " +
+      "tinham essa config só no painel do Lovable, sem commit — agora " +
+      "fica versionada junto com o código).",
+  },
   {
     version: "v11",
     date: "10/mai/2026",
