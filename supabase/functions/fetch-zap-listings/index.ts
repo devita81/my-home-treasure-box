@@ -343,7 +343,14 @@ function mapHitToListing(
   if (!l?.id || !l.address?.street) return null;
 
   const addr = l.address;
-  const fullAddress = [addr.street, addr.neighborhood, addr.city]
+  // Quando o ZAP devolve `streetNumber`, anexamos à rua para ficar
+  // "Rua Pio XI, 123" em vez de só "Rua Pio XI". Nem todo anúncio
+  // traz o número (alguns omitem propositalmente para anonimizar
+  // o imóvel) — nesse caso fica só a rua, como antes.
+  const ruaComNumero = addr.streetNumber
+    ? `${addr.street}, ${addr.streetNumber}`
+    : addr.street;
+  const fullAddress = [ruaComNumero, addr.neighborhood, addr.city]
     .filter(Boolean)
     .join(", ");
 
