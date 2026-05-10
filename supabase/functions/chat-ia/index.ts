@@ -31,10 +31,18 @@ const MODEL = "gpt-4o";
 // balancete + property detail) sem permitir loop infinito.
 const MAX_TOOL_ITERATIONS = 6;
 
+// CORS — a lista de Allow-Headers TEM que incluir os headers
+// `x-supabase-client-*` que o cliente JS @supabase/supabase-js manda
+// automaticamente em todo request (platform, runtime e suas versões).
+// Se faltar, o browser bloqueia no preflight OPTIONS e o frontend
+// recebe "Failed to fetch" antes do request chegar aqui — foi o que
+// aconteceu no primeiro deploy do v10. Mantemos a mesma lista que
+// `chat-global` (que sempre funcionou) pra não cair no mesmo poço.
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 // ─── tool schemas (formato OpenAI Function Calling) ──────────────────
