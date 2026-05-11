@@ -19,6 +19,7 @@ import { CurrencyInput } from '@/components/ui/currency-input';
 import { DocumentUpload } from './DocumentUpload';
 import { PropertyMediaUpload } from './PropertyMediaUpload';
 import { MapPinPicker } from './MapPinPicker';
+import { AddressAutocompleteInput } from '@/components/ui/address-autocomplete-input';
 
 // Validation schema for property form
 const propertySchema = z.object({
@@ -63,6 +64,10 @@ const propertySchema = z.object({
   ano_construcao: z.number().min(1800).max(new Date().getFullYear()).nullable().optional(),
   observacao: z.string().nullable().optional(),
   taxa_administracao: z.number().min(0, 'Valor não pode ser negativo').max(1000000, 'Valor muito alto').nullable().optional(),
+  // CEP é preenchido pelo autocomplete (Nominatim) quando disponível.
+  // Aceita só dígitos OU vazio. Validação leve — formato pode variar
+  // (Nominatim devolve "01234-567", normalizamos pra "01234567").
+  cep: z.string().trim().max(20).optional().nullable().or(z.literal('')),
 });
 
 const estados = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
@@ -116,6 +121,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
       ano_construcao: property?.ano_construcao || null,
       observacao: property?.observacao || '',
       taxa_administracao: property?.taxa_administracao ?? null,
+      cep: property?.cep || '',
     }),
     [property]
   );
@@ -282,12 +288,31 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
               <Label htmlFor="rua">
                 Rua <span className="text-destructive" aria-label="obrigatório">*</span>
               </Label>
-              <Input
+              <AddressAutocompleteInput
                 id="rua"
                 value={formData.rua}
-                onChange={(e) => handleChange('rua', e.target.value)}
+                onChange={(v) => handleChange('rua', v)}
+                onSelect={(s) => {
+                  // Auto-preenche bairro/cidade/estado/cep/lat/lon a partir
+                  // da sugestão do Nominatim. Só sobrescreve campo destino
+                  // se a sugestão tiver valor — caso contrário preserva o
+                  // que o user já tinha digitado.
+                  setFormData((prev) => ({
+                    ...prev,
+                    rua: s.rua,
+                    bairro: s.bairro || prev.bairro,
+                    cidade: s.cidade || prev.cidade,
+                    estado: s.estado || prev.estado,
+                    cep: s.cep || prev.cep,
+                    latitude: Number.isFinite(s.lat) ? s.lat : prev.latitude,
+                    longitude: Number.isFinite(s.lon) ? s.lon : prev.longitude,
+                  }));
+                }}
+                contextCidade={formData.cidade}
+                contextEstado={formData.estado}
                 required
                 aria-required="true"
+                placeholder="Ex: Rua Pio XI (autocomplete via mapa)"
               />
             </div>
 

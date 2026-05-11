@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v22";
+export const APP_VERSION = "v23";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,23 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v23",
+    date: "11/mai/2026",
+    notes:
+      "Autocomplete de endereço via Nominatim (OpenStreetMap, grátis). " +
+      "Usuário digita 3+ caracteres na 'Rua', sistema busca após 500ms " +
+      "parado e mostra dropdown com até 5 sugestões. Click numa " +
+      "sugestão preenche automaticamente bairro, cidade, estado, CEP " +
+      "(quando disponível) e latitude/longitude. Aplicado em 2 lugares: " +
+      "(1) formulário Adicionar/Editar imóvel, (2) Pesquisa pontual " +
+      "de preço (/itbi-search). Componente reusável " +
+      "<AddressAutocompleteInput /> em src/components/ui/. Hook " +
+      "useAddressAutocomplete com debounce + abort de requests " +
+      "anteriores. Limitação: Nominatim limita 1 req/s, mas o debounce " +
+      "+ abort cobrem uso normal. Se a qualidade não bastar, dá pra " +
+      "migrar pra Google Places mantendo a interface.",
+  },
   {
     version: "v22",
     date: "11/mai/2026",

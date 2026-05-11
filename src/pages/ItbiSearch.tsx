@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Database, Search, Pencil, MapPin } from "lucide-react";
 import { AnalisePreco } from "@/components/analise-preco/AnalisePreco";
+import { AddressAutocompleteInput } from "@/components/ui/address-autocomplete-input";
 import type { Property } from "@/types/property";
 
 // ─── public surface ──────────────────────────────────────────────────
@@ -153,13 +154,26 @@ function SearchForm({
               <Label htmlFor="itbi-rua" className="text-sm">
                 Rua / Logradouro
               </Label>
-              <Input
+              <AddressAutocompleteInput
                 id="itbi-rua"
                 value={fields.rua}
-                onChange={(e) => update("rua", e.target.value)}
+                onChange={(v) => update("rua", v)}
+                onSelect={(s) => {
+                  // Selecionar sugestão preenche tudo de uma vez —
+                  // usuário só precisa ter digitado o nome da rua.
+                  setFields((prev) => ({
+                    ...prev,
+                    rua: s.rua,
+                    bairro: s.bairro || prev.bairro,
+                    cidade: s.cidade || prev.cidade,
+                    estado: s.estado || prev.estado,
+                    cep: s.cep || prev.cep,
+                  }));
+                }}
+                contextCidade={fields.cidade}
+                contextEstado={fields.estado}
                 placeholder="Ex: Rua Pio XI"
                 className="h-9"
-                autoComplete="off"
               />
             </div>
             <div className="space-y-1">
