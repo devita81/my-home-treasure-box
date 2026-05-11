@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v24";
+export const APP_VERSION = "v25";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,19 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v25",
+    date: "11/mai/2026",
+    notes:
+      "ZAP filtro de área: ±30% strict (sem fallback widen). Histórico: " +
+      "v3 ±100% → v24 ±50% → v25 ±30%. v24 ainda dava sensação de " +
+      "'comparáveis fora' — busca por 163m² aceitava 81-244m² mesmo o " +
+      "inventário daquela rua sendo 79-124m². Agora pra 163m² o range " +
+      "vira 114-212m² — só passa quem está realmente próximo. " +
+      "Se filtro deixar 0 listings, UI mostra '0 pts' e usuário " +
+      "amplia explicitamente via chips FAIXA DE ÁREA. Preferimos 0-2 " +
+      "comparáveis precisos a 7 inflados que confundem.",
+  },
   {
     version: "v24",
     date: "11/mai/2026",
