@@ -25,8 +25,11 @@ const propertySchema = z.object({
   estado: z.string().min(2).max(2),
   cidade: z.string().trim().min(2, 'Cidade deve ter pelo menos 2 caracteres').max(100, 'Cidade muito longa'),
   bairro: z.string().trim().max(100, 'Bairro muito longo').optional().or(z.literal('')),
-  rua: z.string().trim().min(2, 'Rua deve ter pelo menos 2 caracteres').max(200, 'Rua muito longa'),
-  numero: z.string().trim().max(20, 'Número muito longo').optional().or(z.literal('')).nullable(),
+  rua: z.string().trim().min(2, 'Rua é obrigatória (pelo menos 2 caracteres)').max(200, 'Rua muito longa'),
+  // Número é obrigatório porque sem ele o endereço não geocodifica
+  // direito e a Estimativa IA / ITBI ficam imprecisos. Se for imóvel
+  // realmente sem número, usuário pode digitar "S/N" ou similar.
+  numero: z.string().trim().min(1, 'Número é obrigatório (use "S/N" se o imóvel não tiver número)').max(20, 'Número muito longo'),
   apartamento: z.string().trim().max(20, 'Apartamento muito longo').optional().or(z.literal('')).nullable(),
   complemento: z.string().trim().max(100, 'Complemento muito longo').optional().or(z.literal('')).nullable(),
   declared_value: z.number().min(0, 'Valor não pode ser negativo').max(100000000000, 'Valor muito alto'),
@@ -276,21 +279,30 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="rua">Rua *</Label>
+              <Label htmlFor="rua">
+                Rua <span className="text-destructive" aria-label="obrigatório">*</span>
+              </Label>
               <Input
                 id="rua"
                 value={formData.rua}
                 onChange={(e) => handleChange('rua', e.target.value)}
+                required
+                aria-required="true"
               />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="numero">Número</Label>
+                <Label htmlFor="numero">
+                  Número <span className="text-destructive" aria-label="obrigatório">*</span>
+                </Label>
                 <Input
                   id="numero"
                   value={formData.numero || ''}
                   onChange={(e) => handleChange('numero', e.target.value)}
+                  required
+                  aria-required="true"
+                  placeholder='Use "S/N" se não tiver número'
                 />
               </div>
               <div className="space-y-2">

@@ -91,6 +91,23 @@ export function useDadosEstimativaIa(
     retry: 1,
     retryDelay: 800,
     mutationFn: async () => {
+      // Pre-check: a edge function search-property-info exige cidade,
+      // rua, bairro e estado preenchidos (valida no início e retorna
+      // 400 com erro técnico). Detectamos antes pra mostrar mensagem
+      // amigável ao usuário em vez de "Edge Function returned a
+      // non-2xx status code". A correção real é cadastrar os campos
+      // faltantes via Editar Imóvel.
+      const missing: string[] = [];
+      if (!property.cidade?.trim()) missing.push("cidade");
+      if (!property.rua?.trim()) missing.push("rua");
+      if (!property.bairro?.trim()) missing.push("bairro");
+      if (!property.estado?.trim()) missing.push("estado");
+      if (missing.length > 0) {
+        throw new Error(
+          `Preencha ${missing.join(", ")} no cadastro do imóvel (botão "Editar") pra gerar a Estimativa IA.`,
+        );
+      }
+
       const { data, error } = await supabase.functions.invoke<{
         result?: string;
         error?: string;
