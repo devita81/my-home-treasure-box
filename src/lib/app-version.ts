@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v19";
+export const APP_VERSION = "v20";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,19 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v20",
+    date: "11/mai/2026",
+    notes:
+      "UX foundation step 5/N — Aplica type scale em Balancete.tsx, " +
+      "segunda página mais densa do app. 131 substituições (61 " +
+      "text-[13px] + 59 text-[12px] + 11 text-[11px] → text-data / " +
+      "text-label / text-meta) + 1 text-[14px] → text-sm (já era " +
+      "exatamente o valor padrão do Tailwind, sem necessidade de token " +
+      "novo). Estado: dos 430 ad-hoc originais, ~430 substituídos só " +
+      "nas páginas grandes. Sobra ~30 espalhados em 10 arquivos menores " +
+      "(Sidebar, dialogs, analise-preco/*) — próximo PR agrupa tudo.",
+  },
   {
     version: "v19",
     date: "11/mai/2026",
