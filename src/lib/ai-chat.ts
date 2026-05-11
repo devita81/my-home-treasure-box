@@ -1,13 +1,29 @@
 import { supabase } from '@/integrations/supabase/client';
 
-// Cliente do edge function `chat-ia` (GPT-4o + tool calling). Substitui
-// o antigo `streamChat` em `ai-stream.ts` que falava com `chat-global` /
-// `chat-property` via SSE. A function nova faz tool calling no backend
-// e responde de uma vez (sem streaming) — UX é "Pensando..." → resposta
-// completa, ~3-8s típicos.
+// Cliente do Cloudflare Worker `chat-ia` (GPT-4o + tool calling).
+// Migrou da edge function Supabase (que vivia em supabase/functions/
+// chat-ia) pra Cloudflare Workers porque o deploy via Lovable era
+// inconsistente — passamos 4 tentativas (v10-v13) sem nunca conseguir
+// fazer a function rodar de fato (CORS / verify_jwt / redeploy não
+// pegando). CF Worker resolve tudo: deploy via `wrangler deploy`,
+// confiável, instantâneo. Ver `cloudflare-worker/README.md`.
+//
+// A interface (input/output) é idêntica ao que a edge function tinha,
+// então o componente que consome (`GlobalAIChatDialog`, `AIChatDialog`)
+// não precisa mudar nada — só esse arquivo aponta pra URL diferente.
 //
 // Mantemos `ai-stream.ts` por enquanto pra não quebrar fallback —
 // limpeza fica pro PR 3 quando deletarmos chat-global e chat-property.
+
+/**
+ * URL pública do Worker. Hardcoded porque (a) Lovable nem sempre
+ * propaga env vars novas direito, e (b) a URL não é segredo — quem
+ * souber chamar precisa do JWT do usuário válido pra obter resposta.
+ *
+ * Se um dia migrar pra outro Worker (staging, novo projeto), basta
+ * trocar essa string.
+ */
+const CF_WORKER_URL = "https://my-home-treasure-box-ai.renatodevita.workers.dev";
 
 export type ChatMessage = { role: 'user' | 'assistant'; content: string };
 
@@ -39,16 +55,18 @@ export async function chatIa({
   const token = sessionData?.session?.access_token;
   if (!token) throw new Error('Não autenticado');
 
-  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-ia`;
   const startedAt = performance.now();
 
-  const resp = await fetch(url, {
+  // POST direto no Cloudflare Worker. Diferente do Supabase functions:
+  //   • Sem header `apikey` (CF Worker não precisa — usa a Authorization
+  //     pra validar o JWT diretamente contra a Supabase Auth API).
+  //   • URL é fixa em CF, não mais sob o domínio do projeto Supabase.
+  const resp = await fetch(CF_WORKER_URL, {
     method: 'POST',
     signal,
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
-      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
     },
     body: JSON.stringify({ messages, propertyId }),
   });
@@ -57,7 +75,7 @@ export async function chatIa({
     throw new Error('Sessão expirada. Faça login novamente.');
   }
   if (resp.status === 404) {
-    throw new Error("Função 'chat-ia' não foi deployada — Lovable não sincronizou.");
+    throw new Error("Worker 'chat-ia' não encontrado — verifique a URL hardcoded em ai-chat.ts");
   }
   if (!resp.ok) {
     const errData = (await resp.json().catch(() => ({}))) as { error?: string };

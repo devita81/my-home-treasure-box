@@ -1,0 +1,22 @@
+# Config do Cloudflare Worker `chat-ia`.
+#
+# Deploy: `cd cloudflare-worker && npx wrangler deploy`
+# Secrets: `npx wrangler secret put OPENAI_API_KEY` (e os outros)
+# Logs ao vivo: `npx wrangler tail`
+#
+# Os secrets NÃO vão neste arquivo — ficam encriptados no Cloudflare
+# após `wrangler secret put`. Aqui só listamos os nomes esperados
+# pelo código (em `[env]` ou implicitamente via Env interface no .ts).
+
+name = "my-home-treasure-box-ai"
+main = "src/index.ts"
+compatibility_date = "2025-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Workers free plan já dá 100k requests/dia — sobra muito pra uso
+# pessoal (uma carteira de ~50 imóveis, ~10-50 perguntas/dia).
+
+# Secrets esperados (configurar via `wrangler secret put`):
+#   • OPENAI_API_KEY      — chave da OpenAI (sk-...)
+#   • SUPABASE_URL        — https://<project>.supabase.co
+#   • SUPABASE_ANON_KEY   — anon/publishable key da Supabase
