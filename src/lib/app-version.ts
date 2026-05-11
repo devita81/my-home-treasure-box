@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v16";
+export const APP_VERSION = "v17";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,19 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v17",
+    date: "11/mai/2026",
+    notes:
+      "UX foundation step 2/N — Aplica type scale semântica em " +
+      "<PropertyCard /> (componente mais reusado, renderizado por imóvel " +
+      "no grid da home). ~30 substituições de text-[NNpx] ad-hoc por " +
+      "text-data / text-label / text-meta. Também limpa um conditional " +
+      "morto na linha do endereço (`compact ? 'text-sm' : 'text-sm'`) — " +
+      "ambos lados iguais, simplificado pra 'text-sm' direto. Mudança " +
+      "visual: zero (mesmas pixel sizes), só semântica e line-heights " +
+      "ligeiramente otimizados pelas utilities.",
+  },
   {
     version: "v16",
     date: "11/mai/2026",
