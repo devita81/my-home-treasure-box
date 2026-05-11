@@ -66,7 +66,7 @@ export function PropertyFinanceiroSection({
         {/* Valores */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-1.5 text-[13px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
+            <CardTitle className="flex items-center gap-1.5 text-data font-medium tracking-[0.16em] uppercase text-muted-foreground">
               <DollarSign className="h-3.5 w-3.5 text-primary" />
               Valores
             </CardTitle>
@@ -90,16 +90,16 @@ export function PropertyFinanceiroSection({
             de derivados abaixo). */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-1.5 text-[13px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
+            <CardTitle className="flex items-center gap-1.5 text-data font-medium tracking-[0.16em] uppercase text-muted-foreground">
               <FileText className="h-3.5 w-3.5 text-primary" />
               Custos cadastrais
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-1.5">
             <div className="flex items-center justify-between rounded-md bg-secondary px-2.5 py-1.5">
-              <span className="text-[12px] text-muted-foreground">IPTU</span>
+              <span className="text-label text-muted-foreground">IPTU</span>
               <div className="flex items-center gap-2">
-                <span className="text-[12px] font-normal">
+                <span className="text-label font-normal">
                   {property.iptu_value
                     ? `${fmtBRL(property.iptu_value)}/mês`
                     : "—"}
@@ -107,14 +107,14 @@ export function PropertyFinanceiroSection({
                 {property.iptu_pago ? (
                   <Badge
                     variant="outline"
-                    className="border-success text-[13px] font-medium text-success"
+                    className="border-success text-data font-medium text-success"
                   >
                     Pago
                   </Badge>
                 ) : (
                   <Badge
                     variant="outline"
-                    className="border-warning text-[13px] font-medium text-warning"
+                    className="border-warning text-data font-medium text-warning"
                   >
                     Pendente
                   </Badge>
@@ -143,7 +143,7 @@ export function PropertyFinanceiroSection({
         {/* Renda */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-1.5 text-[13px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
+            <CardTitle className="flex items-center gap-1.5 text-data font-medium tracking-[0.16em] uppercase text-muted-foreground">
               <Key className="h-3.5 w-3.5 text-primary" />
               Renda
             </CardTitle>
@@ -167,10 +167,10 @@ export function PropertyFinanceiroSection({
             />
             {property.alugado && property.inquilino ? (
               <div className="flex items-center justify-between rounded-md bg-info/10 px-2.5 py-1.5">
-                <span className="text-[12px] text-muted-foreground">
+                <span className="text-label text-muted-foreground">
                   Inquilino
                 </span>
-                <span className="text-[12px] font-normal">
+                <span className="text-label font-normal">
                   {property.inquilino}
                 </span>
               </div>
@@ -184,12 +184,12 @@ export function PropertyFinanceiroSection({
           líquido. Yield bruto vem dos campos cadastrais. */}
       <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
         <CardHeader className="pb-2 flex flex-row items-center justify-between gap-2">
-          <CardTitle className="flex items-center gap-1.5 text-[13px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
+          <CardTitle className="flex items-center gap-1.5 text-data font-medium tracking-[0.16em] uppercase text-muted-foreground">
             <TrendingUp className="h-3.5 w-3.5 text-primary" />
             Indicadores derivados
           </CardTitle>
           {temReceita ? (
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-meta text-muted-foreground">
               Médias de {resumo.meses}{" "}
               {resumo.meses === 1 ? "mês" : "meses"}
               {resumo.desde && resumo.ate
@@ -239,21 +239,21 @@ export function PropertyFinanceiroSection({
                 />
               </div>
               {!temReceita && !balancete.isError ? (
-                <p className="mt-3 text-[12px] text-muted-foreground">
+                <p className="mt-3 text-label text-muted-foreground">
                   Sem lançamentos no Balancete para este imóvel — apenas
                   o yield bruto pode ser estimado a partir do aluguel
                   cadastrado.
                 </p>
               ) : null}
               {balancete.isError ? (
-                <p className="mt-3 text-[12px] text-destructive">
+                <p className="mt-3 text-label text-destructive">
                   Falha ao buscar movimentação do Balancete.
                 </p>
               ) : null}
               {temReceita ? (
                 <Link
                   to="/balancete"
-                  className="mt-3 inline-flex items-center gap-1 text-[12px] text-primary underline-offset-4 hover:underline"
+                  className="mt-3 inline-flex items-center gap-1 text-label text-primary underline-offset-4 hover:underline"
                 >
                   Ver detalhes mês a mês no Balancete
                   <ArrowRight className="h-3 w-3" />
@@ -286,9 +286,9 @@ function Linha({
         destaque ? "bg-primary/10" : "bg-secondary"
       }`}
     >
-      <span className="text-[12px] text-muted-foreground">{rotulo}</span>
+      <span className="text-label text-muted-foreground">{rotulo}</span>
       <span
-        className={`text-[12px] font-normal ${destaque ? "text-primary" : ""} ${valorClassName ?? ""}`}
+        className={`text-label font-normal ${destaque ? "text-primary" : ""} ${valorClassName ?? ""}`}
       >
         {valor}
       </span>
@@ -312,7 +312,7 @@ function Derivado({
       className="flex flex-col gap-0.5 rounded-md bg-background/60 p-2.5"
       title={ajuda}
     >
-      <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+      <span className="text-nano uppercase tracking-wide text-muted-foreground">
         {rotulo}
       </span>
       <span

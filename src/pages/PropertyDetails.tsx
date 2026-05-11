@@ -61,12 +61,12 @@ const PropertyDetails = () => {
 
   const getStatusBadge = () => {
     if (property.vendido) {
-      return <Badge className="bg-destructive text-destructive-foreground text-[13px] font-medium">Vendido</Badge>;
+      return <Badge className="bg-destructive text-destructive-foreground text-data font-medium">Vendido</Badge>;
     }
     if (property.alugado) {
-      return <Badge className="bg-info text-info-foreground text-[13px] font-medium">Alugado</Badge>;
+      return <Badge className="bg-info text-info-foreground text-data font-medium">Alugado</Badge>;
     }
-    return <Badge className="bg-success text-success-foreground text-[13px] font-medium">Disponível</Badge>;
+    return <Badge className="bg-success text-success-foreground text-data font-medium">Disponível</Badge>;
   };
 
   const hasRealPhotos = property.photos && property.photos.length > 0 && property.photos[0];
@@ -136,12 +136,12 @@ const PropertyDetails = () => {
             <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-1.5 md:gap-2 z-[500] pointer-events-none">
               {getStatusBadge()}
               {property.validado ? (
-                <Badge variant="outline" className="bg-card/90 backdrop-blur-sm border-success text-success text-[13px] font-medium">
+                <Badge variant="outline" className="bg-card/90 backdrop-blur-sm border-success text-success text-data font-medium">
                   <CheckCircle className="h-3 w-3 mr-1" />
                   Validado
                 </Badge>
               ) : (
-                <Badge variant="outline" className="bg-card/90 backdrop-blur-sm border-warning text-warning text-[13px] font-medium">
+                <Badge variant="outline" className="bg-card/90 backdrop-blur-sm border-warning text-warning text-data font-medium">
                   <XCircle className="h-3 w-3 mr-1" />
                   Pendente
                 </Badge>
@@ -154,7 +154,7 @@ const PropertyDetails = () => {
                 <h1 className="font-display text-base md:text-xl font-semibold text-card mb-0.5 md:mb-1 leading-tight">
                   {getAddressDisplay()}
                 </h1>
-                <div className="flex items-center gap-1 text-[12px] md:text-sm text-card/90">
+                <div className="flex items-center gap-1 text-label md:text-sm text-card/90">
                   <MapPin className="h-3 w-3 md:h-3.5 md:w-3.5 shrink-0" />
                   <span className="truncate">{property.bairro}, {property.cidade} - {property.estado}</span>
                 </div>
@@ -187,7 +187,7 @@ const PropertyDetails = () => {
                 <p className="text-sm font-medium text-foreground">
                   Conversa livre sobre este imóvel
                 </p>
-                <p className="text-[12px] text-muted-foreground">
+                <p className="text-label text-muted-foreground">
                   Pergunte qualquer coisa ao ChatGPT — fora do contexto de preço.
                 </p>
               </div>
