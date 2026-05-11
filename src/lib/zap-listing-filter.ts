@@ -59,7 +59,7 @@ export interface ZapFilterDebug {
   metragem_cadastrada: number | null;
   labels_aceitos: string[] | null;
   labels_observados: string[];
-  range_aplicado: "±30%" | "±50%" | "±100%" | null;
+  range_aplicado: "±30%" | "±50%" | null;
   limites: [number, number] | null;
   total_recebido: number;
   apos_filtro_tipo: number;
@@ -72,18 +72,23 @@ export interface ZapFilterResult {
 }
 
 /**
- * Aplica filtros de tipo + área (range progressivo ±30/50/100%) na
+ * Aplica filtros de tipo + área (range progressivo ±30/50%) na
  * resposta ZAP. Retorna a lista filtrada + um struct de diagnóstico
  * pra debug visível no console do navegador.
  *
  * Estratégia de área (range progressivo):
  *   1. Tenta ±30% — se sobrarem ≥3, usa
- *   2. Senão tenta ±50%
- *   3. Senão ±100% (cap final, mantém mesmo com <3 pra não devolver
- *      lista vazia se inventário daquela rua é restrito)
+ *   2. Senão tenta ±50% (cap final — pra 83m² isso vira 41-124m²,
+ *      ainda razoável; descartamos o ±100% antigo que aceitava 2x
+ *      o tamanho do imóvel e o usuário percebia como "fora")
  *
- * Garante que listings 2x maiores que o cadastrado nunca passem,
- * mesmo quando o ZAP ignora o filtro server-side (caso documentado).
+ * Listings sem `floorSize` são SEMPRE descartados quando o usuário
+ * informou metragem — não dá pra confirmar se são comparáveis.
+ *
+ * Se nem ±50% conseguir 3, devolve mesmo assim o que veio em ±50%
+ * (pode ser 0, 1 ou 2). Lista vazia é OK — UI mostra "sem
+ * comparáveis dentro da faixa" em vez de poluir com listings
+ * grosseiramente fora.
  */
 export function filterZapListings(input: ZapFilterInput): ZapFilterResult {
   const { listings, tipo_imovel, metragem } = input;
@@ -109,7 +114,6 @@ export function filterZapListings(input: ZapFilterInput): ZapFilterResult {
     const ranges: Array<{ pct: number; label: ZapFilterDebug["range_aplicado"] }> = [
       { pct: 0.3, label: "±30%" },
       { pct: 0.5, label: "±50%" },
-      { pct: 1.0, label: "±100%" },
     ];
     for (const r of ranges) {
       const min = metragem * (1 - r.pct);
@@ -120,7 +124,10 @@ export function filterZapListings(input: ZapFilterInput): ZapFilterResult {
           l.floorSize >= min &&
           l.floorSize <= max,
       );
-      if (candidatos.length >= 3 || r.pct === 1.0) {
+      // Para no primeiro range que entrega ≥3 comparáveis, OU no
+      // último range testado (cap final = ±50%). Antes o cap era
+      // ±100% que aceitava o dobro do tamanho — wide demais.
+      if (candidatos.length >= 3 || r.pct === 0.5) {
         filtered = candidatos;
         rangeAplicado = r.label;
         limites = [Math.round(min), Math.round(max)];

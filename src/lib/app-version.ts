@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v23";
+export const APP_VERSION = "v24";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,23 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v24",
+    date: "11/mai/2026",
+    notes:
+      "3 fixes na Pesquisa pontual de preço (/itbi-search): " +
+      "(1) Botão 'Editar busca' agora preserva os campos preenchidos — " +
+      "antes o form era desmontado/remontado e o estado interno zerava. " +
+      "Fix: state `fields` migrado pro componente pai ItbiSearch, passado " +
+      "como prop pro SearchForm que virou stateless. " +
+      "(2) Filtro ZAP por metragem agora capa em ±50% (antes ia até " +
+      "±100% que aceitava o dobro do tamanho — usuário percebia como " +
+      "'totalmente fora'). Pra 83m² agora limita em 41-124m². " +
+      "(3) Marcação visual obrigatório/opcional: novo componente " +
+      "FieldLabel mostra asterisco vermelho em Rua e Bairro (sinaliza " +
+      "'rua OU bairro') e '(opcional)' cinza nos demais campos. Texto " +
+      "de ajuda reformulado.",
+  },
   {
     version: "v23",
     date: "11/mai/2026",
