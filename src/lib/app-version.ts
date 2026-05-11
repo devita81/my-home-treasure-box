@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v14";
+export const APP_VERSION = "v15";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,22 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v15",
+    date: "11/mai/2026",
+    notes:
+      "Melhora qualidade da resposta do Consultor IA pra perguntas de " +
+      "performance financeira. No v14 (primeiro deploy via CF Worker) o " +
+      "modelo respondeu 'qual imóvel está dando mais prejuízo?' olhando " +
+      "valor_aluguel=0 da tabela properties — confundiu CADASTRAL com " +
+      "REALIZADO. Reforço no system prompt: (a) seção 'DOIS UNIVERSOS DE " +
+      "DADOS — properties (cadastral) vs property_balancete (realizado)'; " +
+      "(b) sequência obrigatória pra perguntas de performance — sempre " +
+      "get_balancete primeiro; (c) interpretação correta de 'prejuízo' " +
+      "(RESULTADO_REAL negativo, não valor_aluguel=0); (d) exemplos " +
+      "concretos de raciocínio certo vs errado. Worker deployado direto " +
+      "via wrangler — esta entrada no histórico só pra tracking.",
+  },
   {
     version: "v14",
     date: "11/mai/2026",
