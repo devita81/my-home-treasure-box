@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v15";
+export const APP_VERSION = "v16";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,21 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v16",
+    date: "11/mai/2026",
+    notes:
+      "UX foundation step 1/N — Auditoria visual revelou 495 usos de " +
+      "`text-[NNpx]` ad-hoc espalhados (text-[10px] até text-[15px]). " +
+      "Adicionados 4 utilities semânticos em src/index.css: `.text-data` " +
+      "(13px, valores), `.text-label` (12px, labels de form/row), `.text-meta` " +
+      "(11px, headers minúsculos/badges), `.text-nano` (10px, micro-markers). " +
+      "Cada um inclui line-height calibrado pra legibilidade. Aplicados em " +
+      "<CarteiraStats /> (4 substituições) e <PropertyFilters /> (7 " +
+      "substituições). Próximos PRs: aplicar em <PropertyCard /> e " +
+      "<PropertyDetails /> (densidade alta de texto), depois padronizar " +
+      "padding/border de cards.",
+  },
   {
     version: "v15",
     date: "11/mai/2026",

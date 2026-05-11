@@ -179,6 +179,33 @@
 }
 
 @layer utilities {
+  /* ─── Type scale semântica ─────────────────────────────────────────
+     Substitui `text-[NNpx]` ad-hoc espalhado pelo código por nomes
+     com intenção. Auditoria UX (v16) achou 495 ocorrências de
+     `text-[NNpx]` em ~30 arquivos — esses 4 tokens cobrem >90% dos
+     casos. Mantemos `text-xs/sm/base/lg/xl` do Tailwind padrão pra
+     headings e body principal; estas utilities são pra textos
+     densos/secundários (labels, rows de card, badges, meta).
+
+     Line-height escala devagar pra baixo (1.3-1.45) — texto pequeno
+     precisa de mais ar relativo pra ficar legível. */
+  .text-data {
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .text-label {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .text-meta {
+    font-size: 11px;
+    line-height: 1.35;
+  }
+  .text-nano {
+    font-size: 10px;
+    line-height: 1.3;
+  }
+
   .animate-fade-in {
     animation: fadeIn 0.5s ease-out forwards;
   }

@@ -173,7 +173,7 @@ export function PropertyFilters() {
           <Filter className="h-4 w-4" />
           <span className="hidden sm:inline">Filtros</span>
           {advancedActiveCount > 0 ? (
-            <Badge variant="default" className="h-5 px-1.5 text-[10px]">
+            <Badge variant="default" className="h-5 px-1.5 text-nano">
               {advancedActiveCount}
             </Badge>
           ) : null}
@@ -204,7 +204,7 @@ export function PropertyFilters() {
               key={chip.key}
               type="button"
               onClick={() => removeChip(chip.key)}
-              className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-2 py-0.5 text-[12px] hover:bg-secondary/80"
+              className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-2 py-0.5 text-label hover:bg-secondary/80"
             >
               <span className="text-muted-foreground">{chip.label}:</span>
               <span className="font-medium">{chip.value}</span>
@@ -326,7 +326,7 @@ export function PropertyFilters() {
 
           {/* Sort fica no rodapé do painel expandido */}
           <div className="flex flex-wrap items-center gap-2 border-t border-border/40 pt-2">
-            <span className="text-[12px] uppercase tracking-wide text-muted-foreground">
+            <span className="text-label uppercase tracking-wide text-muted-foreground">
               <ArrowDownUp className="mr-1 inline h-3 w-3" />
               Ordenar:
             </span>
@@ -336,7 +336,7 @@ export function PropertyFilters() {
                 setFilters({ ...filters, sortField: v as SortField })
               }
             >
-              <SelectTrigger className="h-8 w-[180px] text-[12px]">
+              <SelectTrigger className="h-8 w-[180px] text-label">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -356,7 +356,7 @@ export function PropertyFilters() {
                   sortOrder: filters.sortOrder === "asc" ? "desc" : "asc",
                 })
               }
-              className="h-8 text-[12px]"
+              className="h-8 text-label"
             >
               {filters.sortOrder === "asc" ? (
                 <>
@@ -452,11 +452,11 @@ interface FilterSelectProps {
 function FilterSelect({ label, value, onChange, options }: FilterSelectProps) {
   return (
     <div className="space-y-1">
-      <label className="text-[11px] uppercase tracking-wide text-muted-foreground">
+      <label className="text-meta uppercase tracking-wide text-muted-foreground">
         {label}
       </label>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="h-8 text-[12px]">
+        <SelectTrigger className="h-8 text-label">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
