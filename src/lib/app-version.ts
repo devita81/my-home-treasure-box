@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v25";
+export const APP_VERSION = "v26";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,22 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v26",
+    date: "11/mai/2026",
+    notes:
+      "Pesquisa pontual de preço (/itbi-search) agora geocodifica o " +
+      "endereço antes de submeter — antes o Property sintético não tinha " +
+      "lat/lon, e a edge function fetch-zap-listings caía em fallback de " +
+      "busca textual fraca (mesmo endereço pré-cadastrado devolvia 8 " +
+      "comparáveis precisos, na avulsa devolvia 0 ou listings dispersos). " +
+      "Fix: SearchFields ganha latitude/longitude; autocomplete (Nominatim) " +
+      "popula essas coords no onSelect; se user digitar manualmente sem " +
+      "usar o dropdown, handleSubmit faz uma chamada Nominatim adicional " +
+      "no submit antes de buildSyntheticProperty. Botão 'Analisar preço' " +
+      "vira 'Localizando...' durante esse passo. Mexer manualmente em " +
+      "rua/bairro/cidade/estado invalida lat/lon antigo automaticamente.",
+  },
   {
     version: "v25",
     date: "11/mai/2026",

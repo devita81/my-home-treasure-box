@@ -13,6 +13,7 @@ import {
 import { Database, Search, Pencil, MapPin } from "lucide-react";
 import { AnalisePreco } from "@/components/analise-preco/AnalisePreco";
 import { AddressAutocompleteInput } from "@/components/ui/address-autocomplete-input";
+import { searchAddresses } from "@/lib/nominatim";
 import type { Property } from "@/types/property";
 
 // ─── public surface ──────────────────────────────────────────────────
@@ -35,6 +36,19 @@ interface SearchFields {
   estado: string;
   quartos: string;
   metragem: string;
+  // Lat/lon — CRÍTICOS pra qualidade da busca ZAP. A edge function
+  // fetch-zap-listings faz busca geo-localizada quando tem lat/lon, e
+  // cai em busca textual fraca quando não tem. Sem isso, o mesmo
+  // endereço cadastrado em /add devolve 8 comparáveis precisos e na
+  // /itbi-search avulsa devolve 0 ou 8 dispersos.
+  //
+  // Populados via 2 caminhos:
+  //  1. Autocomplete (Nominatim) — usuário clica numa sugestão e
+  //     onSelect copia s.lat/s.lon pro estado.
+  //  2. Submit fallback — se o user digitou manualmente sem usar o
+  //     dropdown, geocodificamos no handleSubmit antes de submeter.
+  latitude: number | null;
+  longitude: number | null;
 }
 
 const INITIAL: SearchFields = {
@@ -47,6 +61,8 @@ const INITIAL: SearchFields = {
   estado: "SP",
   quartos: "",
   metragem: "",
+  latitude: null,
+  longitude: null,
 };
 
 /**
@@ -111,21 +127,81 @@ function SearchForm({
   onSubmit,
 }: {
   fields: SearchFields;
-  setFields: (updater: (prev: SearchFields) => SearchFields) => void;
+  // Mesmo type que useState retorna — aceita tanto valor direto
+  // (setFields(novo)) quanto updater (setFields(prev => ...)).
+  setFields: React.Dispatch<React.SetStateAction<SearchFields>>;
   onSubmit: (p: Property) => void;
 }) {
-  const update = (key: keyof SearchFields, value: string) =>
-    setFields((prev) => ({ ...prev, [key]: value }));
+  const [submitting, setSubmitting] = useState(false);
+
+  const update = (key: keyof SearchFields, value: string) => {
+    // Mexer manualmente em rua/bairro/cidade/estado invalida o lat/lon
+    // capturado anteriormente do autocomplete — o endereço mudou e as
+    // coords antigas não correspondem mais. O handleSubmit fará um
+    // re-geocode se necessário.
+    const invalidatesLatLon =
+      key === "rua" || key === "bairro" || key === "cidade" || key === "estado";
+    setFields((prev) => ({
+      ...prev,
+      [key]: value,
+      ...(invalidatesLatLon ? { latitude: null, longitude: null } : {}),
+    }));
+  };
 
   // Pelo menos rua OU bairro precisa estar preenchido — sem isso ITBI/
   // ZAP não conseguem filtrar a área e a busca devolveria ruído. As
   // outras fontes (IA) seriam imprecisas também.
   const hasMinimo = fields.rua.trim() !== "" || fields.bairro.trim() !== "";
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!hasMinimo) return;
-    onSubmit(buildSyntheticProperty(fields));
+    if (!hasMinimo || submitting) return;
+
+    // Se já temos lat/lon (vieram do autocomplete), bora direto.
+    // Senão, tenta geocodificar antes de submeter — a edge function
+    // fetch-zap-listings faz busca geo-localizada e dá comparáveis MUITO
+    // melhores quando recebe coords.
+    let resolved = fields;
+    if (fields.latitude == null || fields.longitude == null) {
+      setSubmitting(true);
+      try {
+        const query = [
+          fields.rua,
+          fields.numero,
+          fields.bairro,
+          fields.cidade,
+          fields.estado,
+        ]
+          .map((s) => s.trim())
+          .filter(Boolean)
+          .join(", ");
+        if (query) {
+          const results = await searchAddresses(query, {
+            cidade: fields.cidade,
+            estado: fields.estado,
+          });
+          if (results.length > 0) {
+            const first = results[0];
+            resolved = {
+              ...fields,
+              latitude: Number.isFinite(first.lat) ? first.lat : null,
+              longitude: Number.isFinite(first.lon) ? first.lon : null,
+              // Também aproveita o resto se o user deixou em branco —
+              // pode acontecer de Nominatim resolver o bairro/cep
+              // que o user não preencheu.
+              bairro: fields.bairro || first.bairro,
+              cep: fields.cep || first.cep,
+            };
+            // Persiste no estado pra próxima edição não geocodificar de novo
+            setFields(resolved);
+          }
+        }
+      } finally {
+        setSubmitting(false);
+      }
+    }
+
+    onSubmit(buildSyntheticProperty(resolved));
   };
 
   return (
@@ -168,8 +244,10 @@ function SearchForm({
                 value={fields.rua}
                 onChange={(v) => update("rua", v)}
                 onSelect={(s) => {
-                  // Selecionar sugestão preenche tudo de uma vez —
-                  // usuário só precisa ter digitado o nome da rua.
+                  // Selecionar sugestão preenche tudo de uma vez,
+                  // INCLUSIVE lat/lon — sem isso, a busca ZAP cai
+                  // num fallback textual e devolve resultados ruins
+                  // (ver issue v26).
                   setFields((prev) => ({
                     ...prev,
                     rua: s.rua,
@@ -177,6 +255,8 @@ function SearchForm({
                     cidade: s.cidade || prev.cidade,
                     estado: s.estado || prev.estado,
                     cep: s.cep || prev.cep,
+                    latitude: Number.isFinite(s.lat) ? s.lat : prev.latitude,
+                    longitude: Number.isFinite(s.lon) ? s.lon : prev.longitude,
                   }));
                 }}
                 contextCidade={fields.cidade}
@@ -289,11 +369,11 @@ function SearchForm({
             <div className="flex items-end sm:col-span-2">
               <Button
                 type="submit"
-                disabled={!hasMinimo}
+                disabled={!hasMinimo || submitting}
                 className="h-9 w-full"
               >
                 <Search className="mr-2 h-4 w-4" />
-                Analisar preço
+                {submitting ? "Localizando..." : "Analisar preço"}
               </Button>
             </div>
           </div>
@@ -397,6 +477,11 @@ function buildSyntheticProperty(f: SearchFields): Property {
     quartos: numeroOrUndef(f.quartos),
     metragem: numeroOrUndef(f.metragem),
     cep: f.cep.trim() || null,
+    // CRÍTICO: passa lat/lon pra que useZapListings faça busca
+    // geo-localizada (não fallback textual). Vem do autocomplete ou
+    // do geocoding fallback em handleSubmit.
+    latitude: f.latitude ?? null,
+    longitude: f.longitude ?? null,
     // restante usa default do tipo (undefined / null)
   };
 }
