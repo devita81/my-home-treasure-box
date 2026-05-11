@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v21";
+export const APP_VERSION = "v22";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,22 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v22",
+    date: "11/mai/2026",
+    notes:
+      "Formulário de imóvel: marca rua + número como obrigatórios. " +
+      "Labels ganham asterisco vermelho (acessibilidade via aria-required), " +
+      "Zod schema do número muda de `.optional()` pra `.min(1)` com " +
+      "mensagem 'Número é obrigatório (use S/N se não tiver número)'. " +
+      "Placeholder no input do número explicita a convenção. Bonus: " +
+      "card Estimativa IA em PropertyDetails agora detecta cidade/rua/" +
+      "bairro/estado faltantes ANTES de chamar a edge function e mostra " +
+      "mensagem amigável ('Preencha bairro no cadastro do imóvel') em " +
+      "vez do erro técnico 'Edge Function returned a non-2xx status " +
+      "code'. Próximo PR: autocomplete de endereço via Nominatim — " +
+      "usuário digita rua, app sugere bairro/cidade/estado/lat/lon.",
+  },
   {
     version: "v21",
     date: "11/mai/2026",
