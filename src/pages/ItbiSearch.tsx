@@ -63,6 +63,11 @@ const INITIAL: SearchFields = {
 export default function ItbiSearch() {
   // null = mostrando form; objeto = mostrando AnalisePreco com aquela busca
   const [submitted, setSubmitted] = useState<Property | null>(null);
+  // Fields state vive AQUI no parent (não dentro de SearchForm) pra
+  // sobreviver ao ciclo de submit → editar. Antes o form era
+  // desmontado/remontado e o estado interno zerava — usuário tinha
+  // que digitar tudo de novo só pra ajustar um campo.
+  const [fields, setFields] = useState<SearchFields>(INITIAL);
 
   return (
     <div className="min-h-screen bg-background">
@@ -87,7 +92,11 @@ export default function ItbiSearch() {
             <AnalisePreco property={submitted} />
           </>
         ) : (
-          <SearchForm onSubmit={setSubmitted} initial={INITIAL} />
+          <SearchForm
+            fields={fields}
+            setFields={setFields}
+            onSubmit={setSubmitted}
+          />
         )}
       </main>
     </div>
@@ -97,14 +106,14 @@ export default function ItbiSearch() {
 // ─── form ────────────────────────────────────────────────────────────
 
 function SearchForm({
-  initial,
+  fields,
+  setFields,
   onSubmit,
 }: {
-  initial: SearchFields;
+  fields: SearchFields;
+  setFields: (updater: (prev: SearchFields) => SearchFields) => void;
   onSubmit: (p: Property) => void;
 }) {
-  const [fields, setFields] = useState<SearchFields>(initial);
-
   const update = (key: keyof SearchFields, value: string) =>
     setFields((prev) => ({ ...prev, [key]: value }));
 
@@ -131,9 +140,9 @@ function SearchForm({
           {/* Linha 1: tipo + endereço */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-6">
             <div className="space-y-1 sm:col-span-2">
-              <Label htmlFor="itbi-tipo" className="text-sm">
+              <FieldLabel htmlFor="itbi-tipo" variant="optional">
                 Tipo de imóvel
-              </Label>
+              </FieldLabel>
               <Select
                 value={fields.tipo_imovel}
                 onValueChange={(v) => update("tipo_imovel", v)}
@@ -151,9 +160,9 @@ function SearchForm({
               </Select>
             </div>
             <div className="space-y-1 sm:col-span-3">
-              <Label htmlFor="itbi-rua" className="text-sm">
+              <FieldLabel htmlFor="itbi-rua" variant="required-or-bairro">
                 Rua / Logradouro
-              </Label>
+              </FieldLabel>
               <AddressAutocompleteInput
                 id="itbi-rua"
                 value={fields.rua}
@@ -177,9 +186,9 @@ function SearchForm({
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="itbi-numero" className="text-sm">
+              <FieldLabel htmlFor="itbi-numero" variant="optional">
                 Número
-              </Label>
+              </FieldLabel>
               <Input
                 id="itbi-numero"
                 value={fields.numero}
@@ -194,9 +203,9 @@ function SearchForm({
           {/* Linha 2: localização */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-6">
             <div className="space-y-1 sm:col-span-2">
-              <Label htmlFor="itbi-bairro" className="text-sm">
+              <FieldLabel htmlFor="itbi-bairro" variant="required-or-rua">
                 Bairro
-              </Label>
+              </FieldLabel>
               <Input
                 id="itbi-bairro"
                 value={fields.bairro}
@@ -207,9 +216,9 @@ function SearchForm({
               />
             </div>
             <div className="space-y-1 sm:col-span-2">
-              <Label htmlFor="itbi-cidade" className="text-sm">
+              <FieldLabel htmlFor="itbi-cidade" variant="optional">
                 Cidade
-              </Label>
+              </FieldLabel>
               <Input
                 id="itbi-cidade"
                 value={fields.cidade}
@@ -218,9 +227,9 @@ function SearchForm({
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="itbi-estado" className="text-sm">
+              <FieldLabel htmlFor="itbi-estado" variant="optional">
                 Estado
-              </Label>
+              </FieldLabel>
               <Input
                 id="itbi-estado"
                 value={fields.estado}
@@ -230,9 +239,9 @@ function SearchForm({
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="itbi-cep" className="text-sm">
+              <FieldLabel htmlFor="itbi-cep" variant="optional">
                 CEP
-              </Label>
+              </FieldLabel>
               <Input
                 id="itbi-cep"
                 value={fields.cep}
@@ -247,9 +256,9 @@ function SearchForm({
           {/* Linha 3: características — refinam ITBI/ZAP/IA */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-6">
             <div className="space-y-1 sm:col-span-2">
-              <Label htmlFor="itbi-quartos" className="text-sm">
+              <FieldLabel htmlFor="itbi-quartos" variant="optional">
                 Quartos
-              </Label>
+              </FieldLabel>
               <Input
                 id="itbi-quartos"
                 value={fields.quartos}
@@ -263,9 +272,9 @@ function SearchForm({
               />
             </div>
             <div className="space-y-1 sm:col-span-2">
-              <Label htmlFor="itbi-metragem" className="text-sm">
+              <FieldLabel htmlFor="itbi-metragem" variant="optional">
                 Área útil (m²)
-              </Label>
+              </FieldLabel>
               <Input
                 id="itbi-metragem"
                 value={fields.metragem}
@@ -290,9 +299,10 @@ function SearchForm({
           </div>
 
           <p className="text-label text-muted-foreground">
-            Mínimo: rua ou bairro. Quanto mais campos preenchidos, mais
-            preciso o filtro de comparáveis (especialmente metragem e
-            quartos pra os anúncios).
+            <span className="text-destructive">*</span> Preencha rua{" "}
+            <span className="font-medium">ou</span> bairro (pelo menos um).
+            Demais campos são opcionais — mais campos preenchidos = filtro
+            mais preciso (especialmente metragem e quartos pra os anúncios).
           </p>
         </CardContent>
       </Card>
@@ -389,4 +399,45 @@ function buildSyntheticProperty(f: SearchFields): Property {
     cep: f.cep.trim() || null,
     // restante usa default do tipo (undefined / null)
   };
+}
+
+// ─── FieldLabel — visual de obrigatório vs opcional ───────────────────
+
+/**
+ * Label com indicação visual da obrigatoriedade do campo.
+ *
+ * Variantes:
+ *  • `required-or-rua` / `required-or-bairro` — asterisco vermelho;
+ *    sinaliza um dos dois (rua OU bairro) precisa estar preenchido.
+ *  • `optional` — texto cinza "(opcional)" pequeno ao lado do label.
+ *
+ * O comportamento de validação "rua OU bairro" continua via
+ * `hasMinimo` no submit; aqui só comunicamos visualmente.
+ */
+function FieldLabel({
+  htmlFor,
+  variant,
+  children,
+}: {
+  htmlFor: string;
+  variant: "required-or-rua" | "required-or-bairro" | "optional";
+  children: React.ReactNode;
+}) {
+  return (
+    <Label htmlFor={htmlFor} className="text-sm">
+      {children}
+      {variant === "required-or-rua" || variant === "required-or-bairro" ? (
+        <span
+          className="ml-0.5 text-destructive"
+          aria-label="obrigatório (rua ou bairro)"
+        >
+          *
+        </span>
+      ) : (
+        <span className="ml-1 text-meta font-normal text-muted-foreground">
+          (opcional)
+        </span>
+      )}
+    </Label>
+  );
 }
