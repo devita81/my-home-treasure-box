@@ -179,7 +179,7 @@ function CarteiraCard({
     <Card>
       <CardContent className="space-y-2 p-3">
         {/* header pequeno: ícone + título */}
-        <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="flex items-center gap-1.5 text-meta font-semibold uppercase tracking-wider text-muted-foreground">
           <span className="text-primary">{icon}</span>
           {title}
         </div>
@@ -189,7 +189,7 @@ function CarteiraCard({
           <p className="text-base font-semibold leading-tight tabular-nums">
             {primary}
           </p>
-          <p className="text-[11px] text-muted-foreground">{secondary}</p>
+          <p className="text-meta text-muted-foreground">{secondary}</p>
         </div>
 
         {/* breakdown rows (opcional) */}
@@ -215,7 +215,7 @@ function CardRow({ row }: { row: CarteiraRow }) {
           />
         ) : null}
         <span
-          className={`truncate text-[12px] ${row.emphasized ? "font-medium text-foreground" : "text-muted-foreground"}`}
+          className={`truncate text-label ${row.emphasized ? "font-medium text-foreground" : "text-muted-foreground"}`}
         >
           {row.label}
         </span>
@@ -229,7 +229,7 @@ function CardRow({ row }: { row: CarteiraRow }) {
         ) : null}
       </div>
       <span
-        className={`shrink-0 tabular-nums ${row.emphasized ? "text-[13px] font-semibold text-foreground" : "text-[12px]"}`}
+        className={`shrink-0 tabular-nums ${row.emphasized ? "text-data font-semibold text-foreground" : "text-label"}`}
       >
         {row.value}
       </span>
