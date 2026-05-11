@@ -127,7 +127,9 @@ function SearchForm({
   onSubmit,
 }: {
   fields: SearchFields;
-  setFields: (updater: (prev: SearchFields) => SearchFields) => void;
+  // Mesmo type que useState retorna — aceita tanto valor direto
+  // (setFields(novo)) quanto updater (setFields(prev => ...)).
+  setFields: React.Dispatch<React.SetStateAction<SearchFields>>;
   onSubmit: (p: Property) => void;
 }) {
   const [submitting, setSubmitting] = useState(false);
