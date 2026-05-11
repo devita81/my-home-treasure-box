@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v18";
+export const APP_VERSION = "v19";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,18 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v19",
+    date: "11/mai/2026",
+    notes:
+      "UX foundation step 4/N — Aplica type scale semântica em " +
+      "Analytics.tsx, a página mais densa do app. 217 substituições " +
+      "num único arquivo (110 text-[13px] + 95 text-[12px] + 12 " +
+      "text-[11px] → text-data / text-label / text-meta). Maior PR de " +
+      "substituição até agora. Visual: zero diferença em pixel sizes. " +
+      "Sobra Balancete.tsx (119) + 10 arquivos menores no resto da " +
+      "migração.",
+  },
   {
     version: "v18",
     date: "11/mai/2026",
