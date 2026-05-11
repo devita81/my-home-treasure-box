@@ -88,7 +88,7 @@ export const AIChatDialog = ({ open, onOpenChange, propertyId }: AIChatDialogPro
             Consultor IA
           </DialogTitle>
           <div className="flex items-center justify-between gap-2">
-            <p className="text-[12px] text-muted-foreground truncate">
+            <p className="text-label text-muted-foreground truncate">
               Pergunte sobre este imóvel — balancete, ITBI, comparáveis, estimativas
             </p>
             <Button
@@ -96,7 +96,7 @@ export const AIChatDialog = ({ open, onOpenChange, propertyId }: AIChatDialogPro
               disabled={isPinging}
               variant="ghost"
               size="sm"
-              className="h-7 shrink-0 px-2 text-[11px]"
+              className="h-7 shrink-0 px-2 text-meta"
               title="Testa se o backend chat-ia está deployado e a chave OpenAI configurada"
             >
               {isPinging ? (
@@ -131,11 +131,11 @@ export const AIChatDialog = ({ open, onOpenChange, propertyId }: AIChatDialogPro
                       : 'bg-secondary'
                   }`}>
                     {msg.role === 'assistant' ? (
-                      <div className="prose prose-sm dark:prose-invert max-w-none text-[13px]">
+                      <div className="prose prose-sm dark:prose-invert max-w-none text-data">
                         <ReactMarkdown>{msg.content}</ReactMarkdown>
                       </div>
                     ) : (
-                      <p className="text-[13px] whitespace-pre-wrap">{msg.content}</p>
+                      <p className="text-data whitespace-pre-wrap">{msg.content}</p>
                     )}
                   </div>
                   {msg.role === 'user' && (
@@ -152,7 +152,7 @@ export const AIChatDialog = ({ open, onOpenChange, propertyId }: AIChatDialogPro
                   </div>
                   <div className="bg-secondary rounded-xl px-4 py-3 flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    <span className="text-[12px] text-muted-foreground">Pensando...</span>
+                    <span className="text-label text-muted-foreground">Pensando...</span>
                   </div>
                 </div>
               )}

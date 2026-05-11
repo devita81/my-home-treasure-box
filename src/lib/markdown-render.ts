@@ -25,7 +25,7 @@ const formatInlineMarkdown = (text: string) =>
     .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>')
     .replace(
       /`([^`]+)`/g,
-      '<code class="rounded bg-muted px-1.5 py-0.5 text-[12px] text-foreground">$1</code>',
+      '<code class="rounded bg-muted px-1.5 py-0.5 text-label text-foreground">$1</code>',
     );
 
 const isCompactMetricCell = (text: string) => {
@@ -68,7 +68,7 @@ const renderSourceBadgeHtml = (src: SourceLabel) => {
     src.tone === "itbi"
       ? "bg-warning/15 text-warning-foreground border-warning/40"
       : "bg-primary/10 text-primary border-primary/30";
-  return `<span class="mt-1 inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[12px] font-medium uppercase tracking-[0.06em] ${cls}">${src.label}</span>`;
+  return `<span class="mt-1 inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-label font-medium uppercase tracking-[0.06em] ${cls}">${src.label}</span>`;
 };
 
 const renderMarkdownTable = (tableLines: string[], hasItbi = false) => {
@@ -94,7 +94,7 @@ const renderMarkdownTable = (tableLines: string[], hasItbi = false) => {
   const mobileShowClass = isWide ? "lg:hidden" : "sm:hidden";
 
   // ===== Desktop view: traditional table =====
-  let desktop = `<div class="my-5 ${desktopShowClass} overflow-hidden rounded-xl border border-border bg-card shadow-sm"><div class="overflow-x-auto"><table class="w-full border-collapse text-[13px]`;
+  let desktop = `<div class="my-5 ${desktopShowClass} overflow-hidden rounded-xl border border-border bg-card shadow-sm"><div class="overflow-x-auto"><table class="w-full border-collapse text-data`;
   desktop += hasNarrativeLastColumn ? " table-fixed" : "";
   desktop += '">';
 
@@ -109,7 +109,7 @@ const renderMarkdownTable = (tableLines: string[], hasItbi = false) => {
       index === 0 || (hasNarrativeLastColumn && index === headers.length - 1)
         ? "text-left"
         : "text-right";
-    desktop += `<th class="px-3 py-2.5 text-[13px] font-bold uppercase tracking-[0.08em] text-foreground/80 ${alignClass} whitespace-nowrap">${header}</th>`;
+    desktop += `<th class="px-3 py-2.5 text-data font-bold uppercase tracking-[0.08em] text-foreground/80 ${alignClass} whitespace-nowrap">${header}</th>`;
   });
   desktop += "</tr></thead><tbody>";
 
@@ -129,7 +129,7 @@ const renderMarkdownTable = (tableLines: string[], hasItbi = false) => {
             ? "text-right whitespace-nowrap tabular-nums"
             : "text-left";
       const toneClass = isNarrativeCell
-        ? "text-muted-foreground leading-6 break-words text-[13px]"
+        ? "text-muted-foreground leading-6 break-words text-data"
         : index === 0
           ? "font-semibold text-foreground whitespace-nowrap"
           : isMetric
@@ -153,7 +153,7 @@ const renderMarkdownTable = (tableLines: string[], hasItbi = false) => {
     const titlePlain = titleCell.replace(/<[^>]+>/g, "").trim();
     const rowSource = resolveSourceLabel(titlePlain, hasItbi);
     mobile += '<div class="rounded-lg border border-border bg-card/80 shadow-sm p-3">';
-    mobile += `<div class="text-[13px] font-semibold text-foreground mb-1 break-words">${titleCell}</div>`;
+    mobile += `<div class="text-data font-semibold text-foreground mb-1 break-words">${titleCell}</div>`;
     if (rowSource) {
       mobile += `<div class="mb-2">${renderSourceBadgeHtml(rowSource)}</div>`;
     }
@@ -166,15 +166,15 @@ const renderMarkdownTable = (tableLines: string[], hasItbi = false) => {
       if (isNarrativeCell) {
         mobile += '<div class="pt-1.5 mt-1.5 border-t border-border/60">';
         if (header) {
-          mobile += `<dt class="text-[12px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1">${header}</dt>`;
+          mobile += `<dt class="text-label font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1">${header}</dt>`;
         }
-        mobile += `<dd class="text-[12px] leading-5 text-muted-foreground break-words">${cell}</dd>`;
+        mobile += `<dd class="text-label leading-5 text-muted-foreground break-words">${cell}</dd>`;
         mobile += "</div>";
       } else {
         const valueAlign = isCompactMetricCell(plainText) ? "tabular-nums" : "";
         mobile += '<div class="flex items-start justify-between gap-3">';
-        mobile += `<dt class="text-[13px] font-medium uppercase tracking-[0.1em] text-muted-foreground shrink-0">${header}</dt>`;
-        mobile += `<dd class="text-[12px] font-medium text-foreground text-right break-words min-w-0 ${valueAlign}">${cell}</dd>`;
+        mobile += `<dt class="text-data font-medium uppercase tracking-[0.1em] text-muted-foreground shrink-0">${header}</dt>`;
+        mobile += `<dd class="text-label font-medium text-foreground text-right break-words min-w-0 ${valueAlign}">${cell}</dd>`;
         mobile += "</div>";
       }
     }

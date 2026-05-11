@@ -507,14 +507,14 @@ function ReportPreview({ property }: { property: Property }) {
 
   const SectionHeader = ({ title }: { title: string }) => (
     <div className="bg-[hsl(145,30%,94%)] rounded px-2 py-1.5 mb-2">
-      <span className="text-[13px] font-bold uppercase tracking-wide text-[hsl(145,30%,25%)]">{title}</span>
+      <span className="text-data font-bold uppercase tracking-wide text-[hsl(145,30%,25%)]">{title}</span>
     </div>
   );
 
   const DataTable = ({ rows }: { rows: [string, string][] }) => (
     <div className="border border-border rounded overflow-hidden mb-3">
       {rows.map(([label, value], i) => (
-        <div key={i} className={`flex text-[13px] px-2 py-1 ${i % 2 === 0 ? 'bg-muted/30' : ''}`}>
+        <div key={i} className={`flex text-data px-2 py-1 ${i % 2 === 0 ? 'bg-muted/30' : ''}`}>
           <span className="font-semibold text-muted-foreground w-[120px] shrink-0">{label}</span>
           <span className="text-foreground">{value}</span>
         </div>
@@ -526,8 +526,8 @@ function ReportPreview({ property }: { property: Property }) {
     <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
       {/* Header */}
       <div className="bg-[hsl(145,30%,18%)] px-4 py-3">
-        <p className="text-[12px] font-medium text-white/90">Relatório Individual de Imóvel</p>
-        <p className="text-[12px] text-white/60">
+        <p className="text-label font-medium text-white/90">Relatório Individual de Imóvel</p>
+        <p className="text-label text-white/60">
           Gerado em {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
         </p>
       </div>
@@ -537,7 +537,7 @@ function ReportPreview({ property }: { property: Property }) {
         <p className="text-sm font-bold text-[hsl(145,30%,25%)]">
           {property.tipo_imovel || 'Imóvel'} — {property.cidade}/{property.estado}
         </p>
-        <p className="text-[12px] text-muted-foreground">Status: {status}  |  Validação: {validado}</p>
+        <p className="text-label text-muted-foreground">Status: {status}  |  Validação: {validado}</p>
       </div>
 
       {/* Map */}
@@ -560,7 +560,7 @@ function ReportPreview({ property }: { property: Property }) {
       <div className="px-4 py-3 space-y-2">
         {/* Address */}
         <SectionHeader title="Endereço Completo" />
-        <p className="text-[13px] text-foreground mb-3">{address}</p>
+        <p className="text-data text-foreground mb-3">{address}</p>
 
         {/* Characteristics */}
         <SectionHeader title="Características do Imóvel" />
@@ -832,7 +832,7 @@ export function PropertyReportDialog({ open, onOpenChange, property }: PropertyR
                     Enviar
                   </Button>
                 </div>
-                <p className="text-[13px] text-muted-foreground">
+                <p className="text-data text-muted-foreground">
                   O PDF será enviado como link de download válido por 7 dias.
                 </p>
               </div>

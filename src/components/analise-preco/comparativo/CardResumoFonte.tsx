@@ -40,11 +40,11 @@ export function CardResumoFonte({ dados, onVerAnalise }: CardResumoFonteProps) {
               {dados.rotulo}
             </span>
           </div>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">
+          <p className="mt-0.5 text-meta text-muted-foreground">
             {dados.origem}
           </p>
         </div>
-        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] tabular-nums text-foreground">
+        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-meta tabular-nums text-foreground">
           {tem ? `${dados.stats.count} ${pluralizar(dados.stats.count)}` : "—"}
         </span>
       </div>
@@ -88,7 +88,7 @@ export function CardResumoFonte({ dados, onVerAnalise }: CardResumoFonteProps) {
 
       {/* Rodapé: ver análise / atualizar */}
       <div className="mt-3 flex flex-wrap items-center justify-between gap-1.5 border-t border-border/60 pt-2">
-        <span className="text-[11px] text-muted-foreground">
+        <span className="text-meta text-muted-foreground">
           {dados.asOf ? `Atualizado ${fmtDate(dados.asOf)}` : "—"}
         </span>
         <div className="flex items-center gap-1">
@@ -96,7 +96,7 @@ export function CardResumoFonte({ dados, onVerAnalise }: CardResumoFonteProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 px-2 text-[11px]"
+              className="h-7 px-2 text-meta"
               onClick={onVerAnalise}
             >
               Ver análise
@@ -107,7 +107,7 @@ export function CardResumoFonte({ dados, onVerAnalise }: CardResumoFonteProps) {
               asChild
               variant="ghost"
               size="sm"
-              className="h-7 px-2 text-[11px]"
+              className="h-7 px-2 text-meta"
             >
               <a
                 href={dados.verMaisHref}
@@ -158,9 +158,9 @@ function Linha({
 }) {
   return (
     <div className="flex items-baseline justify-between gap-2">
-      <span className="text-[12px] text-muted-foreground">{rotulo}</span>
+      <span className="text-label text-muted-foreground">{rotulo}</span>
       <span
-        className={`tabular-nums ${destaque ? "text-base font-semibold" : "text-[13px]"}`}
+        className={`tabular-nums ${destaque ? "text-base font-semibold" : "text-data"}`}
       >
         {valor}
       </span>

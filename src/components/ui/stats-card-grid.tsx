@@ -20,14 +20,14 @@ export function StatsCardGrid({ cards }: { cards: StatsCard[] }) {
           key={c.label}
           className="rounded-lg border border-border bg-card px-3 py-2"
         >
-          <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+          <p className="text-nano font-medium uppercase tracking-wide text-muted-foreground">
             {c.label}
           </p>
           <p className="text-lg font-semibold tabular-nums text-foreground">
             {c.value}
           </p>
           {c.sublabel ? (
-            <p className="text-[10px] text-muted-foreground">{c.sublabel}</p>
+            <p className="text-nano text-muted-foreground">{c.sublabel}</p>
           ) : null}
         </div>
       ))}
