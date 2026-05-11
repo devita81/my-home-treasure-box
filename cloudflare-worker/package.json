@@ -1,0 +1,22 @@
+{
+  "name": "my-home-treasure-box-ai-worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker que serve a IA do app my-home-treasure-box (GPT-4o + tool calling). Substitui a antiga edge function chat-ia que vivia em supabase/functions/, cujo deploy via Lovable era inconsistente.",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "tail": "wrangler tail",
+    "secret:openai": "wrangler secret put OPENAI_API_KEY",
+    "secret:supabase-url": "wrangler secret put SUPABASE_URL",
+    "secret:supabase-anon": "wrangler secret put SUPABASE_ANON_KEY"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250101.0",
+    "typescript": "^5.5.3",
+    "wrangler": "^3.95.0"
+  }
+}

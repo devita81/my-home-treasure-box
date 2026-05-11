@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v13";
+export const APP_VERSION = "v14";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,22 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v14",
+    date: "11/mai/2026",
+    notes:
+      "IA migra do Supabase Edge Functions (Lovable) pra Cloudflare " +
+      "Workers — quebrando a sequência de 4 tentativas fracassadas " +
+      "(v10-v13) onde a function chat-ia nunca rodou de fato por " +
+      "problemas de CORS/verify_jwt/redeploy do Lovable. CF Worker " +
+      "deployado via wrangler em " +
+      "my-home-treasure-box-ai.renatodevita.workers.dev (grátis, 100k " +
+      "req/dia). Mesmo modelo (GPT-4o), mesmas 6 tools, mesma interface " +
+      "pro frontend — só mudou a URL em `src/lib/ai-chat.ts`. Código " +
+      "do Worker em `cloudflare-worker/`. supabase/functions/chat-ia " +
+      "fica órfão (será deletado em PR cleanup futuro junto com " +
+      "chat-global, chat-property e ai-stream.ts).",
+  },
   {
     version: "v13",
     date: "10/mai/2026",
