@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v20";
+export const APP_VERSION = "v21";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,21 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v21",
+    date: "11/mai/2026",
+    notes:
+      "UX foundation step 6/N — Fecha a migração de typography. 68 " +
+      "substituições em 15 arquivos menores (dialogs, analise-preco/*, " +
+      "ItbiAdmin, ItbiSearch, Sidebar, markdown-render, etc) via bulk " +
+      "sed no scale 10/11/12/13. Mais 2 one-offs: text-[15px] no logo " +
+      "'My Home Collection' da Sidebar → text-base (16px, brand fica " +
+      "ligeiramente mais presente); text-[14px] no h1 do markdown do " +
+      "GlobalAIChatDialog → text-sm (Tailwind padrão). Estado final: " +
+      "zero text-[NNpx] em src/ (430 → 0). Próximos PRs do UX " +
+      "foundation são padronizações finas: cards, cores, mobile " +
+      "compact.",
+  },
   {
     version: "v20",
     date: "11/mai/2026",

@@ -243,7 +243,7 @@ export function ImportBalanceteDialog({ onImported }: Props) {
                   renderItem={(b) => (
                     <>
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-mono text-[13px] text-muted-foreground">
+                        <span className="font-mono text-data text-muted-foreground">
                           {String(b.mes).padStart(2, '0')}/{b.ano}
                           {b.external_id ? ` · ${b.external_id}` : ''}
                         </span>
@@ -295,7 +295,7 @@ function SummaryStat({
 }) {
   return (
     <div className="bg-card border rounded-md px-3 py-2">
-      <div className="text-[13px] uppercase tracking-wide text-muted-foreground">
+      <div className="text-data uppercase tracking-wide text-muted-foreground">
         {label}
       </div>
       <div
@@ -409,7 +409,7 @@ function IssueList<T>({
           {title}
         </h3>
         <div className="flex items-center gap-1.5">
-          <Badge variant="outline" className="text-[13px]">
+          <Badge variant="outline" className="text-data">
             {total}
           </Badge>
           {total > 0 && (
@@ -426,7 +426,7 @@ function IssueList<T>({
                 ) : (
                   <Copy className="h-3 w-3" />
                 )}
-                <span className="text-[13px]">{copied ? 'Copiado!' : 'Copiar'}</span>
+                <span className="text-data">{copied ? 'Copiado!' : 'Copiar'}</span>
               </Button>
               <Button
                 size="sm"
@@ -436,7 +436,7 @@ function IssueList<T>({
                 title="Baixar CSV"
               >
                 <Download className="h-3 w-3" />
-                <span className="text-[13px]">CSV</span>
+                <span className="text-data">CSV</span>
               </Button>
             </>
           )}
@@ -462,7 +462,7 @@ function IssueList<T>({
           </ul>
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-between gap-2 mt-2 text-[12px]">
+            <div className="flex items-center justify-between gap-2 mt-2 text-label">
               <span className="text-muted-foreground">
                 {start + 1}–{Math.min(start + pageSize, total)} de {total}
               </span>

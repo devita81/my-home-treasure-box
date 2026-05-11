@@ -96,7 +96,7 @@ export function FiltrosPreco({
 function Linha({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      <span className="mr-1 text-[11px] uppercase tracking-wide text-muted-foreground">
+      <span className="mr-1 text-meta uppercase tracking-wide text-muted-foreground">
         {label}:
       </span>
       {children}
@@ -156,7 +156,7 @@ function ChipFonte({
     >
       <span className={`h-2 w-2 rounded-full ${cor.dot}`} />
       {rotulo}
-      <span className="text-[10px] tabular-nums opacity-70">({contagem})</span>
+      <span className="text-nano tabular-nums opacity-70">({contagem})</span>
     </button>
   );
 }

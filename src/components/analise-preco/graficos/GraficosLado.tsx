@@ -52,7 +52,7 @@ export function GraficosLado({ dados, onPontoClick }: GraficosLadoProps) {
 
 function Header({ titulo, cor }: { titulo: string; cor: string }) {
   return (
-    <p className={`mb-2 text-[11px] font-semibold uppercase tracking-wide ${cor}`}>
+    <p className={`mb-2 text-meta font-semibold uppercase tracking-wide ${cor}`}>
       {titulo}
     </p>
   );

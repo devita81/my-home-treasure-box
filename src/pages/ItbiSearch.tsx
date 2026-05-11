@@ -275,7 +275,7 @@ function SearchForm({
             </div>
           </div>
 
-          <p className="text-[12px] text-muted-foreground">
+          <p className="text-label text-muted-foreground">
             Mínimo: rua ou bairro. Quanto mais campos preenchidos, mais
             preciso o filtro de comparáveis (especialmente metragem e
             quartos pra os anúncios).
@@ -308,12 +308,12 @@ function SearchSummary({
     <Card>
       <CardContent className="flex flex-col items-start justify-between gap-3 py-3 sm:flex-row sm:items-center">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
+          <div className="flex items-center gap-1.5 text-meta uppercase tracking-wide text-muted-foreground">
             <MapPin className="h-3 w-3" />
             Pesquisando
           </div>
           <p className="mt-0.5 truncate text-sm font-medium">{linhaEndereco}</p>
-          <div className="mt-0.5 flex flex-wrap gap-x-3 text-[12px] text-muted-foreground">
+          <div className="mt-0.5 flex flex-wrap gap-x-3 text-label text-muted-foreground">
             <span className="capitalize">
               {property.tipo_imovel?.replace("_", " ") ?? "—"}
             </span>

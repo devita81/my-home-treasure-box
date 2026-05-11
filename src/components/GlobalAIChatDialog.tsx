@@ -90,10 +90,10 @@ const ResponsiveTable = ({ children }: { children: ReactNode }) => {
                 if (!value || value === '-') return null;
                 return (
                   <div key={j} className="flex gap-2 py-0.5 border-b border-border/40 last:border-0">
-                    <span className="text-[13px] font-semibold text-muted-foreground uppercase tracking-wide shrink-0 w-[35%]">
+                    <span className="text-data font-semibold text-muted-foreground uppercase tracking-wide shrink-0 w-[35%]">
                       {label}
                     </span>
-                    <span className="text-[12px] text-foreground/90 flex-1 break-words">
+                    <span className="text-label text-foreground/90 flex-1 break-words">
                       {value}
                     </span>
                   </div>
@@ -105,7 +105,7 @@ const ResponsiveTable = ({ children }: { children: ReactNode }) => {
       </div>
       {/* Desktop: tabela tradicional */}
       <div className="hidden sm:block my-2 -mx-1 overflow-x-auto rounded-md border border-border bg-card text-card-foreground">
-        <table className="w-full border-collapse text-[12px]">{children}</table>
+        <table className="w-full border-collapse text-label">{children}</table>
       </div>
     </>
   );
@@ -186,7 +186,7 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
             <span className="truncate">Consultor IA</span>
           </DialogTitle>
           <div className="flex items-center justify-between gap-2">
-            <p className="text-[13px] sm:text-[12px] text-muted-foreground truncate">
+            <p className="text-data sm:text-label text-muted-foreground truncate">
               Pergunte sobre seus imóveis, balancete, ITBI, rentabilidade...
             </p>
             <Button
@@ -194,7 +194,7 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
               disabled={isPinging}
               variant="ghost"
               size="sm"
-              className="h-7 shrink-0 px-2 text-[11px]"
+              className="h-7 shrink-0 px-2 text-meta"
               title="Testa se o backend chat-ia está deployado e a chave OpenAI configurada"
             >
               {isPinging ? (
@@ -215,7 +215,7 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
                   <Bot className="h-7 w-7 text-primary" />
                 </div>
                 <p className="text-sm mb-2">Tenho acesso aos seus {properties.length} imóveis, balancete, ITBI e estimativas IA.</p>
-                <p className="text-[12px] text-muted-foreground px-4">
+                <p className="text-label text-muted-foreground px-4">
                   Ex: "Qual imóvel está dando mais prejuízo?", "Onde tá custo inflado?", "Compara meus apartamentos por yield."
                 </p>
               </div>
@@ -234,7 +234,7 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
                       : 'bg-secondary max-w-[92%] sm:max-w-[88%] w-full'
                   }`}>
                     {msg.role === 'assistant' ? (
-                      <div className="text-[13px] leading-relaxed space-y-2 [&_p]:my-1 [&_h1]:text-[14px] [&_h1]:font-bold [&_h1]:mt-3 [&_h1]:mb-1 [&_h2]:text-[13px] [&_h2]:font-semibold [&_h2]:mt-3 [&_h2]:mb-1 [&_h3]:text-[13px] [&_h3]:font-semibold [&_h3]:mt-2 [&_h3]:mb-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_li]:my-0.5 [&_strong]:font-semibold [&_code]:bg-background/60 [&_code]:px-1 [&_code]:rounded [&_code]:text-[12px]">
+                      <div className="text-data leading-relaxed space-y-2 [&_p]:my-1 [&_h1]:text-sm [&_h1]:font-bold [&_h1]:mt-3 [&_h1]:mb-1 [&_h2]:text-data [&_h2]:font-semibold [&_h2]:mt-3 [&_h2]:mb-1 [&_h3]:text-data [&_h3]:font-semibold [&_h3]:mt-2 [&_h3]:mb-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_li]:my-0.5 [&_strong]:font-semibold [&_code]:bg-background/60 [&_code]:px-1 [&_code]:rounded [&_code]:text-label">
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm]}
                           components={{
@@ -259,7 +259,7 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
                         </ReactMarkdown>
                       </div>
                     ) : (
-                      <p className="text-[13px] whitespace-pre-wrap">{msg.content}</p>
+                      <p className="text-data whitespace-pre-wrap">{msg.content}</p>
                     )}
                   </div>
                   {msg.role === 'user' && (
@@ -276,7 +276,7 @@ export const GlobalAIChatDialog = ({ open, onOpenChange }: GlobalAIChatDialogPro
                   </div>
                   <div className="bg-secondary rounded-xl px-4 py-3 flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    <span className="text-[12px] text-muted-foreground">Pensando...</span>
+                    <span className="text-label text-muted-foreground">Pensando...</span>
                   </div>
                 </div>
               )}

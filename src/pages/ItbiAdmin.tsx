@@ -182,7 +182,7 @@ const ItbiAdmin = () => {
                 onChange={(e) => setSourceUrl(e.target.value)}
                 placeholder="https://prefeitura.sp.gov.br/.../itbi_2025.xlsx"
               />
-              <p className="text-[12px] text-muted-foreground mt-1">
+              <p className="text-label text-muted-foreground mt-1">
                 Fonte oficial:{' '}
                 <a
                   href="https://prefeitura.sp.gov.br/web/fazenda/w/acesso_a_informacao/31501"
@@ -201,7 +201,7 @@ const ItbiAdmin = () => {
                 <><Download className="h-4 w-4 mr-2" />Iniciar importação</>
               )}
             </Button>
-            <p className="text-[12px] text-muted-foreground">
+            <p className="text-label text-muted-foreground">
               ⚠️ Arquivos grandes (&gt;50MB) podem causar timeout na edge function. Para a carga inicial dos 36 meses, recomenda-se importar 1 ano por vez.
             </p>
           </CardContent>

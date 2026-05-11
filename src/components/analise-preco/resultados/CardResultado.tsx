@@ -26,7 +26,7 @@ export function CardResultado({ ponto, onClick }: CardResultadoProps) {
       {/* Cabeçalho: badge da fonte + indicador externo */}
       <div className="mb-1.5 flex items-center justify-between">
         <span
-          className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ${acento.badgeBorda} ${acento.badgeBg} ${acento.badgeTexto}`}
+          className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-nano font-medium uppercase tracking-wide ${acento.badgeBorda} ${acento.badgeBg} ${acento.badgeTexto}`}
         >
           <span className={`h-1.5 w-1.5 rounded-full ${acento.dot}`} />
           {ROTULOS[ponto.fonte]}
@@ -42,10 +42,10 @@ export function CardResultado({ ponto, onClick }: CardResultadoProps) {
           {fmtBRL(ponto.preco)}
         </p>
         {ponto.area != null ? (
-          <p className="text-[12px] text-muted-foreground tabular-nums">
+          <p className="text-label text-muted-foreground tabular-nums">
             {ponto.area} m²
             {ponto.area > 0 ? (
-              <span className="ml-1 text-[11px]">
+              <span className="ml-1 text-meta">
                 · {fmtBRL(Math.round(ponto.preco / ponto.area))}/m²
               </span>
             ) : null}
@@ -54,7 +54,7 @@ export function CardResultado({ ponto, onClick }: CardResultadoProps) {
       </div>
 
       {/* Contexto */}
-      <div className="mt-auto pt-2 text-[12px] text-muted-foreground">
+      <div className="mt-auto pt-2 text-label text-muted-foreground">
         <p className="line-clamp-1 font-medium text-foreground/80">
           {ponto.display.primary}
         </p>

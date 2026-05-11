@@ -118,10 +118,10 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               <HomeIcon className="h-4 w-4" />
             </div>
             <div className="flex min-w-0 flex-col">
-              <span className="font-display truncate text-[15px] font-semibold text-foreground">
+              <span className="font-display truncate text-base font-semibold text-foreground">
                 My Home Collection
               </span>
-              <span className="truncate text-[11px] text-muted-foreground">
+              <span className="truncate text-meta text-muted-foreground">
                 Gestão de Imóveis
               </span>
             </div>
@@ -196,7 +196,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               </Button>
             </Link>
             {user ? (
-              <div className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-[12px] text-muted-foreground">
+              <div className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-label text-muted-foreground">
                 <span className="truncate" title={user.email ?? ""}>
                   {user.email ?? "—"}
                 </span>
@@ -215,7 +215,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             {/* Marker de versão — agora vive aqui (antes ficava no
                 rodapé do Index). Permite confirmar deploy sem precisar
                 voltar pra home. Ver `src/lib/app-version.ts`. */}
-            <p className="px-2 pt-1 text-center text-[10px] text-muted-foreground/70">
+            <p className="px-2 pt-1 text-center text-nano text-muted-foreground/70">
               <span className="font-mono font-medium">{APP_VERSION}</span>
               <span className="mx-1 text-muted-foreground/40">·</span>
               <span>{APP_VERSION_DATE}</span>
