@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v17";
+export const APP_VERSION = "v18";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,20 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v18",
+    date: "11/mai/2026",
+    notes:
+      "UX foundation step 3/N — Aplica type scale semântica em " +
+      "PropertyDetails e sub-sections (PropertyCadastroSection, " +
+      "PropertyFinanceiroSection). ~30 substituições (15 text-[12px] + " +
+      "13 text-[13px] + 1 text-[11px] + 1 text-[10px]) → text-label / " +
+      "text-data / text-meta / text-nano. Página densa, terceira maior " +
+      "concentração de texto do app. Visual: zero diferença em pixel " +
+      "sizes, só line-heights levemente otimizados. Próximos: " +
+      "Analytics (216 ocorrências!) e Balancete (119) — esses dois " +
+      "sozinhos têm 78% do que sobrou (335 de 430 totais).",
+  },
   {
     version: "v17",
     date: "11/mai/2026",

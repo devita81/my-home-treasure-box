@@ -50,7 +50,7 @@ export function PropertyCadastroSection({
     <div className="grid gap-4 lg:grid-cols-2">
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-1.5 text-[13px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
+          <CardTitle className="flex items-center gap-1.5 text-data font-medium tracking-[0.16em] uppercase text-muted-foreground">
             <Building className="h-3.5 w-3.5 text-primary" />
             Identificação
           </CardTitle>
@@ -110,7 +110,7 @@ export function PropertyCadastroSection({
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-1.5 text-[13px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
+          <CardTitle className="flex items-center gap-1.5 text-data font-medium tracking-[0.16em] uppercase text-muted-foreground">
             <Home className="h-3.5 w-3.5 text-primary" />
             Atributos físicos
           </CardTitle>
@@ -186,9 +186,9 @@ function Linha({
         destaque ? "bg-primary/10" : "bg-secondary"
       }`}
     >
-      <span className="text-[12px] text-muted-foreground">{rotulo}</span>
+      <span className="text-label text-muted-foreground">{rotulo}</span>
       <span
-        className={`text-[12px] font-normal ${
+        className={`text-label font-normal ${
           destaque ? "text-primary" : ""
         } ${valorClassName ?? ""}`}
       >
@@ -211,9 +211,9 @@ function Quadrante({
     <div className="flex items-center justify-between rounded-lg bg-secondary p-3">
       <div className="flex items-center gap-2">
         {icone}
-        <span className="text-[12px] text-muted-foreground">{rotulo}</span>
+        <span className="text-label text-muted-foreground">{rotulo}</span>
       </div>
-      <span className="text-[12px] font-normal">{valor}</span>
+      <span className="text-label font-normal">{valor}</span>
     </div>
   );
 }
