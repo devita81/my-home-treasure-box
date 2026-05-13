@@ -12,6 +12,7 @@ import type { AreaBucket } from "@/components/property/market-stats";
 import { useAnalisePreco } from "./dados/useAnalisePreco";
 import type { FontePreco, PontoPreco } from "./dados/tipos";
 import { AnalisePrecoHeader } from "./AnalisePrecoHeader";
+import { AnaliseProfunda } from "./AnaliseProfunda";
 import { ComparativoFontes } from "./comparativo/ComparativoFontes";
 import { GraficosLado } from "./graficos/GraficosLado";
 import { FiltrosPreco } from "./filtros/FiltrosPreco";
@@ -70,7 +71,15 @@ export function AnalisePreco({ property }: AnalisePrecoProps) {
   };
 
   return (
-    <Card>
+    <div className="space-y-4">
+      {/* Análise profunda fica em Card SEPARADO acima do principal pra
+          ter identidade visual própria. Trade-off: ocupa mais espaço
+          vertical, mas o usuário entende que é uma feature distinta
+          (Claude + web search) e não outra "estimativa" no meio das
+          outras 3 fontes (ITBI/Anúncios/IA single-shot). */}
+      <AnaliseProfunda property={property} />
+
+      <Card>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-lg">
           <TrendingUp className="h-5 w-5 text-primary" />
@@ -118,6 +127,7 @@ export function AnalisePreco({ property }: AnalisePrecoProps) {
         onClose={() => setModalItbi(null)}
       />
       <DialogAnaliseIa markdown={modalIa} onClose={() => setModalIa(null)} />
-    </Card>
+      </Card>
+    </div>
   );
 }

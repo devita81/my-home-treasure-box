@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v26";
+export const APP_VERSION = "v27";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,29 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v27",
+    date: "11/mai/2026",
+    notes:
+      "Feature nova: 'Análise profunda' — relatório de avaliação " +
+      "imobiliária via Claude Sonnet 4.5 + web_search. Roda dentro do " +
+      "Cloudflare Worker (mesmo onde chat-ia vive), novo endpoint " +
+      "POST /research. Pesquisa multi-fonte (ZAP, VivaReal, " +
+      "QuintoAndar, OLX, ImovelWeb), produz relatório estruturado em " +
+      "markdown com 5-10 comparáveis citados + análise da região + " +
+      "cenários de venda + recomendações. Renderizado num Card " +
+      "separado no topo da seção <AnalisePreco /> (acima dos charts " +
+      "ITBI/Anúncios/IA). " +
+      "Persistência: pré-cadastrados gravam nas 3 colunas novas " +
+      "ai_deep_research_md / _citations / _updated_at de `properties` " +
+      "(migration 20260511130000) — última análise aparece " +
+      "automaticamente em qualquer dispositivo do mesmo usuário, " +
+      "mesmo padrão da Estimativa IA. Pesquisa avulsa (sem id) só " +
+      "em memória. Botão 'Refazer análise' sobrescreve. Tempo típico " +
+      "~60s, custo ~R$ 1 por análise. Não toca em Estimativa IA " +
+      "antiga (OpenAI single-shot) — as duas coexistem; cleanup do " +
+      "antigo pode vir depois se você validar a Análise profunda.",
+  },
   {
     version: "v26",
     date: "11/mai/2026",

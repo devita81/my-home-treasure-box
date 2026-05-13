@@ -29,6 +29,9 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 interface Env {
   OPENAI_API_KEY: string;
+  // Adicionado pra suportar o endpoint /research (Claude Sonnet 4.5 +
+  // web_search_20250305). O chat continua usando OPENAI_API_KEY.
+  ANTHROPIC_API_KEY: string;
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
 }
@@ -543,145 +546,376 @@ export default {
       return jsonError(405, "Use POST");
     }
 
-    try {
-      const authHeader = request.headers.get("Authorization");
-      if (!authHeader?.startsWith("Bearer ")) {
-        return jsonError(401, "Authorization header obrigatório");
-      }
-      const jwt = authHeader.replace("Bearer ", "");
+    // Roteamento por pathname. Default (raiz) é chat — mantém
+    // compatibilidade com o frontend atual que aponta pra URL base.
+    // /research é o endpoint novo (Análise profunda via Claude).
+    const url = new URL(request.url);
+    if (url.pathname === "/research") {
+      return handleResearch(request, env);
+    }
+    return handleChat(request, env);
+  },
+};
 
-      // Valida JWT antes de fazer qualquer trabalho caro (OpenAI call)
-      const auth = await validateJwt(jwt, env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
-      if (!auth.ok) return jsonError(401, auth.error);
+// ─── /chat handler (atual, GPT-4o com tool calling no DB) ────────────
 
-      if (!env.OPENAI_API_KEY) {
-        return jsonError(500, "OPENAI_API_KEY não configurada");
-      }
+async function handleChat(request: Request, env: Env): Promise<Response> {
+  try {
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return jsonError(401, "Authorization header obrigatório");
+    }
+    const jwt = authHeader.replace("Bearer ", "");
 
-      // Cria supabase client autenticado (RLS aplica via JWT)
-      const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
-        global: { headers: { Authorization: `Bearer ${jwt}` } },
+    // Valida JWT antes de fazer qualquer trabalho caro (OpenAI call)
+    const auth = await validateJwt(jwt, env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+    if (!auth.ok) return jsonError(401, auth.error);
+
+    if (!env.OPENAI_API_KEY) {
+      return jsonError(500, "OPENAI_API_KEY não configurada");
+    }
+
+    // Cria supabase client autenticado (RLS aplica via JWT)
+    const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: `Bearer ${jwt}` } },
+    });
+
+    const body = (await request.json()) as {
+      messages?: ChatMessage[];
+      propertyId?: string;
+    };
+    const userMessages = Array.isArray(body.messages) ? body.messages : [];
+    const propertyId =
+      typeof body.propertyId === "string" ? body.propertyId : undefined;
+
+    if (userMessages.length === 0) {
+      return jsonError(400, "Messages array is required");
+    }
+
+    // Monta conversa: system + (opcional) contexto de imóvel + histórico
+    const conversation: ChatMessage[] = [
+      { role: "system", content: SYSTEM_PROMPT },
+    ];
+    if (propertyId) {
+      conversation.push({
+        role: "system",
+        content: `Contexto: o usuário está consultando especificamente o imóvel id=${propertyId}. Se a pergunta for sobre "esse imóvel" ou similar, use esse ID. Comece chamando get_property_detail pra carregar os dados.`,
       });
+    }
+    conversation.push(...userMessages);
 
-      const body = (await request.json()) as {
-        messages?: ChatMessage[];
-        propertyId?: string;
+    // Loop de tool calling
+    for (let iter = 0; iter < MAX_TOOL_ITERATIONS; iter++) {
+      const openaiResp = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${env.OPENAI_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: MODEL,
+            messages: conversation,
+            tools: TOOLS,
+            tool_choice: "auto",
+          }),
+        },
+      );
+
+      if (!openaiResp.ok) {
+        const errorText = await openaiResp.text();
+        console.error("OpenAI error:", openaiResp.status, errorText);
+        if (openaiResp.status === 429) {
+          return jsonError(
+            429,
+            "OpenAI rate-limited. Aguarde alguns segundos.",
+          );
+        }
+        if (openaiResp.status === 401) {
+          return jsonError(500, "OPENAI_API_KEY inválida");
+        }
+        return jsonError(500, "Erro ao consultar OpenAI");
+      }
+
+      const data = (await openaiResp.json()) as {
+        choices?: Array<{ message?: ChatMessage }>;
       };
-      const userMessages = Array.isArray(body.messages) ? body.messages : [];
-      const propertyId =
-        typeof body.propertyId === "string" ? body.propertyId : undefined;
+      const assistantMessage = data.choices?.[0]?.message;
+      if (!assistantMessage) return jsonError(500, "Resposta inválida da OpenAI");
 
-      if (userMessages.length === 0) {
-        return jsonError(400, "Messages array is required");
-      }
+      conversation.push(assistantMessage);
 
-      // Monta conversa: system + (opcional) contexto de imóvel + histórico
-      const conversation: ChatMessage[] = [
-        { role: "system", content: SYSTEM_PROMPT },
-      ];
-      if (propertyId) {
-        conversation.push({
-          role: "system",
-          content: `Contexto: o usuário está consultando especificamente o imóvel id=${propertyId}. Se a pergunta for sobre "esse imóvel" ou similar, use esse ID. Comece chamando get_property_detail pra carregar os dados.`,
-        });
-      }
-      conversation.push(...userMessages);
-
-      // Loop de tool calling
-      for (let iter = 0; iter < MAX_TOOL_ITERATIONS; iter++) {
-        const openaiResp = await fetch(
-          "https://api.openai.com/v1/chat/completions",
+      // Sem tool calls = resposta final
+      if (!assistantMessage.tool_calls || assistantMessage.tool_calls.length === 0) {
+        return new Response(
+          JSON.stringify({
+            content: assistantMessage.content ?? "",
+            iterations_used: iter + 1,
+          }),
           {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${env.OPENAI_API_KEY}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              model: MODEL,
-              messages: conversation,
-              tools: TOOLS,
-              tool_choice: "auto",
-            }),
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
           },
         );
+      }
 
-        if (!openaiResp.ok) {
-          const errorText = await openaiResp.text();
-          console.error("OpenAI error:", openaiResp.status, errorText);
-          if (openaiResp.status === 429) {
-            return jsonError(
-              429,
-              "OpenAI rate-limited. Aguarde alguns segundos.",
-            );
-          }
-          if (openaiResp.status === 401) {
-            return jsonError(500, "OPENAI_API_KEY inválida");
-          }
-          return jsonError(500, "Erro ao consultar OpenAI");
-        }
-
-        const data = (await openaiResp.json()) as {
-          choices?: Array<{ message?: ChatMessage }>;
-        };
-        const assistantMessage = data.choices?.[0]?.message;
-        if (!assistantMessage) return jsonError(500, "Resposta inválida da OpenAI");
-
-        conversation.push(assistantMessage);
-
-        // Sem tool calls = resposta final
-        if (!assistantMessage.tool_calls || assistantMessage.tool_calls.length === 0) {
-          return new Response(
-            JSON.stringify({
-              content: assistantMessage.content ?? "",
-              iterations_used: iter + 1,
-            }),
-            {
-              status: 200,
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            },
-          );
-        }
-
-        // Executa tool calls em série e devolve resultados pro modelo
-        for (const toolCall of assistantMessage.tool_calls) {
-          let parsedArgs: ToolArgs = {};
-          try {
-            parsedArgs = JSON.parse(toolCall.function.arguments) as ToolArgs;
-          } catch {
-            conversation.push({
-              role: "tool",
-              tool_call_id: toolCall.id,
-              content: JSON.stringify({
-                error: `Argumentos JSON inválidos: ${toolCall.function.arguments}`,
-              }),
-            });
-            continue;
-          }
-          const toolResult = await dispatchTool(
-            supabase,
-            toolCall.function.name,
-            parsedArgs,
-          );
+      // Executa tool calls em série e devolve resultados pro modelo
+      for (const toolCall of assistantMessage.tool_calls) {
+        let parsedArgs: ToolArgs = {};
+        try {
+          parsedArgs = JSON.parse(toolCall.function.arguments) as ToolArgs;
+        } catch {
           conversation.push({
             role: "tool",
             tool_call_id: toolCall.id,
-            content: JSON.stringify(toolResult),
+            content: JSON.stringify({
+              error: `Argumentos JSON inválidos: ${toolCall.function.arguments}`,
+            }),
           });
+          continue;
         }
+        const toolResult = await dispatchTool(
+          supabase,
+          toolCall.function.name,
+          parsedArgs,
+        );
+        conversation.push({
+          role: "tool",
+          tool_call_id: toolCall.id,
+          content: JSON.stringify(toolResult),
+        });
       }
-
-      return jsonError(
-        500,
-        `Modelo não convergiu em ${MAX_TOOL_ITERATIONS} rounds. Reformule a pergunta de forma mais específica.`,
-      );
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Erro desconhecido";
-      console.error("chat-ia worker error:", message);
-      return jsonError(500, message);
     }
-  },
-};
+
+    return jsonError(
+      500,
+      `Modelo não convergiu em ${MAX_TOOL_ITERATIONS} rounds. Reformule a pergunta de forma mais específica.`,
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Erro desconhecido";
+    console.error("chat handler error:", message);
+    return jsonError(500, message);
+  }
+}
+
+// ─── /research handler (Claude Sonnet 4.5 + web_search) ──────────────
+
+interface ResearchPropertyInput {
+  rua?: string | null;
+  numero?: string | null;
+  bairro?: string | null;
+  cidade?: string | null;
+  estado?: string | null;
+  cep?: string | null;
+  tipo_imovel?: string | null;
+  metragem?: number | null;
+  area_total?: number | null;
+  quartos?: number | null;
+  suites?: number | null;
+  banheiros?: number | null;
+  garagens?: number | null;
+  ano_construcao?: number | null;
+}
+
+const RESEARCH_MODEL = "claude-sonnet-4-5";
+
+const RESEARCH_SYSTEM_PROMPT = `Você é um avaliador imobiliário sênior brasileiro com 20 anos de experiência. Sua tarefa é produzir um relatório de avaliação completo de UM imóvel específico, baseado em pesquisa REAL na web — não chute valores.
+
+Você TEM acesso à ferramenta \`web_search\`. USE EXTENSIVAMENTE — mínimo 5 buscas, idealmente 10+, cobrindo diferentes ângulos (comparáveis em vários sites, infraestrutura do bairro, valorização recente, etc).
+
+ESTRUTURA OBRIGATÓRIA do relatório (markdown):
+
+## 1. Resumo executivo
+- Faixa estimada de VENDA: R$ X a R$ Y (mediana R$ Z)
+- Faixa estimada de ALUGUEL: R$ X a R$ Y por mês (mediana R$ Z)
+- Yield bruto estimado: X% a.a.
+- Confiança da estimativa: alta / média / baixa (justifique)
+
+## 2. Metodologia
+- Sites pesquisados (cite explicitamente os domínios — ZAP, VivaReal, QuintoAndar, OLX, ImovelWeb, etc)
+- Critérios de comparáveis (mesmo bairro/proximidade, tipo igual, ±20-30% de área, ±1 quarto)
+- Período coberto pelos dados
+
+## 3. Comparáveis encontrados (mínimo 5, idealmente 8-12)
+Tabela markdown:
+| Site | Endereço/Edifício | Tipo | m² | Quartos | Preço | Link |
+|------|------------------|------|-----|---------|-------|------|
+
+Use \`[texto](url)\` no campo Link. URLs devem ser específicas do anúncio, não busca genérica.
+
+## 4. Análise da região
+- Bairro: características predominantes
+- Valorização recente (últimos 1-3 anos, se houver dado)
+- Infraestrutura próxima (metrô, comércio, escolas, parques)
+- Vetor de crescimento ou desaceleração
+
+## 5. Avaliação técnica do imóvel
+- Posicionamento vs comparáveis (preço/m² acima ou abaixo da média, por quê)
+- Pontos a favor (vista, andar, reforma, vaga, etc — se inferível)
+- Pontos contra (idade, plantas antigas, ausência de elevador, etc)
+- Fatores que justificam preço acima/abaixo
+
+## 6. Cenários de venda
+| Cenário | Preço sugerido | Tempo estimado |
+|---------|---------------|----------------|
+| Venda rápida (até 60 dias) | R$ X | |
+| Venda em prazo médio (3-6 meses) | R$ X | |
+| Venda otimizada (negociação) | R$ X | |
+
+## 7. Recomendações
+- Preço sugerido pra publicar agora: R$ X (justificativa em 1 frase)
+- Aluguel sugerido: R$ X/mês
+- Ações de valorização (reforma, staging, fotos profissionais) com ROI estimado
+
+## 8. Fontes citadas
+Lista de URLs únicas usadas no relatório, com 1 frase descrevendo cada.
+
+═══════════════════════════════════════════════════════════════════
+REGRAS DURAS:
+- Português brasileiro. Valores em R$ (BRL).
+- CITE todas as fontes com URLs clicáveis (markdown \`[texto](url)\`).
+- Se faltar dado pra alguma seção, diga "sem dado suficiente da web" — NUNCA invente.
+- Tom: técnico, frio, decisório. Como um perito assistente do juiz.
+- Sem floreio, sem "espero ter ajudado", sem emoji em headers.
+- Não escreva nada antes da seção 1 — começa direto.`;
+
+async function handleResearch(request: Request, env: Env): Promise<Response> {
+  try {
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return jsonError(401, "Authorization header obrigatório");
+    }
+    const jwt = authHeader.replace("Bearer ", "");
+
+    const auth = await validateJwt(jwt, env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+    if (!auth.ok) return jsonError(401, auth.error);
+
+    if (!env.ANTHROPIC_API_KEY) {
+      return jsonError(500, "ANTHROPIC_API_KEY não configurada nos secrets");
+    }
+
+    const body = (await request.json()) as { property?: ResearchPropertyInput };
+    const property = body.property;
+    if (!property || typeof property !== "object") {
+      return jsonError(400, "Body precisa de { property: { ... } }");
+    }
+
+    // Monta a descrição do imóvel pro modelo. Só inclui campos
+    // preenchidos — pra evitar coisas tipo "0 quartos" que confundem.
+    const lines: string[] = [];
+    if (property.tipo_imovel) lines.push(`Tipo: ${property.tipo_imovel}`);
+    const enderecoParts = [
+      property.rua,
+      property.numero ? `nº ${property.numero}` : null,
+      property.bairro,
+      property.cidade,
+      property.estado,
+    ]
+      .filter(Boolean)
+      .join(", ");
+    if (enderecoParts) lines.push(`Endereço: ${enderecoParts}`);
+    if (property.cep) lines.push(`CEP: ${property.cep}`);
+    if (property.metragem) lines.push(`Área útil: ${property.metragem} m²`);
+    if (property.area_total) lines.push(`Área total: ${property.area_total} m²`);
+    if (property.quartos) lines.push(`Quartos: ${property.quartos}`);
+    if (property.suites) lines.push(`Suítes: ${property.suites}`);
+    if (property.banheiros) lines.push(`Banheiros: ${property.banheiros}`);
+    if (property.garagens) lines.push(`Vagas: ${property.garagens}`);
+    if (property.ano_construcao) lines.push(`Ano de construção: ${property.ano_construcao}`);
+
+    const userMessage = `Analise o seguinte imóvel:\n\n${lines.join("\n")}\n\nProduza o relatório completo seguindo a estrutura definida. Pesquise extensivamente.`;
+
+    const startedAt = Date.now();
+    const claudeResp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: RESEARCH_MODEL,
+        max_tokens: 8192,
+        // Web search é uma server-side tool — Anthropic faz as
+        // buscas internamente e retorna o resultado final.
+        // Não precisamos de loop manual de tool_use/tool_result.
+        tools: [
+          { type: "web_search_20250305", name: "web_search", max_uses: 15 },
+        ],
+        system: RESEARCH_SYSTEM_PROMPT,
+        messages: [{ role: "user", content: userMessage }],
+      }),
+    });
+
+    if (!claudeResp.ok) {
+      const errorText = await claudeResp.text();
+      console.error("Anthropic error:", claudeResp.status, errorText);
+      if (claudeResp.status === 429) {
+        return jsonError(429, "Anthropic rate-limited. Aguarde alguns segundos.");
+      }
+      if (claudeResp.status === 401) {
+        return jsonError(500, "ANTHROPIC_API_KEY inválida");
+      }
+      if (claudeResp.status === 402 || claudeResp.status === 403) {
+        return jsonError(500, "Créditos Anthropic insuficientes ou conta sem billing.");
+      }
+      return jsonError(500, `Erro Anthropic (${claudeResp.status})`);
+    }
+
+    interface AnthropicTextBlock {
+      type: "text";
+      text: string;
+      citations?: Array<{ url?: string; title?: string }>;
+    }
+    interface AnthropicResponse {
+      content: Array<AnthropicTextBlock | { type: string }>;
+      usage?: { input_tokens: number; output_tokens: number };
+      stop_reason?: string;
+    }
+
+    const data = (await claudeResp.json()) as AnthropicResponse;
+
+    // Concatena todos os blocos de texto do response. Anthropic
+    // pode retornar múltiplos blocos quando há citations inline.
+    const textBlocks = data.content.filter(
+      (b): b is AnthropicTextBlock => b.type === "text",
+    );
+    const markdown = textBlocks.map((b) => b.text).join("\n\n");
+
+    // Coleta citations (URLs únicas) — embora o prompt já pede que
+    // estejam embutidas no markdown, expomos no payload também pra
+    // facilitar listagem no frontend se necessário.
+    const citationsMap = new Map<string, string>();
+    for (const block of textBlocks) {
+      for (const c of block.citations ?? []) {
+        if (c.url) citationsMap.set(c.url, c.title ?? c.url);
+      }
+    }
+    const citations = [...citationsMap.entries()].map(([url, title]) => ({
+      url,
+      title,
+    }));
+
+    const elapsedMs = Date.now() - startedAt;
+    return new Response(
+      JSON.stringify({
+        markdown,
+        citations,
+        elapsedMs,
+        usage: data.usage ?? null,
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Erro desconhecido";
+    console.error("research handler error:", message);
+    return jsonError(500, message);
+  }
+}
 
 function jsonError(status: number, error: string): Response {
   return new Response(JSON.stringify({ error }), {
