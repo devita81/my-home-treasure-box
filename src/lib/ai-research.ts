@@ -91,56 +91,7 @@ export async function runResearch({
   return (await resp.json()) as ResearchResponse;
 }
 
-// ─── cache em localStorage ───────────────────────────────────────────
-
-const CACHE_PREFIX = "research:";
-const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 dias
-
-interface CachedResearch extends ResearchResponse {
-  cachedAt: number;
-}
-
-/**
- * Lê cache de análise por property.id. Retorna null se não há cache
- * ou se já expirou (>7 dias). Pra Pesquisa avulsa (sem id), passar
- * null e o caller pula o cache.
- */
-export function getCachedResearch(propertyId: string | null): ResearchResponse | null {
-  if (!propertyId) return null;
-  try {
-    const raw = localStorage.getItem(CACHE_PREFIX + propertyId);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as CachedResearch;
-    if (Date.now() - parsed.cachedAt > CACHE_TTL_MS) {
-      localStorage.removeItem(CACHE_PREFIX + propertyId);
-      return null;
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-/** Grava no cache. No-op se propertyId é null (Pesquisa avulsa). */
-export function setCachedResearch(
-  propertyId: string | null,
-  result: ResearchResponse,
-): void {
-  if (!propertyId) return;
-  try {
-    const payload: CachedResearch = { ...result, cachedAt: Date.now() };
-    localStorage.setItem(CACHE_PREFIX + propertyId, JSON.stringify(payload));
-  } catch {
-    // localStorage cheio ou private mode — falha silenciosa
-  }
-}
-
-/** Invalida cache de uma análise específica (botão "Refazer análise"). */
-export function clearCachedResearch(propertyId: string | null): void {
-  if (!propertyId) return;
-  try {
-    localStorage.removeItem(CACHE_PREFIX + propertyId);
-  } catch {
-    // silencioso
-  }
-}
+// Cache em localStorage foi removido no v27 — persistência agora vive
+// nas colunas ai_deep_research_* da tabela `properties` (mesmo padrão
+// do useDadosEstimativaIa). Avulsa (sem id) não cacheia, vive só em
+// memória do componente AnaliseProfunda.tsx.

@@ -38,11 +38,16 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
       "markdown com 5-10 comparáveis citados + análise da região + " +
       "cenários de venda + recomendações. Renderizado num Card " +
       "separado no topo da seção <AnalisePreco /> (acima dos charts " +
-      "ITBI/Anúncios/IA). Cache em localStorage por property.id " +
-      "(7 dias TTL). Tempo típico ~60s, custo ~R$ 1 por análise. " +
-      "Não toca em Estimativa IA antiga (OpenAI single-shot) — as " +
-      "duas coexistem; cleanup do antigo pode vir depois se você " +
-      "validar que a Análise profunda substitui bem.",
+      "ITBI/Anúncios/IA). " +
+      "Persistência: pré-cadastrados gravam nas 3 colunas novas " +
+      "ai_deep_research_md / _citations / _updated_at de `properties` " +
+      "(migration 20260511130000) — última análise aparece " +
+      "automaticamente em qualquer dispositivo do mesmo usuário, " +
+      "mesmo padrão da Estimativa IA. Pesquisa avulsa (sem id) só " +
+      "em memória. Botão 'Refazer análise' sobrescreve. Tempo típico " +
+      "~60s, custo ~R$ 1 por análise. Não toca em Estimativa IA " +
+      "antiga (OpenAI single-shot) — as duas coexistem; cleanup do " +
+      "antigo pode vir depois se você validar a Análise profunda.",
   },
   {
     version: "v26",

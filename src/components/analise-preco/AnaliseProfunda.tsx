@@ -6,15 +6,21 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Loader2, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Sparkles,
+  Loader2,
+  RefreshCw,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Property } from "@/types/property";
+import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 import {
   runResearch,
-  getCachedResearch,
-  setCachedResearch,
-  clearCachedResearch,
+  type ResearchCitation,
   type ResearchResponse,
 } from "@/lib/ai-research";
 
@@ -23,35 +29,103 @@ interface AnaliseProfundaProps {
 }
 
 /**
+ * Forma persistida (mesmo shape do ResearchResponse mas sem
+ * elapsedMs/usage — só importam no momento da geração). updatedAt
+ * vem do banco; se a análise é fresca da chamada, fica null e usamos
+ * Date.now() em runtime pra exibir.
+ */
+interface PersistedResearch {
+  markdown: string;
+  citations: ResearchCitation[];
+  updatedAt: string | null;
+}
+
+/**
  * Card "Análise profunda" — pesquisa multi-fonte via Claude Sonnet 4.5
  * com web_search. Diferente da Estimativa IA antiga (que é uma única
- * chamada OpenAI com prompt textual), aqui o modelo de fato vai pra
- * web, busca em ZAP/VivaReal/QuintoAndar/OLX/ImovelWeb, lê os
- * comparáveis e produz um relatório com citações.
+ * chamada OpenAI single-shot), aqui o modelo de fato vai pra web,
+ * busca em ZAP/VivaReal/QuintoAndar/OLX/ImovelWeb, lê os comparáveis
+ * e produz um relatório com citações.
  *
- * Estado:
- *   • Vazio: explicação + botão "Gerar análise profunda" (estimativa
- *     de tempo + custo pra usuário entender o trade-off)
- *   • Loading: barra indeterminada + texto "Pesquisando ~10 sites..."
- *   • Resultado: relatório markdown + lista de fontes + botão
- *     "Refazer análise" pra invalidar cache
+ * Persistência:
+ *   • Pré-cadastrados (property.id !== ""): grava nas 3 colunas
+ *     ai_deep_research_* da tabela properties. Carrega na montagem
+ *     se já existir. Mesmo padrão do useDadosEstimativaIa.
+ *   • Avulsa (sem id): só em memória do componente — some quando o
+ *     user sai da página de Pesquisa pontual.
  *
- * Cache: localStorage por property.id (ttl 7d). Pra Pesquisa pontual
- * de preço (avulsa, sem id), não cacheia — sai junto com a sessão.
+ * Estados:
+ *   • Vazio: explicação + botão "Gerar análise profunda"
+ *   • Loading: spinner + texto "Pesquisando ~10 sites... 30-90s"
+ *   • Resultado: relatório markdown + fontes + timestamp + botão Refazer
  */
 export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
-  const propertyId = property.id || null;
+  const isPersisted = !!property.id;
 
-  const [result, setResult] = useState<ResearchResponse | null>(null);
+  const [result, setResult] = useState<PersistedResearch | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingFromDb, setLoadingFromDb] = useState(isPersisted);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(true);
+  // Latência só da chamada NOVA (não persistido — só mostramos
+  // "Gerado em Xs" se a análise foi gerada nesta sessão)
+  const [lastElapsedMs, setLastElapsedMs] = useState<number | null>(null);
 
-  // Carrega cache na montagem se houver
+  // Carrega do DB ao montar (só pra pré-cadastrados)
   useEffect(() => {
-    const cached = getCachedResearch(propertyId);
-    if (cached) setResult(cached);
-  }, [propertyId]);
+    if (!isPersisted) {
+      setLoadingFromDb(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data, error: dbErr } = await supabase
+        .from("properties")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- colunas ai_deep_research_* ainda não no types gerado
+        .select(
+          "ai_deep_research_md, ai_deep_research_citations, ai_deep_research_updated_at" as any,
+        )
+        .eq("id", property.id)
+        .maybeSingle();
+      if (cancelled) return;
+      if (dbErr) {
+        logger.error("[AnaliseProfunda] erro lendo DB:", dbErr);
+        setLoadingFromDb(false);
+        return;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mesma razão acima
+      const row = data as any;
+      if (row?.ai_deep_research_md) {
+        setResult({
+          markdown: row.ai_deep_research_md,
+          citations: (row.ai_deep_research_citations as ResearchCitation[]) ?? [],
+          updatedAt: row.ai_deep_research_updated_at ?? null,
+        });
+      }
+      setLoadingFromDb(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [property.id, isPersisted]);
+
+  const persist = async (res: ResearchResponse) => {
+    if (!isPersisted) return;
+    const updatePayload = {
+      ai_deep_research_md: res.markdown,
+      ai_deep_research_citations: res.citations,
+      ai_deep_research_updated_at: new Date().toISOString(),
+    };
+    const { error: dbErr } = await supabase
+      .from("properties")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- colunas ai_deep_research_* ainda não no types gerado
+      .update(updatePayload as any)
+      .eq("id", property.id);
+    if (dbErr) {
+      logger.error("[AnaliseProfunda] erro gravando DB:", dbErr);
+      // Não bloqueia UX — só loga. Próxima visita pede análise de novo.
+    }
+  };
 
   const handleRun = async () => {
     if (loading) return;
@@ -60,9 +134,6 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
     try {
       const res = await runResearch({
         property: {
-          // Passa direto sem coerção — o Property type já tem
-          // undefined onde aplica, e o Worker /research lida com
-          // ambos undefined e null (só ignora campos faltantes).
           rua: property.rua,
           numero: property.numero,
           bairro: property.bairro,
@@ -79,8 +150,13 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
           ano_construcao: property.ano_construcao,
         },
       });
-      setResult(res);
-      setCachedResearch(propertyId, res);
+      setResult({
+        markdown: res.markdown,
+        citations: res.citations,
+        updatedAt: new Date().toISOString(),
+      });
+      setLastElapsedMs(res.elapsedMs);
+      await persist(res);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro desconhecido");
     } finally {
@@ -89,10 +165,33 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
   };
 
   const handleRefazer = () => {
-    clearCachedResearch(propertyId);
     setResult(null);
+    setLastElapsedMs(null);
     handleRun();
   };
+
+  // ─── render ────────────────────────────────────────────────────────
+
+  // Enquanto carrega do DB no mount, segura tudo num skeleton leve
+  // pra não dar "flash" do estado vazio antes de aparecer o cached.
+  if (loadingFromDb) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Sparkles className="h-5 w-5 text-primary" />
+            Análise profunda
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2 text-label text-muted-foreground">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Carregando última análise...
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -134,8 +233,10 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
               modelo de fato lê páginas da web.
             </p>
             <p className="text-meta text-muted-foreground">
-              Tempo: ~60s. Custo: ~R$ 1 por análise. Resultado fica
-              cacheado por 7 dias.
+              Tempo: ~60s. Custo: ~R$ 1 por análise.
+              {isPersisted
+                ? " Fica salva no banco — vai aparecer sempre que abrir esse imóvel."
+                : " Não cacheia — análise pontual."}
             </p>
             <Button onClick={handleRun} className="gap-2">
               <Sparkles className="h-4 w-4" />
@@ -154,10 +255,6 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
                 30-90 segundos.
               </span>
             </div>
-            {/* Bar com pulse só pra dar atividade visual — Tailwind
-                animate-pulse padrão (fade in/out). Não é progresso real
-                porque não temos como medir, mas dá sensação de "tá
-                rodando" sem ficar uma página estática. */}
             <div className="h-1 w-full overflow-hidden rounded-full bg-primary/20">
               <div className="h-full w-full animate-pulse bg-primary" />
             </div>
@@ -218,21 +315,23 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
               </details>
             ) : null}
 
-            <div className="flex items-center justify-between border-t border-border/40 pt-2 text-meta text-muted-foreground">
+            <div className="flex flex-col gap-1.5 border-t border-border/40 pt-2 text-meta text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
               <span>
-                Gerado em {(result.elapsedMs / 1000).toFixed(1)}s
-                {result.usage
-                  ? ` · ${result.usage.input_tokens} in / ${result.usage.output_tokens} out tokens`
+                {result.updatedAt
+                  ? `Última análise: ${formatDateTime(result.updatedAt)}`
+                  : "Análise recém-gerada"}
+                {lastElapsedMs != null
+                  ? ` · gerou em ${(lastElapsedMs / 1000).toFixed(1)}s`
                   : ""}
               </span>
               <Button
                 onClick={handleRefazer}
                 variant="ghost"
                 size="sm"
-                className="h-7 gap-1.5"
+                className="h-7 gap-1.5 self-start sm:self-auto"
               >
                 <RefreshCw className="h-3 w-3" />
-                Refazer
+                Refazer análise
               </Button>
             </div>
           </div>
@@ -240,4 +339,25 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
       </CardContent>
     </Card>
   );
+}
+
+// ─── helpers ─────────────────────────────────────────────────────────
+
+/**
+ * "dd/mm/yyyy às HH:mm" pra timestamp ISO. Falha gracioso retornando
+ * a string crua se a Date construction der ruim.
+ */
+function formatDateTime(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return iso;
+  }
 }
