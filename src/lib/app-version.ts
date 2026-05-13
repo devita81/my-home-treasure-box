@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v26";
+export const APP_VERSION = "v27";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,24 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v27",
+    date: "11/mai/2026",
+    notes:
+      "Feature nova: 'Análise profunda' — relatório de avaliação " +
+      "imobiliária via Claude Sonnet 4.5 + web_search. Roda dentro do " +
+      "Cloudflare Worker (mesmo onde chat-ia vive), novo endpoint " +
+      "POST /research. Pesquisa multi-fonte (ZAP, VivaReal, " +
+      "QuintoAndar, OLX, ImovelWeb), produz relatório estruturado em " +
+      "markdown com 5-10 comparáveis citados + análise da região + " +
+      "cenários de venda + recomendações. Renderizado num Card " +
+      "separado no topo da seção <AnalisePreco /> (acima dos charts " +
+      "ITBI/Anúncios/IA). Cache em localStorage por property.id " +
+      "(7 dias TTL). Tempo típico ~60s, custo ~R$ 1 por análise. " +
+      "Não toca em Estimativa IA antiga (OpenAI single-shot) — as " +
+      "duas coexistem; cleanup do antigo pode vir depois se você " +
+      "validar que a Análise profunda substitui bem.",
+  },
   {
     version: "v26",
     date: "11/mai/2026",
