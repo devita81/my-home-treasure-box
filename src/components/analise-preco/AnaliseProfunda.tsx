@@ -79,11 +79,15 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
     }
     let cancelled = false;
     (async () => {
-      const { data, error: dbErr } = await supabase
+      // Cast `supabase as any` na origem da chain pra contornar os
+      // generated types não terem ainda as colunas ai_deep_research_*.
+      // Mesmo padrão do useDadosEstimativaIa linha ~70. Quando o Lovable
+      // rodar a migration nova e regenerar os types, dá pra remover.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generated types ainda não têm as colunas ai_deep_research_*
+      const { data, error: dbErr } = await (supabase as any)
         .from("properties")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- colunas ai_deep_research_* ainda não no types gerado
         .select(
-          "ai_deep_research_md, ai_deep_research_citations, ai_deep_research_updated_at" as any,
+          "ai_deep_research_md, ai_deep_research_citations, ai_deep_research_updated_at",
         )
         .eq("id", property.id)
         .maybeSingle();
@@ -93,12 +97,15 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
         setLoadingFromDb(false);
         return;
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mesma razão acima
-      const row = data as any;
+      const row = data as {
+        ai_deep_research_md?: string | null;
+        ai_deep_research_citations?: ResearchCitation[] | null;
+        ai_deep_research_updated_at?: string | null;
+      } | null;
       if (row?.ai_deep_research_md) {
         setResult({
           markdown: row.ai_deep_research_md,
-          citations: (row.ai_deep_research_citations as ResearchCitation[]) ?? [],
+          citations: row.ai_deep_research_citations ?? [],
           updatedAt: row.ai_deep_research_updated_at ?? null,
         });
       }
@@ -116,10 +123,12 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
       ai_deep_research_citations: res.citations,
       ai_deep_research_updated_at: new Date().toISOString(),
     };
-    const { error: dbErr } = await supabase
+    // Cast `supabase as any` pelo mesmo motivo do select acima (types
+    // gerados ainda não conhecem as colunas).
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generated types ainda não têm as colunas ai_deep_research_*
+    const { error: dbErr } = await (supabase as any)
       .from("properties")
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- colunas ai_deep_research_* ainda não no types gerado
-      .update(updatePayload as any)
+      .update(updatePayload)
       .eq("id", property.id);
     if (dbErr) {
       logger.error("[AnaliseProfunda] erro gravando DB:", dbErr);
