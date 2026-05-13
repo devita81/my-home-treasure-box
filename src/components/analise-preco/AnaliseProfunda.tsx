@@ -70,6 +70,9 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
   // Latência só da chamada NOVA (não persistido — só mostramos
   // "Gerado em Xs" se a análise foi gerada nesta sessão)
   const [lastElapsedMs, setLastElapsedMs] = useState<number | null>(null);
+  // Aviso visível quando o persist no DB falha — antes era só
+  // console.error e o usuário não tinha como saber.
+  const [persistError, setPersistError] = useState<string | null>(null);
 
   // Carrega do DB ao montar (só pra pré-cadastrados)
   useEffect(() => {
@@ -131,8 +134,25 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
       .update(updatePayload)
       .eq("id", property.id);
     if (dbErr) {
-      logger.error("[AnaliseProfunda] erro gravando DB:", dbErr);
-      // Não bloqueia UX — só loga. Próxima visita pede análise de novo.
+      // Log estruturado — antes só passávamos o objeto cru e o
+      // PostgrestError ficava ilegível no console. Agora extraímos
+      // code/message/details/hint pra diagnóstico rápido (ex: 42703
+      // = column does not exist = migration não rodou no banco).
+      logger.error("[AnaliseProfunda] erro gravando DB", {
+        code: dbErr.code,
+        message: dbErr.message,
+        details: dbErr.details,
+        hint: dbErr.hint,
+      });
+      // Sinaliza pro UI estado "salvou parcialmente" — usuário vê
+      // resultado mas com aviso de que não persistiu.
+      setPersistError(
+        dbErr.code === "42703" || /column.*does not exist/i.test(dbErr.message ?? "")
+          ? "Banco ainda não tem as colunas pra salvar (migration pendente). A análise aparece nesta sessão mas vai sumir quando recarregar."
+          : "Não foi possível salvar a análise no banco. A análise aparece nesta sessão mas vai sumir quando recarregar.",
+      );
+    } else {
+      setPersistError(null);
     }
   };
 
@@ -296,6 +316,17 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
         {/* RESULTADO: relatório markdown + fontes + botão refazer */}
         {result && expanded ? (
           <div className="space-y-3">
+            {/* Aviso amarelo SE o persist falhou — usuário entende que
+                a análise vai sumir ao recarregar */}
+            {persistError ? (
+              <div className="rounded-md border border-warning/50 bg-warning/10 p-2.5 text-label">
+                <p className="font-medium text-warning-foreground">
+                  Análise não salva
+                </p>
+                <p className="text-muted-foreground">{persistError}</p>
+              </div>
+            ) : null}
+
             <div className="prose prose-sm max-w-none text-data [&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:text-base [&_h2]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1 [&_h3]:text-sm [&_h3]:font-semibold [&_table]:my-2 [&_table]:text-label [&_th]:bg-muted [&_th]:p-1.5 [&_td]:border [&_td]:border-border [&_td]:p-1.5 [&_a]:text-primary [&_a]:underline [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0.5">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {result.markdown}
