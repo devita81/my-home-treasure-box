@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v27";
+export const APP_VERSION = "v28";
 
 export const APP_VERSION_DATE = "10/mai/2026";
 
@@ -26,6 +26,24 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v28",
+    date: "13/mai/2026",
+    notes:
+      "Fix de persistência da Análise profunda (v27). Sintoma: PATCH " +
+      "em /properties retornava 400 Bad Request porque o Lovable não " +
+      "rodou a migration 20260511130000 e as colunas ai_deep_research_* " +
+      "não existiam no DB. Fix em 2 camadas: " +
+      "(1) Nova migration 20260513060000_retry_ai_deep_research_columns " +
+      "com o mesmo SQL (idempotente via IF NOT EXISTS) — força Lovable " +
+      "a detectar arquivo novo e aplicar. Mesma técnica do v13 que " +
+      "destravou redeploy de edge function. " +
+      "(2) UX no AnaliseProfunda: erro de persist agora é VISÍVEL — " +
+      "aviso amarelo 'Análise não salva' com mensagem específica se " +
+      "for caso de coluna ausente. Antes era console-only, usuário não " +
+      "tinha como saber. Log estruturado captura code/message/details/" +
+      "hint do PostgrestError pra diagnóstico futuro.",
+  },
   {
     version: "v27",
     date: "11/mai/2026",
