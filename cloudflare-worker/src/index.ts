@@ -738,11 +738,20 @@ ESTRUTURA OBRIGATÓRIA do relatório (markdown):
 - Período coberto pelos dados
 
 ## 3. Comparáveis encontrados (mínimo 5, idealmente 8-12)
-Tabela markdown:
-| Site | Endereço/Edifício | Tipo | m² | Quartos | Preço | Link |
-|------|------------------|------|-----|---------|-------|------|
 
-Use \`[texto](url)\` no campo Link. URLs devem ser específicas do anúncio, não busca genérica.
+Para CADA comparável, use EXATAMENTE este formato (não use tabela markdown — listas renderizam melhor em mobile):
+
+### Comparável N — [Nome do site]
+- **Endereço/Edifício:** Rua X, 123 — Edifício Fulano
+- **Tipo:** Apto · 94 m² · 3 quartos (1 suíte) · 1 vaga
+- **Preço:** R$ 1.199.900 (R$ 12.765/m²)
+- **Link:** [Ver anúncio](https://url-especifica-do-anuncio)
+
+Regras:
+- Numere os comparáveis sequencialmente (Comparável 1, Comparável 2, ...).
+- Link deve ser uma URL específica do anúncio, não busca genérica.
+- Quando alguma info não estiver disponível, escreva "n/d" — não invente.
+- Calcule R$/m² sempre que tiver área e preço.
 
 ## 4. Análise da região
 - Bairro: características predominantes
@@ -757,11 +766,12 @@ Use \`[texto](url)\` no campo Link. URLs devem ser específicas do anúncio, nã
 - Fatores que justificam preço acima/abaixo
 
 ## 6. Cenários de venda
-| Cenário | Preço sugerido | Tempo estimado |
-|---------|---------------|----------------|
-| Venda rápida (até 60 dias) | R$ X | |
-| Venda em prazo médio (3-6 meses) | R$ X | |
-| Venda otimizada (negociação) | R$ X | |
+
+Use lista (não tabela). Um bullet por cenário:
+
+- **Venda rápida (até 60 dias):** R$ X — justifique em 1 linha (ex: "abaixo da mediana pra acelerar giro").
+- **Venda em prazo médio (3-6 meses):** R$ X — justifique.
+- **Venda otimizada (negociação aberta):** R$ X — justifique (ex: "topo da faixa, espera comprador que valorize Y").
 
 ## 7. Recomendações
 - Preço sugerido pra publicar agora: R$ X (justificativa em 1 frase)
@@ -778,7 +788,13 @@ REGRAS DURAS:
 - Se faltar dado pra alguma seção, diga "sem dado suficiente da web" — NUNCA invente.
 - Tom: técnico, frio, decisório. Como um perito assistente do juiz.
 - Sem floreio, sem "espero ter ajudado", sem emoji em headers.
-- Não escreva nada antes da seção 1 — começa direto.`;
+- Não escreva nada antes da seção 1 — começa direto.
+
+REGRAS DE MARKDOWN (CRÍTICAS — quebram renderização se ignoradas):
+- NÃO use tabelas markdown (| col | col |). Use sempre listas estruturadas conforme exemplos acima. Tabelas quebram em mobile e o renderizador as parseia de forma inconsistente quando o conteúdo de células tem newlines.
+- Cada item de bullet em UMA linha física. Nunca use \\n dentro de um item de lista — se precisar detalhar, abra sub-bullet com indentação de 2 espaços.
+- Como separador inline dentro de um valor, use "·" (middle dot) ou "—" (em dash). NUNCA use "|" (pipe) — o renderizador interpreta como sintaxe de tabela e quebra o layout.
+- Headers (##, ###) sempre em linha própria, com linha em branco antes e depois.`;
 
 async function handleResearch(request: Request, env: Env): Promise<Response> {
   try {

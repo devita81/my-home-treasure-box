@@ -327,7 +327,32 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
               </div>
             ) : null}
 
-            <div className="prose prose-sm max-w-none text-data [&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:text-base [&_h2]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1 [&_h3]:text-sm [&_h3]:font-semibold [&_table]:my-2 [&_table]:text-label [&_th]:bg-muted [&_th]:p-1.5 [&_td]:border [&_td]:border-border [&_td]:p-1.5 [&_a]:text-primary [&_a]:underline [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0.5">
+            {/* Container do relatório — todo o styling via classes
+                arbitrárias do Tailwind aplicadas aos elementos gerados
+                pelo react-markdown. O prompt do Worker pede listas
+                (não tabelas), por isso o estilo prioriza bullets e
+                sub-bullets. Tabelas ainda têm estilo de fallback caso
+                o modelo escape e gere uma, e ganham overflow-x pra
+                não estourar o card em mobile. */}
+            <div
+              className="
+                text-data leading-relaxed
+                [&>*:first-child]:mt-0
+                [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-foreground [&_h2]:border-b [&_h2]:border-border/60 [&_h2]:pb-1
+                [&_h3]:mt-4 [&_h3]:mb-1.5 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:text-foreground
+                [&_p]:my-2
+                [&_ul]:my-2 [&_ul]:pl-5 [&_ul]:list-disc [&_ul]:space-y-1
+                [&_ol]:my-2 [&_ol]:pl-5 [&_ol]:list-decimal [&_ol]:space-y-1
+                [&_li]:pl-1
+                [&_li>ul]:mt-1 [&_li>ul]:mb-0
+                [&_strong]:font-semibold [&_strong]:text-foreground
+                [&_a]:text-primary [&_a]:underline [&_a]:break-words
+                [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-label
+                [&_table]:my-3 [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_table]:text-label [&_table]:border-collapse
+                [&_th]:bg-muted [&_th]:p-1.5 [&_th]:text-left [&_th]:border [&_th]:border-border
+                [&_td]:border [&_td]:border-border [&_td]:p-1.5 [&_td]:align-top
+              "
+            >
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {result.markdown}
               </ReactMarkdown>

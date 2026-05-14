@@ -12,9 +12,9 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v28";
+export const APP_VERSION = "v29";
 
-export const APP_VERSION_DATE = "10/mai/2026";
+export const APP_VERSION_DATE = "14/mai/2026";
 
 /**
  * Histórico das versões — a mais recente em cima. Cada entrada lista
@@ -26,6 +26,29 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v29",
+    date: "14/mai/2026",
+    notes:
+      "Fix de layout da Análise profunda — relatório vinha quebrado em " +
+      "mobile porque o modelo gerava tabela markdown com newlines dentro " +
+      "das células (web_search retorna conteúdo com \\n embutido), e o " +
+      "react-markdown + remark-gfm parseava só o cabeçalho como tabela; " +
+      "as linhas de dados caíam pra parágrafo com '|' literais visíveis. " +
+      "Fix em 2 camadas: " +
+      "(1) RESEARCH_SYSTEM_PROMPT no Worker reescrito — seção " +
+      "'Comparáveis encontrados' e 'Cenários de venda' agora pedem LISTA " +
+      "estruturada (### Comparável N + bullets com Endereço/Tipo/Preço/" +
+      "Link), não tabela. Regras de markdown duras: sem '|' inline (usa " +
+      "'·' ou '—'), sem \\n dentro de bullets, headers em linha própria. " +
+      "Worker redeployado via wrangler. " +
+      "(2) CSS do <AnaliseProfunda /> reescrito sem 'prose' do Tailwind " +
+      "Typography — agora aplica estilo direto via classes arbitrárias " +
+      "([&_h2], [&_ul], [&_li] etc) otimizado pra cards/listas, com " +
+      "fallback de overflow-x-auto nas tabelas caso o modelo escape e " +
+      "gere uma. Comparáveis viram cards numerados, cenários viram " +
+      "bullets com prefixo bold — muito mais legível em celular.",
+  },
   {
     version: "v28",
     date: "13/mai/2026",
