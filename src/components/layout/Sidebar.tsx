@@ -1,57 +1,19 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  BarChart3,
   Bot,
   Home as HomeIcon,
   LogOut,
   PlusCircle,
-  Wallet,
-  Search,
   ChevronLeft,
-  Menu,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { GlobalAIChatDialog } from "@/components/GlobalAIChatDialog";
 import { APP_VERSION, APP_VERSION_DATE } from "@/lib/app-version";
+import { NAV_ITEMS } from "./nav-items";
 import { toast } from "sonner";
-
-interface NavItem {
-  to: string;
-  label: string;
-  icon: typeof HomeIcon;
-  description: string;
-}
-
-/** Itens de navegação principais. Ordem importa — primeiro no topo. */
-const NAV_ITEMS: NavItem[] = [
-  {
-    to: "/",
-    label: "Carteira",
-    icon: HomeIcon,
-    description: "Seus imóveis cadastrados",
-  },
-  {
-    to: "/balancete",
-    label: "Balancete",
-    icon: Wallet,
-    description: "Receitas e despesas mês a mês",
-  },
-  {
-    to: "/analytics",
-    label: "Analytics",
-    icon: BarChart3,
-    description: "Métricas e visões agregadas",
-  },
-  {
-    to: "/itbi-search",
-    label: "Pesquisa de preço",
-    icon: Search,
-    description: "Análise pontual ITBI + ZAP + IA",
-  },
-];
 
 interface SidebarProps {
   /** Quando true, sidebar fica visível (mobile drawer aberto). */
@@ -226,28 +188,5 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
       <GlobalAIChatDialog open={chatOpen} onOpenChange={setChatOpen} />
     </>
-  );
-}
-
-interface SidebarTriggerProps {
-  onClick: () => void;
-}
-
-/**
- * Botão de hambúrguer pra abrir o sidebar no mobile. Renderizado no
- * topo de cada página dentro do `<AppLayout>` apenas em telas pequenas
- * (sidebar fica sempre visível no desktop).
- */
-export function SidebarTrigger({ onClick }: SidebarTriggerProps) {
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={onClick}
-      className="h-9 w-9 shrink-0 p-0 lg:hidden"
-      aria-label="Abrir menu"
-    >
-      <Menu className="h-5 w-5" />
-    </Button>
   );
 }
