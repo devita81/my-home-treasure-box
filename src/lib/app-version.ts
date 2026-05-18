@@ -12,9 +12,9 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v29";
+export const APP_VERSION = "v30";
 
-export const APP_VERSION_DATE = "14/mai/2026";
+export const APP_VERSION_DATE = "18/mai/2026";
 
 /**
  * Histórico das versões — a mais recente em cima. Cada entrada lista
@@ -26,6 +26,27 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v30",
+    date: "18/mai/2026",
+    notes:
+      "Navegação mobile redesenhada no estilo app nativo (referência " +
+      "visual: PetICare). Antes: header slim com hambúrguer + drawer da " +
+      "Sidebar no mobile. Agora, em telas < lg: " +
+      "(1) Header superior colorido (bg-primary roxo) fixo — logo à " +
+      "esquerda, badge de versão + botão 'Adicionar imóvel' + avatar da " +
+      "conta com dropdown (Consultor IA, email, Sair) à direita. " +
+      "(2) Tab bar inferior fixa com os 4 destinos principais " +
+      "(Carteira, Balancete, Analytics, Pesquisa) — ícone + label, item " +
+      "ativo destacado em roxo. Ambas com safe-area do iOS " +
+      "(pt-safe-top / pb-safe-bottom). " +
+      "Desktop (>= lg) mantém a Sidebar vertical intacta — o drawer " +
+      "mobile dela foi desativado (open=false fixo). NAV_ITEMS extraído " +
+      "pra módulo compartilhado (nav-items.ts) consumido por Sidebar e " +
+      "MobileNav. Componente SidebarTrigger (hambúrguer) removido — " +
+      "órfão. <main> ganha padding-bottom no mobile pra conteúdo não " +
+      "ficar atrás da tab bar.",
+  },
   {
     version: "v29",
     date: "14/mai/2026",

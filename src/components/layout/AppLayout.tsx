@@ -1,45 +1,41 @@
-import { useState, type ReactNode } from "react";
-import { Sidebar, SidebarTrigger } from "./Sidebar";
+import { type ReactNode } from "react";
+import { Sidebar } from "./Sidebar";
+import { MobileNav } from "./MobileNav";
 
 interface AppLayoutProps {
   children: ReactNode;
 }
 
 /**
- * Wrapper de páginas autenticadas. Sidebar fixa à esquerda no
- * desktop (>= lg), drawer no mobile. Conteúdo da página fica à
- * direita, ocupando o espaço restante.
+ * Wrapper de páginas autenticadas. Duas navegações distintas por
+ * breakpoint:
  *
- * Uso: cada `<Route>` autenticada é embrulhada com este layout —
- * ver `App.tsx`. As páginas próprias NÃO precisam mais renderizar
- * o `<Header />` antigo (que foi removido).
+ *   • Desktop (>= lg): `<Sidebar />` fixa à esquerda. Recebe
+ *     open=false fixo — o drawer mobile dela não é mais usado (foi
+ *     substituído pela MobileNav). Como a Sidebar é `lg:translate-x-0`,
+ *     ela só aparece no desktop; no mobile fica fora da tela.
  *
- * Top bar mobile: aparece só em telas <lg, com o botão hambúrguer
- * pra abrir o drawer da sidebar. No desktop, a sidebar já é
- * sempre visível e essa top bar fica oculta.
+ *   • Mobile (< lg): `<MobileNav />` — header colorido no topo +
+ *     tab bar inferior, estilo app nativo (referência: PetICare).
+ *     Substituiu o antigo header slim com hambúrguer + drawer.
+ *
+ * O `<main>` ganha padding-bottom no mobile pra o conteúdo não ficar
+ * coberto pela tab bar fixa (que tem altura própria + safe-area do
+ * iOS). No desktop esse padding zera.
  */
 export function AppLayout({ children }: AppLayoutProps) {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      {/* Sidebar — só desktop. open=false: drawer mobile desativado. */}
+      <Sidebar open={false} onClose={() => {}} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Top bar slim — só no mobile, com hambúrguer.
-            `pt-safe-top` extende o bg-card pra dentro da safe area do
-            iOS (notch / status bar) — sem isso a Dynamic Island
-            sobrepõe o botão hambúrguer no PWA. */}
-        <header className="sticky top-0 z-30 border-b border-border bg-card pt-safe-top shadow-sm lg:hidden">
-          <div className="flex h-12 items-center gap-2 px-3">
-            <SidebarTrigger onClick={() => setDrawerOpen(true)} />
-            <span className="font-display text-sm font-semibold">
-              My Home Collection
-            </span>
-          </div>
-        </header>
+        {/* Header + tab bar mobile (lg:hidden por dentro do componente) */}
+        <MobileNav />
 
-        <main className="flex-1 overflow-x-hidden">{children}</main>
+        <main className="flex-1 overflow-x-hidden pb-[calc(3.75rem+env(safe-area-inset-bottom))] lg:pb-0">
+          {children}
+        </main>
       </div>
     </div>
   );
