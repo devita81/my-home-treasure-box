@@ -75,6 +75,20 @@ export function useDadosAnuncios(
   // bloqueada por Cloudflare ou se o usuário quer mais resultados.
   const verMaisHref = zap.data?.searchUrl;
 
+  // `cloudflareBlocked: true` = a edge function detectou 403 do CF
+  // da ZAP e devolveu graceful empty. Não é erro técnico — é estado
+  // esperado quando ZAP bloqueia IPs de datacenter (Supabase Runtime).
+  // Surface isso na UI como mensagem clara em vez de "Sem dados".
+  const bloqueado: DadosFonte["bloqueado"] | undefined =
+    zap.data?.cloudflareBlocked
+      ? {
+          motivo:
+            "A ZAP bloqueou a busca direta (anti-bot do Cloudflare). " +
+            "Use a Análise profunda ou abra o site direto.",
+          href: zap.data.searchUrl,
+        }
+      : undefined;
+
   return {
     fonte: "anuncios",
     rotulo: "Anúncios ativos",
@@ -90,6 +104,7 @@ export function useDadosAnuncios(
       void zap.refetch();
     },
     verMaisHref,
+    bloqueado,
   };
 }
 

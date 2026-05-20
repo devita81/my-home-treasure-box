@@ -77,6 +77,18 @@ export interface DadosFonte {
   isError: boolean;
   /** Mensagem quando `isError` ou quando faz sentido mostrar. */
   errorMessage?: string;
+  /**
+   * Fonte externa indisponível por bloqueio (anti-bot, rate-limit
+   * permanente, etc) — distinto de `isError` porque é um estado
+   * conhecido e gracioso. Hoje só Anúncios ZAP usa, quando o
+   * Cloudflare da ZAP devolve 403. UI mostra mensagem honesta + link
+   * pro site externo em vez de "Sem dados" enigmático.
+   */
+  bloqueado?: {
+    motivo: string;
+    /** URL pra abrir a busca direto no site externo. */
+    href?: string;
+  };
   /** Dispara nova busca + atualiza cache. */
   refetch: () => void;
   /**

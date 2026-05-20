@@ -12,9 +12,9 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v30";
+export const APP_VERSION = "v31";
 
-export const APP_VERSION_DATE = "18/mai/2026";
+export const APP_VERSION_DATE = "19/mai/2026";
 
 /**
  * Histórico das versões — a mais recente em cima. Cada entrada lista
@@ -26,6 +26,34 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v31",
+    date: "19/mai/2026",
+    notes:
+      "Fix de instabilidade nas duas pesquisas — diagnóstico profundo " +
+      "feito ontem revelou 2 causas raízes distintas: " +
+      "(1) ANÁLISE PROFUNDA — 'Erro Anthropic (524)' aparecia porque o " +
+      "CDN da Anthropic desconecta quando o response demora > ~100s no " +
+      "modo síncrono, e web_search com max_uses 15 estoura isso " +
+      "facilmente. Fix: stream:true no call /v1/messages, parser SSE no " +
+      "Worker que acumula text_delta + citations_delta + message_delta, " +
+      "devolve mesmo JSON pro frontend (transparente). Ganhos colaterais: " +
+      "max_tokens 8192→16384 (sem mais truncamento silencioso), max_uses " +
+      "15→12 (mais previsível), _debug.stop_reason + _debug.web_search_count " +
+      "no payload pra diagnóstico futuro. Worker redeployado via wrangler. " +
+      "(2) PESQUISA ZAP — 0 resultados sempre. Diagnóstico Network: " +
+      "cloudflareBlocked: true. O CF da ZAP bloqueia IPs datacenter do " +
+      "Supabase Runtime (Deno Deploy) com 403. Edge function já " +
+      "detectava e devolvia graceful empty, mas o frontend ignorava o " +
+      "flag e mostrava 'Sem dados ainda' enigmático. Fix: novo campo " +
+      "`bloqueado: { motivo, href }` no DadosFonte, populado pelo " +
+      "useDadosAnuncios quando cloudflareBlocked=true, renderizado pelo " +
+      "CardResumoFonte como warning box clara em vez do empty state. " +
+      "Link 'Ver mais' do rodapé continua funcionando pra abrir ZAP " +
+      "externo. Decisão estratégica: ZAP via API direta é arms race " +
+      "perdido — Análise profunda (Claude+web_search) cobre o caso " +
+      "melhor; ZAP direto fica como link externo de cortesia.",
+  },
   {
     version: "v30",
     date: "18/mai/2026",
