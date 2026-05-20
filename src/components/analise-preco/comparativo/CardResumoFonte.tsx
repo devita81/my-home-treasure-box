@@ -1,5 +1,11 @@
 import { ReactNode } from "react";
-import { Loader2, RefreshCw, AlertCircle, ExternalLink } from "lucide-react";
+import {
+  Loader2,
+  RefreshCw,
+  AlertCircle,
+  ExternalLink,
+  Ban,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fmtBRLCompact, fmtDate } from "@/lib/format";
 import type { DadosFonte, FontePreco } from "../dados/tipos";
@@ -81,6 +87,8 @@ export function CardResumoFonte({ dados, onVerAnalise }: CardResumoFonteProps) {
               />
             ) : null}
           </>
+        ) : dados.bloqueado ? (
+          <Estado tipo="bloqueado" mensagem={dados.bloqueado.motivo} />
         ) : (
           <Estado tipo="empty" />
         )}
@@ -172,7 +180,7 @@ function Estado({
   tipo,
   mensagem,
 }: {
-  tipo: "loading" | "error" | "empty";
+  tipo: "loading" | "error" | "empty" | "bloqueado";
   mensagem?: string;
 }): ReactNode {
   if (tipo === "loading") {
@@ -188,6 +196,23 @@ function Estado({
       <div className="flex items-start gap-2 py-2 text-xs text-destructive">
         <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         <span className="break-words">{mensagem ?? "Falha ao buscar"}</span>
+      </div>
+    );
+  }
+  if (tipo === "bloqueado") {
+    // Estado gracioso quando a fonte externa bloqueou nossa busca
+    // (ex: ZAP via Cloudflare anti-bot). Distinto de erro técnico —
+    // não tem nada pra "tentar de novo" no botão ⟳, o bloqueio é
+    // permanente em IPs datacenter. Usuário usa o "Ver mais" no
+    // rodapé do card pra abrir o site direto.
+    return (
+      <div className="rounded-md border border-warning/40 bg-warning/10 p-2 text-label">
+        <div className="flex items-start gap-1.5">
+          <Ban className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning-foreground" />
+          <span className="break-words text-foreground/80">
+            {mensagem ?? "Busca direta indisponível no momento."}
+          </span>
+        </div>
       </div>
     );
   }

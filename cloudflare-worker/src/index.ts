@@ -842,6 +842,16 @@ async function handleResearch(request: Request, env: Env): Promise<Response> {
 
     const userMessage = `Analise o seguinte imóvel:\n\n${lines.join("\n")}\n\nProduza o relatório completo seguindo a estrutura definida. Pesquise extensivamente.`;
 
+    // ─── streaming SSE ─────────────────────────────────────────────
+    // Por que stream:true: o CDN da Anthropic (Cloudflare na frente)
+    // desconecta com HTTP 524 quando o response demora > ~100s no
+    // modo síncrono. Web_search + max_uses 12 leva 60-180s no comum.
+    // Streaming mantém a conexão viva com SSE events contínuos
+    // (incluindo `ping` de keepalive). Bypass total do 524.
+    //
+    // Acumulamos o stream server-side e ainda devolvemos JSON cru
+    // pro frontend (mesma shape de antes) — o frontend não precisa
+    // saber que internamente houve stream. Diff cirúrgico.
     const startedAt = Date.now();
     const claudeResp = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -852,21 +862,27 @@ async function handleResearch(request: Request, env: Env): Promise<Response> {
       },
       body: JSON.stringify({
         model: RESEARCH_MODEL,
-        max_tokens: 8192,
-        // Web search é uma server-side tool — Anthropic faz as
-        // buscas internamente e retorna o resultado final.
-        // Não precisamos de loop manual de tool_use/tool_result.
+        // 16k pra ter folga em relatórios longos (8 seções com 8-12
+        // comparáveis cada). Antes 8192 — vimos truncamento silencioso
+        // sem `stop_reason` exposto.
+        max_tokens: 16384,
+        // Web search é server-side tool — Anthropic faz as buscas
+        // internamente. max_uses baixado de 15 → 12 (15 era generoso e
+        // empurrava o tempo total perto do limite mesmo com streaming).
         tools: [
-          { type: "web_search_20250305", name: "web_search", max_uses: 15 },
+          { type: "web_search_20250305", name: "web_search", max_uses: 12 },
         ],
         system: RESEARCH_SYSTEM_PROMPT,
         messages: [{ role: "user", content: userMessage }],
+        stream: true,
       }),
     });
 
     if (!claudeResp.ok) {
+      // Erros antes do stream começar (auth, rate-limit, billing)
+      // vêm como JSON normal, não SSE. Lê texto cru pra log e mapeia.
       const errorText = await claudeResp.text();
-      console.error("Anthropic error:", claudeResp.status, errorText);
+      console.error("Anthropic error (pre-stream):", claudeResp.status, errorText);
       if (claudeResp.status === 429) {
         return jsonError(429, "Anthropic rate-limited. Aguarde alguns segundos.");
       }
@@ -879,47 +895,156 @@ async function handleResearch(request: Request, env: Env): Promise<Response> {
       return jsonError(500, `Erro Anthropic (${claudeResp.status})`);
     }
 
-    interface AnthropicTextBlock {
-      type: "text";
-      text: string;
-      citations?: Array<{ url?: string; title?: string }>;
-    }
-    interface AnthropicResponse {
-      content: Array<AnthropicTextBlock | { type: string }>;
-      usage?: { input_tokens: number; output_tokens: number };
-      stop_reason?: string;
+    if (!claudeResp.body) {
+      return jsonError(500, "Resposta sem body do Anthropic (esperado SSE)");
     }
 
-    const data = (await claudeResp.json()) as AnthropicResponse;
-
-    // Concatena todos os blocos de texto do response. Anthropic
-    // pode retornar múltiplos blocos quando há citations inline.
-    const textBlocks = data.content.filter(
-      (b): b is AnthropicTextBlock => b.type === "text",
-    );
-    const markdown = textBlocks.map((b) => b.text).join("\n\n");
-
-    // Coleta citations (URLs únicas) — embora o prompt já pede que
-    // estejam embutidas no markdown, expomos no payload também pra
-    // facilitar listagem no frontend se necessário.
+    // Acumuladores do stream
+    let markdown = "";
     const citationsMap = new Map<string, string>();
-    for (const block of textBlocks) {
-      for (const c of block.citations ?? []) {
-        if (c.url) citationsMap.set(c.url, c.title ?? c.url);
+    let stopReason: string | null = null;
+    let inputTokens = 0;
+    let outputTokens = 0;
+    let webSearchCount = 0;
+    let streamError: string | null = null;
+
+    const reader = claudeResp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    // SSE: eventos separados por linha em branco (\n\n). Cada evento
+    // tem `event: <name>\ndata: <json>`. Loop até EOF — o stream do
+    // Anthropic encerra naturalmente após `message_stop`.
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        // Quebra em eventos completos; mantém o resíduo incompleto
+        // no buffer pro próximo loop.
+        let sepIdx: number;
+        while ((sepIdx = buffer.indexOf("\n\n")) !== -1) {
+          const rawEvent = buffer.slice(0, sepIdx);
+          buffer = buffer.slice(sepIdx + 2);
+          const parsed = parseSseEvent(rawEvent);
+          if (!parsed) continue;
+          const { event, data } = parsed;
+          handleAnthropicEvent(event, data);
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    function handleAnthropicEvent(event: string, data: unknown) {
+      // Type guard via narrow casts — Anthropic SSE schema é estável
+      // mas o TS não conhece. Acessamos via record.
+      const obj = data as Record<string, unknown>;
+      switch (event) {
+        case "message_start": {
+          const message = obj.message as
+            | { usage?: { input_tokens?: number } }
+            | undefined;
+          if (message?.usage?.input_tokens) {
+            inputTokens = message.usage.input_tokens;
+          }
+          break;
+        }
+        case "content_block_start": {
+          // Bloco novo. Se for web_search_tool_use ou server_tool_use
+          // com name=web_search, conta como busca. Web search results
+          // chegam em `web_search_tool_result` (outro bloco).
+          const block = obj.content_block as
+            | { type?: string; name?: string }
+            | undefined;
+          if (
+            block?.type === "server_tool_use" &&
+            block?.name === "web_search"
+          ) {
+            webSearchCount += 1;
+          }
+          break;
+        }
+        case "content_block_delta": {
+          const delta = obj.delta as
+            | {
+                type?: string;
+                text?: string;
+                citation?: { url?: string; title?: string };
+              }
+            | undefined;
+          if (!delta) break;
+          if (delta.type === "text_delta" && typeof delta.text === "string") {
+            markdown += delta.text;
+          }
+          // Anthropic emite citations_delta dentro de blocos de texto
+          // quando o modelo cita uma fonte via web_search.
+          if (delta.type === "citations_delta" && delta.citation?.url) {
+            citationsMap.set(
+              delta.citation.url,
+              delta.citation.title ?? delta.citation.url,
+            );
+          }
+          break;
+        }
+        case "message_delta": {
+          const delta = obj.delta as
+            | { stop_reason?: string | null }
+            | undefined;
+          if (delta?.stop_reason) stopReason = delta.stop_reason;
+          const usage = obj.usage as
+            | { output_tokens?: number }
+            | undefined;
+          if (usage?.output_tokens) outputTokens = usage.output_tokens;
+          break;
+        }
+        case "error": {
+          const err = obj.error as { message?: string } | undefined;
+          streamError = err?.message ?? "Stream error sem mensagem";
+          break;
+        }
+        // `ping`, `message_stop`, `content_block_stop`: ignorados.
       }
     }
+
+    if (streamError) {
+      console.error("Anthropic stream error:", streamError);
+      return jsonError(500, `Erro durante a análise: ${streamError}`);
+    }
+
+    if (!markdown.trim()) {
+      console.error("Anthropic stream completo mas markdown vazio", {
+        stopReason,
+        webSearchCount,
+      });
+      return jsonError(
+        500,
+        "Análise voltou vazia. Tente de novo — pode ter sido um soluço temporário.",
+      );
+    }
+
     const citations = [...citationsMap.entries()].map(([url, title]) => ({
       url,
       title,
     }));
-
     const elapsedMs = Date.now() - startedAt;
     return new Response(
       JSON.stringify({
         markdown,
         citations,
         elapsedMs,
-        usage: data.usage ?? null,
+        usage: {
+          input_tokens: inputTokens,
+          output_tokens: outputTokens,
+        },
+        // _debug ajuda a diagnosticar truncamento e tempo gasto sem
+        // precisar olhar Anthropic dashboard (que o user não tem
+        // acesso). Frontend pode renderizar em <details> discreto.
+        _debug: {
+          stop_reason: stopReason,
+          web_search_count: webSearchCount,
+        },
       }),
       {
         status: 200,
@@ -930,6 +1055,38 @@ async function handleResearch(request: Request, env: Env): Promise<Response> {
     const message = error instanceof Error ? error.message : "Erro desconhecido";
     console.error("research handler error:", message);
     return jsonError(500, message);
+  }
+}
+
+/**
+ * Parser SSE minimalista. Cada `rawEvent` é um bloco multi-linha:
+ *
+ *     event: content_block_delta
+ *     data: {"type":"content_block_delta",...}
+ *
+ * Retorna `null` em eventos vazios (whitespace, comentário `:`).
+ * Comentários SSE começam com `:` e devem ser ignorados — incluem o
+ * `ping` ocasional que o servidor manda pra manter conexão viva.
+ */
+function parseSseEvent(
+  rawEvent: string,
+): { event: string; data: unknown } | null {
+  let eventName = "";
+  const dataLines: string[] = [];
+  for (const line of rawEvent.split("\n")) {
+    if (!line || line.startsWith(":")) continue;
+    if (line.startsWith("event:")) {
+      eventName = line.slice(6).trim();
+    } else if (line.startsWith("data:")) {
+      dataLines.push(line.slice(5).trim());
+    }
+  }
+  if (!eventName || dataLines.length === 0) return null;
+  try {
+    const data = JSON.parse(dataLines.join("\n"));
+    return { event: eventName, data };
+  } catch {
+    return null;
   }
 }
 
