@@ -13,6 +13,7 @@ import { useAnalisePreco } from "./dados/useAnalisePreco";
 import type { FontePreco, PontoPreco } from "./dados/tipos";
 import { AnalisePrecoHeader } from "./AnalisePrecoHeader";
 import { AnaliseProfunda } from "./AnaliseProfunda";
+import { BotaoExportarPdf } from "./BotaoExportarPdf";
 import { ComparativoFontes } from "./comparativo/ComparativoFontes";
 import { GraficosLado } from "./graficos/GraficosLado";
 import { FiltrosPreco } from "./filtros/FiltrosPreco";
@@ -72,6 +73,15 @@ export function AnalisePreco({ property }: AnalisePrecoProps) {
 
   return (
     <div className="space-y-4">
+      {/* Botão "Exportar PDF" no topo da seção — gera relatório com
+          header + cards ITBI/IA + gráfico ITBI + tabela ITBI + Análise
+          profunda + fontes. ZAP excluído por decisão de produto (v32).
+          Compartilha cache da Análise profunda com o card abaixo, então
+          se já foi gerada não dispara nova chamada (~R$ 1). */}
+      <div className="flex items-center justify-end">
+        <BotaoExportarPdf property={property} dados={dados} />
+      </div>
+
       {/* Análise profunda fica em Card SEPARADO acima do principal pra
           ter identidade visual própria. Trade-off: ocupa mais espaço
           vertical, mas o usuário entende que é uma feature distinta

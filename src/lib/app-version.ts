@@ -12,9 +12,9 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v31";
+export const APP_VERSION = "v32";
 
-export const APP_VERSION_DATE = "19/mai/2026";
+export const APP_VERSION_DATE = "20/mai/2026";
 
 /**
  * Histórico das versões — a mais recente em cima. Cada entrada lista
@@ -26,6 +26,35 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v32",
+    date: "20/mai/2026",
+    notes:
+      "Feature nova: 'Exportar PDF' na seção Análise de preço — gera " +
+      "relatório técnico imprimível com tudo que o app analisa, EXCETO " +
+      "ZAP (Anúncios ativos), por decisão de produto (ZAP bloqueia IPs " +
+      "datacenter; daqui pra frente é só link externo, sem comparáveis " +
+      "diretos confiáveis). Botão fica no topo da seção <AnalisePreco/>. " +
+      "Conteúdo do PDF: header com endereço + ficha técnica do imóvel, " +
+      "cards ITBI + Estimativa IA com mediana/faixa/último, gráfico " +
+      "scatter de Preço por m² (ITBI + bandas IA sobrepostas), tabela " +
+      "completa das transações ITBI (até 40 mais recentes), relatório " +
+      "completo da Análise profunda (markdown da Claude + web), fontes " +
+      "consultadas. Multi-página A4 automático. " +
+      "Arquitetura: PdfExportSurface off-screen (-99999px fora da " +
+      "viewport) renderiza o conteúdo com largura fixa 800px e estilos " +
+      "print-friendly; html2canvas captura → jsPDF fatia em páginas " +
+      "A4. UX: se a Análise profunda não foi gerada ainda, o botão " +
+      "dispara primeiro (60-120s), aí monta o PDF — sem 2 cliques pro " +
+      "usuário. Mobile usa Web Share API (deliverPdfBlob); desktop " +
+      "baixa direto. " +
+      "Refator suporte: estado da Análise profunda (lifecycle de " +
+      "carregar do DB + dispatch da runResearch + persistir) saiu da " +
+      "AnaliseProfunda.tsx pra um hook react-query novo " +
+      "useAnaliseProfunda. Mesmo cache compartilhado com o botão de " +
+      "PDF — se já foi gerada, não dispara nova chamada (~R$ 1). " +
+      "Adicionada dep html2canvas (~50KB).",
+  },
   {
     version: "v31",
     date: "19/mai/2026",
