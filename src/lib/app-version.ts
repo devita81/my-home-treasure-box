@@ -12,7 +12,7 @@
 //   2. No rodapé/topo aparece "v3 · 10/mai/2026".
 //   3. Se bater com o último número listado abaixo, deploy ok.
 
-export const APP_VERSION = "v32";
+export const APP_VERSION = "v33";
 
 export const APP_VERSION_DATE = "20/mai/2026";
 
@@ -26,6 +26,42 @@ export const APP_VERSION_HISTORY: ReadonlyArray<{
   date: string;
   notes: string;
 }> = [
+  {
+    version: "v33",
+    date: "20/mai/2026",
+    notes:
+      "Refatoração completa do exportador PDF da Análise de preço — o " +
+      "v32 (screenshot único multi-página via html2canvas) tinha bordas " +
+      "borradas pela compressão JPEG e page-breaks no meio de seções. " +
+      "Agora é render NATIVO jsPDF: texto selecionável, bordas nítidas, " +
+      "page-breaks sempre nas fronteiras de bloco (heading nunca fica " +
+      "órfão). " +
+      "Mudanças de conteúdo: " +
+      "(1) Card 'Estimativa IA' (single-shot OpenAI, frequentemente sem " +
+      "dados) REMOVIDO do PDF. " +
+      "(2) Substituído por card 'Análise profunda' com preço médio + " +
+      "faixa extraídos automaticamente do markdown via regex BR-aware " +
+      "(suporta R$ 1.800.000, R$ 1,8 milhões, R$ 800 mil, etc) — " +
+      "extract-analise-resumo.ts. " +
+      "Mudanças técnicas: " +
+      "(a) Novo lib markdown-to-blocks.ts — parser minimal (~120 linhas) " +
+      "que tokeniza o markdown da Claude em blocos tipados (heading, " +
+      "paragraph, list, blank) com suporte a bold/link inline. Sem dep " +
+      "externa (marked/markdown-it descartados, ~50KB economizados). " +
+      "(b) Novo lib extract-analise-resumo.ts — regex extractor da " +
+      "seção '## 1. Resumo executivo'. Robusto a variações de formato " +
+      "(min-max, ranges, mediana derivada). " +
+      "(c) export-analise-pdf.ts reescrito do zero: drawReportHeader, " +
+      "drawSectionTitle (com underline), drawCard (com borda " +
+      "esquerda colorida + valores destaque), drawMarkdownBlocks " +
+      "(itera blocos, ensureSpace antes de cada um), drawFooters " +
+      "(numeração 'Página N de M' adicionada AO FINAL). autoTable do " +
+      "ITBI com bordas + linhas alternadas. " +
+      "(d) PdfExportSurface simplificado de 380 linhas pra 40 — agora " +
+      "renderiza APENAS o GraficoItbi off-screen (chart continua via " +
+      "html2canvas porque é SVG do Recharts; reescrever em jsPDF " +
+      "nativo seria over-engineering). ",
+  },
   {
     version: "v32",
     date: "20/mai/2026",
