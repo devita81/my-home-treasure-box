@@ -1,28 +1,27 @@
-// Botão "Exportar PDF" — orquestra todo o pipeline de exportação.
+// Botão "Exportar PDF" — orquestra o pipeline de exportação.
 //
-// Fluxo quando clicado:
+// Fluxo:
 //   1. Garante que a Análise profunda foi gerada (compartilha cache
-//      com a AnaliseProfunda via useAnaliseProfunda hook — não
-//      duplica chamada). Se ainda não gerada, dispara state.run().
-//   2. Monta `<PdfExportSurface>` off-screen (visible: hidden no DOM
-//      mas posicionado fora da viewport pra ser capturado).
-//   3. Aguarda 600ms — tempo de Recharts animar/medir o gráfico ITBI
-//      e o react-markdown renderizar o conteúdo todo.
-//   4. Chama `buildAnalisePdf` → html2canvas + jsPDF multi-página.
-//   5. Entrega o Blob via `deliverPdfBlob` (mobile: Web Share API;
+//      com a AnaliseProfunda via useAnaliseProfunda — não duplica a
+//      chamada ao Worker /research que custa ~R$ 1).
+//   2. Monta `<PdfExportSurface>` off-screen — agora minimal, só com o
+//      GraficoItbi pra captura via html2canvas.
+//   3. Aguarda 500ms (Recharts terminar de medir/animar).
+//   4. Chama `buildAnalisePdf` que faz render NATIVO de header + cards
+//      + tabela ITBI + markdown da profunda + fontes + footer com
+//      numeração de página. O chart é capturado off-screen e embedado.
+//   5. Entrega o Blob via `deliverPdfBlob` (mobile: Web Share API,
 //      desktop: download direto).
-//   6. Desmonta o surface.
 //
-// Estados visíveis no botão:
-//   • Normal: "Exportar PDF" + ícone
-//   • Gerando análise profunda (se não existe ainda): "Pesquisando…"
-//   • Montando PDF: "Gerando PDF…"
-//   • Erro: toast (sonner)
+// Diferença pro v32: o PDF antigo era screenshot único multi-página,
+// com bordas borradas pela compressão JPEG e page-breaks no meio de
+// seções. Agora texto é selecionável, bordas são nítidas e os page-
+// breaks respeitam fronteiras de bloco.
 
 import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
-import { Download, FileText, Loader2 } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
 import { deliverPdfBlob } from "@/lib/pdf-delivery";
@@ -37,11 +36,6 @@ interface BotaoExportarPdfProps {
   dados: DadosAnalisePreco;
 }
 
-/**
- * `wait` simples, baseado em setTimeout. Usado pra dar tempo do React
- * commitar o surface e do Recharts terminar o resize/animação antes
- * do html2canvas. Tempo conservador (600ms) — preferimos delay > falha.
- */
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 type FaseExport =
@@ -53,22 +47,20 @@ type FaseExport =
 export function BotaoExportarPdf({ property, dados }: BotaoExportarPdfProps) {
   const profunda = useAnaliseProfunda(property);
   const [fase, setFase] = useState<FaseExport>("idle");
-  // Ref pro container off-screen do surface — usado pelo html2canvas
   const surfaceRef = useRef<HTMLDivElement | null>(null);
 
   const handleClick = async () => {
     if (fase !== "idle") return;
 
     try {
-      // 1. Garante que a Análise profunda existe
-      let resultProfunda = profunda.result;
-      if (!resultProfunda) {
+      // 1. Garante Análise profunda
+      if (!profunda.result) {
         setFase("gerando-profunda");
         toast.info(
           "Gerando análise profunda primeiro… isso leva 60-120 segundos.",
         );
         try {
-          resultProfunda = await profunda.run();
+          await profunda.run();
         } catch (e) {
           toast.error(
             e instanceof Error
@@ -80,36 +72,39 @@ export function BotaoExportarPdf({ property, dados }: BotaoExportarPdfProps) {
         }
       }
 
-      // 2. Monta o surface — flip de state pra renderizar
-      setFase("preparando");
-
-      // 3. Aguarda o DOM commitar + Recharts/markdown renderizarem.
-      // 600ms é conservador mas confiável. Antes disso o canvas pode
-      // capturar gráfico em branco.
-      await sleep(600);
-
-      // 4. Renderiza PDF
-      setFase("renderizando-pdf");
-      const surfaceEl = surfaceRef.current?.querySelector<HTMLElement>(
-        "[data-pdf-surface]",
-      );
-      if (!surfaceEl) {
-        throw new Error("Surface não encontrada no DOM — bug interno");
+      // Re-read result após state.run() (state hook atualizou no
+      // success). Se ainda assim for null, abortamos.
+      const resultProfunda = profunda.result;
+      if (!resultProfunda) {
+        toast.error("Análise profunda indisponível após geração — reload e tente de novo.");
+        setFase("idle");
+        return;
       }
 
+      // 2. Monta surface off-screen (só o chart)
+      setFase("preparando");
+      await sleep(500); // Recharts mede + renderiza
+
+      // 3. Pega o elemento do chart (pode ser null se ITBI = 0 pts)
+      setFase("renderizando-pdf");
+      const chartEl = surfaceRef.current?.querySelector<HTMLElement>(
+        "[data-pdf-chart]",
+      ) ?? null;
+
+      // 4. Render do PDF nativo
       const { blob, pageCount } = await buildAnalisePdf({
-        surfaceElement: surfaceEl,
+        property,
+        dadosItbi: dados.itbi,
+        profundaResult: resultProfunda,
+        chartElement: chartEl,
       });
-      // log de sucesso é benigno (mesmo padrão de [Anuncios] filtro
-      // frontend) — logger.ts só expõe error/warn em dev, então uso
-      // console.log direto pra info de tracking
       console.log(
         `[BotaoExportarPdf] PDF gerado: ${pageCount} páginas, ${(
           blob.size / 1024
         ).toFixed(0)}KB`,
       );
 
-      // 5. Entrega — mobile abre share sheet, desktop baixa
+      // 5. Entrega
       const fileName = buildPdfFileName({
         rua: property.rua,
         numero: property.numero,
@@ -118,9 +113,7 @@ export function BotaoExportarPdf({ property, dados }: BotaoExportarPdfProps) {
       });
       const resultado = await deliverPdfBlob(blob, fileName);
 
-      if (resultado === "cancelled") {
-        // user fechou o share sheet — fica quieto
-      } else {
+      if (resultado !== "cancelled") {
         toast.success(
           resultado === "shared"
             ? "PDF compartilhado"
@@ -137,7 +130,6 @@ export function BotaoExportarPdf({ property, dados }: BotaoExportarPdfProps) {
     }
   };
 
-  // Texto do botão muda conforme a fase
   const label = (() => {
     switch (fase) {
       case "gerando-profunda":
@@ -168,31 +160,19 @@ export function BotaoExportarPdf({ property, dados }: BotaoExportarPdfProps) {
           <Download className="h-4 w-4" />
         )}
         <span className="hidden sm:inline">{label}</span>
-        {/* Em mobile pequeno, só ícone + label curto pra economizar
-            espaço. PDF é ação secundária, não precisa label completo. */}
-        <span className="sm:hidden">
-          {loading ? "Gerando…" : "PDF"}
-        </span>
+        <span className="sm:hidden">{loading ? "Gerando…" : "PDF"}</span>
       </Button>
 
-      {/* Surface off-screen montado SÓ durante export. Usa portal pra
-          fugir do overflow do parent (que poderia clipar o screenshot
-          se estivesse dentro de um Card com overflow:hidden). */}
+      {/* Surface off-screen — montado SÓ durante o export, com o chart
+          ITBI pra captura. Pra fora do React tree via portal pra evitar
+          que overflow:hidden de algum ancestral clipe o screenshot. */}
       {(fase === "preparando" || fase === "renderizando-pdf") &&
-        profunda.result &&
         createPortal(
           <div ref={surfaceRef} aria-hidden>
             <PdfExportSurface
-              property={property}
               dadosItbi={dados.itbi}
               dadosEstimativaIa={dados.estimativaIa}
-              profundaResult={profunda.result}
             />
-            {/* Marcador inerte só pra ícone — ajuda a localizar o
-                portal no DevTools se precisar inspecionar. */}
-            <span style={{ display: "none" }}>
-              <FileText />
-            </span>
           </div>,
           document.body,
         )}
