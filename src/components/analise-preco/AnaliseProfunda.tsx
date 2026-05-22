@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -16,28 +16,10 @@ import {
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Property } from "@/types/property";
-import { supabase } from "@/integrations/supabase/client";
-import { logger } from "@/lib/logger";
-import {
-  runResearch,
-  type ResearchCitation,
-  type ResearchResponse,
-} from "@/lib/ai-research";
+import { useAnaliseProfunda } from "./dados/useAnaliseProfunda";
 
 interface AnaliseProfundaProps {
   property: Property;
-}
-
-/**
- * Forma persistida (mesmo shape do ResearchResponse mas sem
- * elapsedMs/usage — só importam no momento da geração). updatedAt
- * vem do banco; se a análise é fresca da chamada, fica null e usamos
- * Date.now() em runtime pra exibir.
- */
-interface PersistedResearch {
-  markdown: string;
-  citations: ResearchCitation[];
-  updatedAt: string | null;
 }
 
 /**
@@ -47,12 +29,18 @@ interface PersistedResearch {
  * busca em ZAP/VivaReal/QuintoAndar/OLX/ImovelWeb, lê os comparáveis
  * e produz um relatório com citações.
  *
+ * O lifecycle de dado (carregar do DB / disparar runResearch /
+ * persistir) vive em `useAnaliseProfunda` (react-query) — esse
+ * componente é só render. O hook compartilhado permite que outros
+ * componentes (ex: BotaoExportarPdf) leiam o MESMO resultado sem
+ * duplicar a chamada ao Worker (que custa ~R$ 1 cada).
+ *
  * Persistência:
  *   • Pré-cadastrados (property.id !== ""): grava nas 3 colunas
  *     ai_deep_research_* da tabela properties. Carrega na montagem
- *     se já existir. Mesmo padrão do useDadosEstimativaIa.
- *   • Avulsa (sem id): só em memória do componente — some quando o
- *     user sai da página de Pesquisa pontual.
+ *     se já existir.
+ *   • Avulsa (sem id): cache só em memória do react-query — some
+ *     quando o user sai da página de Pesquisa pontual.
  *
  * Estados:
  *   • Vazio: explicação + botão "Gerar análise profunda"
@@ -61,149 +49,29 @@ interface PersistedResearch {
  */
 export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
   const isPersisted = !!property.id;
+  const state = useAnaliseProfunda(property);
 
-  const [result, setResult] = useState<PersistedResearch | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [loadingFromDb, setLoadingFromDb] = useState(isPersisted);
-  const [error, setError] = useState<string | null>(null);
+  // `expanded` é puramente UI (collapse do card) — fica local.
   const [expanded, setExpanded] = useState(true);
-  // Latência só da chamada NOVA (não persistido — só mostramos
-  // "Gerado em Xs" se a análise foi gerada nesta sessão)
-  const [lastElapsedMs, setLastElapsedMs] = useState<number | null>(null);
-  // Aviso visível quando o persist no DB falha — antes era só
-  // console.error e o usuário não tinha como saber.
-  const [persistError, setPersistError] = useState<string | null>(null);
 
-  // Carrega do DB ao montar (só pra pré-cadastrados)
-  useEffect(() => {
-    if (!isPersisted) {
-      setLoadingFromDb(false);
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      // Cast `supabase as any` na origem da chain pra contornar os
-      // generated types não terem ainda as colunas ai_deep_research_*.
-      // Mesmo padrão do useDadosEstimativaIa linha ~70. Quando o Lovable
-      // rodar a migration nova e regenerar os types, dá pra remover.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generated types ainda não têm as colunas ai_deep_research_*
-      const { data, error: dbErr } = await (supabase as any)
-        .from("properties")
-        .select(
-          "ai_deep_research_md, ai_deep_research_citations, ai_deep_research_updated_at",
-        )
-        .eq("id", property.id)
-        .maybeSingle();
-      if (cancelled) return;
-      if (dbErr) {
-        logger.error("[AnaliseProfunda] erro lendo DB:", dbErr);
-        setLoadingFromDb(false);
-        return;
-      }
-      const row = data as {
-        ai_deep_research_md?: string | null;
-        ai_deep_research_citations?: ResearchCitation[] | null;
-        ai_deep_research_updated_at?: string | null;
-      } | null;
-      if (row?.ai_deep_research_md) {
-        setResult({
-          markdown: row.ai_deep_research_md,
-          citations: row.ai_deep_research_citations ?? [],
-          updatedAt: row.ai_deep_research_updated_at ?? null,
-        });
-      }
-      setLoadingFromDb(false);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [property.id, isPersisted]);
-
-  const persist = async (res: ResearchResponse) => {
-    if (!isPersisted) return;
-    const updatePayload = {
-      ai_deep_research_md: res.markdown,
-      ai_deep_research_citations: res.citations,
-      ai_deep_research_updated_at: new Date().toISOString(),
-    };
-    // Cast `supabase as any` pelo mesmo motivo do select acima (types
-    // gerados ainda não conhecem as colunas).
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generated types ainda não têm as colunas ai_deep_research_*
-    const { error: dbErr } = await (supabase as any)
-      .from("properties")
-      .update(updatePayload)
-      .eq("id", property.id);
-    if (dbErr) {
-      // Log estruturado — antes só passávamos o objeto cru e o
-      // PostgrestError ficava ilegível no console. Agora extraímos
-      // code/message/details/hint pra diagnóstico rápido (ex: 42703
-      // = column does not exist = migration não rodou no banco).
-      logger.error("[AnaliseProfunda] erro gravando DB", {
-        code: dbErr.code,
-        message: dbErr.message,
-        details: dbErr.details,
-        hint: dbErr.hint,
-      });
-      // Sinaliza pro UI estado "salvou parcialmente" — usuário vê
-      // resultado mas com aviso de que não persistiu.
-      setPersistError(
-        dbErr.code === "42703" || /column.*does not exist/i.test(dbErr.message ?? "")
-          ? "Banco ainda não tem as colunas pra salvar (migration pendente). A análise aparece nesta sessão mas vai sumir quando recarregar."
-          : "Não foi possível salvar a análise no banco. A análise aparece nesta sessão mas vai sumir quando recarregar.",
-      );
-    } else {
-      setPersistError(null);
-    }
+  // Wrappers que ignoram o Promise retornado pra usar como onClick
+  // (botões não devem receber handlers async direto).
+  const handleRun = () => {
+    void state.run().catch(() => {
+      // erro já fica em state.error, render mostra o card de erro
+    });
   };
-
-  const handleRun = async () => {
-    if (loading) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await runResearch({
-        property: {
-          rua: property.rua,
-          numero: property.numero,
-          bairro: property.bairro,
-          cidade: property.cidade,
-          estado: property.estado,
-          cep: property.cep,
-          tipo_imovel: property.tipo_imovel,
-          metragem: property.metragem,
-          area_total: property.area_total,
-          quartos: property.quartos,
-          suites: property.suites,
-          banheiros: property.banheiros,
-          garagens: property.garagens,
-          ano_construcao: property.ano_construcao,
-        },
-      });
-      setResult({
-        markdown: res.markdown,
-        citations: res.citations,
-        updatedAt: new Date().toISOString(),
-      });
-      setLastElapsedMs(res.elapsedMs);
-      await persist(res);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro desconhecido");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleRefazer = () => {
-    setResult(null);
-    setLastElapsedMs(null);
-    handleRun();
+    void state.refazer().catch(() => {
+      // idem
+    });
   };
 
   // ─── render ────────────────────────────────────────────────────────
 
   // Enquanto carrega do DB no mount, segura tudo num skeleton leve
   // pra não dar "flash" do estado vazio antes de aparecer o cached.
-  if (loadingFromDb) {
+  if (state.loadingFromDb) {
     return (
       <Card>
         <CardHeader className="pb-2">
@@ -233,7 +101,7 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
               (Claude + web)
             </span>
           </span>
-          {result ? (
+          {state.result ? (
             <Button
               variant="ghost"
               size="sm"
@@ -252,7 +120,7 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
 
       <CardContent className="space-y-3">
         {/* Estado VAZIO: explica o que faz e botão de gerar */}
-        {!result && !loading && !error ? (
+        {!state.result && !state.loading && !state.error ? (
           <div className="space-y-2.5">
             <p className="text-data text-muted-foreground">
               Pesquisa multi-fonte (ZAP, VivaReal, QuintoAndar, OLX) e
@@ -275,7 +143,7 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
         ) : null}
 
         {/* LOADING: spinner + texto explicativo + barra pulsante */}
-        {loading ? (
+        {state.loading ? (
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-data">
               <Loader2 className="h-4 w-4 animate-spin text-primary" />
@@ -295,12 +163,12 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
         ) : null}
 
         {/* ERRO: mensagem + retry */}
-        {error && !loading ? (
+        {state.error && !state.loading ? (
           <div className="space-y-2 rounded-md border border-destructive/40 bg-destructive/5 p-3">
             <p className="text-data font-medium text-destructive">
               Erro na análise
             </p>
-            <p className="text-label text-muted-foreground">{error}</p>
+            <p className="text-label text-muted-foreground">{state.error}</p>
             <Button
               onClick={handleRun}
               variant="outline"
@@ -314,16 +182,16 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
         ) : null}
 
         {/* RESULTADO: relatório markdown + fontes + botão refazer */}
-        {result && expanded ? (
+        {state.result && expanded ? (
           <div className="space-y-3">
             {/* Aviso amarelo SE o persist falhou — usuário entende que
                 a análise vai sumir ao recarregar */}
-            {persistError ? (
+            {state.persistError ? (
               <div className="rounded-md border border-warning/50 bg-warning/10 p-2.5 text-label">
                 <p className="font-medium text-warning-foreground">
                   Análise não salva
                 </p>
-                <p className="text-muted-foreground">{persistError}</p>
+                <p className="text-muted-foreground">{state.persistError}</p>
               </div>
             ) : null}
 
@@ -354,17 +222,17 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
               "
             >
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {result.markdown}
+                {state.result.markdown}
               </ReactMarkdown>
             </div>
 
-            {result.citations.length > 0 ? (
+            {state.result.citations.length > 0 ? (
               <details className="rounded-md border border-border/60 p-2.5">
                 <summary className="cursor-pointer text-label font-medium">
-                  Fontes consultadas ({result.citations.length})
+                  Fontes consultadas ({state.result.citations.length})
                 </summary>
                 <ul className="mt-2 space-y-1">
-                  {result.citations.map((c) => (
+                  {state.result.citations.map((c) => (
                     <li key={c.url} className="text-label">
                       <a
                         href={c.url}
@@ -382,11 +250,11 @@ export function AnaliseProfunda({ property }: AnaliseProfundaProps) {
 
             <div className="flex flex-col gap-1.5 border-t border-border/40 pt-2 text-meta text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
               <span>
-                {result.updatedAt
-                  ? `Última análise: ${formatDateTime(result.updatedAt)}`
+                {state.result.updatedAt
+                  ? `Última análise: ${formatDateTime(state.result.updatedAt)}`
                   : "Análise recém-gerada"}
-                {lastElapsedMs != null
-                  ? ` · gerou em ${(lastElapsedMs / 1000).toFixed(1)}s`
+                {state.lastElapsedMs != null
+                  ? ` · gerou em ${(state.lastElapsedMs / 1000).toFixed(1)}s`
                   : ""}
               </span>
               <Button
