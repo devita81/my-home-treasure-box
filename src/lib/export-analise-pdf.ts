@@ -13,7 +13,7 @@
 // seria reescrever a lib de gráficos.
 //
 // Layout: A4 portrait, margens 15mm sides, 15mm top, 18mm bottom.
-// Footer com "Página N de M" e watermark "My Home Collection".
+// Footer com "Página N de M" + "Análise de preço".
 
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -113,7 +113,7 @@ function drawReportHeader(
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(8);
   setColor(pdf, COLOR_PRIMARY);
-  pdf.text("MY HOME COLLECTION · ANÁLISE DE PREÇO", MARGIN_L, y);
+  pdf.text("ANÁLISE DE PREÇO", MARGIN_L, y);
   y += 5;
 
   // Endereço principal
@@ -454,7 +454,7 @@ function drawFooters(pdf: jsPDF) {
     pdf.setFontSize(FS_SMALL);
     setColor(pdf, COLOR_MUTED);
     pdf.text(
-      "My Home Collection · Análise de preço",
+      "Análise de preço",
       MARGIN_L,
       PAGE_H - 8,
     );
