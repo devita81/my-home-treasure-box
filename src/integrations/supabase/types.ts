@@ -265,6 +265,9 @@ export type Database = {
           ai_aluguel_max: number | null
           ai_aluguel_med: number | null
           ai_aluguel_min: number | null
+          ai_deep_research_citations: Json | null
+          ai_deep_research_md: string | null
+          ai_deep_research_updated_at: string | null
           ai_market_estimate: string | null
           ai_market_estimate_updated_at: string | null
           ai_venda_max: number | null
@@ -321,6 +324,9 @@ export type Database = {
           ai_aluguel_max?: number | null
           ai_aluguel_med?: number | null
           ai_aluguel_min?: number | null
+          ai_deep_research_citations?: Json | null
+          ai_deep_research_md?: string | null
+          ai_deep_research_updated_at?: string | null
           ai_market_estimate?: string | null
           ai_market_estimate_updated_at?: string | null
           ai_venda_max?: number | null
@@ -377,6 +383,9 @@ export type Database = {
           ai_aluguel_max?: number | null
           ai_aluguel_med?: number | null
           ai_aluguel_min?: number | null
+          ai_deep_research_citations?: Json | null
+          ai_deep_research_md?: string | null
+          ai_deep_research_updated_at?: string | null
           ai_market_estimate?: string | null
           ai_market_estimate_updated_at?: string | null
           ai_venda_max?: number | null
