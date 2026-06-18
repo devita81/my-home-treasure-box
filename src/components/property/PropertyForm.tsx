@@ -37,7 +37,16 @@ const propertySchema = z.object({
   numero_matricula: z.string().trim().max(50, 'Matrícula muito longa').optional().or(z.literal('')),
   market_value: z.number().min(0, 'Valor não pode ser negativo').max(100000000000, 'Valor muito alto'),
   iptu_value: z.number().min(0, 'Valor não pode ser negativo').max(10000000, 'Valor muito alto'),
-  photos: z.array(z.string().url().or(z.literal(''))).optional(),
+  photos: z
+    .array(
+      z
+        .string()
+        .trim()
+        .max(2000, 'URL muito longa')
+        .refine((v) => v === '' || /^https:\/\//i.test(v), 'Apenas URLs HTTPS')
+    )
+    .max(50, 'Máximo de 50 fotos')
+    .optional(),
   iptu_pago: z.boolean(),
   proprietario_papel: z.string().trim().max(200, 'Nome muito longo').optional().or(z.literal('')),
   proprietario_matricula: z.string().trim().max(200, 'Nome muito longo').optional().or(z.literal('')),
