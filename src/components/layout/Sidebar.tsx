@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { GlobalAIChatDialog } from "@/components/GlobalAIChatDialog";
 import { APP_VERSION, APP_VERSION_DATE } from "@/lib/app-version";
 import { NAV_ITEMS } from "./nav-items";
+import { SidebarImportCSV } from "./SidebarImportCSV";
 import { toast } from "sonner";
 
 interface SidebarProps {
@@ -143,6 +144,9 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             <Bot className="h-4 w-4 shrink-0" />
             <span>Consultor IA</span>
           </button>
+
+          <div className="my-3 border-t border-border/60" />
+          <SidebarImportCSV />
         </nav>
 
         {/* Rodapé: ação primária + menu de conta + marker de versão.
