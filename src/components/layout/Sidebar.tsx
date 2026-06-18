@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { GlobalAIChatDialog } from "@/components/GlobalAIChatDialog";
 import { APP_VERSION, APP_VERSION_DATE } from "@/lib/app-version";
 import { NAV_ITEMS } from "./nav-items";
+import { SidebarImportCSV } from "./SidebarImportCSV";
 import { toast } from "sonner";
 
 interface SidebarProps {
