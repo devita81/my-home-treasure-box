@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Bot, Home as HomeIcon, LogOut, PlusCircle } from "lucide-react";
+import { Bot, Home as HomeIcon, LogOut, PlusCircle, EyeOff, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { GlobalAIChatDialog } from "@/components/GlobalAIChatDialog";
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
+import { isDemoMode, subscribeDemoMode, toggleDemoModeWithReload } from "@/lib/demo-mode";
 
 /**
  * Navegação mobile estilo "app nativo" (referência: PetICare).
@@ -37,6 +38,8 @@ export function MobileNav() {
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
   const [chatOpen, setChatOpen] = useState(false);
+  const [demoOn, setDemoOn] = useState(isDemoMode());
+  useEffect(() => subscribeDemoMode(() => setDemoOn(isDemoMode())), []);
 
   const handleLogout = async () => {
     await signOut();
@@ -112,6 +115,10 @@ export function MobileNav() {
                 <DropdownMenuItem onSelect={() => setChatOpen(true)}>
                   <Bot className="mr-2 h-4 w-4" />
                   Consultor IA
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={toggleDemoModeWithReload}>
+                  {demoOn ? <Eye className="mr-2 h-4 w-4" /> : <EyeOff className="mr-2 h-4 w-4" />}
+                  {demoOn ? "Desligar Modo Demo" : "Ligar Modo Demo"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
