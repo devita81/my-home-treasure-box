@@ -1,5 +1,6 @@
 import { useProperties } from '@/contexts/PropertyContext';
 import { Button } from '@/components/ui/button';
+import { maskName } from '@/lib/format';
 import { 
   Dialog,
   DialogContent,
@@ -1109,9 +1110,9 @@ const Analytics = () => {
                       <span className="text-slate-500">Matrícula</span>
                       <span className="text-right font-mono text-slate-600">{property.numero_matricula || '—'}</span>
                       <span className="text-slate-500">Prop. Matr.</span>
-                      <span className="text-right text-slate-600 truncate">{property.proprietario_matricula || '—'}</span>
+                      <span className="text-right text-slate-600 truncate">{maskName(property.proprietario_matricula)}</span>
                       <span className="text-slate-500">Prop. Papel</span>
-                      <span className="text-right text-slate-600 truncate">{property.proprietario_papel || '—'}</span>
+                      <span className="text-right text-slate-600 truncate">{maskName(property.proprietario_papel)}</span>
                       <span className="text-slate-500">Declarado</span>
                       <span className="text-right font-mono tabular-nums text-slate-600">{formatCurrency(property.declared_value)}</span>
                       <span className="text-slate-500">Mercado</span>
@@ -1165,8 +1166,8 @@ const Analytics = () => {
                         <td className="py-1.5 px-3 text-data text-slate-500">{getTipoLabel(property.tipo_imovel)}</td>
                         <td className="py-1.5 px-3 text-data text-slate-500">{property.cidade} - {property.estado}</td>
                         <td className="py-1.5 px-3 text-data text-slate-500 font-mono">{property.numero_matricula || '—'}</td>
-                        <td className="py-1.5 px-3 text-data text-slate-500 truncate max-w-[150px]">{property.proprietario_matricula || '—'}</td>
-                        <td className="py-1.5 px-3 text-data text-slate-500 truncate max-w-[150px]">{property.proprietario_papel || '—'}</td>
+                        <td className="py-1.5 px-3 text-data text-slate-500 truncate max-w-[150px]">{maskName(property.proprietario_matricula)}</td>
+                        <td className="py-1.5 px-3 text-data text-slate-500 truncate max-w-[150px]">{maskName(property.proprietario_papel)}</td>
                         <td className="text-right py-1.5 px-3 text-label text-slate-600 font-mono tabular-nums">{formatCurrency(property.declared_value)}</td>
                         <td className="text-right py-1.5 px-3 text-label text-slate-800 font-mono tabular-nums font-medium">{formatCurrency(property.market_value || 0)}</td>
                       </tr>
@@ -1270,7 +1271,7 @@ const Analytics = () => {
                           <div className="mt-1.5 pt-1.5 border-t border-slate-100 text-label text-slate-500 truncate">
                             {property.numero_matricula && <span className="font-mono">Matr. {property.numero_matricula}</span>}
                             {property.numero_matricula && property.proprietario_matricula && <span> • </span>}
-                            {property.proprietario_matricula && <span className="truncate">{property.proprietario_matricula}</span>}
+                            {property.proprietario_matricula && <span className="truncate">{maskName(property.proprietario_matricula)}</span>}
                           </div>
                         )}
                       </Link>
@@ -1423,9 +1424,9 @@ const Analytics = () => {
                         <td className="py-2 px-3 text-data text-slate-600 whitespace-nowrap">{property.cidade} - {property.estado}</td>
                         <td className="py-2 px-3 text-data text-slate-700 font-mono whitespace-nowrap">{property.numero_matricula || '—'}</td>
                         <td className="py-2 px-3 text-data text-slate-700 font-mono whitespace-nowrap">{property.numero_contribuinte || '—'}</td>
-                        <td className="py-2 px-3 text-data text-slate-600 max-w-[160px] truncate">{property.proprietario_papel || '—'}</td>
-                        <td className="py-2 px-3 text-data text-slate-600 max-w-[200px] truncate">{property.proprietario_matricula || '—'}</td>
-                        <td className="py-2 px-3 text-data text-slate-600 max-w-[200px] truncate">{property.proprietario_matricula_ii || '—'}</td>
+                        <td className="py-2 px-3 text-data text-slate-600 max-w-[160px] truncate">{maskName(property.proprietario_papel)}</td>
+                        <td className="py-2 px-3 text-data text-slate-600 max-w-[200px] truncate">{maskName(property.proprietario_matricula)}</td>
+                        <td className="py-2 px-3 text-data text-slate-600 max-w-[200px] truncate">{maskName(property.proprietario_matricula_ii)}</td>
                         <td className="text-right py-2 px-3 text-label text-slate-700 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.declared_value)}</td>
                         <td className="text-right py-2 px-3 text-label text-slate-900 font-mono tabular-nums font-semibold whitespace-nowrap">{formatCurrency(property.market_value || 0)}</td>
                         <td className="text-right py-2 px-3 text-label text-slate-700 font-mono tabular-nums whitespace-nowrap">{formatCurrency(property.valor_condominio || 0)}</td>

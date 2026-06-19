@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 
 import { Property } from '@/types/property';
+import { isDemoMode } from '@/lib/demo-mode';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -91,6 +92,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
   const abbreviateOwnerName = (name: string | null | undefined) => {
     if (!name) return '—';
     if (name.toUpperCase().includes('DV')) return 'DV';
+    if (isDemoMode()) return '•••••';
     return name;
   };
 

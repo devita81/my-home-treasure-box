@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
 import { MobileNav } from "./MobileNav";
+import { DemoModeBadge } from "@/components/DemoModeBadge";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -26,6 +27,7 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="flex min-h-screen bg-background">
+      <DemoModeBadge />
       {/* Sidebar — só desktop. open=false: drawer mobile desativado. */}
       <Sidebar open={false} onClose={() => {}} />
 
