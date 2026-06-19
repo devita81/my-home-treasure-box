@@ -1110,9 +1110,9 @@ const Analytics = () => {
                       <span className="text-slate-500">Matrícula</span>
                       <span className="text-right font-mono text-slate-600">{property.numero_matricula || '—'}</span>
                       <span className="text-slate-500">Prop. Matr.</span>
-                      <span className="text-right text-slate-600 truncate">{property.proprietario_matricula || '—'}</span>
+                      <span className="text-right text-slate-600 truncate">{maskName(property.proprietario_matricula)}</span>
                       <span className="text-slate-500">Prop. Papel</span>
-                      <span className="text-right text-slate-600 truncate">{property.proprietario_papel || '—'}</span>
+                      <span className="text-right text-slate-600 truncate">{maskName(property.proprietario_papel)}</span>
                       <span className="text-slate-500">Declarado</span>
                       <span className="text-right font-mono tabular-nums text-slate-600">{formatCurrency(property.declared_value)}</span>
                       <span className="text-slate-500">Mercado</span>
