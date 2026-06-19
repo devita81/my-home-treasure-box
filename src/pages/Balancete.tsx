@@ -21,6 +21,7 @@ import type { TooltipProps } from 'recharts';
 import { cn } from '@/lib/utils';
 import { ImportBalanceteDialog } from '@/components/balancete/ImportBalanceteDialog';
 import { type BalanceteRow, rowTotals } from '@/lib/balancete-stats';
+import { maskName } from '@/lib/format';
 
 const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'] as const;
 type MetricLabel = 'receita' | 'despesa' | 'liquido' | 'aluguel';
@@ -1256,7 +1257,7 @@ export default function Balancete() {
                         </div>
                         {last.locatario && (
                           <div className="text-data text-muted-foreground truncate">
-                            Locatário: {last.locatario}
+                            Locatário: {maskName(last.locatario)}
                           </div>
                         )}
                         <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 pt-0.5">
@@ -1378,7 +1379,7 @@ export default function Balancete() {
                   </div>
                   {r.locatario && (
                     <div className="text-label text-muted-foreground mb-2 truncate">
-                      Locatário: <span className="text-foreground">{r.locatario}</span>
+                      Locatário: <span className="text-foreground">{maskName(r.locatario)}</span>
                     </div>
                   )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1 text-data sm:text-label min-w-0 overflow-hidden">
@@ -1674,7 +1675,7 @@ function MobileHistoryRow({ row, onClick }: { row: BalanceteRow; onClick: () => 
               Alugado
             </Badge>
           )}
-          {row.locatario && <span className="text-label text-muted-foreground truncate min-w-0">{row.locatario}</span>}
+          {row.locatario && <span className="text-label text-muted-foreground truncate min-w-0">{maskName(row.locatario)}</span>}
         </div>
         <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
       </div>
@@ -1850,7 +1851,7 @@ function MonthDrilldownTable({
           )}
           {row.locatario && (
             <span className="text-muted-foreground truncate min-w-0">
-              {row.locatario}
+              {maskName(row.locatario)}
             </span>
           )}
         </div>
