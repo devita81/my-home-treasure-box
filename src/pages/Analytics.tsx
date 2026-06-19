@@ -1,6 +1,7 @@
 import { useProperties } from '@/contexts/PropertyContext';
 import { Button } from '@/components/ui/button';
 import { maskName } from '@/lib/format';
+import { isDemoMode } from '@/lib/demo-mode';
 import { 
   Dialog,
   DialogContent,
@@ -91,6 +92,7 @@ const Analytics = () => {
   const [pendentesSortOrder, setPendentesSortOrder] = useState<SortOrder>('asc');
 
   const formatCurrency = (value: number) => {
+    if (isDemoMode()) return 'R$ ••••••';
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',

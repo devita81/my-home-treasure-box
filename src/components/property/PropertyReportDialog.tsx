@@ -8,6 +8,7 @@ import { FileText, Send, Download, Loader2, Eye, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
+import { isDemoMode } from '@/lib/demo-mode';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { deliverPdfBlob, isMobileBrowser, sharePreparedPdf } from '@/lib/pdf-delivery';
 import jsPDF from 'jspdf';
@@ -34,6 +35,7 @@ interface PropertyReportDialogProps {
 
 const formatCurrency = (value: number | null | undefined) => {
   if (!value) return '-';
+  if (isDemoMode()) return 'R$ ••••••';
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 }).format(value);
 };
 
