@@ -77,6 +77,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
 
   const formatCurrency = (value: number | null | undefined) => {
     if (value === null || value === undefined) return null;
+    if (isDemoMode()) return 'R$ ••••••';
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
