@@ -8,6 +8,7 @@ import { FileText, Send, Download, Loader2, Eye, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
+import { isDemoMode } from '@/lib/demo-mode';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { deliverPdfBlob, isMobileBrowser, sharePreparedPdf } from '@/lib/pdf-delivery';
 import jsPDF from 'jspdf';
