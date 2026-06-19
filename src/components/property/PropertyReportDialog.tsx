@@ -34,6 +34,7 @@ interface PropertyReportDialogProps {
 
 const formatCurrency = (value: number | null | undefined) => {
   if (!value) return '-';
+  if (isDemoMode()) return 'R$ ••••••';
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 }).format(value);
 };
 

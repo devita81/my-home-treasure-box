@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 import { ImportBalanceteDialog } from '@/components/balancete/ImportBalanceteDialog';
 import { type BalanceteRow, rowTotals } from '@/lib/balancete-stats';
 import { maskName } from '@/lib/format';
+import { isDemoMode } from '@/lib/demo-mode';
 
 const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'] as const;
 type MetricLabel = 'receita' | 'despesa' | 'liquido' | 'aluguel';
@@ -40,8 +41,8 @@ const METRIC_SHORT: Record<MetricLabel, string> = {
 
 const BRL_FORMATTER = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
 const BRL_FORMATTER_FULL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-const fmtBRL = (v: number) => BRL_FORMATTER.format(v);
-const fmtBRLFull = (v: number) => BRL_FORMATTER_FULL.format(v);
+const fmtBRL = (v: number) => (isDemoMode() ? 'R$ ••••••' : BRL_FORMATTER.format(v));
+const fmtBRLFull = (v: number) => (isDemoMode() ? 'R$ ••••••' : BRL_FORMATTER_FULL.format(v));
 
 // Chave única "YYYY-MM" usada como id de mês
 const monthKey = (ano: number, mes: number) => `${ano}-${String(mes).padStart(2, '0')}`;
