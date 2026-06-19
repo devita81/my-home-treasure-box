@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Bot,
@@ -6,6 +6,8 @@ import {
   LogOut,
   PlusCircle,
   ChevronLeft,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -15,6 +17,7 @@ import { APP_VERSION, APP_VERSION_DATE } from "@/lib/app-version";
 import { NAV_ITEMS } from "./nav-items";
 import { SidebarImportCSV } from "./SidebarImportCSV";
 import { toast } from "sonner";
+import { isDemoMode, subscribeDemoMode, toggleDemoModeWithReload } from "@/lib/demo-mode";
 
 interface SidebarProps {
   /** Quando true, sidebar fica visível (mobile drawer aberto). */
@@ -40,6 +43,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
   const [chatOpen, setChatOpen] = useState(false);
+  const [demoOn, setDemoOn] = useState(isDemoMode());
+  useEffect(() => subscribeDemoMode(() => setDemoOn(isDemoMode())), []);
 
   const handleLogout = async () => {
     await signOut();
@@ -147,6 +152,21 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
           <div className="my-3 border-t border-border/60" />
           <SidebarImportCSV />
+
+          <button
+            type="button"
+            onClick={toggleDemoModeWithReload}
+            className={cn(
+              "mt-1 flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition-colors",
+              demoOn
+                ? "bg-amber-500/15 text-amber-700 ring-1 ring-amber-500/30 hover:bg-amber-500/25 dark:text-amber-400"
+                : "text-foreground/80 hover:bg-secondary hover:text-foreground",
+            )}
+            title="Mascara valores R$, nomes e CPFs para apresentação"
+          >
+            {demoOn ? <Eye className="h-4 w-4 shrink-0" /> : <EyeOff className="h-4 w-4 shrink-0" />}
+            <span>{demoOn ? "Desligar Modo Demo" : "Modo Demo"}</span>
+          </button>
         </nav>
 
         {/* Rodapé: ação primária + menu de conta + marker de versão.

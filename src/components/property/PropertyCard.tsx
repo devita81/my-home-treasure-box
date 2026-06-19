@@ -91,6 +91,7 @@ export function PropertyCard({ property, onDelete, onDuplicate, compact = false 
   const abbreviateOwnerName = (name: string | null | undefined) => {
     if (!name) return '—';
     if (name.toUpperCase().includes('DV')) return 'DV';
+    if (isDemoMode()) return '•••••';
     return name;
   };
 
