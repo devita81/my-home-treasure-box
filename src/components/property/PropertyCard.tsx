@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 
 import { Property } from '@/types/property';
+import { isDemoMode } from '@/lib/demo-mode';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
