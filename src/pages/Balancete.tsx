@@ -250,6 +250,23 @@ export default function Balancete() {
     void fetchAll();
   }, [fetchAll]);
 
+  // Auto-expande monthFilter para incluir meses novos aparecidos após import.
+  // Se o usuário tinha [1..6] persistido no localStorage e agora entrou mês 7
+  // (ou mais), inclui automaticamente — senão o mês recém-importado ficaria
+  // escondido pelo filtro antigo. Só age quando monthFilter está ativo.
+  useEffect(() => {
+    if (rows.length === 0) return;
+    setMonthFilter(prev => {
+      if (prev.length === 0) return prev;
+      const maxPrev = Math.max(...prev);
+      const mesesNovos = Array.from(new Set(rows.map(r => r.mes))).filter(m => m > maxPrev);
+      if (mesesNovos.length === 0) return prev;
+      return Array.from(new Set([...prev, ...mesesNovos])).sort((a, b) => a - b);
+    });
+  }, [rows]);
+
+
+
   const years = useMemo(() => Array.from(new Set(rows.map(r => r.ano))).sort((a, b) => b - a), [rows]);
 
   // Listas independentes (cidade → bairro em cascata) baseadas em rows
