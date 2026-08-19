@@ -250,18 +250,24 @@ export default function Balancete() {
     void fetchAll();
   }, [fetchAll]);
 
-  // Auto-expande monthFilter para incluir meses novos aparecidos após import.
-  // Se o usuário tinha [1..6] persistido no localStorage e agora entrou mês 7
-  // (ou mais), inclui automaticamente — senão o mês recém-importado ficaria
-  // escondido pelo filtro antigo. Só age quando monthFilter está ativo.
+  // Filtros persistidos nunca devem esconder o período mais recente importado.
+  // Inclui tanto um ano novo quanto seu mês (inclusive na virada Dez → Jan).
   useEffect(() => {
     if (rows.length === 0) return;
+    const latest = rows.reduce((current, row) =>
+      row.ano * 12 + row.mes > current.ano * 12 + current.mes ? row : current
+    );
+    setYearFilterRaw(prev => {
+      if (prev.length === 0 || prev.includes(latest.ano)) return prev;
+      const maxSelectedYear = Math.max(...prev);
+      return latest.ano > maxSelectedYear
+        ? [latest.ano, ...prev].sort((a, b) => b - a)
+        : prev;
+    });
     setMonthFilter(prev => {
       if (prev.length === 0) return prev;
-      const maxPrev = Math.max(...prev);
-      const mesesNovos = Array.from(new Set(rows.map(r => r.mes))).filter(m => m > maxPrev);
-      if (mesesNovos.length === 0) return prev;
-      return Array.from(new Set([...prev, ...mesesNovos])).sort((a, b) => a - b);
+      if (prev.includes(latest.mes)) return prev;
+      return [...prev, latest.mes].sort((a, b) => a - b);
     });
   }, [rows]);
 
@@ -466,7 +472,10 @@ export default function Balancete() {
 
   // Pivot: imóvel x mês — valores exibidos seguem displayMetric
   const pivot = useMemo(() => {
-    const months = timeSeries.map(t => t.key);
+    // Na tabela, o período mais novo fica à esquerda e visível sem rolagem.
+    // Os gráficos continuam em ordem cronológica natural.
+    const latestFirst = [...timeSeries].reverse();
+    const months = latestFirst.map(t => t.key);
     type MonthAgg = { receita: number; despesa: number; liquido: number; aluguel: number };
     type PivotRow = {
       key: string; label: string; cidade: string; rua: string;
@@ -545,7 +554,7 @@ export default function Balancete() {
     }
     return {
       months,
-      monthLabels: timeSeries.map(t => t.label),
+      monthLabels: latestFirst.map(t => t.label),
       rows: sortedRows,
       monthTotals,
       grandTotal,
@@ -612,7 +621,7 @@ export default function Balancete() {
     if (!drilldown) return [];
     return rows
       .filter(r => propertyKey(r) === drilldown.key)
-      .sort((a, b) => a.ano - b.ano || a.mes - b.mes);
+      .sort((a, b) => b.ano - a.ano || b.mes - a.mes);
   }, [drilldown, rows]);
 
   const drilldownSeries = useMemo(() => {
@@ -2295,7 +2304,7 @@ function PropertyAccordionRow({
     });
     return Array.from(map.entries())
       .sort((a, b) => b[0] - a[0])
-      .map(([ano, list]) => ({ ano, meses: list.sort((a, b) => a.mes - b.mes) }));
+      .map(([ano, list]) => ({ ano, meses: list.sort((a, b) => b.mes - a.mes) }));
   }, [months]);
 
   return (
