@@ -22,6 +22,7 @@ const EditProperty = lazy(() => import("./pages/EditProperty"));
 const PropertyDetails = lazy(() => import("./pages/PropertyDetails"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const Balancete = lazy(() => import("./pages/Balancete"));
+const Variacoes = lazy(() => import("./pages/Variacoes"));
 const Auth = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
@@ -122,6 +123,16 @@ const App = () => (
                         <ProtectedRoute>
                           <AppLayout>
                             <Balancete />
+                          </AppLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/variacoes"
+                      element={
+                        <ProtectedRoute>
+                          <AppLayout>
+                            <Variacoes />
                           </AppLayout>
                         </ProtectedRoute>
                       }
