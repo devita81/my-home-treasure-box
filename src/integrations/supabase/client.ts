@@ -5,6 +5,7 @@
 // Supabase design — same safety as the Sentry DSN fallback in main.tsx.)
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
+import { brokeredPreviewStorage } from './previewAuthStorage';
 
 const SUPABASE_URL_FALLBACK = "https://rbsghoxhcpvrnkemksex.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY_FALLBACK = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJic2dob3hoY3B2cm5rZW1rc2V4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwNzQwNDcsImV4cCI6MjA4MzY1MDA0N30.qxQ7-JxInZs5-RKicxOwmFVhWM4qmAuGlLv-QBUctQI";
@@ -17,7 +18,7 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY |
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
-    storage: localStorage,
+    storage: brokeredPreviewStorage(),
     persistSession: true,
     autoRefreshToken: true,
   }
