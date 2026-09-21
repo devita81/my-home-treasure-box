@@ -78,7 +78,7 @@ export function TabelaVariacoes({ lista, onSelect }: Props) {
                 </td>
                 <td
                   className={cn(
-                    "px-2 py-1.5 text-right tabular-nums",
+                    "whitespace-nowrap px-2 py-1.5 text-right tabular-nums",
                     TONE_TEXT[toneOf(v.impactoDespesa, 0.5)],
                   )}
                 >
