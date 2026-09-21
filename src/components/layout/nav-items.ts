@@ -1,4 +1,5 @@
 import {
+  Activity,
   BarChart3,
   Home as HomeIcon,
   Wallet,
@@ -38,6 +39,13 @@ export const NAV_ITEMS: NavItem[] = [
     shortLabel: "Balancete",
     icon: Wallet,
     description: "Receitas e despesas mês a mês",
+  },
+  {
+    to: "/variacoes",
+    label: "Variações",
+    shortLabel: "Variações",
+    icon: Activity,
+    description: "O que mudou no resultado de cada imóvel",
   },
   {
     to: "/analytics",
