@@ -30,8 +30,12 @@ export function TabelaVariacoes({ lista, onSelect }: Props) {
         <thead>
           <tr className="border-b border-border text-nano uppercase tracking-wide text-muted-foreground">
             <th className="px-2 py-2 text-left font-medium">Imóvel</th>
-            <th className="px-2 py-2 text-right font-medium">Base</th>
-            <th className="px-2 py-2 text-right font-medium">Atual</th>
+            <th className="whitespace-nowrap px-2 py-2 text-right font-medium">
+              {lista[0]?.baseLabel ?? "Base"}
+            </th>
+            <th className="whitespace-nowrap px-2 py-2 text-right font-medium">
+              {lista[0]?.atualLabel ?? "Atual"}
+            </th>
             <th className="px-2 py-2 text-right font-medium">Variação</th>
             <th className="px-2 py-2 text-right font-medium">Receitas</th>
             <th className="px-2 py-2 text-right font-medium">Despesas</th>
@@ -55,18 +59,18 @@ export function TabelaVariacoes({ lista, onSelect }: Props) {
                     {v.parcial ? " • sem lançamento em um dos meses" : ""}
                   </p>
                 </td>
-                <td className="px-2 py-1.5 text-right tabular-nums text-muted-foreground">
+                <td className="whitespace-nowrap px-2 py-1.5 text-right tabular-nums text-muted-foreground">
                   {fmtBRL(v.base)}
                 </td>
-                <td className="px-2 py-1.5 text-right font-medium tabular-nums">
+                <td className="whitespace-nowrap px-2 py-1.5 text-right font-medium tabular-nums">
                   {fmtBRL(v.atual)}
                 </td>
-                <td className="px-2 py-1.5 text-right">
+                <td className="whitespace-nowrap px-2 py-1.5 text-right">
                   <VariacaoBadge delta={v.delta} pct={v.deltaPct} />
                 </td>
                 <td
                   className={cn(
-                    "px-2 py-1.5 text-right tabular-nums",
+                    "whitespace-nowrap px-2 py-1.5 text-right tabular-nums",
                     TONE_TEXT[toneOf(v.impactoReceita, 0.5)],
                   )}
                 >
