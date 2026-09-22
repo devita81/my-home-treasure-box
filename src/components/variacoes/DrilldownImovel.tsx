@@ -51,7 +51,7 @@ export function DrilldownImovel({ variacao, onClose }: Props) {
     <Sheet open={!!v} onOpenChange={(o) => !o && onClose()}>
       <SheetContent
         side="right"
-        className="w-full overflow-y-auto px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] sm:max-w-xl sm:p-6"
+        className="w-full overflow-y-auto px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] [&>button]:top-[calc(1rem+env(safe-area-inset-top))] sm:max-w-xl sm:p-6 sm:[&>button]:top-4"
       >
         {v ? (
           <>

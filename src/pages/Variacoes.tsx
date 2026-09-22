@@ -103,6 +103,8 @@ export default function Variacoes() {
 
   const baseLabel = ymAtual !== null ? rotuloBase(ymAtual, base) : "—";
   const atualLabel = ymAtual !== null ? ymLabelLongo(ymAtual) : "—";
+  const maiorAlta = resumo.maiorAlta;
+  const maiorQueda = resumo.maiorQueda;
 
   return (
     <div className="mx-auto w-full max-w-[1400px] space-y-4 p-3 sm:p-4 lg:p-6">
@@ -172,25 +174,25 @@ export default function Variacoes() {
         />
         <Kpi
           label="Maior alta"
-          value={resumo.maiorAlta ? fmtBRL(resumo.maiorAlta.delta) : "—"}
+          value={maiorAlta ? fmtBRL(maiorAlta.delta) : "—"}
           tone="alta"
           extra={
             <span className="truncate text-nano text-muted-foreground">
-              {resumo.maiorAlta?.label ?? "Nenhuma alta no período"}
+               {maiorAlta?.label ?? "Nenhuma alta no período"}
             </span>
           }
-          onClick={resumo.maiorAlta ? () => setSelecionado(resumo.maiorAlta) : undefined}
+          onClick={maiorAlta ? () => setSelecionado(maiorAlta) : undefined}
         />
         <Kpi
           label="Maior queda"
-          value={resumo.maiorQueda ? fmtBRL(resumo.maiorQueda.delta) : "—"}
+          value={maiorQueda ? fmtBRL(maiorQueda.delta) : "—"}
           tone="queda"
           extra={
             <span className="truncate text-nano text-muted-foreground">
-              {resumo.maiorQueda?.label ?? "Nenhuma queda no período"}
+               {maiorQueda?.label ?? "Nenhuma queda no período"}
             </span>
           }
-          onClick={resumo.maiorQueda ? () => setSelecionado(resumo.maiorQueda) : undefined}
+          onClick={maiorQueda ? () => setSelecionado(maiorQueda) : undefined}
         />
         <Kpi
           label="Imóveis"

@@ -56,7 +56,7 @@ export function TornadoVariacoes({ lista, limite = 12, onSelect }: Props) {
     const max = Math.max(...dados.map((d) => Math.abs(d.delta)), 1);
     return (
       <div className="space-y-3">
-        {dados.slice().reverse().map((d) => {
+        {dados.slice().sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).map((d) => {
           const tone = toneOf(d.delta, 0.5);
           return (
             <Button
@@ -72,12 +72,13 @@ export function TornadoVariacoes({ lista, limite = 12, onSelect }: Props) {
                   {d.delta > 0 ? "+" : "−"}{fmtBRL(Math.abs(d.delta))}
                 </span>
               </span>
-              <span className="relative block h-2 overflow-hidden rounded-sm bg-muted">
-                <span
-                  className={tone === "alta" ? "block h-full bg-success" : tone === "queda" ? "block h-full bg-destructive" : "block h-full bg-muted-foreground"}
-                  style={{ width: `${Math.max(2, (Math.abs(d.delta) / max) * 100)}%` }}
+              <svg className="h-2 w-full overflow-hidden rounded-sm bg-muted" viewBox="0 0 100 8" preserveAspectRatio="none" aria-hidden="true">
+                <rect
+                  width={Math.max(2, (Math.abs(d.delta) / max) * 100)}
+                  height="8"
+                  className={tone === "alta" ? "fill-success" : tone === "queda" ? "fill-destructive" : "fill-muted-foreground"}
                 />
-              </span>
+              </svg>
             </Button>
           );
         })}
