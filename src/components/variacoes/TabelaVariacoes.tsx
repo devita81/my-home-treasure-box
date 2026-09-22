@@ -4,6 +4,8 @@ import { fmtBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { VariacaoImovel } from "@/lib/variacoes";
 import { TONE_TEXT, VariacaoBadge, toneOf } from "./VariacaoBadge";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   lista: VariacaoImovel[];
@@ -16,6 +18,7 @@ interface Props {
  * puxou o resultado. Clicar abre o drill-down completo.
  */
 export function TabelaVariacoes({ lista, onSelect }: Props) {
+  const isMobile = useIsMobile();
   if (lista.length === 0) {
     return (
       <p className="py-10 text-center text-sm text-muted-foreground">
@@ -24,8 +27,37 @@ export function TabelaVariacoes({ lista, onSelect }: Props) {
     );
   }
 
+  if (isMobile) {
+    return (
+      <div className="divide-y divide-border">
+        {lista.map((v) => (
+          <Button
+            key={v.key}
+            type="button"
+            variant="ghost"
+            onClick={() => onSelect(v)}
+            className="h-auto w-full min-w-0 justify-start rounded-none px-0 py-3 text-left"
+          >
+            <span className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+              <span className="min-w-0">
+                <span className="block truncate text-xs font-semibold text-foreground">{v.label}</span>
+                <span className="mt-0.5 block truncate text-nano font-normal text-muted-foreground">
+                  {v.cidade}{v.driver ? ` · ${v.driver.label}` : ""}
+                </span>
+              </span>
+              <span className="flex shrink-0 items-center gap-1.5">
+                <VariacaoBadge delta={v.delta} pct={v.deltaPct} compact />
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </span>
+            </span>
+          </Button>
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div className="overflow-x-auto">
+    <div className="scroll-x-visible overflow-x-auto">
       <table className="w-full min-w-[820px] border-collapse text-xs">
         <thead>
           <tr className="border-b border-border text-nano uppercase tracking-wide text-muted-foreground">

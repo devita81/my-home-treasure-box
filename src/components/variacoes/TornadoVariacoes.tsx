@@ -12,6 +12,8 @@ import {
 import { fmtBRLAxis, fmtBRL } from "@/lib/format";
 import type { VariacaoImovel } from "@/lib/variacoes";
 import { CHART_COLORS, toneOf } from "./VariacaoBadge";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   lista: VariacaoImovel[];
@@ -26,6 +28,7 @@ interface Props {
  * esquerda (piorou). Clicar numa barra abre o drill-down do imóvel.
  */
 export function TornadoVariacoes({ lista, limite = 12, onSelect }: Props) {
+  const isMobile = useIsMobile();
   const dados = useMemo(
     () =>
       lista
@@ -46,6 +49,39 @@ export function TornadoVariacoes({ lista, limite = 12, onSelect }: Props) {
       <p className="py-10 text-center text-sm text-muted-foreground">
         Nenhuma variação no período selecionado.
       </p>
+    );
+  }
+
+  if (isMobile) {
+    const max = Math.max(...dados.map((d) => Math.abs(d.delta)), 1);
+    return (
+      <div className="space-y-3">
+        {dados.slice().reverse().map((d) => {
+          const tone = toneOf(d.delta, 0.5);
+          return (
+            <Button
+              key={d.key}
+              type="button"
+              variant="ghost"
+              onClick={() => onSelect(d.ref)}
+              className="h-auto w-full min-w-0 flex-col items-stretch gap-1.5 px-0 py-1 text-left"
+            >
+              <span className="flex min-w-0 items-baseline justify-between gap-3">
+                <span className="min-w-0 truncate text-xs font-medium text-foreground">{d.ref.label}</span>
+                <span className="shrink-0 text-xs font-semibold tabular-nums text-foreground">
+                  {d.delta > 0 ? "+" : "−"}{fmtBRL(Math.abs(d.delta))}
+                </span>
+              </span>
+              <span className="relative block h-2 overflow-hidden rounded-sm bg-muted">
+                <span
+                  className={tone === "alta" ? "block h-full bg-success" : tone === "queda" ? "block h-full bg-destructive" : "block h-full bg-muted-foreground"}
+                  style={{ width: `${Math.max(2, (Math.abs(d.delta) / max) * 100)}%` }}
+                />
+              </span>
+            </Button>
+          );
+        })}
+      </div>
     );
   }
 

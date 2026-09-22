@@ -25,6 +25,7 @@ import { fmtBRL, fmtBRLAxis } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { VariacaoImovel } from "@/lib/variacoes";
 import { CHART_COLORS, TONE_TEXT, VariacaoBadge, toneOf } from "./VariacaoBadge";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Props {
   variacao: VariacaoImovel | null;
@@ -38,6 +39,7 @@ interface Props {
  */
 export function DrilldownImovel({ variacao, onClose }: Props) {
   const v = variacao;
+  const isMobile = useIsMobile();
 
   const itens = v
     ? [...v.itens]
@@ -47,25 +49,28 @@ export function DrilldownImovel({ variacao, onClose }: Props) {
 
   return (
     <Sheet open={!!v} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-xl">
+      <SheetContent
+        side="right"
+        className="w-full overflow-y-auto px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] sm:max-w-xl sm:p-6"
+      >
         {v ? (
           <>
-            <SheetHeader className="space-y-1 text-left">
-              <SheetTitle className="text-base leading-tight">{v.label}</SheetTitle>
+            <SheetHeader className="space-y-1 pr-10 text-left">
+              <SheetTitle className="break-words text-base leading-tight">{v.label}</SheetTitle>
               <SheetDescription className="text-xs">
                 {v.cidade} • {v.baseLabel} → {v.atualLabel}
               </SheetDescription>
             </SheetHeader>
 
             {/* Resumo da variação */}
-            <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
               <Metric label={v.baseLabel} value={fmtBRL(v.base)} />
               <Metric label={v.atualLabel} value={fmtBRL(v.atual)} />
-              <div className="rounded-lg border border-border bg-card px-3 py-2">
+              <div className="col-span-2 min-w-0 rounded-lg border border-border bg-card px-3 py-2 sm:col-span-1">
                 <p className="text-nano font-medium uppercase tracking-wide text-muted-foreground">
                   Variação
                 </p>
-                <VariacaoBadge delta={v.delta} pct={v.deltaPct} className="mt-1" />
+                <VariacaoBadge delta={v.delta} pct={v.deltaPct} className="mt-1 max-w-full" />
               </div>
             </div>
 
@@ -90,11 +95,11 @@ export function DrilldownImovel({ variacao, onClose }: Props) {
               {itens.length > 0 ? (
                 <>
                   <div className="mt-2">
-                    <ResponsiveContainer width="100%" height={Math.max(140, itens.length * 30 + 30)}>
+                    <ResponsiveContainer width="100%" height={Math.max(150, itens.length * (isMobile ? 38 : 30) + 30)}>
                       <BarChart
                         data={itens.map((i) => ({ nome: i.label, impacto: i.impacto }))}
                         layout="vertical"
-                        margin={{ top: 4, right: 20, bottom: 4, left: 4 }}
+                        margin={{ top: 4, right: isMobile ? 4 : 20, bottom: 4, left: 0 }}
                       >
                         <XAxis
                           type="number"
@@ -105,8 +110,8 @@ export function DrilldownImovel({ variacao, onClose }: Props) {
                         <YAxis
                           type="category"
                           dataKey="nome"
-                          width={130}
-                          tick={{ fontSize: 10 }}
+                          width={isMobile ? 104 : 130}
+                          tick={{ fontSize: isMobile ? 9 : 10 }}
                           stroke="hsl(var(--muted-foreground))"
                         />
                         <ReferenceLine x={0} stroke="hsl(var(--border))" />
@@ -124,7 +129,8 @@ export function DrilldownImovel({ variacao, onClose }: Props) {
                     </ResponsiveContainer>
                   </div>
 
-                  <table className="mt-2 w-full border-collapse text-xs">
+                  <div className="scroll-x-visible mt-2 overflow-x-auto">
+                  <table className="w-full min-w-[430px] border-collapse text-xs">
                     <thead>
                       <tr className="border-b border-border text-nano uppercase text-muted-foreground">
                         <th className="py-1 text-left font-medium">Item</th>
@@ -159,6 +165,7 @@ export function DrilldownImovel({ variacao, onClose }: Props) {
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </>
               ) : (
                 <p className="py-4 text-xs text-muted-foreground">
@@ -172,8 +179,8 @@ export function DrilldownImovel({ variacao, onClose }: Props) {
               <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Histórico mensal
               </h3>
-              <div className="mt-2">
-                <ResponsiveContainer width="100%" height={200}>
+              <div className="mt-2 -ml-2">
+                <ResponsiveContainer width="100%" height={isMobile ? 230 : 200}>
                   <ComposedChart data={v.historico} margin={{ top: 6, right: 8, bottom: 4, left: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                     <XAxis dataKey="label" tick={{ fontSize: 9 }} stroke="hsl(var(--muted-foreground))" />
@@ -200,12 +207,12 @@ export function DrilldownImovel({ variacao, onClose }: Props) {
 
             {v.propertyId ? (
               <div className="mt-5">
-                <Link to={`/property/${v.propertyId}`}>
-                  <Button variant="outline" size="sm" className="w-full gap-2">
+                <Button asChild variant="default" size="sm" className="w-full gap-2">
+                  <Link to={`/property/${v.propertyId}`} onClick={onClose}>
                     <ExternalLink className="h-3.5 w-3.5" />
                     Abrir ficha do imóvel
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </div>
             ) : null}
           </>

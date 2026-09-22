@@ -105,7 +105,7 @@ export default function Variacoes() {
   const atualLabel = ymAtual !== null ? ymLabelLongo(ymAtual) : "—";
 
   return (
-    <div className="mx-auto w-full max-w-[1400px] space-y-4 p-4 lg:p-6">
+    <div className="mx-auto w-full max-w-[1400px] space-y-4 p-3 sm:p-4 lg:p-6">
       {/* Cabeçalho + controles */}
       <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0">
@@ -119,12 +119,12 @@ export default function Variacoes() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="grid w-full grid-cols-2 gap-2 lg:flex lg:w-auto lg:flex-wrap lg:items-center">
           <Select
             value={ymAtual !== null ? String(ymAtual) : undefined}
             onValueChange={(v) => setYmAtual(Number(v))}
           >
-            <SelectTrigger className="h-8 w-[130px] text-xs">
+            <SelectTrigger className="h-9 w-full min-w-0 text-xs lg:w-[130px]">
               <SelectValue placeholder="Mês" />
             </SelectTrigger>
             <SelectContent>
@@ -137,7 +137,7 @@ export default function Variacoes() {
           </Select>
 
           <Select value={base} onValueChange={(v) => setBase(v as BaseComparacao)}>
-            <SelectTrigger className="h-8 w-[170px] text-xs">
+            <SelectTrigger className="h-9 w-full min-w-0 text-xs lg:w-[170px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -147,18 +147,18 @@ export default function Variacoes() {
             </SelectContent>
           </Select>
 
-          <Tabs value={metrica} onValueChange={(v) => setMetrica(v as Metrica)}>
-            <TabsList className="h-8">
-              <TabsTrigger value="liquido" className="h-6 px-2.5 text-xs">Líquido</TabsTrigger>
-              <TabsTrigger value="receita" className="h-6 px-2.5 text-xs">Receitas</TabsTrigger>
-              <TabsTrigger value="despesa" className="h-6 px-2.5 text-xs">Despesas</TabsTrigger>
+          <Tabs className="col-span-2 w-full lg:w-auto" value={metrica} onValueChange={(v) => setMetrica(v as Metrica)}>
+            <TabsList className="grid h-9 w-full grid-cols-3 lg:flex lg:w-auto">
+              <TabsTrigger value="liquido" className="h-7 min-w-0 px-2 text-xs">Líquido</TabsTrigger>
+              <TabsTrigger value="receita" className="h-7 min-w-0 px-2 text-xs">Receitas</TabsTrigger>
+              <TabsTrigger value="despesa" className="h-7 min-w-0 px-2 text-xs">Despesas</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
       </header>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-2 min-[390px]:grid-cols-2 lg:grid-cols-4">
         <Kpi
           label={`Variação da carteira`}
           value={fmtBRL(resumo.totalDelta)}
@@ -179,7 +179,7 @@ export default function Variacoes() {
               {resumo.maiorAlta?.label ?? "Nenhuma alta no período"}
             </span>
           }
-          onClick={resumo.maiorAlta ? () => setSelecionado(resumo.maiorAlta!) : undefined}
+          onClick={resumo.maiorAlta ? () => setSelecionado(resumo.maiorAlta) : undefined}
         />
         <Kpi
           label="Maior queda"
@@ -190,7 +190,7 @@ export default function Variacoes() {
               {resumo.maiorQueda?.label ?? "Nenhuma queda no período"}
             </span>
           }
-          onClick={resumo.maiorQueda ? () => setSelecionado(resumo.maiorQueda!) : undefined}
+          onClick={resumo.maiorQueda ? () => setSelecionado(resumo.maiorQueda) : undefined}
         />
         <Kpi
           label="Imóveis"
@@ -206,20 +206,20 @@ export default function Variacoes() {
 
       {/* Onde a variação nasceu — itens agregados da carteira */}
       <Card>
-        <CardHeader className="pb-2">
+        <CardHeader className="p-4 pb-2 sm:p-6 sm:pb-2">
           <CardTitle className="flex items-center gap-2 text-sm">
             <TrendingUp className="h-4 w-4 text-primary" />
             Origem da variação na carteira
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
           {resumo.porItem.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {resumo.porItem.map((i) => (
                 <Badge
                   key={i.key}
                   variant="outline"
-                  className={cn("gap-1.5 py-1 font-normal", TONE_TEXT[toneOf(i.impacto, 0.5)])}
+                   className={cn("max-w-full flex-wrap gap-x-1.5 gap-y-0.5 py-1 font-normal", TONE_TEXT[toneOf(i.impacto, 0.5)])}
                 >
                   <span className="text-foreground">{i.label}</span>
                   <span className="tabular-nums font-semibold">
@@ -237,27 +237,27 @@ export default function Variacoes() {
 
       {/* Tornado */}
       <Card>
-        <CardHeader className="pb-1">
+        <CardHeader className="p-4 pb-1 sm:p-6 sm:pb-1">
           <CardTitle className="text-sm">Maiores variações do mês</CardTitle>
         </CardHeader>
-        <CardContent className="pt-1">
+        <CardContent className="p-4 pt-1 sm:p-6 sm:pt-1">
           <TornadoVariacoes lista={listaFiltrada} onSelect={setSelecionado} />
         </CardContent>
       </Card>
 
       {/* Ranking completo */}
       <Card>
-        <CardHeader className="flex-row items-center justify-between gap-2 space-y-0 pb-2">
+        <CardHeader className="gap-3 space-y-0 p-4 pb-2 sm:flex-row sm:items-center sm:justify-between sm:p-6 sm:pb-2">
           <CardTitle className="text-sm">Ranking por imóvel</CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="grid w-full grid-cols-1 gap-2 min-[390px]:grid-cols-2 sm:flex sm:w-auto sm:items-center">
             <Input
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               placeholder="Buscar imóvel…"
-              className="h-8 w-[180px] text-xs"
+              className="h-9 w-full min-w-0 text-xs sm:w-[180px]"
             />
             <Select value={String(limiar)} onValueChange={(v) => setLimiar(Number(v))}>
-              <SelectTrigger className="h-8 w-[150px] text-xs">
+              <SelectTrigger className="h-9 w-full min-w-0 text-xs sm:w-[150px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -269,7 +269,7 @@ export default function Variacoes() {
             </Select>
           </div>
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
           <TabelaVariacoes lista={listaFiltrada} onSelect={setSelecionado} />
         </CardContent>
       </Card>
@@ -301,7 +301,7 @@ function Kpi({
       onClick={onClick}
       disabled={!onClick}
       className={cn(
-        "rounded-xl border border-border bg-card px-3 py-2.5 text-left shadow-sm transition-colors",
+        "min-w-0 overflow-hidden rounded-lg border border-border bg-card px-3 py-2.5 text-left shadow-sm transition-colors",
         onClick && "hover:border-primary/40 hover:bg-secondary/50",
       )}
     >
@@ -309,14 +309,16 @@ function Kpi({
         <Icon className={cn("h-3 w-3", TONE_TEXT[tone])} />
         {label}
       </p>
-      <p className={cn("mt-0.5 truncate text-lg font-semibold tabular-nums", TONE_TEXT[tone])}>
+      <div className="mt-1 flex min-w-0 flex-col items-start gap-1 xl:flex-row xl:items-center">
+      <p className={cn("min-w-0 max-w-full truncate text-base font-semibold tabular-nums sm:text-lg", TONE_TEXT[tone])}>
         {value}
+      </p>
         {pct != null && Number.isFinite(pct) ? (
-          <span className="ml-1 align-middle">
+          <span className="max-w-full">
             <VariacaoBadge delta={pct} pct={pct} compact />
           </span>
         ) : null}
-      </p>
+      </div>
       <div className="truncate">{extra}</div>
     </button>
   );
