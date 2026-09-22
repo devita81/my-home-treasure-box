@@ -45,14 +45,14 @@ export function VariacaoBadge({ delta, pct, compact, className }: Props) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-semibold tabular-nums ring-1",
+        "inline-flex min-w-0 max-w-full items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-semibold tabular-nums ring-1",
         TONE_BG[tone],
         TONE_TEXT[tone],
         className,
       )}
     >
       <Icon className="h-3 w-3 shrink-0" />
-      {!compact ? <span>{sinal}{fmtBRL(Math.abs(delta)).replace("R$ ", "R$ ")}</span> : null}
+      {!compact ? <span className="truncate">{sinal}{fmtBRL(Math.abs(delta)).replace("R$ ", "R$ ")}</span> : null}
       {pct != null && Number.isFinite(pct) ? (
         <span className={cn(!compact && "opacity-70")}>
           {compact ? `${sinal}${Math.abs(pct).toFixed(1)}%` : `(${sinal}${Math.abs(pct).toFixed(1)}%)`}
