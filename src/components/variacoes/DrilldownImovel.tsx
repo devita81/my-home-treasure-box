@@ -129,6 +129,23 @@ export function DrilldownImovel({ variacao, onClose }: Props) {
                     </ResponsiveContainer>
                   </div>
 
+                  {isMobile ? (
+                    <div className="mt-3 divide-y divide-border border-y border-border">
+                      {itens.map((i) => (
+                        <div key={i.key} className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 py-2">
+                          <div className="min-w-0">
+                            <p className="truncate text-xs font-medium text-foreground">{i.label}</p>
+                            <p className="text-nano text-muted-foreground">
+                              {fmtBRL(i.base)} → {fmtBRL(i.atual)} · {i.lado}
+                            </p>
+                          </div>
+                          <p className={cn("self-center whitespace-nowrap text-xs font-semibold tabular-nums", TONE_TEXT[toneOf(i.impacto, 0.5)])}>
+                            {i.impacto > 0 ? "+" : "−"}{fmtBRL(Math.abs(i.impacto))}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
                   <div className="scroll-x-visible mt-2 overflow-x-auto">
                   <table className="w-full min-w-[430px] border-collapse text-xs">
                     <thead>
@@ -166,6 +183,7 @@ export function DrilldownImovel({ variacao, onClose }: Props) {
                     </tbody>
                   </table>
                   </div>
+                  )}
                 </>
               ) : (
                 <p className="py-4 text-xs text-muted-foreground">
@@ -241,7 +259,7 @@ function Metric({
 }) {
   return (
     <div className="rounded-lg border border-border bg-card px-3 py-2">
-      <p className="truncate text-nano font-medium uppercase tracking-wide text-muted-foreground">
+      <p className="min-h-[1.6rem] text-nano font-medium uppercase leading-tight text-muted-foreground sm:min-h-0 sm:truncate">
         {label}
       </p>
       <p className={cn("text-sm font-semibold tabular-nums text-foreground", className)}>{value}</p>
