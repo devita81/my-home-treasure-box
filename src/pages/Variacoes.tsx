@@ -50,6 +50,7 @@ export default function Variacoes() {
 
   const [ymAtual, setYmAtual] = useState<number | null>(null);
   const [base, setBase] = useState<BaseComparacao>("mes-anterior");
+  const [ymBaseEspecifico, setYmBaseEspecifico] = useState<number | null>(null);
   const [metrica, setMetrica] = useState<Metrica>("liquido");
   const [limiar, setLimiar] = useState<number>(0);
   const [busca, setBusca] = useState("");
@@ -74,13 +75,20 @@ export default function Variacoes() {
 
   // Default: mês mais recente disponível.
   useEffect(() => {
-    if (ymAtual === null && meses.length > 0) setYmAtual(meses[meses.length - 1]);
-  }, [meses, ymAtual]);
+    if (meses.length === 0) return;
+    if (ymAtual === null) setYmAtual(meses[meses.length - 1]);
+    if (ymBaseEspecifico === null) setYmBaseEspecifico(meses[Math.max(0, meses.length - 2)]);
+  }, [meses, ymAtual, ymBaseEspecifico]);
 
   const lista = useMemo(() => {
     if (ymAtual === null) return [];
-    return calcularVariacoes(series, { ymAtual, base, metrica });
-  }, [series, ymAtual, base, metrica]);
+    return calcularVariacoes(series, {
+      ymAtual,
+      base,
+      ymBase: base === "mes-especifico" ? ymBaseEspecifico ?? undefined : undefined,
+      metrica,
+    });
+  }, [series, ymAtual, base, ymBaseEspecifico, metrica]);
 
   const resumo = useMemo(() => resumirVariacoes(lista, limiar), [lista, limiar]);
 
@@ -101,7 +109,9 @@ export default function Variacoes() {
     );
   }
 
-  const baseLabel = ymAtual !== null ? rotuloBase(ymAtual, base) : "—";
+  const baseLabel = ymAtual !== null
+    ? rotuloBase(ymAtual, base, ymBaseEspecifico ?? undefined)
+    : "—";
   const atualLabel = ymAtual !== null ? ymLabelLongo(ymAtual) : "—";
   const maiorAlta = resumo.maiorAlta;
   const maiorQueda = resumo.maiorQueda;
@@ -121,39 +131,60 @@ export default function Variacoes() {
           </p>
         </div>
 
-        <div className="grid w-full grid-cols-2 gap-2 lg:flex lg:w-auto lg:flex-wrap lg:items-center">
-          <Select
-            value={ymAtual !== null ? String(ymAtual) : undefined}
-            onValueChange={(v) => setYmAtual(Number(v))}
-          >
-            <SelectTrigger className="h-9 w-full min-w-0 text-xs lg:w-[130px]">
-              <SelectValue placeholder="Mês" />
-            </SelectTrigger>
-            <SelectContent>
-              {[...meses].reverse().map((m) => (
-                <SelectItem key={m} value={String(m)} className="text-xs">
-                  {ymLabelLongo(m)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="grid w-full grid-cols-2 gap-2 lg:flex lg:w-auto lg:flex-wrap lg:items-end">
+          <div className="min-w-0 space-y-1">
+            <span className="block pl-1 text-nano font-semibold uppercase text-muted-foreground">Mês analisado</span>
+            <Select
+              value={ymAtual !== null ? String(ymAtual) : undefined}
+              onValueChange={(v) => setYmAtual(Number(v))}
+            >
+              <SelectTrigger className="h-10 w-full min-w-0 border-input bg-card text-xs shadow-md ring-1 ring-border/40 transition-shadow hover:shadow-lg lg:w-[140px]">
+                <SelectValue placeholder="Mês" />
+              </SelectTrigger>
+              <SelectContent>
+                {[...meses].reverse().map((m) => (
+                  <SelectItem key={m} value={String(m)} className="text-xs">
+                    {ymLabelLongo(m)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-          <Select value={base} onValueChange={(v) => setBase(v as BaseComparacao)}>
-            <SelectTrigger className="h-9 w-full min-w-0 text-xs lg:w-[170px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="mes-anterior" className="text-xs">vs. mês anterior</SelectItem>
-              <SelectItem value="ano-anterior" className="text-xs">vs. mesmo mês do ano anterior</SelectItem>
-              <SelectItem value="media-3m" className="text-xs">vs. média dos 3 meses</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="min-w-0 space-y-1">
+            <span className="block pl-1 text-nano font-semibold uppercase text-muted-foreground">Comparar com</span>
+            <Select
+              value={base === "mes-especifico" ? `mes:${ymBaseEspecifico}` : base}
+              onValueChange={(v) => {
+                if (v.startsWith("mes:")) {
+                  setYmBaseEspecifico(Number(v.slice(4)));
+                  setBase("mes-especifico");
+                  return;
+                }
+                setBase(v as BaseComparacao);
+              }}
+            >
+              <SelectTrigger className="h-10 w-full min-w-0 border-input bg-card text-xs shadow-md ring-1 ring-border/40 transition-shadow hover:shadow-lg lg:w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="mes-anterior" className="text-xs">vs. mês anterior</SelectItem>
+                <SelectItem value="ano-anterior" className="text-xs">vs. mesmo mês do ano anterior</SelectItem>
+                <SelectItem value="media-3m" className="text-xs">vs. média dos 3 meses</SelectItem>
+                {[...meses].reverse().filter((m) => m !== ymAtual).map((m) => (
+                  <SelectItem key={m} value={`mes:${m}`} className="text-xs">
+                    vs. {ymLabelLongo(m)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           <Tabs className="col-span-2 w-full lg:w-auto" value={metrica} onValueChange={(v) => setMetrica(v as Metrica)}>
-            <TabsList className="grid h-9 w-full grid-cols-3 lg:flex lg:w-auto">
-              <TabsTrigger value="liquido" className="h-7 min-w-0 px-2 text-xs">Líquido</TabsTrigger>
-              <TabsTrigger value="receita" className="h-7 min-w-0 px-2 text-xs">Receitas</TabsTrigger>
-              <TabsTrigger value="despesa" className="h-7 min-w-0 px-2 text-xs">Despesas</TabsTrigger>
+            <TabsList className="grid h-10 w-full grid-cols-3 border border-border bg-card p-1 shadow-md lg:flex lg:w-auto">
+              <TabsTrigger value="liquido" className="h-8 min-w-0 px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm">Líquido</TabsTrigger>
+              <TabsTrigger value="receita" className="h-8 min-w-0 px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm">Receitas</TabsTrigger>
+              <TabsTrigger value="despesa" className="h-8 min-w-0 px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm">Despesas</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
