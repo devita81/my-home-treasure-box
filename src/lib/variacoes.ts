@@ -21,7 +21,7 @@ export type ItemKey =
   | "outras";
 
 export type Metrica = "liquido" | "receita" | "despesa";
-export type BaseComparacao = "mes-anterior" | "ano-anterior" | "media-3m";
+export type BaseComparacao = "mes-anterior" | "ano-anterior" | "media-3m" | "mes-especifico";
 
 export const ITENS: Array<{ key: ItemKey; label: string; lado: "receita" | "despesa" }> = [
   { key: "aluguel", label: "Aluguel", lado: "receita" },
@@ -205,18 +205,21 @@ function mediaAnterior(serie: ImovelSerie, ym: number, n: number): MesAgregado |
   return acc;
 }
 
-export function baseYmPara(ymAtual: number, base: BaseComparacao): number {
+export function baseYmPara(ymAtual: number, base: BaseComparacao, ymBase?: number): number {
+  if (base === "mes-especifico" && ymBase !== undefined) return ymBase;
   return base === "ano-anterior" ? ymAtual - 12 : ymAtual - 1;
 }
 
-export function rotuloBase(ymAtual: number, base: BaseComparacao): string {
+export function rotuloBase(ymAtual: number, base: BaseComparacao, ymBase?: number): string {
+  if (base === "mes-especifico" && ymBase !== undefined) return ymLabel(ymBase);
   if (base === "media-3m") return "Média 3 meses";
-  return ymLabel(baseYmPara(ymAtual, base));
+  return ymLabel(baseYmPara(ymAtual, base, ymBase));
 }
 
 export interface CalcularOpcoes {
   ymAtual: number;
   base: BaseComparacao;
+  ymBase?: number;
   metrica: Metrica;
 }
 
@@ -226,11 +229,11 @@ export interface CalcularOpcoes {
  */
 export function calcularVariacoes(
   series: ImovelSerie[],
-  { ymAtual, base, metrica }: CalcularOpcoes,
+  { ymAtual, base, ymBase: ymBaseEspecifico, metrica }: CalcularOpcoes,
 ): VariacaoImovel[] {
-  const ymBase = baseYmPara(ymAtual, base);
+  const ymBase = baseYmPara(ymAtual, base, ymBaseEspecifico);
   const atualLabel = ymLabel(ymAtual);
-  const baseLabel = rotuloBase(ymAtual, base);
+  const baseLabel = rotuloBase(ymAtual, base, ymBaseEspecifico);
 
   const out: VariacaoImovel[] = [];
 
