@@ -10,7 +10,7 @@ interface PropertyContextType {
   filters: PropertyFilters;
   loading: boolean;
   setFilters: (filters: PropertyFilters) => void;
-  addProperty: (property: PropertyFormData) => Promise<void>;
+  addProperty: (property: PropertyFormData) => Promise<string>;
   updateProperty: (id: string, property: Partial<Property>) => Promise<void>;
   deleteProperty: (id: string) => Promise<void>;
   duplicateProperty: (id: string) => Promise<string | null>;
@@ -85,6 +85,7 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
 
       setProperties((prev) => [data as Property, ...prev]);
+      return data.id;
     } catch (error: unknown) {
       logger.error('Error adding property:', error);
       throw error;

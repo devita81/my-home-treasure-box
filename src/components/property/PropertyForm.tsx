@@ -21,6 +21,8 @@ import { PropertyMediaUpload } from './PropertyMediaUpload';
 import { MapPinPicker } from './MapPinPicker';
 import { AddressAutocompleteInput } from '@/components/ui/address-autocomplete-input';
 import { MatriculaImport } from './MatriculaImport';
+import { prepareMatriculaAttachments, attachMatriculaDocuments } from '@/lib/matricula-attachment';
+import { saveWithDocuments } from '@/lib/property-save-with-documents';
 
 // Validation schema for property form
 const propertySchema = z.object({
@@ -181,6 +183,9 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
   }, [draftKey, formData, mode, property?.id]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [matriculaSources, setMatriculaSources] = useState<File[]>([]);
+  const savedPropertyId = useRef<string | null>(null);
+  const [attachmentError, setAttachmentError] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -203,8 +208,17 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
     setIsSubmitting(true);
     try {
       if (mode === 'add') {
-        await addProperty(validatedData as PropertyFormData);
-        toast.success('Imóvel adicionado com sucesso!');
+        const documents = matriculaSources.length ? await prepareMatriculaAttachments(matriculaSources) : [];
+        await saveWithDocuments({
+          existingId: savedPropertyId.current,
+          values: validatedData as PropertyFormData,
+          create: addProperty,
+          update: updateProperty,
+          rememberId: id => { savedPropertyId.current = id; },
+          attach: id => documents.length ? attachMatriculaDocuments(id, documents) : Promise.resolve(),
+        });
+        setAttachmentError(false);
+        toast.success(documents.length ? 'Imóvel salvo com a matrícula anexada!' : 'Imóvel adicionado com sucesso!');
       } else if (property) {
         await updateProperty(property.id, validatedData as PropertyFormData);
         toast.success('Imóvel atualizado com sucesso!');
@@ -214,7 +228,10 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
       navigate('/');
     } catch (error: unknown) {
       logger.error('Error saving property:', error);
-      toast.error('Erro ao salvar. Tente novamente.');
+      if (savedPropertyId.current) {
+        setAttachmentError(true);
+        toast.error('O imóvel foi salvo, mas o anexo falhou. Tente novamente para concluir sem duplicar o imóvel.');
+      } else toast.error('Erro ao salvar. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -229,7 +246,9 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="min-w-0 space-y-6 overflow-x-hidden">
-      {mode === 'add' && <MatriculaImport disabled={isSubmitting} onApply={(patch) => setFormData(previous => ({ ...previous, ...patch }))} />}
+      {mode === 'add' && <MatriculaImport disabled={isSubmitting} onApply={(patch, files) => { setFormData(previous => ({ ...previous, ...patch })); setMatriculaSources(files); }} />}
+      {matriculaSources.length > 0 && <p className="text-xs text-muted-foreground">A matrícula será anexada ao salvar. As fotos das páginas serão reunidas em PDF.</p>}
+      {attachmentError && <p role="alert" className="text-xs text-destructive">Imóvel já salvo. Confirme novamente para concluir o anexo, sem criar outro cadastro.</p>}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Button type="button" variant="ghost" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -244,7 +263,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
           {isSubmitting
             ? 'Salvando...'
             : mode === 'add'
-              ? 'Adicionar Imóvel'
+              ? attachmentError ? 'Concluir anexo da matrícula' : 'Adicionar Imóvel'
               : 'Salvar Alterações'}
         </Button>
       </div>

@@ -9,7 +9,7 @@ import { matriculaFields, selectedMatriculaPatch, validateExtraction, type Matri
 import type { PropertyFormData } from '@/types/property';
 import { fmtBRL, maskName } from '@/lib/format';
 
-interface Props { onApply: (patch: Partial<PropertyFormData>) => void; disabled?: boolean }
+interface Props { onApply: (patch: Partial<PropertyFormData>, files: File[]) => void; disabled?: boolean }
 export function MatriculaImport({ onApply, disabled }: Props) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
@@ -42,7 +42,7 @@ export function MatriculaImport({ onApply, disabled }: Props) {
   }
   function apply() {
     if (!result) return;
-    onApply(selectedMatriculaPatch(result, selected) as Partial<PropertyFormData>);
+    onApply(selectedMatriculaPatch(result, selected) as Partial<PropertyFormData>, [...files]);
     setConfirm(false); setApplied(true); setOpen(false);
   }
   return (
