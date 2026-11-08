@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
-import { FileText, Upload, Trash2, Eye, Loader2, Download, ExternalLink } from 'lucide-react';
+import { FileText, Upload, Trash2, Eye, Loader2, Download, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { PdfCanvasViewer } from './PdfCanvasViewer';
 import { deliverPdfBlob, isMobileBrowser, sharePreparedPdf } from '@/lib/pdf-delivery';
+import { loadPrivateDocument } from '@/lib/private-document-loader';
 
 interface PropertyDocument {
   id: string;
@@ -32,7 +33,6 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
-  const [pdfFileUrl, setPdfFileUrl] = useState<string | null>(null);
   const [pdfFileData, setPdfFileData] = useState<ArrayBuffer | null>(null);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [viewingFileName, setViewingFileName] = useState<string>('');
@@ -44,6 +44,13 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
 
   useEffect(() => {
     fetchDocuments();
+    const refresh = () => { if (document.visibilityState === 'visible') void fetchDocuments(); };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
   }, [propertyId]);
 
   useEffect(() => {
@@ -60,7 +67,6 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
     }
 
     pdfFileUrlRef.current = nextUrl;
-    setPdfFileUrl(nextUrl);
   };
 
   const getDownloadFileName = (fileName: string) => {
@@ -84,6 +90,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
 
       if (error) throw error;
       setDocuments(data || []);
+      return data || [];
     } catch (error) {
       logger.error('Error fetching documents:', error);
       toast.error('Erro ao carregar documentos');
@@ -162,14 +169,11 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
   };
 
   const loadDocumentFile = async (doc: PropertyDocument) => {
-    const { data, error } = await supabase.storage
-      .from('property-documents')
-      .download(doc.file_path);
-
-    if (error) {
-      throw error;
-    }
-
+    const bucket = supabase.storage.from('property-documents');
+    const data = await loadPrivateDocument({
+      download: () => bucket.download(doc.file_path),
+      createSignedUrl: () => bucket.createSignedUrl(doc.file_path, 60),
+    });
     return {
       fileBlob: data,
       fileUrl: URL.createObjectURL(data),
@@ -188,7 +192,13 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
     setIsLoadingPdf(true);
 
     try {
-      const { fileBlob, fileUrl, fileData } = await loadDocumentFile(doc);
+      const latest = await fetchDocuments();
+      const replacements = latest?.filter(item => item.file_name === doc.file_name && item.document_type === doc.document_type);
+      const currentDoc = latest?.find(item => item.id === doc.id) ?? (replacements?.length === 1 ? replacements[0] : undefined) ?? doc;
+      if (viewRequestIdRef.current !== requestId) return;
+      setViewingDoc(currentDoc);
+      setViewingFileName(currentDoc.file_name);
+      const { fileBlob, fileUrl, fileData } = await loadDocumentFile(currentDoc);
 
       if (viewRequestIdRef.current !== requestId) {
         URL.revokeObjectURL(fileUrl);
@@ -202,9 +212,6 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
       logger.error('Error viewing document:', error);
       toast.error('Erro ao abrir documento');
 
-      if (viewRequestIdRef.current === requestId) {
-        closePdfViewer();
-      }
     } finally {
       if (viewRequestIdRef.current === requestId) {
         setIsLoadingPdf(false);
@@ -240,50 +247,13 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
         return;
       }
 
-      const { data, error } = await supabase.storage
-        .from('property-documents')
-        .download(doc.file_path);
-
-      if (error) throw error;
-
+      const { fileBlob: data, fileUrl } = await loadDocumentFile(doc);
+      URL.revokeObjectURL(fileUrl);
       const result = await deliverPdfBlob(data, getDownloadFileName(doc.file_name));
       if (result === 'cancelled') return;
     } catch (error) {
       logger.error('Error downloading document:', error);
       toast.error('Erro ao baixar documento');
-    }
-  };
-
-  const handleOpenInNewTab = async () => {
-    try {
-      if (isMobileBrowser() && viewingDoc) {
-        if (pdfBlob) {
-          const result = await sharePreparedPdf(pdfBlob, getDownloadFileName(viewingDoc.file_name));
-          if (result === 'cancelled') return;
-          return;
-        }
-
-        await handleDownload(viewingDoc);
-        return;
-      }
-
-      if (pdfFileUrl) {
-        window.open(pdfFileUrl, '_blank', 'noopener,noreferrer');
-        return;
-      }
-
-      if (!viewingDoc) {
-        return;
-      }
-
-      const { fileBlob, fileUrl, fileData } = await loadDocumentFile(viewingDoc);
-      replacePdfFileUrl(fileUrl);
-      setPdfBlob((current) => current ?? fileBlob);
-      setPdfFileData((current) => current ?? fileData);
-      window.open(fileUrl, '_blank', 'noopener,noreferrer');
-    } catch (error) {
-      logger.error('Error opening document in new tab:', error);
-      toast.error('Erro ao abrir documento em nova aba');
     }
   };
 
@@ -430,7 +400,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
       </CardContent>
 
       <Dialog open={pdfViewerOpen} onOpenChange={(open) => !open && closePdfViewer()}>
-        <DialogContent className="max-w-5xl w-[95vw] h-[90vh] p-0 flex flex-col">
+        <DialogContent aria-describedby={undefined} className="max-w-5xl w-[95vw] h-[90dvh] p-0 flex flex-col">
           <DialogHeader className="p-4 border-b flex-shrink-0">
             <DialogTitle className="flex items-center justify-between gap-3 pr-8">
               <div className="flex items-center gap-2 truncate">
@@ -454,7 +424,7 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
               </div>
             </DialogTitle>
           </DialogHeader>
-          <div className="flex-1 overflow-hidden bg-muted relative">
+          <div className="min-h-0 flex-1 overflow-hidden bg-muted relative">
             {isLoadingPdf ? (
               <div className="flex items-center justify-center h-full">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -469,9 +439,9 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
                 </p>
                 {viewingDoc && (
                   <div className="flex gap-2">
-                    <Button onClick={handleOpenInNewTab} variant="outline" className="gap-2">
-                      <ExternalLink className="h-4 w-4" />
-                      {isMobileBrowser() ? 'Compartilhar PDF' : 'Nova aba'}
+                    <Button onClick={() => handleView(viewingDoc)} variant="outline" className="gap-2">
+                      <RefreshCw className="h-4 w-4" />
+                      Tentar novamente
                     </Button>
                     <Button onClick={() => handleDownload(viewingDoc)} className="gap-2">
                       <Download className="h-4 w-4" />
@@ -481,9 +451,6 @@ export function DocumentUpload({ propertyId, mode = 'edit' }: DocumentUploadProp
                 )}
               </div>
             )}
-          </div>
-          <div className="border-t p-3 text-sm text-muted-foreground text-center">
-            A matrícula é renderizada dentro do aplicativo. Se preferir, abra em nova aba ou baixe o PDF.
           </div>
         </DialogContent>
       </Dialog>

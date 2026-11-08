@@ -50,7 +50,8 @@ export function PdfCanvasViewer({ fileData, fileName }: PdfCanvasViewerProps) {
       setIsRendering(true);
 
       try {
-        const loadingTask = getDocument({ data: new Uint8Array(fileData) });
+        // PDF.js transfers its input to a worker; preserve React's buffer for reopen/retry.
+        const loadingTask = getDocument({ data: new Uint8Array(fileData.slice(0)) });
         const pdf = await loadingTask.promise;
         const nextUrls: string[] = [];
 

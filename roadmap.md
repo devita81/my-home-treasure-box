@@ -4,3 +4,5 @@
 - [x] Validar exemplo real e enquadramento mobile/desktop.
 - [x] Anexar documentos de origem após salvar, com recuperação sem duplicar imóvel.
 - [x] Recuperar matrícula do imóvel já salvo e verificar visualização privada.
+- [x] Corrigir abertura resiliente da matrícula e atualizar anexos substituídos sem manter duplicatas antigas na tela.
+- [x] Validar abertura das oito páginas no desktop e celular e download no desktop.
