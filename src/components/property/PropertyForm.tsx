@@ -20,6 +20,7 @@ import { DocumentUpload } from './DocumentUpload';
 import { PropertyMediaUpload } from './PropertyMediaUpload';
 import { MapPinPicker } from './MapPinPicker';
 import { AddressAutocompleteInput } from '@/components/ui/address-autocomplete-input';
+import { MatriculaImport } from './MatriculaImport';
 
 // Validation schema for property form
 const propertySchema = z.object({
@@ -228,6 +229,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="min-w-0 space-y-6 overflow-x-hidden">
+      {mode === 'add' && <MatriculaImport disabled={isSubmitting} onApply={(patch) => setFormData(previous => ({ ...previous, ...patch }))} />}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Button type="button" variant="ghost" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
